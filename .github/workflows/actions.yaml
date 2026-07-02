@@ -51,7 +51,10 @@ jobs:
 
   # Always runs: the build is the only check that validates content against
   # the zod schemas in src/content.config.ts, so it must run for CMS commits.
+  # Gated on `check` so a broken lint/format/type-check fails fast without
+  # spending a full astro build on doomed code.
   build:
+    needs: check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -70,7 +73,7 @@ jobs:
           fi
 
   test:
-    needs: changes
+    needs: [changes, check]
     if: needs.changes.outputs.content-only != 'true'
     runs-on: ubuntu-latest
     permissions:
@@ -92,7 +95,11 @@ jobs:
           fail_ci_if_error: false
 
   e2e:
-    needs: changes
+    # Gated on `build` (not just `check`) since this job rebuilds the site
+    # itself (playwright.config.ts's webServer runs `npm run build && npm
+    # run preview`) — no point installing browsers for a build we already
+    # know is broken.
+    needs: [changes, build]
     if: needs.changes.outputs.content-only != 'true'
     runs-on: ubuntu-latest
     steps:
@@ -117,7 +124,9 @@ jobs:
           CI: true
 
   lighthouse:
-    needs: changes
+    # Gated on `build` since `npm run lighthouse` (`npm run build && lhci
+    # autorun`) rebuilds the site itself — avoid a duplicate wasted build.
+    needs: [changes, build]
     if: needs.changes.outputs.content-only != 'true'
     runs-on: ubuntu-latest
     steps:
@@ -131,3 +140,33 @@ jobs:
       # Builds the site, serves it via `astro preview` (startServerCommand in
       # .lighthouserc.json), and asserts a11y/best-practices/SEO >= 0.9.
       - run: npm run lighthouse
+
+  # Sveltia CMS commits directly to main with no PR, so a broken CMS edit
+  # (e.g. content that fails the zod schema in src/content.config.ts) has no
+  # reviewer to surface a failing check to. Open an issue so it doesn't sit
+  # unnoticed — Cloudflare Pages keeps serving the last good deploy, but the
+  # new content won't go live until this is fixed.
+  notify-on-failure:
+    needs: [changes, check, build, test, e2e, lighthouse]
+    if: always() && github.event_name == 'push' && contains(needs.*.result, 'failure')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/github-script@v8
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `CI failed on main: ${context.sha.slice(0, 7)}`,
+              body: [
+                'A push to `main` failed CI — likely a CMS edit that broke `astro build`\'s content validation.',
+                '',
+                `Commit: ${context.sha}`,
+                `Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+                '',
+                'Cloudflare Pages keeps serving the last successful deploy, so the live site is unaffected for now — but this content will not go live until the underlying issue is fixed.',
+              ].join('\n'),
+            });
