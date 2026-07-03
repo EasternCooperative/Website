@@ -427,6 +427,25 @@ async function runJsonMergeMode(jsonFiles) {
     }
   }
 
+  // Reuse lat/lng already geocoded in a previous run (persisted in the output
+  // file) before falling back to Nominatim — avoids re-geocoding on every
+  // build when the input hasn't meaningfully changed.
+  if (fs.existsSync(outputFile)) {
+    const previous = JSON.parse(fs.readFileSync(outputFile, 'utf8'));
+    const cache = new Map(
+      (Array.isArray(previous.cities) ? previous.cities : []).map((c) => [`${c.name}|${c.country}`, c])
+    );
+    for (const city of merged.values()) {
+      if (city.lat === null) {
+        const cached = cache.get(`${city.name}|${city.country}`);
+        if (cached && cached.lat !== null) {
+          city.lat = cached.lat;
+          city.lng = cached.lng;
+        }
+      }
+    }
+  }
+
   // Geocode any cities still missing lat/lng via Nominatim
   const needsGeocode = Array.from(merged.values()).filter((c) => c.lat === null);
   if (needsGeocode.length > 0) {
