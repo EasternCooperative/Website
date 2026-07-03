@@ -3,8 +3,10 @@ import Content from '~/components/widgets/Content.astro';
 import Features2 from '~/components/widgets/Features2.astro';
 import CallToAction from '~/components/widgets/CallToAction.astro';
 import HeroText from '~/components/widgets/HeroText.astro';
+import MemberHeatmap from '~/components/widgets/MemberHeatmap';
 import Layout from '~/layouts/PageLayout.astro';
 import aboutSettings from '~/data/settings/about.json';
+import memberLocations from '~/data/member-locations.json';
 
 const metadata = {
   title: aboutSettings.heroTitle,
@@ -21,6 +23,16 @@ const metadata = {
   </Content>
 
   <Features2 title="" columns={2} items={aboutSettings.pillars} />
+
+  <HeroText
+    tagline="Our Community"
+    title="ECRS Members Across the Map"
+    subtitle="Our members come from all over North America. Wherever you live, you belong here."
+  />
+
+  <section class="py-8 px-4 max-w-4xl mx-auto">
+    <MemberHeatmap cities={memberLocations.cities} maskSmallCounts client:load />
+  </section>
 
   <CallToAction
     title={aboutSettings.ctaTitle}
