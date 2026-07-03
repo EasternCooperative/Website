@@ -14,7 +14,7 @@ pillars:
     classes:
       icon: 'bg-[#f48612]'
   - title: 'Build Community'
-    description: 'Develop leadership and build community for the whole family through play and the arts.'
+    description: 'Fun-filled events that build lasting friendships across generations, backgrounds, and geographies. Welcoming folks of all ages for more than 85 years.'
     icon: 'tabler:heart-handshake'
     classes:
       icon: 'bg-[#01aced]'
@@ -23,11 +23,6 @@ pillars:
     icon: 'tabler:music'
     classes:
       icon: 'bg-[#41b03b]'
-  - title: 'Intergenerational'
-    description: 'Fun-filled events for folks of all ages — building community across generations for more than 85 years.'
-    icon: 'tabler:users-group'
-    classes:
-      icon: 'bg-[#01aced]'
 whatToExpectTitle: 'What to Expect'
 whatToExpectSubtitle: 'Events range from single days to a five-day Winter Adventure, and the shape of the day is always the same.'
 whatToExpectItems:
