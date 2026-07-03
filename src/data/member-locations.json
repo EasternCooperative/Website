@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-02T06:12:48.320Z",
+  "generatedAt": "2026-07-03T02:30:55.399Z",
   "cities": [
     {
       "name": "Philadelphia, PA",
@@ -186,6 +186,14 @@
       "count": 2
     },
     {
+      "name": "Bronx, NY",
+      "country": "US",
+      "state": "NY",
+      "lat": 40.8466508,
+      "lng": -73.8785937,
+      "count": 2
+    },
+    {
       "name": "Rydal, PA",
       "country": "US",
       "state": "PA",
@@ -322,11 +330,11 @@
       "count": 1
     },
     {
-      "name": "Irvingotn, NY",
+      "name": "Irvington, NY",
       "country": "US",
       "state": "NY",
-      "lat": null,
-      "lng": null,
+      "lat": 41.0398662,
+      "lng": -73.872717,
       "count": 1
     },
     {
@@ -570,14 +578,6 @@
       "count": 1
     },
     {
-      "name": "Bronxx, NY",
-      "country": "US",
-      "state": "NY",
-      "lat": null,
-      "lng": null,
-      "count": 1
-    },
-    {
       "name": "Pikesville, MD",
       "country": "US",
       "state": "MD",
@@ -591,14 +591,6 @@
       "state": "NJ",
       "lat": 40.5742696,
       "lng": -74.60988,
-      "count": 1
-    },
-    {
-      "name": "Bronx, NY",
-      "country": "US",
-      "state": "NY",
-      "lat": 40.8466508,
-      "lng": -73.8785937,
       "count": 1
     },
     {
