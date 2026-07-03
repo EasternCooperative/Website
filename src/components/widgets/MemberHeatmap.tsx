@@ -170,7 +170,8 @@ export default function MemberHeatmap({ cities, activeSite, maskSmallCounts = fa
                           label = `${geo.properties.name}: no attendees within ${activeSite.maxMiles} mi`;
                         }
                       } else if (count > 0) {
-                        label = `${geo.properties.name}: ${maskSmallCounts && count < 5 ? '<5' : count} attendee${count !== 1 ? 's' : ''}`;
+                        const masked = maskSmallCounts && count < 5;
+                        label = `${geo.properties.name}: ${masked ? '<5' : count} attendee${masked || count !== 1 ? 's' : ''}`;
                       } else {
                         label = geo.properties.name;
                       }
