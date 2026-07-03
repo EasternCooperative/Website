@@ -28,7 +28,7 @@ src/
   components/
     common/        # Shared: Image, Metadata, Analytics, ToggleTheme
     ui/            # Primitives: Button, Headline, WidgetWrapper, ItemGrid
-    widgets/       # Page sections: Hero, Features, Header, Footer, CognitoForm
+    widgets/       # Page sections: HeroText, VideoHero, Header, Footer, CognitoForm
     schedule/      # React schedule-generator island
     CustomStyles.astro  # CSS variables for colors and fonts
   content.config.ts    # Content Collections schema (zod — validates CMS content)

@@ -8,8 +8,8 @@ import VideoHero from '~/components/widgets/VideoHero.astro';
 import Features from '~/components/widgets/Features.astro';
 import Testimonials from '~/components/widgets/Testimonials.astro';
 import Content from '~/components/widgets/Content.astro';
-import Image from '~/components/common/Image.astro';
 import Stats from '~/components/widgets/Stats.astro';
+import EventCard from '~/components/widgets/EventCard.astro';
 import CallToAction from '~/components/widgets/CallToAction.astro';
 import { formatEventDateRange } from '~/utils/dates';
 
@@ -216,37 +216,16 @@ const metadata = {
             const v = resolveVenue(event.data, event.data.siteId ? siteMap.get(event.data.siteId) : undefined);
             return (
               <li>
-                <a
+                <EventCard
+                  title={event.data.title}
+                  date={formatEventDateRange(event.data.date, event.data.endDate)}
+                  location={v.location}
                   href={`/events/${event.id}`}
-                  class="group flex flex-col h-full rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg hover:border-primary/40 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                >
-                  {v.image && (
-                    <Image
-                      src={v.image}
-                      alt=""
-                      width={600}
-                      height={300}
-                      widths={[400, 600, 800]}
-                      sizes="(max-width: 768px) 100vw, 400px"
-                      layout="cover"
-                      class="w-full h-44 object-cover"
-                      loading="lazy"
-                    />
-                  )}
-                  <div class="flex flex-col flex-1 p-5">
-                    <p class="text-xs font-bold uppercase tracking-widest text-primary mb-1">
-                      {formatEventDateRange(event.data.date, event.data.endDate)}
-                    </p>
-                    <h3 class="font-heading text-xl font-bold text-heading group-hover:text-primary transition-colors">
-                      {event.data.title}
-                    </h3>
-                    <p class="text-sm text-muted mt-1 mb-3">{v.location}</p>
-                    {event.data.excerpt && <p class="text-sm text-default line-clamp-3 flex-1">{event.data.excerpt}</p>}
-                    <span class="mt-4 text-sm font-semibold text-primary group-hover:underline">
-                      {event.data.registrationUrl || event.data.cognitoFormId ? 'Register Now →' : 'Learn More →'}
-                    </span>
-                  </div>
-                </a>
+                  image={v.image}
+                  excerpt={event.data.excerpt}
+                  hasRegistration={!!(event.data.registrationUrl || event.data.cognitoFormId)}
+                  variant="upcoming"
+                />
               </li>
             );
           })}

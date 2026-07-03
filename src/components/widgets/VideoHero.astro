@@ -517,40 +517,75 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
 
     const target = new Date(el.dataset.countdown!).getTime();
 
-    function unit(value: number | string, label: string) {
-      return `<div class="text-center">
-        <span class="font-mono text-3xl font-bold text-white leading-none">${value}</span>
-        <span class="block text-xs text-white/70 uppercase tracking-widest mt-1">${label}</span>
-      </div>`;
+    // Cache the value <span>s so a normal tick only touches text nodes.
+    // A full rebuild only happens when the set of labels changes (e.g. "days/hrs" → "hrs/min/sec").
+    let currentLabels: string[] | null = null;
+    let valueEls: HTMLElement[] = [];
+
+    function unit(label: string) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'text-center';
+      const value = document.createElement('span');
+      value.className = 'font-mono text-3xl font-bold text-white leading-none';
+      const labelEl = document.createElement('span');
+      labelEl.className = 'block text-xs text-white/70 uppercase tracking-widest mt-1';
+      labelEl.textContent = label;
+      wrapper.append(value, labelEl);
+      return { wrapper, value };
     }
 
-    function render(diff: number) {
+    function computeUnits(diff: number): { value: string; label: string }[] {
       const totalDays = Math.floor(diff / 86_400_000);
       const hours = Math.floor((diff % 86_400_000) / 3_600_000);
       const minutes = Math.floor((diff % 3_600_000) / 60_000);
       const seconds = Math.floor((diff % 60_000) / 1_000);
 
-      let units: string[];
-
       if (totalDays >= 365) {
         const years = Math.floor(totalDays / 365);
         const months = Math.floor((totalDays % 365) / 30);
-        units = [unit(years, years === 1 ? 'year' : 'years'), unit(months, 'mo')];
+        return [
+          { value: String(years), label: years === 1 ? 'year' : 'years' },
+          { value: String(months), label: 'mo' },
+        ];
       } else if (totalDays >= 30) {
         const months = Math.floor(totalDays / 30);
         const days = totalDays % 30;
-        units = [unit(months, months === 1 ? 'month' : 'months'), unit(days, 'days')];
+        return [
+          { value: String(months), label: months === 1 ? 'month' : 'months' },
+          { value: String(days), label: 'days' },
+        ];
       } else if (totalDays >= 1) {
-        units = [unit(totalDays, totalDays === 1 ? 'day' : 'days'), unit(hours, 'hrs')];
-      } else {
-        units = [
-          unit(String(hours).padStart(2, '0'), 'hrs'),
-          unit(String(minutes).padStart(2, '0'), 'min'),
-          unit(String(seconds).padStart(2, '0'), 'sec'),
+        return [
+          { value: String(totalDays), label: totalDays === 1 ? 'day' : 'days' },
+          { value: String(hours), label: 'hrs' },
         ];
       }
+      return [
+        { value: String(hours).padStart(2, '0'), label: 'hrs' },
+        { value: String(minutes).padStart(2, '0'), label: 'min' },
+        { value: String(seconds).padStart(2, '0'), label: 'sec' },
+      ];
+    }
 
-      el!.innerHTML = `<div class="flex gap-4 items-start">${units.join('')}</div>`;
+    function render(diff: number) {
+      const units = computeUnits(diff);
+      const labels = units.map((u) => u.label);
+
+      if (!currentLabels || labels.join() !== currentLabels.join()) {
+        const row = document.createElement('div');
+        row.className = 'flex gap-4 items-start';
+        valueEls = units.map(({ label }) => {
+          const { wrapper, value } = unit(label);
+          row.append(wrapper);
+          return value;
+        });
+        el!.replaceChildren(row);
+        currentLabels = labels;
+      }
+
+      units.forEach(({ value }, i) => {
+        if (valueEls[i].textContent !== value) valueEls[i].textContent = value;
+      });
     }
 
     function tick() {
