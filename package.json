@@ -48,7 +48,7 @@
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "unpic": "^4.2.2",
-    "xlsx": "^0.18.5",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "zipcodes": "^8.0.0"
   },
   "devDependencies": {
@@ -87,7 +87,15 @@
   },
   "overrides": {
     "yaml": ">=2.8.3",
-    "vite": "^7"
+    "vite": "^7",
+    "esbuild": ">=0.28.1",
+    "uuid": ">=11.1.1",
+    "tmp": ">=0.2.6",
+    "@lhci/cli": {
+      "@lhci/utils": {
+        "js-yaml": ">=3.15.0"
+      }
+    }
   },
   "allowScripts": {
     "lefthook@2.1.9": true
