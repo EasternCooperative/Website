@@ -1,6 +1,6 @@
 # ECRS Website
 
-[![CI](https://github.com/isaac-ecrs/Website/actions/workflows/actions.yaml/badge.svg?branch=main)](https://github.com/isaac-ecrs/Website/actions/workflows/actions.yaml)
+[![CI](https://github.com/EasternCooperative/Website/actions/workflows/actions.yaml/badge.svg?branch=main)](https://github.com/EasternCooperative/Website/actions/workflows/actions.yaml)
 [![Coverage](https://codecov.io/gh/EasternCooperative/Website/graph/badge.svg)](https://codecov.io/gh/EasternCooperative/Website)
 [![Deployed on Cloudflare Pages](https://img.shields.io/badge/deployed-Cloudflare%20Pages-F38020?logo=cloudflare&logoColor=white)](https://ecrs.org)
 

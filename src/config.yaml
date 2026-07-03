@@ -32,7 +32,7 @@ i18n:
 analytics:
   vendors:
     googleAnalytics:
-      id: 'G-TCB6NZEM0R' # GA4 — gated by geo-targeted consent banner (CA/EU/UK only)
+      id: 'G-TCB6NZEM0R' # GA4 — gated by geo-targeted consent banner (everywhere except US)
     cloudflareWebAnalytics:
       # Cloudflare Web Analytics (RUM): page views + Core Web Vitals, cookieless.
       # Public beacon token (safe to commit). Site: website-alc.pages.dev → ecrs.org.
