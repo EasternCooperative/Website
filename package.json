@@ -65,7 +65,7 @@
     "@types/js-yaml": "^4.0.9",
     "@types/lodash.merge": "^4.6.9",
     "@types/pdfmake": "^0.3.3",
-    "@typescript-eslint/eslint-plugin": "^8.62.1",
+    "@typescript-eslint/eslint-plugin": "^8.63.0",
     "@typescript-eslint/parser": "^8.62.1",
     "@vitest/coverage-v8": "^4.1.9",
     "astro-compress": "^2.4.1",
