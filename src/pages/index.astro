@@ -12,6 +12,7 @@ import Stats from '~/components/widgets/Stats.astro';
 import EventCard from '~/components/widgets/EventCard.astro';
 import CallToAction from '~/components/widgets/CallToAction.astro';
 import { formatEventDateRange } from '~/utils/dates';
+import { renderMarkdown, renderInlineMarkdown, stripMarkdown } from '~/utils/markdown';
 
 // --- Hero videos: lead clip rotates by calendar day so visitors see variety across builds.
 const videoDir = join(process.cwd(), 'public/videos');
@@ -69,9 +70,9 @@ const featuredDateStr = featuredEvent ? formatEventDateRange(featuredEvent.data.
 const metadata = {
   title: 'ECRS — Come to Play. Play to Learn.',
   ignoreTitleTemplate: true,
-  description:
-    landing?.heroSubtitle ??
-    'An intergenerational organization providing creative and engaging activities that are fun, develop leadership and build community.',
+  description: landing?.heroSubtitle
+    ? stripMarkdown(landing.heroSubtitle)
+    : 'An intergenerational organization providing creative and engaging activities that are fun, develop leadership and build community.',
 };
 ---
 
@@ -82,8 +83,10 @@ const metadata = {
   <VideoHero
     videos={heroVideos}
     title={landing?.heroTitle ?? 'Come to Play. Play to Learn.'}
-    subtitle={landing?.heroSubtitle ??
-      'An intergenerational community for people of all ages — music, dance, games, crafts, and friendship.'}
+    subtitle={renderInlineMarkdown(
+      landing?.heroSubtitle ??
+        'An intergenerational community for people of all ages — music, dance, games, crafts, and friendship.'
+    )}
     badge={featuredEvent ? `Next Event · ${featuredDateStr}` : undefined}
     eventCard={featuredEvent
       ? {
@@ -110,11 +113,11 @@ const metadata = {
   <Features
     id="what-to-expect"
     title={landing?.whatToExpectTitle ?? 'What to Expect'}
-    subtitle={landing?.whatToExpectSubtitle ?? ''}
+    subtitle={renderInlineMarkdown(landing?.whatToExpectSubtitle ?? '')}
     columns={3}
     items={(landing?.whatToExpectItems ?? []).map((item) => ({
       title: item.title,
-      description: item.description,
+      description: renderInlineMarkdown(item.description),
       icon: item.icon,
       classes: item.iconColor ? { icon: item.iconColor } : undefined,
     }))}
@@ -145,12 +148,13 @@ const metadata = {
       href: '/about',
     }}
   >
-    <Fragment slot="content">
-      {
+    <Fragment
+      slot="content"
+      set:html={renderMarkdown(
         landing?.aboutBody ??
           'ECRS has been building intergenerational community for over 85 years through the arts and play.'
-      }
-    </Fragment>
+      )}
+    />
     <Fragment slot="bg">
       <div class="absolute inset-0 bg-gray-50 dark:bg-transparent"></div>
     </Fragment>
@@ -162,26 +166,28 @@ const metadata = {
   <Features
     id="what-we-do"
     title={landing?.whyTitle ?? 'Why ECRS?'}
-    subtitle={landing?.whySubtitle ?? ''}
+    subtitle={renderInlineMarkdown(landing?.whySubtitle ?? '')}
     columns={3}
-    items={landing?.pillars ?? [
-      {
-        title: 'Play & Games',
-        description: 'Cooperative games and outdoor activities that bring out the joy in every participant.',
-        icon: 'tabler:confetti',
-      },
-      {
-        title: 'Build Community',
-        description:
-          'Fun-filled events that build lasting friendships across generations, backgrounds, and geographies. Welcoming folks of all ages for more than 85 years.',
-        icon: 'tabler:heart-handshake',
-      },
-      {
-        title: 'Creative Arts',
-        description: 'Singing, dancing, dramatics, and crafts — no experience needed. We learn by doing, together.',
-        icon: 'tabler:music',
-      },
-    ]}
+    items={(
+      landing?.pillars ?? [
+        {
+          title: 'Play & Games',
+          description: 'Cooperative games and outdoor activities that bring out the joy in every participant.',
+          icon: 'tabler:confetti',
+        },
+        {
+          title: 'Build Community',
+          description:
+            'Fun-filled events that build lasting friendships across generations, backgrounds, and geographies. Welcoming folks of all ages for more than 85 years.',
+          icon: 'tabler:heart-handshake',
+        },
+        {
+          title: 'Creative Arts',
+          description: 'Singing, dancing, dramatics, and crafts — no experience needed. We learn by doing, together.',
+          icon: 'tabler:music',
+        },
+      ]
+    ).map((pillar) => ({ ...pillar, description: renderInlineMarkdown(pillar.description) }))}
   />
 
   <!-- ============================================================
@@ -244,7 +250,7 @@ const metadata = {
        ============================================================ -->
   <CallToAction
     title={landing?.ctaTitle ?? 'Ready to join the community?'}
-    subtitle={landing?.ctaSubtitle ?? ''}
+    subtitle={renderInlineMarkdown(landing?.ctaSubtitle ?? '')}
     actions={[
       {
         variant: 'primary',

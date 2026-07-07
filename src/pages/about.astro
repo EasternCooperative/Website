@@ -6,37 +6,53 @@ import HeroText from '~/components/widgets/HeroText.astro';
 import MemberHeatmap from '~/components/widgets/MemberHeatmap';
 import Layout from '~/layouts/PageLayout.astro';
 import aboutSettings from '~/data/settings/about.json';
+import siteSettings from '~/data/settings/site.json';
 import memberLocations from '~/data/member-locations.json';
+import { renderMarkdown, renderInlineMarkdown, stripMarkdown } from '~/utils/markdown';
 
 const metadata = {
   title: aboutSettings.heroTitle,
-  description: aboutSettings.introText,
+  description: stripMarkdown(aboutSettings.introText),
   openGraph: { images: [{ url: '/og/default.jpg', width: 1200, height: 630 }] },
 };
+
+const pillars = aboutSettings.pillars.map((pillar) => ({
+  ...pillar,
+  description: renderInlineMarkdown(pillar.description),
+}));
 ---
 
 <Layout metadata={metadata}>
   <HeroText tagline={aboutSettings.heroTagline} title={aboutSettings.heroTitle} />
 
-  <Content image={{ src: aboutSettings.introImage, alt: aboutSettings.introImageAlt }}>
-    <Fragment slot="content">{aboutSettings.introText}</Fragment>
+  <Content
+    image={{ src: aboutSettings.introImage, alt: aboutSettings.introImageAlt }}
+    classes={{ container: 'pt-6 md:pt-8 lg:pt-10' }}
+  >
+    <Fragment slot="content" set:html={renderMarkdown(aboutSettings.introText)} />
   </Content>
 
-  <Features2 title="" columns={2} items={aboutSettings.pillars} />
+  <Features2 title="" columns={2} items={pillars} />
 
-  <HeroText
-    tagline="Our Community"
-    title="ECRS Members Across the Map"
-    subtitle="Our members come from all over North America. Wherever you live, you belong here."
-  />
+  {
+    siteSettings.featureFlags.aboutPageMap && (
+      <>
+        <HeroText
+          tagline="Our Community"
+          title="ECRS Members Across the Map"
+          subtitle="Our members come from all over North America. Wherever you live, you belong here."
+        />
 
-  <section class="py-8 px-4 max-w-4xl mx-auto">
-    <MemberHeatmap cities={memberLocations.cities} maskSmallCounts client:load />
-  </section>
+        <section class="py-8 px-4 max-w-4xl mx-auto">
+          <MemberHeatmap cities={memberLocations.cities} maskSmallCounts client:load />
+        </section>
+      </>
+    )
+  }
 
   <CallToAction
     title={aboutSettings.ctaTitle}
-    subtitle={aboutSettings.ctaSubtitle}
+    subtitle={renderInlineMarkdown(aboutSettings.ctaSubtitle)}
     actions={[
       { text: aboutSettings.ctaPrimaryText, href: aboutSettings.ctaPrimaryHref, variant: 'primary' },
       { text: aboutSettings.ctaSecondaryText, href: aboutSettings.ctaSecondaryHref, variant: 'secondary' },

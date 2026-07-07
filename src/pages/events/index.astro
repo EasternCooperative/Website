@@ -6,6 +6,7 @@ import EventCard from '~/components/widgets/EventCard.astro';
 import eventsListSettings from '~/data/settings/events-list.json';
 import { formatEventDateRange } from '~/utils/dates';
 import { resolveVenue } from '~/utils/resolveEvent';
+import { renderInlineMarkdown, stripMarkdown } from '~/utils/markdown';
 
 const allEvents = await getCollection('event', ({ data }) => !data.draft);
 const allSites = await getCollection('site');
@@ -24,7 +25,7 @@ const past = allEvents
 
 const metadata = {
   title: eventsListSettings.heroTitle,
-  description: eventsListSettings.heroSubtitle,
+  description: stripMarkdown(eventsListSettings.heroSubtitle),
 };
 
 const allOrdered = [...upcoming, ...past];
@@ -70,13 +71,13 @@ const itemListJsonLd = {
   <HeroText
     tagline={eventsListSettings.heroTagline}
     title={eventsListSettings.heroTitle}
-    subtitle={eventsListSettings.heroSubtitle}
+    subtitle={renderInlineMarkdown(eventsListSettings.heroSubtitle)}
   />
 
   <!-- ============================================================
        UPCOMING EVENTS
        ============================================================ -->
-  <section class="py-12 md:py-16 px-4 max-w-7xl mx-auto" aria-labelledby="upcoming-heading">
+  <section class="pt-6 md:pt-8 pb-12 md:pb-16 px-4 max-w-7xl mx-auto" aria-labelledby="upcoming-heading">
     <h2 id="upcoming-heading" class="font-heading text-3xl md:text-4xl font-bold text-heading mb-8">
       {eventsListSettings.upcomingHeading}
     </h2>

@@ -3,6 +3,8 @@ import { getCollection } from 'astro:content';
 import Layout from '~/layouts/PageLayout.astro';
 import PersonCard from '~/components/ui/PersonCard.astro';
 import rawPeopleData from '~/data/pages/people.json';
+import siteSettings from '~/data/settings/site.json';
+import { renderInlineMarkdown, stripMarkdown } from '~/utils/markdown';
 
 interface PeoplePerson {
   name: string;
@@ -20,9 +22,19 @@ interface PeoplePageData {
 }
 
 const peoplePageData = rawPeopleData as PeoplePageData;
+const showPeopleWithoutPhotoOrBio = siteSettings.featureFlags.peopleWithoutPhotoOrBio;
+if (!showPeopleWithoutPhotoOrBio) {
+  peoplePageData.categories = (peoplePageData.categories ?? []).map((cat) => ({
+    ...cat,
+    people: (cat.people ?? []).filter((p) => p.photo || p.bio),
+  }));
+}
 
-const leaders = await getCollection('leader');
+let leaders = await getCollection('leader');
 leaders.sort((a, b) => a.data.name.localeCompare(b.data.name, undefined, { sensitivity: 'base' }));
+if (!showPeopleWithoutPhotoOrBio) {
+  leaders = leaders.filter((l) => l.data.photo || l.data.bio);
+}
 
 const metadata = {
   title: peoplePageData.title,
@@ -41,7 +53,7 @@ const leaderPersons = leaders.map((l) => ({
     : `https://ecrs.org/our-people#leader-${l.id}`,
   name: l.data.name,
   ...(l.data.title ? { jobTitle: l.data.title } : {}),
-  ...(l.data.bio ? { description: l.data.bio } : {}),
+  ...(l.data.bio ? { description: stripMarkdown(l.data.bio) } : {}),
   url: Astro.site
     ? new URL(`/our-people#leader-${l.id}`, Astro.site).href
     : `https://ecrs.org/our-people#leader-${l.id}`,
@@ -53,7 +65,7 @@ const categoryPersons = (peoplePageData.categories ?? []).flatMap((cat) =>
     '@type': 'Person',
     name: p.name,
     ...(p.title ? { jobTitle: p.title } : {}),
-    ...(p.bio ? { description: p.bio } : {}),
+    ...(p.bio ? { description: stripMarkdown(p.bio) } : {}),
     worksFor: ecrsOrg,
   }))
 );
@@ -90,7 +102,7 @@ const peopleJsonLd = {
                   name={leader.data.name}
                   title={leader.data.title}
                   photo={leader.data.photo}
-                  bio={leader.data.bio}
+                  bio={leader.data.bio ? renderInlineMarkdown(leader.data.bio) : undefined}
                 />
               </li>
             ))}
@@ -117,7 +129,7 @@ const peopleJsonLd = {
                     name={person.name}
                     title={person.title ?? undefined}
                     photo={person.photo ?? undefined}
-                    bio={person.bio ?? undefined}
+                    bio={person.bio ? renderInlineMarkdown(person.bio) : undefined}
                   />
                 </li>
               ))}
