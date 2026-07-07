@@ -953,6 +953,8 @@ collections:
         name: 'site'
         file: 'src/data/settings/site.json'
         fields:
+          - { label: 'Organization Name', name: 'name', widget: 'string' }
+          - { label: 'Mission Statement', name: 'mission', widget: 'text' }
           - { label: 'Event Page CTA Title', name: 'eventCtaTitle', widget: 'string' }
           - { label: 'Event Page CTA Subtitle', name: 'eventCtaSubtitle', widget: 'markdown' }
           - label: 'Social Links'
@@ -962,6 +964,18 @@ collections:
               - { label: 'Platform', name: 'platform', widget: 'string', hint: 'e.g. Facebook' }
               - { label: 'URL', name: 'url', widget: 'string', hint: 'Leave blank to hide the icon' }
               - { label: 'Icon (tabler)', name: 'icon', widget: 'string', hint: 'e.g. tabler:brand-facebook' }
+          - label: 'Feature Flags'
+            name: 'featureFlags'
+            widget: 'object'
+            fields:
+              - { label: 'Show Activities Nav Link', name: 'activitiesNavLink', widget: 'boolean', default: false }
+              - { label: 'Show About Page Map', name: 'aboutPageMap', widget: 'boolean', default: false }
+              - {
+                  label: 'Show People Without Photo or Bio',
+                  name: 'peopleWithoutPhotoOrBio',
+                  widget: 'boolean',
+                  default: false,
+                }
 
       - label: 'Navigation'
         name: 'navigation'
