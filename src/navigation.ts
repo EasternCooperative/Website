@@ -4,10 +4,12 @@ import footerData from './data/settings/footer.json';
 import siteData from './data/settings/site.json';
 
 export const headerData = {
-  links: navData.links.map((link) => ({
-    text: link.text,
-    href: getPermalink(link.href),
-  })),
+  links: navData.links
+    .filter((link) => siteData.featureFlags.activitiesNavLink || link.href !== '/activities')
+    .map((link) => ({
+      text: link.text,
+      href: getPermalink(link.href),
+    })),
   actions: [{ text: navData.cta.text, href: getPermalink(navData.cta.href), variant: 'primary' as const }],
 };
 

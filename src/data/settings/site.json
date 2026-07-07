@@ -1,4 +1,9 @@
 {
+  "featureFlags": {
+    "activitiesNavLink": true,
+    "aboutPageMap": true,
+    "peopleWithoutPhotoOrBio": true
+  },
   "eventCtaTitle": "Ready to join us?",
   "eventCtaSubtitle": "All ECRS events are open to all ages and experience levels. Newcomers always receive 50% off their first event.",
   "socialLinks": [
