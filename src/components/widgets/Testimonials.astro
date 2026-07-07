@@ -1,6 +1,7 @@
 ---
 import { Icon } from 'astro-icon/components';
 import type { CollectionEntry } from 'astro:content';
+import { renderInlineMarkdown } from '~/utils/markdown';
 
 interface Props {
   testimonials: CollectionEntry<'testimonial'>[];
@@ -27,7 +28,7 @@ const { testimonials } = Astro.props;
                     class="inline w-5 h-5 text-primary/40 mr-1 align-text-top shrink-0"
                     aria-hidden="true"
                   />
-                  {t.data.quote}
+                  <Fragment set:html={renderInlineMarkdown(t.data.quote)} />
                 </blockquote>
               </div>
               {t.data.name && (

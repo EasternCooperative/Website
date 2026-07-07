@@ -138,9 +138,10 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
               </h1>
 
               {subtitle && (
-                <p class="text-lg sm:text-xl text-white max-w-xl leading-relaxed mb-8 drop-shadow-md mx-auto lg:mx-0">
-                  {subtitle}
-                </p>
+                <p
+                  class="text-lg sm:text-xl text-white max-w-xl leading-relaxed mb-8 drop-shadow-md mx-auto lg:mx-0"
+                  set:html={subtitle}
+                />
               )}
 
               {(primaryCta || secondaryCta) && (
@@ -303,9 +304,10 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
             </h1>
 
             {subtitle && (
-              <p class="text-lg sm:text-xl text-white max-w-2xl mx-auto leading-relaxed mb-8 drop-shadow-md">
-                {subtitle}
-              </p>
+              <p
+                class="text-lg sm:text-xl text-white max-w-2xl mx-auto leading-relaxed mb-8 drop-shadow-md"
+                set:html={subtitle}
+              />
             )}
 
             {(primaryCta || secondaryCta) && (

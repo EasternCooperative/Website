@@ -4,6 +4,9 @@ import Features2 from '~/components/widgets/Features2.astro';
 import HeroText from '~/components/widgets/HeroText.astro';
 import Layout from '~/layouts/PageLayout.astro';
 import membershipSettings from '~/data/settings/membership.json';
+import { renderInlineMarkdown } from '~/utils/markdown';
+
+const benefits = membershipSettings.benefits.map((b) => ({ ...b, description: renderInlineMarkdown(b.description) }));
 
 const metadata = {
   title: membershipSettings.heroTitle,
@@ -15,7 +18,7 @@ const metadata = {
 <Layout metadata={metadata}>
   <HeroText tagline={membershipSettings.heroTagline} title={membershipSettings.heroTitle} />
 
-  <Features2 title={membershipSettings.benefitsTitle} columns={2} items={membershipSettings.benefits}>
+  <Features2 title={membershipSettings.benefitsTitle} columns={2} items={benefits}>
     <Fragment slot="bg">
       <div class="absolute inset-0 bg-orange-100 dark:bg-transparent"></div>
     </Fragment>
@@ -24,7 +27,10 @@ const metadata = {
   <!-- Pricing -->
   <section id="pricing" class="py-12 px-4 max-w-4xl mx-auto">
     <h2 class="text-3xl font-bold text-center mb-4 text-default">{membershipSettings.pricingTitle}</h2>
-    <p class="text-center text-muted mb-10 max-w-2xl mx-auto">{membershipSettings.pricingIntro}</p>
+    <p
+      class="text-center text-muted mb-10 max-w-2xl mx-auto"
+      set:html={renderInlineMarkdown(membershipSettings.pricingIntro)}
+    />
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
       {
         membershipSettings.pricingTiers.map((tier) => (
@@ -49,7 +55,7 @@ const metadata = {
   <section id="membership-form" class="py-8 px-4 max-w-3xl mx-auto">
     <h2 class="text-2xl font-bold text-center mb-6 text-default">{membershipSettings.formHeading}</h2>
     <p class="text-center text-muted mb-4">
-      {membershipSettings.formNote}{' '}
+      <Fragment set:html={renderInlineMarkdown(membershipSettings.formNote)} />{' '}
       <a href={`mailto:${membershipSettings.formNoteEmail}`} class="text-link">{membershipSettings.formNoteEmail}</a>
     </p>
   </section>

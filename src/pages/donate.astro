@@ -3,6 +3,7 @@ import CognitoForm from '~/components/widgets/CognitoForm.astro';
 import HeroText from '~/components/widgets/HeroText.astro';
 import Layout from '~/layouts/PageLayout.astro';
 import donationSettings from '~/data/settings/donation.json';
+import { renderMarkdown } from '~/utils/markdown';
 
 const metadata = {
   title: donationSettings.heroTitle,
@@ -15,7 +16,7 @@ const metadata = {
   <HeroText tagline={donationSettings.heroTagline} title={donationSettings.heroTitle} />
 
   <section class="py-8 px-4 max-w-3xl mx-auto">
-    <p class="text-center text-muted">{donationSettings.introText}</p>
+    <div class="text-center text-muted" set:html={renderMarkdown(donationSettings.introText)} />
     <p class="text-center text-muted text-sm mt-2">
       Trouble loading the form? Email us directly at{' '}
       <a href="mailto:contact@ecrs.org" class="text-link underline">contact@ecrs.org</a>.

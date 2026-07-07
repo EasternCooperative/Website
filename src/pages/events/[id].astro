@@ -9,6 +9,7 @@ import { findImage } from '~/utils/images';
 import { resolveVenue } from '~/utils/resolveEvent';
 import siteSettings from '~/data/settings/site.json';
 import { groupClassesByPeriod } from '~/utils/classes';
+import { renderMarkdown, renderInlineMarkdown, stripMarkdown } from '~/utils/markdown';
 
 type ResolvedLeader = {
   name: string;
@@ -49,15 +50,6 @@ const linkedLeaderIds = [
 ];
 
 const UTC: Intl.DateTimeFormatOptions = { timeZone: 'UTC' };
-
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
 
 function formatDate(d: Date) {
   return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', ...UTC });
@@ -127,7 +119,7 @@ const jsonLd = {
     name: venue.location,
     address: venue.address ?? venue.location,
   },
-  description: data.excerpt ?? data.description,
+  description: data.excerpt ?? (data.description ? stripMarkdown(data.description) : undefined),
   image: socialImageUrl ? [socialImageUrl] : undefined,
   url: String(Astro.url),
   organizer: {
@@ -448,7 +440,7 @@ const breadcrumbJsonLd = {
       {
         data.description && (
           <div class="prose prose-lg dark:prose-invert max-w-none">
-            <Fragment set:html={escapeHtml(data.description).replace(/\n/g, '<br>')} />
+            <Fragment set:html={renderMarkdown(data.description)} />
           </div>
         )
       }
@@ -528,7 +520,9 @@ const breadcrumbJsonLd = {
               {data.accommodations.map((accom) => (
                 <div>
                   <h3 class="font-heading text-lg font-bold text-heading mb-1">{accom.name}</h3>
-                  {accom.description && <p class="text-sm text-muted mb-3">{accom.description}</p>}
+                  {accom.description && (
+                    <p class="text-sm text-muted mb-3" set:html={renderInlineMarkdown(accom.description)} />
+                  )}
                   <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
                     <table class="w-full text-sm">
                       <thead>
@@ -608,7 +602,7 @@ const breadcrumbJsonLd = {
           <div class="mt-10">
             <h2 class="font-heading text-2xl font-bold text-heading mb-3">Meals</h2>
             {data.mealsIncluded && <p class="text-default font-semibold">{data.mealsIncluded}</p>}
-            {data.mealsNote && <p class="text-sm text-muted mt-1">{data.mealsNote}</p>}
+            {data.mealsNote && <p class="text-sm text-muted mt-1" set:html={renderInlineMarkdown(data.mealsNote)} />}
           </div>
         )
       }
@@ -722,7 +716,9 @@ const breadcrumbJsonLd = {
                                 </span>
                               )}
                             </div>
-                            {cls.description && <p class="text-sm text-muted mt-1">{cls.description}</p>}
+                            {cls.description && (
+                              <p class="text-sm text-muted mt-1" set:html={renderInlineMarkdown(cls.description)} />
+                            )}
                             {cls.callout && <p class="text-sm font-semibold text-primary mt-1">{cls.callout}</p>}
                           </li>
                         ))}
@@ -741,12 +737,14 @@ const breadcrumbJsonLd = {
           <div class="mt-10 flex flex-col gap-3">
             {data.newcomerNote && (
               <p class="text-sm text-default bg-primary/5 rounded-xl px-4 py-3">
-                <span class="font-semibold">New to ECRS?</span> {data.newcomerNote}
+                <span class="font-semibold">New to ECRS?</span>{' '}
+                <Fragment set:html={renderInlineMarkdown(data.newcomerNote)} />
               </p>
             )}
             {data.financialAidNote && (
               <p class="text-sm text-default bg-accent/5 rounded-xl px-4 py-3">
-                <span class="font-semibold">Financial assistance:</span> {data.financialAidNote}
+                <span class="font-semibold">Financial assistance:</span>{' '}
+                <Fragment set:html={renderInlineMarkdown(data.financialAidNote)} />
               </p>
             )}
             <p class="text-sm text-default">
@@ -772,14 +770,20 @@ const breadcrumbJsonLd = {
                     Refund cutoff: {formatCutoff(cancellationCutoff)}
                   </p>
                 )}
-                <p class="text-sm text-muted whitespace-pre-line">{data.cancellationPolicy}</p>
+                <div
+                  class="text-sm text-muted prose prose-sm dark:prose-invert max-w-none"
+                  set:html={renderMarkdown(data.cancellationPolicy)}
+                />
               </div>
             )}
 
             {data.showHealthPolicy && data.healthPolicy && (
               <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-5">
                 <h3 class="font-heading text-base font-bold text-heading mb-2">Health</h3>
-                <p class="text-sm text-muted whitespace-pre-line">{data.healthPolicy}</p>
+                <div
+                  class="text-sm text-muted prose prose-sm dark:prose-invert max-w-none"
+                  set:html={renderMarkdown(data.healthPolicy)}
+                />
               </div>
             )}
           </div>
@@ -822,7 +826,7 @@ const breadcrumbJsonLd = {
     !isPast && (
       <CallToAction
         title={siteSettings.eventCtaTitle}
-        subtitle={siteSettings.eventCtaSubtitle}
+        subtitle={renderInlineMarkdown(siteSettings.eventCtaSubtitle)}
         actions={
           data.registrationUrl
             ? [
@@ -877,7 +881,12 @@ const breadcrumbJsonLd = {
                 {leader.title && <p class="text-xs text-gray-500 dark:text-gray-400 leading-snug">{leader.title}</p>}
               </div>
             </div>
-            {leader.bio && <p class="text-sm text-gray-600 dark:text-gray-300 line-clamp-6 mb-3">{leader.bio}</p>}
+            {leader.bio && (
+              <p
+                class="text-sm text-gray-600 dark:text-gray-300 line-clamp-6 mb-3"
+                set:html={renderInlineMarkdown(leader.bio)}
+              />
+            )}
             <a href={`/our-people#leader-${id}`} class="text-xs font-semibold text-primary hover:underline">
               View full profile →
             </a>

@@ -44,6 +44,7 @@
     "astro-pagefind": "^2.0.0",
     "astro-seo": "^1.1.0",
     "lodash.merge": "^4.6.2",
+    "marked": "^18.0.5",
     "pdfmake": "^0.3.11",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
