@@ -21,11 +21,18 @@ const {
 } = Astro.props;
 ---
 
-<section class="relative md:-mt-[76px] not-prose">
+<section class="relative md:-mt-16 not-prose">
   <div class="absolute inset-0 pointer-events-none" aria-hidden="true"></div>
   <div class="relative max-w-7xl mx-auto px-4 sm:px-6">
-    <div class="pt-0 md:pt-[76px] pointer-events-none"></div>
-    <div class="py-12 md:py-20 pb-8 md:pb-8">
+    <!-- Slides this section up under the sticky header, then pads back down by
+         the same amount so content starts right below it. Keep this in sync with
+         Header.astro's actual rendered height (py-2 + h-11 logo + border ≈ 61px;
+         rounded to the nearest Tailwind spacing step). -->
+    <div class="pt-0 md:pt-16 pointer-events-none"></div>
+    <!-- No bottom padding here — whatever section follows (WidgetWrapper-based
+         widgets, or a page's own content section) always supplies its own top
+         padding, so an extra bottom margin here would double-stack the gap. -->
+    <div class="pt-8 md:pt-12">
       <div class="text-center max-w-5xl mx-auto">
         {
           tagline && (
