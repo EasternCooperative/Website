@@ -1,9 +1,6 @@
 {
-  "featureFlags": {
-    "activitiesNavLink": true,
-    "aboutPageMap": true,
-    "peopleWithoutPhotoOrBio": true
-  },
+  "name": "ECRS",
+  "mission": "An intergenerational organization providing creative and engaging activities that are fun, develop leadership and build community.",
   "eventCtaTitle": "Ready to join us?",
   "eventCtaSubtitle": "All ECRS events are open to all ages and experience levels. Newcomers always receive 50% off their first event.",
   "socialLinks": [
@@ -13,6 +10,9 @@
       "icon": "tabler:brand-facebook"
     }
   ],
-  "mission": "An intergenerational organization providing creative and engaging activities that are fun, develop leadership and build community.",
-  "name": "ECRS"
+  "featureFlags": {
+    "activitiesNavLink": false,
+    "aboutPageMap": false,
+    "peopleWithoutPhotoOrBio": false
+  }
 }
