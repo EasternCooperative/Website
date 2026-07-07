@@ -2,6 +2,7 @@
   "links": [
     { "text": "Home", "href": "/" },
     { "text": "Events", "href": "/events" },
+    { "text": "Activities", "href": "/activities" },
     { "text": "About", "href": "/about" },
     { "text": "Our People", "href": "/our-people" },
     { "text": "Contact Us", "href": "/contact" },

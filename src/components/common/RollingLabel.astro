@@ -1,0 +1,36 @@
+---
+// Markup wrapper for the RollingLabel control (src/utils/numberRoll.ts) — an
+// "odometer" label for a sentence containing one or more numbers that roll
+// digit-by-digit as they change (e.g. a slider's live value label).
+//
+// `inline-flex items-center` here is load-bearing, not decorative: every
+// child RollingLabel appends (text segments and number reels alike) must be a
+// real flex item centered the same consistent way. Mixing inline-baseline
+// rules for plain text with flex/box rules for the animated reels is what
+// caused this control's original alignment and "lift" bugs — see the notes in
+// numberRoll.ts.
+//
+// Usage:
+//   <RollingLabel id="my-label" class="text-sm font-semibold">Any size</RollingLabel>
+//   <script>
+//     import { RollingLabel } from '~/utils/numberRoll';
+//     const label = new RollingLabel(document.getElementById('my-label')!);
+//   </script>
+
+interface Props {
+  id: string;
+  class?: string;
+}
+
+const { id, class: className = '' } = Astro.props;
+---
+
+<span
+  id={id}
+  class:list={[
+    'inline-flex items-center transition-opacity duration-150 ease-out motion-reduce:transition-none',
+    className,
+  ]}
+>
+  <slot />
+</span>

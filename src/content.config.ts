@@ -190,10 +190,88 @@ const eventCollection = defineCollection({
   }),
 });
 
+const activityReferenceSchema = z.object({
+  url: z.string(),
+  label: z.string().optional(),
+});
+
+const activityTabSchema = z.object({
+  instrument: z.string(), // e.g. "guitar", "ukulele" — free text so other instruments fit
+  notation: z.string().optional(), // chord-over-lyric text or ASCII tab
+  file: z.string().optional(), // scanned/handwritten tab upload
+});
+
+const activityCollection = defineCollection({
+  loader: glob({ pattern: ['*.md', '*.mdx'], base: 'src/data/activities' }),
+  schema: z.object({
+    title: z.string(),
+    type: z.enum(['game', 'dance', 'song', 'play-party']),
+    excerpt: z.string().optional(),
+    instructions: z.string().optional(),
+    tags: z.array(z.string()).optional(),
+    groupSize: z.string().optional(), // free-text — songs only; games/dances/play-parties use the numeric fields below
+    groupSizeMin: z.number().int().positive().optional(),
+    groupSizeMax: z.number().int().positive().optional(),
+    groupSizeAdaptationNotes: z.string().optional(), // how to adapt for an especially large or small group
+    duration: z.string().optional(),
+    energyLevel: z.enum(['low', 'medium', 'high']).optional(), // overall vibe/intensity
+    materialsNeeded: z.string().optional(),
+    leadingTips: z.string().optional(),
+    adaptations: z.string().optional(), // how to simplify/extend for different skill levels
+
+    // Attribution / provenance — community norm, not just legal cover
+    origin: z.string().optional(),
+
+    // External references — link out, don't reproduce copyrighted lyrics/audio
+    references: z.array(activityReferenceSchema).optional(),
+
+    relatedLeaderIds: z.array(z.string()).optional(),
+    relatedEventIds: z.array(z.string()).optional(),
+
+    // ── Physical-activity fields (game / dance / play-party) ──────────
+    formation: z.string().optional(), // e.g. "Circle", "Line", "Mingling", "Longways set"
+    activityLevel: z.enum(['inactive', 'somewhat-active', 'very-active']).optional(), // physical exertion
+    physicalContactLevel: z.enum(['none', 'some', 'high']).optional(),
+    physicalContactNotes: z.string().optional(), // e.g. "holding hands" vs "hugging"
+    accessibilityNotes: z.string().optional(),
+    safetyFlags: z.array(z.string()).optional(), // e.g. "no-running", "spotter-recommended"
+    safetyNotesOther: z.string().optional(),
+    seatedOrWheelchairAdaptable: z.boolean().optional(),
+    beginnerAdaptable: z.boolean().optional(), // can be simplified for total newcomers
+    setting: z.enum(['indoor', 'outdoor', 'either']).optional(),
+    ageRange: z.string().optional(),
+    posture: z.enum(['standing', 'sitting', 'either']).optional(),
+
+    // ── Game-specific ──────────────────────────────────────────────────
+    objective: z.string().optional(), // win/end condition, e.g. "Be the last player standing"
+    variations: z.string().optional(),
+
+    // ── Dance / play-party-specific ─────────────────────────────────────
+    difficulty: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
+    meter: z.string().optional(), // e.g. "4/4", "3/4"
+    isCalled: z.boolean().optional(), // caller prompts figures live vs. danced from memory
+    formationDiagram: z.string().optional(), // floor-plan/diagram image
+
+    // ── Song-specific ────────────────────────────────────────────────────
+    lyrics: z.string().optional(), // only for public-domain/rights-cleared songs
+    sheetMusicFile: z.string().optional(),
+    key: z.string().optional(), // musical key, e.g. "G major"
+    tabs: z.array(activityTabSchema).optional(),
+    language: z.string().optional(),
+    translation: z.string().optional(),
+    transliteration: z.string().optional(),
+    isRound: z.boolean().optional(),
+
+    image: z.string().optional(),
+    draft: z.boolean().optional(),
+  }),
+});
+
 export const collections = {
   event: eventCollection,
   leader: leaderCollection,
   site: siteCollection,
   testimonial: testimonialCollection,
   landingSettings: landingSettingsCollection,
+  activity: activityCollection,
 };

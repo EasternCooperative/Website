@@ -1,0 +1,135 @@
+---
+import { Icon } from 'astro-icon/components';
+import type { CollectionEntry } from 'astro:content';
+import Image from '~/components/common/Image.astro';
+import { getBadges, getPosturePill } from '~/utils/activityDisplay';
+
+interface Props {
+  data: CollectionEntry<'activity'>['data'];
+  href: string;
+  cardStyle: 'rich' | 'lean';
+}
+
+const { data, href, cardStyle } = Astro.props;
+const {
+  title,
+  type,
+  image,
+  excerpt,
+  tags = [],
+  posture,
+  key,
+  meter,
+  seatedOrWheelchairAdaptable,
+  groupSizeMin,
+  groupSizeMax,
+  isCalled,
+  isRound,
+  beginnerAdaptable,
+} = data;
+
+const typeLabel = { game: 'Game', dance: 'Dance', song: 'Song', 'play-party': 'Play Party' }[type];
+const typeColor = {
+  game: 'bg-primary/10 text-primary',
+  dance: 'bg-accent/10 text-accent',
+  song: 'bg-secondary/10 text-secondary',
+  'play-party': 'bg-heading/10 text-heading',
+}[type];
+
+const posturePill = getPosturePill(data);
+const badges = getBadges(data);
+const searchText = [title, excerpt, ...tags].filter(Boolean).join(' ').toLowerCase();
+---
+
+<a
+  href={href}
+  data-activity-card
+  data-type={type}
+  data-tags={tags.join(',')}
+  data-posture={posture ?? ''}
+  data-key={key ?? ''}
+  data-meter={meter ?? ''}
+  data-group-min={groupSizeMin ?? ''}
+  data-group-max={groupSizeMax ?? ''}
+  data-wheelchair-adaptable={seatedOrWheelchairAdaptable ? 'true' : 'false'}
+  data-called-live={isCalled ? 'true' : 'false'}
+  data-is-round={isRound ? 'true' : 'false'}
+  data-beginner-adaptable={beginnerAdaptable ? 'true' : 'false'}
+  data-search={searchText}
+  class="group flex flex-col h-full overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700 hover:shadow-lg hover:border-primary/40 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+>
+  {
+    cardStyle === 'rich' &&
+      (image ? (
+        <Image
+          src={image}
+          alt=""
+          width={600}
+          height={300}
+          widths={[400, 600, 800]}
+          sizes="(max-width: 768px) 100vw, 400px"
+          layout="cover"
+          class="w-full h-44 object-cover"
+          loading="lazy"
+        />
+      ) : (
+        <div
+          class="w-full h-44 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center"
+          aria-hidden="true"
+        >
+          <span class="font-heading text-4xl font-bold text-primary/40">ECRS</span>
+        </div>
+      ))
+  }
+
+  <div class="flex flex-col flex-1 p-5">
+    <div class="flex flex-wrap items-center gap-1.5 mb-2">
+      <span
+        class:list={[
+          'inline-block w-fit text-xs font-bold uppercase tracking-widest rounded-full px-3 py-1',
+          typeColor,
+        ]}
+      >
+        {typeLabel}
+      </span>
+      {
+        cardStyle === 'rich' && posturePill && (
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-accent/10 text-accent">
+            {posturePill.label}
+            {posturePill.accessible && (
+              <>
+                <Icon name="tabler:wheelchair" class="w-3.5 h-3.5" aria-hidden="true" />
+                {posturePill.label !== 'Seated/wheelchair adaptable' && (
+                  <span class="sr-only">Seated/wheelchair adaptable</span>
+                )}
+              </>
+            )}
+          </span>
+        )
+      }
+      {
+        cardStyle === 'rich' &&
+          badges.map((b) => (
+            <span class="inline-block px-2.5 py-1 text-xs font-semibold rounded-full bg-accent/10 text-accent">
+              {b}
+            </span>
+          ))
+      }
+    </div>
+    <p class="font-heading text-xl font-bold text-heading group-hover:text-primary transition-colors">{title}</p>
+
+    {cardStyle === 'rich' && excerpt && <p class="text-sm text-default line-clamp-3 flex-1 mt-2">{excerpt}</p>}
+
+    {
+      tags.length > 0 && (
+        <div class="flex flex-wrap gap-1.5 mt-3">
+          {tags.map((tag) => (
+            <span class="text-xs text-muted border border-muted/30 rounded-full px-2 py-0.5">{tag}</span>
+          ))}
+        </div>
+      )
+    }
+
+    <span class="mt-4 text-sm font-semibold text-primary group-hover:underline">See how to lead it →</span>
+  </div>
+</a>

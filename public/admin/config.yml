@@ -101,6 +101,22 @@ collections:
           - { label: 'Past Events Heading', name: 'pastHeading', widget: 'string' }
           - { label: 'No Upcoming Events Message', name: 'emptyStateText', widget: 'string' }
 
+      - name: 'activities-list'
+        label: 'Activities'
+        file: 'src/data/settings/activities-list.json'
+        fields:
+          - { label: 'Hero Tagline', name: 'heroTagline', widget: 'string' }
+          - { label: 'Hero Title', name: 'heroTitle', widget: 'string' }
+          - { label: 'Hero Subtitle', name: 'heroSubtitle', widget: 'markdown' }
+          - { label: 'No Activities Message', name: 'emptyStateText', widget: 'string' }
+          - {
+              label: 'Card Style',
+              name: 'cardStyle',
+              widget: 'select',
+              options: ['rich', 'lean'],
+              hint: 'Rich shows images/excerpts on cards — fine for a small library. Switch to Lean if the catalog grows into the hundreds, to keep the list page light.',
+            }
+
       - name: 'contact'
         label: 'Contact'
         file: 'src/data/settings/contact.json'
@@ -502,6 +518,419 @@ collections:
         widget: 'list'
         required: false
         field: { label: 'Tag', name: 'tag', widget: 'string' }
+
+  # --- ACTIVITIES (four collections over one folder, split by `type`) ---
+  # Each collection filters src/data/activities by the hidden `type` field so
+  # the editor form only shows fields relevant to that activity type. Shared
+  # field definitions are declared once as YAML anchors (&act-*) on the Games
+  # collection and aliased (*act-*) in the others.
+  - name: 'activity-game'
+    label: 'Games'
+    label_singular: 'Game'
+    folder: 'src/data/activities'
+    create: true
+    slug: '{{fields.title | slugify}}'
+    filter: { field: 'type', value: 'game' }
+    fields:
+      - &act-title { label: 'Title', name: 'title', widget: 'string' }
+      - { label: 'Type', name: 'type', widget: 'hidden', default: 'game' }
+      - &act-excerpt {
+          label: 'Short Description (excerpt)',
+          name: 'excerpt',
+          widget: 'string',
+          required: false,
+          hint: 'Shown on the activity card and used as the page description.',
+        }
+      - &act-instructions {
+          label: 'Instructions',
+          name: 'instructions',
+          widget: 'markdown',
+          required: false,
+          hint: 'Step-by-step instructions, in your own words. Do not paste copyrighted lyrics or sheet music — link out instead using References below.',
+        }
+      - &act-leading-tips {
+          label: 'Leading Tips',
+          name: 'leadingTips',
+          widget: 'markdown',
+          required: false,
+          hint: 'Advice for someone leading this activity for the first time.',
+        }
+      - &act-adaptations {
+          label: 'Adaptations',
+          name: 'adaptations',
+          widget: 'markdown',
+          required: false,
+          hint: 'How to simplify or extend this for different skill levels.',
+        }
+      - &act-group-size-min { label: 'Minimum Group Size', name: 'groupSizeMin', widget: 'number', required: false }
+      - &act-group-size-max { label: 'Maximum Group Size', name: 'groupSizeMax', widget: 'number', required: false }
+      - &act-group-size-notes {
+          label: 'Group Size Adaptations',
+          name: 'groupSizeAdaptationNotes',
+          widget: 'markdown',
+          required: false,
+          hint: 'How to adapt this for an especially large or small group.',
+        }
+      - &act-duration {
+          label: 'Duration',
+          name: 'duration',
+          widget: 'string',
+          required: false,
+          hint: 'e.g. "5-10 minutes"',
+        }
+      - &act-energy-level {
+          label: 'Energy Level',
+          name: 'energyLevel',
+          widget: 'select',
+          options: ['low', 'medium', 'high'],
+          required: false,
+          hint: 'Overall vibe/intensity of leading this.',
+        }
+      - &act-origin {
+          label: 'Origin / Attribution',
+          name: 'origin',
+          widget: 'string',
+          required: false,
+          hint: 'e.g. "Traditional", "Choreographed by Jane Doe", "As taught by John Smith"',
+        }
+      - &act-references
+        label: 'References'
+        name: 'references'
+        widget: 'list'
+        required: false
+        hint: 'Links to recordings, tutorial videos, or official sources — do not host copyrighted audio/lyrics directly.'
+        fields:
+          - { label: 'URL', name: 'url', widget: 'string' }
+          - {
+              label: 'Label',
+              name: 'label',
+              widget: 'string',
+              required: false,
+              hint: 'e.g. "Listen on YouTube", "Tutorial video"',
+            }
+      - &act-related-leaders {
+          label: 'Related Leaders',
+          name: 'relatedLeaderIds',
+          widget: 'relation',
+          collection: 'leader',
+          search_fields: ['name'],
+          value_field: '{{slug}}',
+          display_fields: ['name'],
+          multiple: true,
+          required: false,
+        }
+      - &act-related-events {
+          label: 'Related Events',
+          name: 'relatedEventIds',
+          widget: 'relation',
+          collection: 'event',
+          search_fields: ['title'],
+          value_field: '{{slug}}',
+          display_fields: ['title'],
+          multiple: true,
+          required: false,
+        }
+      - &act-image { label: 'Image', name: 'image', widget: 'image', required: false }
+      - &act-tags
+        label: 'Tags'
+        name: 'tags'
+        widget: 'list'
+        required: false
+        field: { label: 'Tag', name: 'tag', widget: 'string' }
+
+      # ── Physical activity ─────────────────────────────────────────────
+      - &act-formation {
+          label: 'Formation',
+          name: 'formation',
+          widget: 'string',
+          required: false,
+          hint: 'e.g. "Circle", "Line", "Mingling", "Longways set"',
+        }
+      - &act-activity-level {
+          label: 'Activity Level',
+          name: 'activityLevel',
+          widget: 'select',
+          options: ['inactive', 'somewhat-active', 'very-active'],
+          required: false,
+          hint: 'Physical exertion required — distinct from Energy Level above.',
+        }
+      - &act-contact-level {
+          label: 'Physical Contact Level',
+          name: 'physicalContactLevel',
+          widget: 'select',
+          options: ['none', 'some', 'high'],
+          required: false,
+        }
+      - &act-contact-notes {
+          label: 'Physical Contact Notes',
+          name: 'physicalContactNotes',
+          widget: 'string',
+          required: false,
+          hint: 'e.g. "Holding hands", "Hugging"',
+        }
+      - &act-accessibility {
+          label: 'Accessibility Notes',
+          name: 'accessibilityNotes',
+          widget: 'markdown',
+          required: false,
+        }
+      - &act-safety-flags
+        label: 'Safety Flags'
+        name: 'safetyFlags'
+        widget: 'select'
+        multiple: true
+        required: false
+        options:
+          - { label: 'No running', value: 'no-running' }
+          - { label: 'Spotter recommended for falls/landings', value: 'spotter-recommended' }
+          - { label: 'Watch for tripping hazards', value: 'watch-for-tripping-hazards' }
+      - &act-safety-other { label: 'Other Safety Notes', name: 'safetyNotesOther', widget: 'markdown', required: false }
+      - &act-seated {
+          label: 'Seated / Wheelchair Adaptable',
+          name: 'seatedOrWheelchairAdaptable',
+          widget: 'boolean',
+          required: false,
+          default: false,
+        }
+      - &act-beginner {
+          label: 'Beginner Adaptable',
+          name: 'beginnerAdaptable',
+          widget: 'boolean',
+          required: false,
+          default: false,
+          hint: 'Can this be simplified so total newcomers can participate?',
+        }
+      - &act-setting {
+          label: 'Setting',
+          name: 'setting',
+          widget: 'select',
+          options: ['indoor', 'outdoor', 'either'],
+          required: false,
+        }
+      - &act-age-range {
+          label: 'Age Range',
+          name: 'ageRange',
+          widget: 'string',
+          required: false,
+          hint: 'e.g. "8+", "All ages"',
+        }
+      - &act-posture {
+          label: 'Posture',
+          name: 'posture',
+          widget: 'select',
+          options: ['standing', 'sitting', 'either'],
+          required: false,
+        }
+      - &act-materials {
+          label: 'Materials Needed',
+          name: 'materialsNeeded',
+          widget: 'string',
+          required: false,
+          hint: 'e.g. "None", "One ball per group"',
+        }
+
+      # ── Game-specific ─────────────────────────────────────────────────
+      - {
+          label: 'Objective',
+          name: 'objective',
+          widget: 'string',
+          required: false,
+          hint: 'The win/end condition, e.g. "Be the last player standing"',
+        }
+      - &act-variations {
+          label: 'Variations',
+          name: 'variations',
+          widget: 'markdown',
+          required: false,
+          hint: 'Alternate rule-sets groups commonly use.',
+        }
+
+      - &act-draft { label: 'Draft', name: 'draft', widget: 'boolean', required: false, default: false }
+
+  - name: 'activity-dance'
+    label: 'Dances'
+    label_singular: 'Dance'
+    folder: 'src/data/activities'
+    create: true
+    slug: '{{fields.title | slugify}}'
+    filter: { field: 'type', value: 'dance' }
+    fields:
+      - *act-title
+      - { label: 'Type', name: 'type', widget: 'hidden', default: 'dance' }
+      - *act-excerpt
+      - *act-instructions
+      - *act-leading-tips
+      - *act-adaptations
+      - *act-group-size-min
+      - *act-group-size-max
+      - *act-group-size-notes
+      - *act-duration
+      - *act-energy-level
+      - *act-origin
+      - *act-references
+      - *act-related-leaders
+      - *act-related-events
+      - *act-image
+      - *act-tags
+      - *act-formation
+      - *act-activity-level
+      - *act-contact-level
+      - *act-contact-notes
+      - *act-accessibility
+      - *act-safety-flags
+      - *act-safety-other
+      - *act-seated
+      - *act-beginner
+      - *act-setting
+      - *act-age-range
+      - *act-posture
+      - *act-materials
+      # ── Dance-specific ────────────────────────────────────────────────
+      - &act-difficulty {
+          label: 'Difficulty',
+          name: 'difficulty',
+          widget: 'select',
+          options: ['beginner', 'intermediate', 'advanced'],
+          required: false,
+        }
+      - &act-meter { label: 'Meter', name: 'meter', widget: 'string', required: false, hint: 'e.g. "4/4", "3/4"' }
+      - &act-is-called {
+          label: 'Called Live',
+          name: 'isCalled',
+          widget: 'boolean',
+          required: false,
+          default: false,
+          hint: 'Does a caller prompt each figure live, rather than dancers working from memory?',
+        }
+      - &act-formation-diagram {
+          label: 'Formation Diagram',
+          name: 'formationDiagram',
+          widget: 'image',
+          required: false,
+          hint: 'Floor-plan/diagram image for non-obvious spatial layouts (contra sets, squares).',
+        }
+      - *act-draft
+
+  - name: 'activity-play-party'
+    label: 'Play Parties'
+    label_singular: 'Play Party'
+    folder: 'src/data/activities'
+    create: true
+    slug: '{{fields.title | slugify}}'
+    filter: { field: 'type', value: 'play-party' }
+    fields:
+      - *act-title
+      - { label: 'Type', name: 'type', widget: 'hidden', default: 'play-party' }
+      - *act-excerpt
+      - *act-instructions
+      - *act-leading-tips
+      - *act-adaptations
+      - *act-group-size-min
+      - *act-group-size-max
+      - *act-group-size-notes
+      - *act-duration
+      - *act-energy-level
+      - *act-origin
+      - *act-references
+      - *act-related-leaders
+      - *act-related-events
+      - *act-image
+      - *act-tags
+      - *act-formation
+      - *act-activity-level
+      - *act-contact-level
+      - *act-contact-notes
+      - *act-accessibility
+      - *act-safety-flags
+      - *act-safety-other
+      - *act-seated
+      - *act-beginner
+      - *act-setting
+      - *act-age-range
+      - *act-posture
+      - *act-materials
+      # Play parties sit halfway between games and dances — they get both the
+      # game Variations field and the dance structure fields.
+      - *act-variations
+      - *act-difficulty
+      - *act-meter
+      - *act-is-called
+      - *act-formation-diagram
+      - *act-draft
+
+  - name: 'activity-song'
+    label: 'Songs'
+    label_singular: 'Song'
+    folder: 'src/data/activities'
+    create: true
+    slug: '{{fields.title | slugify}}'
+    filter: { field: 'type', value: 'song' }
+    fields:
+      - *act-title
+      - { label: 'Type', name: 'type', widget: 'hidden', default: 'song' }
+      - *act-excerpt
+      - *act-instructions
+      - *act-leading-tips
+      - *act-adaptations
+      - { label: 'Group Size', name: 'groupSize', widget: 'string', required: false, hint: 'e.g. "8-30", "Any size"' }
+      - *act-duration
+      - *act-energy-level
+      - *act-origin
+      - *act-references
+      - *act-related-leaders
+      - *act-related-events
+      - *act-image
+      - *act-tags
+      # ── Song-specific ─────────────────────────────────────────────────
+      - {
+          label: 'Lyrics',
+          name: 'lyrics',
+          widget: 'markdown',
+          required: false,
+          hint: 'Only include for public-domain or traditional songs, or songs where rights are confirmed cleared. Otherwise leave blank and use References above.',
+        }
+      - { label: 'Sheet Music File', name: 'sheetMusicFile', widget: 'file', required: false }
+      - { label: 'Key', name: 'key', widget: 'string', required: false, hint: 'e.g. "G major"' }
+      - label: 'Tabs'
+        name: 'tabs'
+        widget: 'list'
+        required: false
+        hint: 'Chords/tab per instrument.'
+        fields:
+          - { label: 'Instrument', name: 'instrument', widget: 'string', hint: 'e.g. "Guitar", "Ukulele"' }
+          - {
+              label: 'Notation',
+              name: 'notation',
+              widget: 'text',
+              required: false,
+              hint: 'Chord-over-lyric text or ASCII tab.',
+            }
+          - {
+              label: 'File',
+              name: 'file',
+              widget: 'file',
+              required: false,
+              hint: 'Scanned/handwritten tab, if you have one.',
+            }
+      - { label: 'Language', name: 'language', widget: 'string', required: false }
+      - { label: 'Translation', name: 'translation', widget: 'markdown', required: false }
+      - { label: 'Transliteration', name: 'transliteration', widget: 'markdown', required: false }
+      - {
+          label: 'Is a Round',
+          name: 'isRound',
+          widget: 'boolean',
+          required: false,
+          default: false,
+          hint: 'Mark where voices enter directly in the Lyrics text (e.g. a bolded cue like "**→ Voice 2 enters here**").',
+        }
+      # Songs that involve motion (action songs) can still note exertion and adaptability.
+      # No posture/seated-wheelchair field here — that pairing is specific to
+      # activities with a posture element (games/dances/play-parties).
+      - *act-activity-level
+      - *act-age-range
+      - *act-accessibility
+      - *act-beginner
+      - *act-draft
 
   # --- TESTIMONIALS (folder collection — one file per testimonial) ---
   - name: 'testimonial'
