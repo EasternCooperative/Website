@@ -431,6 +431,24 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
       if (playIcon) playIcon.classList.toggle('hidden', playing);
     }
 
+    // Auto-pause once the video(s) have cycled through twice, or after 5 minutes,
+    // whichever comes first — intentional behavior, not a stall. A manual replay
+    // via the toggle button afterward is not subject to the limit again.
+    let cycleCount = 0;
+    let autoStopped = false;
+    const startTime = Date.now();
+    const MAX_CYCLES = 2;
+    const MAX_MS = 5 * 60 * 1000;
+
+    function maybeAutoStop(activeVideo: HTMLVideoElement): boolean {
+      if (autoStopped) return false;
+      if (cycleCount < MAX_CYCLES && Date.now() - startTime < MAX_MS) return false;
+      autoStopped = true;
+      activeVideo.currentTime = 0;
+      setPaused(true);
+      return true;
+    }
+
     function setPaused(paused: boolean) {
       isPlaying = !paused;
       videos.forEach((v) => (paused ? v.pause() : v.play().catch(() => {})));
@@ -485,7 +503,11 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
 
         videos.forEach((video, i) => {
           video.addEventListener('ended', () => {
-            if (isPlaying) crossfadeTo((i + 1) % videos.length);
+            if (!isPlaying) return;
+            const nextIndex = (i + 1) % videos.length;
+            if (nextIndex === 0) cycleCount++;
+            if (maybeAutoStop(video)) return;
+            crossfadeTo(nextIndex);
           });
         });
 
@@ -509,8 +531,17 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
         });
         isPlaying = true;
       } else if (videos.length === 1) {
-        videos[0].loop = true;
-        videos[0].play().catch(() => {
+        const v = videos[0];
+        v.addEventListener('ended', () => {
+          if (!isPlaying) return;
+          cycleCount++;
+          if (maybeAutoStop(v)) return;
+          v.currentTime = 0;
+          v.play().catch(() => {});
+        });
+        // The icon's default markup already shows "pause" (assumes autoplay succeeds).
+        // Only correct it if the browser actually blocks autoplay.
+        v.play().catch(() => {
           isPlaying = false;
           syncIcon(false);
         });
