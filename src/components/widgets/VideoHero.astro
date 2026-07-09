@@ -507,10 +507,14 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
       if (toggleBtn) toggleBtn.style.display = 'none';
     }
 
-    // Sync icon state from actual video state (autoplay may have started before JS ran).
-    isPlaying = videos.length > 0 && !videos[0].paused;
-    if (pauseIcon) pauseIcon.classList.toggle('hidden', !isPlaying);
-    if (playIcon) playIcon.classList.toggle('hidden', isPlaying);
+    // Sync icon appearance from actual video state (autoplay may have started before JS ran).
+    // Note: this only drives the icon — `isPlaying` itself must stay in sync with our own
+    // play()/pause() calls, since the crossfade "ended" handler gates on it. Reading
+    // videos[0].paused here would race the browser's async autoplay start and could read
+    // `true` before playback has actually begun, permanently disabling the crossfade.
+    const actuallyPlaying = videos.length > 0 && !videos[0].paused;
+    if (pauseIcon) pauseIcon.classList.toggle('hidden', !actuallyPlaying);
+    if (playIcon) playIcon.classList.toggle('hidden', actuallyPlaying);
   }
 
   function initCountdown() {
