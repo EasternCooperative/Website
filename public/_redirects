@@ -1,19 +1,86 @@
 # Cloudflare Pages redirects — https://developers.cloudflare.com/pages/configuration/redirects/
 #
 # Preserve inbound links to the old WordPress site (ecrs.org) after the
-# production cutover. Paths gathered from the live WordPress nav/footer as of
-# 2026-07-08. Gallery, public resources, testimonials, and the mailing-list
-# signup have no equivalent page on the new site, so they redirect to the
-# closest relevant page rather than 404ing.
+# production cutover. Source list: the live WordPress sitemap export
+# (website-pages.csv, pulled 2026-07-08) — every URL Google has indexed, not
+# just current nav links. Most WildApricot/registration/donation confirmation
+# pages, blog author archives, and old surveys have no equivalent on the new
+# static site, so they fall back to the homepage rather than 404ing; pages
+# with an obvious topical match redirect there instead.
 
-/about-us-2/*              /about   301
-/about-us/*                /about   301
-/history-of-ecrs/*         /about   301
-/what-makes-ecrs-special/* /about   301
-/our-leadership/*          /our-people   301
-/upcoming-events/*         /events   301
-/contact-us/*              /contact   301
-/photo-gallery/*           /about   301
-/public-resources/*        /about   301
-/testimonials/*            /about   301
-/join-our-mailing-list/*   /contact   301
+# --- Core pages that moved ---
+/about-us-2/*                                    /about   301
+/our-organization-3/*                             /about   301
+/history-of-ecrs/*                                /about   301
+/what-makes-ecrs-special/*                        /about   301
+/leadership-development/*                         /about   301
+/leadership_training_track/*                      /about   301
+/gallery/*                                        /about   301
+/photo-gallery/*                                  /about   301
+
+/our-leadership/*                                 /our-people   301
+/whos-on-the-board/*                              /our-people   301
+
+/contact-us/*                                     /contact   301
+/join-our-mailing-list/*                          /contact   301
+
+/upcoming-events/*                                /events   301
+/our-activities/*                                 /activities   301
+
+/membership-backup/*                              /membership   301
+
+/donate-to-ecrs/*                                 /donate   301
+/donations/donate-to-ecrs/*                       /donate   301
+/donation-confirmation/*                          /donate   301
+/donation-confirmation-2016/*                      /donate   301
+/donation-failed/*                                /donate   301
+/donation-history/*                               /donate   301
+/donor-dashboard/*                                /donate   301
+/donor-dashboard-2/*                              /donate   301
+/donor-dashboard-3/*                              /donate   301
+
+/testimonials/*                                   /   301
+
+# --- Old event class-descriptions / registration-confirmation pages ---
+# (no equivalent — these were per-event WildApricot/registration artifacts)
+/camp-onas-faq/*                                  /events   301
+/class-descriptions/*                             /events   301
+/class-descriptions-camp-onas/*                   /events   301
+/class-descriptions-camp-onas-2017/*              /events   301
+/class-descriptions-spring-weekend/*              /events   301
+/class-descriptions-wa-2016/*                     /events   301
+/class-descriptions-wa-2019/*                     /events   301
+/class-registration/*                             /events   301
+/class-registration-confirmation-wa2021/*         /events   301
+/event-registration-confirmation-wa2021/*         /events   301
+/wa-2015-class-descriptions/*                      /events   301
+/wa-2016-class-registration-confirmation/*        /events   301
+/wa-2019-registration-confirmation/*              /events   301
+/wa-2021-class-registration/*                     /events   301
+/winter-adventure-2018-class-descriptions/*       /events   301
+/stony-point-confirmation/*                        /events   301
+/2017-camp-harlam-confirmation/*                  /events   301
+/2017-camp-onas-confirmation/*                    /events   301
+/2019-camp-onas-confirmation/*                    /events   301
+/2019-spring-weekend-confirmation/*                /events   301
+
+# --- Dead blog / author / membership-plugin / survey pages ---
+# No modern equivalent — send to the homepage rather than 404.
+/blog/*                                           /   301
+/category/blog/updates/*                          /   301
+/author/*                                         /   301
+/board-resources/*                                /   301
+/member-resources/*                               /   301
+/public-resources/*                               /   301
+/resources/*                                      /   301
+/finance/*                                        /   301
+/ecrs-travel/*                                     /   301
+/faqs-2/*                                         /   301
+/critical2017weekendsurvey/*                       /   301
+/emergency2017weekendsurvey/*                      /   301
+/staff-follow-up-to-emergency-2017-weekend-survey/* /   301
+/forgot-password-1/*                              /   301
+/reset-password-1/*                               /   301
+/mm-error-1/*                                     /   301
+/myaccount-1/*                                    /   301
+/907-2/*                                          /   301
