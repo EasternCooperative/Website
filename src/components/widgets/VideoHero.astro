@@ -507,14 +507,21 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
       if (toggleBtn) toggleBtn.style.display = 'none';
     }
 
-    // Sync icon appearance from actual video state (autoplay may have started before JS ran).
-    // Note: this only drives the icon — `isPlaying` itself must stay in sync with our own
-    // play()/pause() calls, since the crossfade "ended" handler gates on it. Reading
-    // videos[0].paused here would race the browser's async autoplay start and could read
-    // `true` before playback has actually begun, permanently disabling the crossfade.
-    const actuallyPlaying = videos.length > 0 && !videos[0].paused;
-    if (pauseIcon) pauseIcon.classList.toggle('hidden', !actuallyPlaying);
-    if (playIcon) playIcon.classList.toggle('hidden', actuallyPlaying);
+    // Sync icon appearance from the video's actual play/pause events rather than sampling
+    // `.paused` synchronously — `play()` is async, so right after calling it `.paused` is
+    // still `true` until playback actually begins, which made the button flash the "play"
+    // icon on load even though the video was about to start. `isPlaying` (used to gate the
+    // crossfade) stays independently in sync with our own play()/pause() calls.
+    if (videos.length > 0) {
+      const syncIconFromVideo = () => {
+        const paused = videos[0].paused;
+        if (pauseIcon) pauseIcon.classList.toggle('hidden', paused);
+        if (playIcon) playIcon.classList.toggle('hidden', !paused);
+      };
+      videos[0].addEventListener('play', syncIconFromVideo);
+      videos[0].addEventListener('pause', syncIconFromVideo);
+      syncIconFromVideo();
+    }
   }
 
   function initCountdown() {
