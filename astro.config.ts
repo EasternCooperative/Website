@@ -27,7 +27,9 @@ export default defineConfig({
 
   integrations: [
     sitemap({
-      filter: (page) => !page.includes('/events/e2e-'),
+      // Exclude e2e fixtures and pages marked `robots: { index: false }` —
+      // the sitemap should only list pages we want search engines to index.
+      filter: (page) => !page.includes('/events/e2e-') && !page.includes('/internal/'),
     }),
     icon({
       include: {
@@ -62,18 +64,12 @@ export default defineConfig({
     astrowind({
       config: './src/config.yaml',
     }), // CF_PAGES_URL is the Cloudflare Pages deployment URL — always the *.pages.dev
-    // address, even after a custom domain is added. We use it to make OG image
-    // URLs and sitemaps resolve against the actual deployment rather than the
-    // hardcoded ecrs.org in config.yaml (which doesn't exist yet).
-    //
-    // TODO(production): Once ecrs.org is live and set as the Cloudflare custom
-    // domain, change this to only apply on non-main branches so that production
-    // OG image URLs say ecrs.org (canonical) rather than website-alc.pages.dev:
-    //
-    //   process.env.CF_PAGES_URL && process.env.CF_PAGES_BRANCH !== 'main'
-    //
-    // Also update src/config.yaml site: to 'https://ecrs.org' at that time.
-    ...(process.env.CF_PAGES_URL
+    // address, even after a custom domain is added. Preview builds (non-main
+    // branches) have no custom domain, so they override `site` to their own
+    // pages.dev URL for correct OG image URLs and sitemaps. Production (main)
+    // now serves at ecrs.org, so it keeps the canonical `site` from config.yaml
+    // instead of overriding it to the pages.dev address.
+    ...(process.env.CF_PAGES_URL && process.env.CF_PAGES_BRANCH !== 'main'
       ? [
           {
             name: 'cf-pages-site-override',

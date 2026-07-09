@@ -1,0 +1,19 @@
+# Cloudflare Pages redirects — https://developers.cloudflare.com/pages/configuration/redirects/
+#
+# Preserve inbound links to the old WordPress site (ecrs.org) after the
+# production cutover. Paths gathered from the live WordPress nav/footer as of
+# 2026-07-08. Gallery, public resources, testimonials, and the mailing-list
+# signup have no equivalent page on the new site, so they redirect to the
+# closest relevant page rather than 404ing.
+
+/about-us-2/*              /about   301
+/about-us/*                /about   301
+/history-of-ecrs/*         /about   301
+/what-makes-ecrs-special/* /about   301
+/our-leadership/*          /our-people   301
+/upcoming-events/*         /events   301
+/contact-us/*              /contact   301
+/photo-gallery/*           /about   301
+/public-resources/*        /about   301
+/testimonials/*            /about   301
+/join-our-mailing-list/*   /contact   301
