@@ -11,7 +11,7 @@ interface Props {
 const { name, title, photo, bio } = Astro.props;
 ---
 
-<div class="flex gap-4">
+<div class:list={['flex gap-4', !bio && 'flex-col items-center text-center']}>
   {
     photo ? (
       <Image
@@ -22,11 +22,14 @@ const { name, title, photo, bio } = Astro.props;
         widths={[72, 144]}
         sizes="72px"
         layout="cover"
-        class="w-18 h-18 rounded-full object-cover flex-shrink-0 mt-1"
+        class:list={['w-18 h-18 rounded-full object-cover flex-shrink-0', bio && 'mt-1']}
       />
     ) : (
       <div
-        class="w-18 h-18 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1"
+        class:list={[
+          'w-18 h-18 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0',
+          bio && 'mt-1',
+        ]}
         aria-hidden="true"
       >
         <span class="text-2xl font-bold text-primary/60">{name.charAt(0)}</span>
