@@ -423,6 +423,14 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
 
     let isPlaying = false;
 
+    // Icon reflects user intent (`isPlaying`), not raw per-video pause/play events — the
+    // crossfade pauses the outgoing clip and plays the incoming one internally on every
+    // transition, which isn't a play/pause the user asked for.
+    function syncIcon(playing: boolean) {
+      if (pauseIcon) pauseIcon.classList.toggle('hidden', !playing);
+      if (playIcon) playIcon.classList.toggle('hidden', playing);
+    }
+
     // Auto-pause once the video(s) have cycled through twice, or after 5 minutes,
     // whichever comes first — intentional behavior, not a stall. A manual replay
     // via the toggle button afterward is not subject to the limit again.
@@ -447,8 +455,7 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
       if (toggleBtn) {
         toggleBtn.setAttribute('aria-label', paused ? 'Play background video' : 'Pause background video');
       }
-      if (pauseIcon) pauseIcon.classList.toggle('hidden', paused);
-      if (playIcon) playIcon.classList.toggle('hidden', !paused);
+      syncIcon(!paused);
       // Hide button when no motion to toggle
       if (toggleBtn) toggleBtn.style.display = reducedMotion ? 'none' : '';
     }
@@ -516,7 +523,12 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
             this.removeEventListener('timeupdate', onProgress);
           }
         });
-        videos[0]?.play().catch(() => {});
+        // The icon's default markup already shows "pause" (assumes autoplay succeeds).
+        // Only correct it if the browser actually blocks autoplay.
+        videos[0]?.play().catch(() => {
+          isPlaying = false;
+          syncIcon(false);
+        });
         isPlaying = true;
       } else if (videos.length === 1) {
         const v = videos[0];
@@ -527,7 +539,12 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
           v.currentTime = 0;
           v.play().catch(() => {});
         });
-        v.play().catch(() => {});
+        // The icon's default markup already shows "pause" (assumes autoplay succeeds).
+        // Only correct it if the browser actually blocks autoplay.
+        v.play().catch(() => {
+          isPlaying = false;
+          syncIcon(false);
+        });
         isPlaying = true;
       }
     } else {
@@ -535,11 +552,6 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
       videos[0]?.pause();
       if (toggleBtn) toggleBtn.style.display = 'none';
     }
-
-    // Sync icon state from actual video state (autoplay may have started before JS ran).
-    isPlaying = videos.length > 0 && !videos[0].paused;
-    if (pauseIcon) pauseIcon.classList.toggle('hidden', !isPlaying);
-    if (playIcon) playIcon.classList.toggle('hidden', isPlaying);
   }
 
   function initCountdown() {
