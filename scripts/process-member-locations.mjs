@@ -187,12 +187,14 @@ function processAddress(addr, attendeeCount) {
 // prebuild run doesn't dirty the tracked JSON (fresh generatedAt timestamp)
 // on every `npm run build`. Trailing newline keeps prettier --check happy.
 function writeCitiesFile(cities) {
-  if (fs.existsSync(outputFile)) {
+  try {
     const previous = JSON.parse(fs.readFileSync(outputFile, 'utf8'));
     if (JSON.stringify(previous.cities) === JSON.stringify(cities)) {
       console.log(`\n✓ ${cities.length} cities — unchanged, skipping write`);
       return;
     }
+  } catch {
+    // No previous output file (or unreadable) — fall through and write a fresh one.
   }
   const output = { generatedAt: new Date().toISOString(), cities };
   fs.writeFileSync(outputFile, JSON.stringify(output, null, 2) + '\n');
