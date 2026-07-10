@@ -1,0 +1,17 @@
+name: 'ECRS CodeQL config'
+
+# Use the security-and-quality suite instead of the default security-only
+# query pack — catches more correctness issues at the cost of a few more
+# false positives.
+queries:
+  - uses: security-and-quality
+
+paths-ignore:
+  - 'dist/**'
+  - 'node_modules/**'
+  - 'coverage/**'
+  - 'public/admin/**'
+  - '.astro/**'
+  - '**/*.test.ts'
+  - '**/*.spec.ts'
+  - 'e2e/**'
