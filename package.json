@@ -62,7 +62,7 @@
     "@playwright/test": "^1.61.1",
     "@sveltia/cms": "^0.170.0",
     "@tailwindcss/typography": "^0.5.20",
-    "@tailwindcss/vite": "^4.3.2",
+    "@tailwindcss/vite": "^4.3.3",
     "@types/js-yaml": "^4.0.9",
     "@types/lodash.merge": "^4.6.9",
     "@types/pdfmake": "^0.3.3",
