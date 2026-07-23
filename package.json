@@ -93,13 +93,34 @@
     "esbuild": ">=0.28.1",
     "uuid": ">=11.1.1",
     "tmp": ">=0.2.6",
+    "svgo": ">=4.0.2",
+    "astro": {
+      "sharp": ">=0.35.0"
+    },
+    "astro-compress": {
+      "sharp": ">=0.35.0"
+    },
+    "astro-icon": {
+      "@iconify/tools": {
+        "svgo": ">=3.3.4"
+      }
+    },
     "@lhci/cli": {
       "@lhci/utils": {
         "js-yaml": ">=3.15.0"
+      },
+      "chrome-launcher": {
+        "rimraf": {
+          "glob": {
+            "minimatch": {
+              "brace-expansion": ">=1.1.16"
+            }
+          }
+        }
       }
     }
   },
   "allowScripts": {
-    "lefthook@2.1.9": true
+    "lefthook@2.1.10": true
   }
 }
