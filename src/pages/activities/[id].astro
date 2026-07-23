@@ -40,10 +40,10 @@ const relatedEvents = (data.relatedEventIds ?? [])
   .map((id) => ({ id, data: eventMap.get(id) }))
   .filter((e): e is { id: string; data: NonNullable<(typeof e)['data']> } => !!e.data);
 
-const typeLabel = { game: 'Game', dance: 'Dance', song: 'Song', 'play-party': 'Play Party' }[data.type];
+const typeLabel = { game: 'Game', dance: 'Dance', song: 'Song' }[data.type];
 
 // Quick facts — a general grid of whichever short fields are present, rather
-// than hardcoding a layout per type (many fields are shared across game/dance/play-party).
+// than hardcoding a layout per type (many fields are shared across game/dance).
 const groupSizeDisplay = formatGroupSize(data);
 
 const quickFacts: { label: string; value: string }[] = [

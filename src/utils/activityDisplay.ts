@@ -35,7 +35,7 @@ export function getBadges(data: Pick<ActivityData, 'isCalled' | 'isRound' | 'beg
   ].filter(Boolean);
 }
 
-// Games/dances/play-parties use numeric min/max fields; songs use the free-text
+// Games/dances use numeric min/max fields; songs use the free-text
 // groupSize field instead (see content.config.ts). Prefer whichever is set.
 export function formatGroupSize(
   data: Pick<ActivityData, 'groupSize' | 'groupSizeMin' | 'groupSizeMax'>
