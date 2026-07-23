@@ -205,11 +205,11 @@ const activityCollection = defineCollection({
   loader: glob({ pattern: ['*.md', '*.mdx'], base: 'src/data/activities' }),
   schema: z.object({
     title: z.string(),
-    type: z.enum(['game', 'dance', 'song', 'play-party']),
+    type: z.enum(['game', 'dance', 'song']),
     excerpt: z.string().optional(),
     instructions: z.string().optional(),
     tags: z.array(z.string()).optional(),
-    groupSize: z.string().optional(), // free-text — songs only; games/dances/play-parties use the numeric fields below
+    groupSize: z.string().optional(), // free-text — songs only; games/dances use the numeric fields below
     groupSizeMin: z.number().int().positive().optional(),
     groupSizeMax: z.number().int().positive().optional(),
     groupSizeAdaptationNotes: z.string().optional(), // how to adapt for an especially large or small group
@@ -228,7 +228,7 @@ const activityCollection = defineCollection({
     relatedLeaderIds: z.array(z.string()).optional(),
     relatedEventIds: z.array(z.string()).optional(),
 
-    // ── Physical-activity fields (game / dance / play-party) ──────────
+    // ── Physical-activity fields (game / dance) ────────────────────────
     formation: z.string().optional(), // e.g. "Circle", "Line", "Mingling", "Longways set"
     activityLevel: z.enum(['inactive', 'somewhat-active', 'very-active']).optional(), // physical exertion
     physicalContactLevel: z.enum(['none', 'some', 'high']).optional(),
@@ -246,7 +246,7 @@ const activityCollection = defineCollection({
     objective: z.string().optional(), // win/end condition, e.g. "Be the last player standing"
     variations: z.string().optional(),
 
-    // ── Dance / play-party-specific ─────────────────────────────────────
+    // ── Dance-specific ───────────────────────────────────────────────────
     difficulty: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
     meter: z.string().optional(), // e.g. "4/4", "3/4"
     isCalled: z.boolean().optional(), // caller prompts figures live vs. danced from memory
