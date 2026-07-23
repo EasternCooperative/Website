@@ -32,6 +32,7 @@
     "process-members": "node scripts/process-member-locations.mjs"
   },
   "dependencies": {
+    "@astrojs/markdown-remark": "7.2.1",
     "@astrojs/react": "^6.0.0",
     "@astrojs/sitemap": "^3.7.3",
     "@fontsource-variable/inter": "^5.2.8",
@@ -89,7 +90,7 @@
   },
   "overrides": {
     "yaml": ">=2.8.3",
-    "vite": "^7",
+    "vite": "^8",
     "esbuild": ">=0.28.1",
     "uuid": ">=11.1.1",
     "tmp": ">=0.2.6",
