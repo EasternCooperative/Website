@@ -2,9 +2,9 @@
 
 ## Project Overview
 
-The ECRS website — a fully static site built with **Astro v6** and **Tailwind CSS v4**, derived from the AstroWind template. Content is managed through Sveltia CMS and the site deploys on Cloudflare Pages: see [docs/deployment-and-cms.md](./docs/deployment-and-cms.md) before touching CI, the CMS config, or branch settings.
+The ECRS website — a fully static site built with **Astro v7** and **Tailwind CSS v4**, derived from the AstroWind template. Content is managed through Sveltia CMS and the site deploys on Cloudflare Pages: see [docs/deployment-and-cms.md](./docs/deployment-and-cms.md) before touching CI, the CMS config, or branch settings.
 
-**Stack:** Astro v6 | Tailwind CSS v4 | TypeScript | React (islands) | Sharp
+**Stack:** Astro v7 | Tailwind CSS v4 | TypeScript | React (islands) | Sharp
 
 ## Quick Reference
 
@@ -79,7 +79,7 @@ Components use `twMerge` from `tailwind-merge` v3 for conditional class composit
 
 ## Content Collections
 
-Defined in `src/content.config.ts` using the Astro v6 Content Layer API with `glob()` loaders: `event` (`src/data/events/`), `leader`, `site` (venues), `testimonial`, and `landingSettings` (`src/data/settings/landing.md`). The zod schemas double as validation for CMS commits — a build fails on invalid content. The full CMS ↔ collection mapping is in [docs/deployment-and-cms.md](./docs/deployment-and-cms.md); when adding a field, update `public/admin/config.yml` and the zod schema together.
+Defined in `src/content.config.ts` using the Astro Content Layer API with `glob()` loaders: `event` (`src/data/events/`), `leader`, `site` (venues), `testimonial`, and `landingSettings` (`src/data/settings/landing.md`). The zod schemas double as validation for CMS commits — a build fails on invalid content. The full CMS ↔ collection mapping is in [docs/deployment-and-cms.md](./docs/deployment-and-cms.md); when adding a field, update `public/admin/config.yml` and the zod schema together.
 
 ## Component Patterns
 
@@ -108,18 +108,33 @@ After changes, always verify:
 3. `npm test` passes (Vitest); `npm run test:e2e` for event-page/UI changes
 4. Visual check in browser: homepage, events listing, an event detail page, dark mode, mobile menu
 
-## Known Issues / Upgrade Holds
+## Known Issues / Resolved Upgrade Holds
 
-### Astro 7 (Vite 8 / Rolldown) — CSS regression, hold until upstream fix
+### Astro 7 upgrade — CSS breakpoint regression (RESOLVED 2026-07-23)
 
-**Symptom:** Production build (`astro build`) produces CSS with zero responsive `@media (min-width:…)` breakpoints. The dev server (`astro dev`) renders correctly because it uses Vite's dev pipeline, not Rolldown. Cloudflare Pages deploys the production build, so the deployed site would be stuck in "mobile-only" layout at all screen sizes.
+The site is now on **Astro 7** (`astro@7.1.3`, `vite@8.1.5`, `@tailwindcss/vite@4.3.3`). This upgrade was held back for about a month after early Astro 7 versions appeared to silently drop every responsive Tailwind breakpoint (`md:`, `lg:`, `sm:`, `xl:`, custom breakpoints like `nav:`) from the production build only — `astro dev` looked fine because it uses a different CSS pipeline than `astro build`.
 
-**Root cause:** Astro 7 ships Vite 8, which uses Rolldown (a Rust-based bundler) instead of Rollup. Rolldown processes CSS files with its own native CSS bundler, which resolves `@import 'tailwindcss'` to `tailwindcss/index.css` — a 30 KB file of theme variables with no utility classes. The `@tailwindcss/vite` plugin correctly generates full utility CSS (101 KB, 23 breakpoint queries) in its `transform` hook, but Rolldown's native CSS bundler runs independently of the transform pipeline and its output replaces the plugin's output in the final asset.
+**Actual root cause (not what was originally suspected):** it was never Vite 8/Rolldown resolving `@import 'tailwindcss'` incorrectly, despite that being the initial working theory. Tailwind v4 compiles some breakpoints using the modern CSS range syntax `@media (width>=1110px)` instead of the older `@media (min-width:1110px)`. `astro-compress`'s default CSS minifier (`csso`) can't parse that syntax and **silently drops the entire rule** — deleting every utility class inside it — rather than erroring. Astro 6→7 didn't cause this directly; it just happened to coincide with a Tailwind version that emits the modern syntax.
 
-The `@tailwindcss/postcss` route has the same problem: Vite 8's internal `postcss-import` resolves `@import 'tailwindcss'` before `@tailwindcss/postcss` can handle it.
+**Fix:** `astro.config.ts`'s `compress()` CSS option was switched from `csso` to `lightningcss`, which understands the modern range syntax and leaves it intact:
 
-**Versions tested:** `astro@7.0.0`, `astro@7.0.3`, `vite@8.1.0`, `@tailwindcss/vite@4.3.1` (all latest as of 2026-06-26). None resolved the issue.
+```ts
+compress({
+  CSS: { csso: false, lightningcss: {} },
+  // ...
+});
+```
 
-**When to retry:** Watch for a release of `@tailwindcss/vite` that explicitly mentions Rolldown / Vite 8 CSS asset pipeline compatibility. The Dependabot bump is in the git history at commit `35719ef` (branch `feat/brighter-hero`) and can be cherry-picked once the upstream fix ships.
+**How to verify this doesn't regress:** don't judge by build CSS file size or `@media` query count alone — a broken build can still produce a large file with plenty of _non-breakpoint_ media queries (`hover`, `prefers-reduced-motion`, `print`, etc.) and look superficially fine. Check for the actual utility prefixes instead:
 
-**Workaround (if urgently needed):** Run `npx tailwindcss -i src/assets/styles/tailwind.css -o src/assets/styles/tailwind.built.css` as a prebuild step, import the generated file in `Layout.astro`, and remove `@tailwindcss/vite` from `astro.config.ts`. Rolldown passes plain CSS through unchanged. Requires `tailwindcss --watch` alongside `astro dev` for hot-reloading during development.
+```bash
+python3 -c "print(open('dist/_astro/PageLayout.<hash>.css').read().count('md\\:'))"
+```
+
+Compare `md:`/`lg:`/`sm:`/`xl:`/`nav:` counts against a known-good baseline build — they should be non-zero and roughly stable across builds of the same source tree.
+
+**If this regresses again:** check whether `astro-compress`'s CSS step is still configured with `lightningcss` in `astro.config.ts`, and whether a newer Tailwind/astro-compress release changed how CSS range syntax is handled, before assuming it's another Rolldown/Vite issue.
+
+### Dependabot: stale major-version PRs can bypass the ignore list
+
+`.github/dependabot.yml` ignores `semver-major` updates for `astro`/`@astrojs/*`, but that only stops _new_ PRs from being opened — it does not auto-close PRs opened before the ignore rule existed or before it was last updated. A stale `dependabot/npm_and_yarn/astro-7.1.3` PR sat open for two days and was merged on 2026-07-23, initially appearing to break production (before the CSS fix above was identified and folded into that same PR). When updating `dependabot.yml`'s ignore rules, also check `gh pr list --author app/dependabot` for stale open PRs that predate the change and close/re-evaluate them explicitly.
