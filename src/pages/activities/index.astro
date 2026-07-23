@@ -187,14 +187,6 @@ const itemListJsonLd = {
                 >
                   Songs
                 </button>
-                <button
-                  type="button"
-                  data-filter-type="play-party"
-                  aria-pressed="false"
-                  class="text-sm font-semibold rounded-full px-4 py-2.5 border border-gray-200 dark:border-gray-700 text-default hover:border-primary/40 transition-colors cursor-pointer"
-                >
-                  Play Parties
-                </button>
               </div>
             </div>
 
@@ -213,7 +205,7 @@ const itemListJsonLd = {
                           <button
                             type="button"
                             data-filter-posture={posture}
-                            data-relevant-types="game,dance,play-party"
+                            data-relevant-types="game,dance"
                             aria-pressed="false"
                             class="text-xs font-medium rounded-full px-3 py-2 border border-gray-200 dark:border-gray-700 text-default hover:border-primary/40 transition-colors cursor-pointer"
                           >
@@ -224,7 +216,7 @@ const itemListJsonLd = {
                           <button
                             type="button"
                             id="filter-wheelchair-adaptable"
-                            data-relevant-types="game,dance,play-party"
+                            data-relevant-types="game,dance"
                             aria-pressed="false"
                             class="inline-flex items-center gap-1 text-xs font-medium rounded-full px-3 py-2 border border-gray-200 dark:border-gray-700 text-default hover:border-primary/40 transition-colors cursor-pointer"
                           >
@@ -293,7 +285,7 @@ const itemListJsonLd = {
                           <button
                             type="button"
                             data-filter-meter={meter}
-                            data-relevant-types="dance,play-party"
+                            data-relevant-types="dance"
                             aria-pressed="false"
                             class="text-xs font-medium rounded-full px-3 py-2 border border-gray-200 dark:border-gray-700 text-default hover:border-primary/40 transition-colors cursor-pointer"
                           >
@@ -491,10 +483,10 @@ const itemListJsonLd = {
     let searchQuery = '';
     const groupSizeLabel = groupSizeRangeValue ? new RollingLabel(groupSizeRangeValue) : null;
 
-    // Only games/dances/play-parties carry structured group-size data; the
+    // Only games/dances carry structured group-size data; the
     // slider row hides (and resets) itself for other types, same as the
     // meter/key chip groups.
-    const GROUP_SIZE_RELEVANT_TYPES = ['game', 'dance', 'play-party'];
+    const GROUP_SIZE_RELEVANT_TYPES = ['game', 'dance'];
     const groupSizeBoundMin = groupSizeMinInput ? Number(groupSizeMinInput.min) : 1;
     const groupSizeBoundMax = groupSizeMinInput ? Number(groupSizeMinInput.max) : 1;
 
