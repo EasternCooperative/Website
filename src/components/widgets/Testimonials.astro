@@ -55,11 +55,16 @@ const { testimonials } = Astro.props;
     return a;
   }
 
-  const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-testimonial]'));
-  if (cards.length > 0) {
-    const picked = shuffle(cards).slice(0, 3);
-    picked.forEach((card) => card.removeAttribute('hidden'));
+  function revealRandomTestimonials() {
+    const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-testimonial]'));
+    if (cards.length > 0) {
+      const picked = shuffle(cards).slice(0, 3);
+      picked.forEach((card) => card.removeAttribute('hidden'));
+    }
   }
+
+  revealRandomTestimonials();
+  document.addEventListener('astro:after-swap', revealRandomTestimonials);
 </script>
 
 <style>
