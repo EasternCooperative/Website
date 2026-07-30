@@ -659,7 +659,10 @@ const breadcrumbJsonLd = {
                                 const assistants = resolved.filter((l) => l.role === 'assistant');
 
                                 const renderLeader = (l: (typeof resolved)[0]) =>
-                                  l.record ? (
+                                  l.record &&
+                                  (siteSettings.featureFlags.peopleWithoutPhotoOrBio ||
+                                    l.record.photo ||
+                                    l.record.bio) ? (
                                     <span class="inline-flex items-center gap-1">
                                       {l.record.photo && (
                                         <Image
@@ -863,6 +866,7 @@ const breadcrumbJsonLd = {
     linkedLeaderIds.map((id) => {
       const leader = leaderMap.get(id);
       if (!leader) return null;
+      if (!siteSettings.featureFlags.peopleWithoutPhotoOrBio && !leader.photo && !leader.bio) return null;
       return (
         <div
           id={`leader-${id}`}
