@@ -123,6 +123,23 @@ describe('initScrollReveal', () => {
     expect(transforms).toEqual(['translate(0px, 64px)', 'translate(-80px, 0px)', 'translate(80px, 0px)']);
   });
 
+  it('uses a shorter distance/duration and no blur for the "up-light" variant', async () => {
+    document.body.innerHTML = '<div data-scroll-reveal="up-light"></div>';
+    const { initScrollReveal } = await import('./scrollReveal');
+
+    initScrollReveal();
+
+    expect(animateMock).toHaveBeenCalledTimes(1);
+    const [, keyframes, options] = animateMock.mock.calls[0] as [
+      unknown,
+      { transform: string[]; filter?: string[] },
+      { duration: number },
+    ];
+    expect(keyframes.transform[0]).toBe('translate(0px, 16px)');
+    expect(keyframes.filter).toBeUndefined();
+    expect(options.duration).toBe(0.5);
+  });
+
   it('falls back to the "up" offset for an unrecognized direction value', async () => {
     document.body.innerHTML = '<div data-scroll-reveal="sideways"></div>';
     const { initScrollReveal } = await import('./scrollReveal');
