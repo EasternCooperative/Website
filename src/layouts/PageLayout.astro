@@ -10,7 +10,7 @@ import type { MetaData } from '~/types';
 
 export interface Props {
   metadata?: MetaData;
-  /** When true, this page is excluded from the Pagefind search index. */
+  /** When true, this page is excluded from the Pagefind search index and from search-engine indexing (robots noindex/nofollow). */
   noIndex?: boolean;
 }
 
@@ -20,6 +20,12 @@ const { metadata = {}, noIndex = false } = Astro.props;
 // Pages that want a different image (about/contact/donate → /og/default.jpg,
 // event detail → /og/<id>.jpg) set metadata.openGraph.images explicitly.
 let effectiveMetadata = metadata;
+if (noIndex) {
+  effectiveMetadata = {
+    ...effectiveMetadata,
+    robots: { index: false, follow: false, ...effectiveMetadata.robots },
+  };
+}
 if (!metadata.openGraph?.images?.length) {
   const now = new Date(new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }) + 'T00:00:00Z');
   const allEvents = await getCollection('event', ({ data }) => !data.draft);
@@ -29,9 +35,9 @@ if (!metadata.openGraph?.images?.length) {
 
   if (nextEvent) {
     effectiveMetadata = {
-      ...metadata,
+      ...effectiveMetadata,
       openGraph: {
-        ...metadata.openGraph,
+        ...effectiveMetadata.openGraph,
         images: [{ url: `/og/${nextEvent.id}.jpg`, width: 1200, height: 630 }],
       },
     };

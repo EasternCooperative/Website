@@ -1,11 +1,15 @@
 import { animate, scroll } from 'motion';
 
-type Direction = 'up' | 'left' | 'right';
+type Direction = 'up' | 'left' | 'right' | 'up-light';
 
 const OFFSETS: Record<Direction, { x: number; y: number }> = {
   up: { x: 0, y: 64 },
   left: { x: -80, y: 0 },
   right: { x: 80, y: 0 },
+  // Subtler variant for long, densely-repeated lists (e.g. event class listings) where
+  // the full-strength blur+slide reveal on every item reads as distracting rather than
+  // polished while scrolling through many of them in a row.
+  'up-light': { x: 0, y: 16 },
 };
 
 // "start X%" in the scroll() offset below means: the effect begins once the element's
@@ -44,6 +48,7 @@ export function initScrollReveal(root: ParentNode = document): void {
 
       const direction = el.dataset.scrollReveal as Direction;
       const { x, y } = OFFSETS[direction] ?? OFFSETS.up;
+      const isLight = direction === 'up-light';
 
       scroll(
         animate(
@@ -51,9 +56,9 @@ export function initScrollReveal(root: ParentNode = document): void {
           {
             opacity: [0, 1],
             transform: [`translate(${x}px, ${y}px)`, 'translate(0px, 0px)'],
-            filter: ['blur(4px)', 'blur(0px)'],
+            ...(isLight ? {} : { filter: ['blur(4px)', 'blur(0px)'] }),
           },
-          { duration: 1 }
+          { duration: isLight ? 0.5 : 1 }
         ),
         { target: el, offset: [`start ${START_PERCENT}%`, `start ${END_PERCENT}%`] }
       );

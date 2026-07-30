@@ -137,7 +137,10 @@ const jsonLd = {
       ? pricingRows.map((p) => ({
           '@type': 'Offer',
           name: p.ageRange,
-          price: p.fullWeekend === 'Free' ? '0' : (p.fullWeekend?.replace(/[^0-9.]/g, '') ?? '0'),
+          // For ranged prices (e.g. "$50–75"), use the first number as the starting price
+          // rather than concatenating all digits into a nonsensical value. Thousands
+          // separators are stripped first so "$1,200" still parses as 1200, not 1.
+          price: p.fullWeekend === 'Free' ? '0' : (p.fullWeekend?.replace(/,/g, '').match(/\d+(\.\d+)?/)?.[0] ?? '0'),
           priceCurrency: 'USD',
           availability: isPast ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
           url: data.registrationUrl ?? String(Astro.url),
@@ -278,6 +281,7 @@ const breadcrumbJsonLd = {
                 </p>
               )
             }
+            {!data.startTime && !data.endTime && !isPast && <p class="text-sm text-muted">Time TBD</p>}
           </div>
         </a>
 
@@ -630,7 +634,7 @@ const breadcrumbJsonLd = {
                         {classes.map((cls) => (
                           <li
                             class="rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3"
-                            data-scroll-reveal="up"
+                            data-scroll-reveal="up-light"
                           >
                             <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                               <span class="font-semibold text-heading">{cls.name}</span>
@@ -654,10 +658,14 @@ const breadcrumbJsonLd = {
                                 const primary = resolved.filter((l) => l.role !== 'assistant');
                                 const assistants = resolved.filter((l) => l.role === 'assistant');
 
-                                const renderLeader = (l: (typeof resolved)[0]) =>
-                                  l.record ? (
+                                const renderLeader = (l: (typeof resolved)[0]) => {
+                                  // Only leaders with a bio get the interactive popover — a photo
+                                  // alone is already visible as the inline avatar and doesn't add
+                                  // anything a click would reveal.
+                                  const hasBio = siteSettings.featureFlags.peopleWithoutPhotoOrBio || !!l.record?.bio;
+                                  return (
                                     <span class="inline-flex items-center gap-1">
-                                      {l.record.photo && (
+                                      {l.record?.photo && (
                                         <Image
                                           src={l.record.photo}
                                           alt={l.name}
@@ -669,19 +677,22 @@ const breadcrumbJsonLd = {
                                           class="w-5 h-5 rounded-full object-cover"
                                         />
                                       )}
-                                      <button
-                                        type="button"
-                                        data-popover-target={`leader-${l.id}`}
-                                        aria-controls={`leader-${l.id}`}
-                                        aria-expanded="false"
-                                        class="underline decoration-dotted underline-offset-2 cursor-pointer hover:text-primary transition-colors"
-                                      >
-                                        {l.name}
-                                      </button>
+                                      {l.record && hasBio ? (
+                                        <button
+                                          type="button"
+                                          data-popover-target={`leader-${l.id}`}
+                                          aria-controls={`leader-${l.id}`}
+                                          aria-expanded="false"
+                                          class="underline decoration-dotted underline-offset-2 cursor-pointer hover:text-primary transition-colors"
+                                        >
+                                          {l.name}
+                                        </button>
+                                      ) : (
+                                        <span>{l.name}</span>
+                                      )}
                                     </span>
-                                  ) : (
-                                    <span>{l.name}</span>
                                   );
+                                };
 
                                 const renderGroup = (items: typeof resolved) =>
                                   items.map((l, i) => {
@@ -859,6 +870,7 @@ const breadcrumbJsonLd = {
     linkedLeaderIds.map((id) => {
       const leader = leaderMap.get(id);
       if (!leader) return null;
+      if (!siteSettings.featureFlags.peopleWithoutPhotoOrBio && !leader.bio) return null;
       return (
         <div
           id={`leader-${id}`}
