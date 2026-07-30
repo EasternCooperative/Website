@@ -118,6 +118,18 @@
   color: var(--aw-color-primary);
 }
 
+/* Underline + brand color for links inside CMS-authored inline markdown snippets
+   (bios, notes, quotes) that are too compact for the full `prose` treatment —
+   without this they inherit plain body text styling and are invisible as links. */
+.md-links a {
+  color: var(--aw-color-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.md-links a:hover {
+  opacity: 0.75;
+}
+
 /* Animated underline for nav links */
 .nav-link {
   position: relative;

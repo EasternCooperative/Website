@@ -39,6 +39,6 @@ const { name, title, photo, bio } = Astro.props;
   <div class="min-w-0">
     <p class="font-semibold text-heading leading-snug">{name}</p>
     {title && <p class="text-sm text-muted mb-1">{title}</p>}
-    {bio && <p class="text-sm text-default mt-1 leading-relaxed" set:html={bio} />}
+    {bio && <p class="text-sm text-default mt-1 leading-relaxed md-links" set:html={bio} />}
   </div>
 </div>
