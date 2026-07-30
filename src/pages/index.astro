@@ -221,7 +221,7 @@ const metadata = {
           {upcomingEvents.map((event: (typeof upcomingEvents)[0]) => {
             const v = resolveVenue(event.data, event.data.siteId ? siteMap.get(event.data.siteId) : undefined);
             return (
-              <li>
+              <li data-scroll-reveal="up">
                 <EventCard
                   title={event.data.title}
                   date={formatEventDateRange(event.data.date, event.data.endDate)}
