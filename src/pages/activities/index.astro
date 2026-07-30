@@ -355,7 +355,7 @@ const itemListJsonLd = {
       ) : (
         <ul id="activity-grid" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 list-none p-0 m-0" role="list">
           {allActivities.map((activity) => (
-            <li class="intersect-once intersect-quarter motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade">
+            <li class="intersect-once intersect-quarter motion-safe:md:js:opacity-0 motion-safe:md:intersect:animate-fade">
               <ActivityCard data={activity.data} href={`/activities/${activity.id}`} cardStyle={cardStyle} />
             </li>
           ))}

@@ -90,7 +90,7 @@ const itemListJsonLd = {
           {upcoming.map((event: (typeof upcoming)[0]) => {
             const v = resolveVenue(event.data, event.data.siteId ? siteMap.get(event.data.siteId) : undefined);
             return (
-              <li class="intersect-once intersect-quarter motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade">
+              <li class="intersect-once intersect-quarter motion-safe:md:js:opacity-0 motion-safe:md:intersect:animate-fade">
                 <EventCard
                   title={event.data.title}
                   date={formatEventDateRange(event.data.date, event.data.endDate)}
@@ -126,7 +126,7 @@ const itemListJsonLd = {
           {past.map((event: (typeof past)[0]) => {
             const v = resolveVenue(event.data, event.data.siteId ? siteMap.get(event.data.siteId) : undefined);
             return (
-              <li class="intersect-once intersect-quarter motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade">
+              <li class="intersect-once intersect-quarter motion-safe:md:js:opacity-0 motion-safe:md:intersect:animate-fade">
                 <EventCard
                   title={event.data.title}
                   date={formatEventDateRange(event.data.date, event.data.endDate)}

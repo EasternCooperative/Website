@@ -167,7 +167,16 @@ import { UI } from 'astrowind:config';
 </script>
 
 <script is:inline>
-  /* Inspired by: https://github.com/heidkaemper/tailwindcss-intersect */
+  /*
+    Inspired by: https://github.com/heidkaemper/tailwindcss-intersect
+
+    TODO: migrate scroll-in reveals to native CSS scroll-driven animations
+    (animation-timeline: view()) once Safari and Firefox ship stable support.
+    That would let us drop this Observer, the `js`/`intersect` custom variants
+    in tailwind.css, and the `motion-safe:md:js:opacity-0` convention
+    entirely in favor of plain CSS — no JS, no no-JS fallback to maintain.
+    Tracking: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_scroll-driven_animations#browser_compatibility
+  */
   const Observer = {
     observer: null,
     delayBetweenAnimations: 100,

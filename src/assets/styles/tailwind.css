@@ -15,6 +15,7 @@
 @variant dark (&:where(.dark, .dark *));
 
 @custom-variant intersect (&[data-animated='true']);
+@custom-variant js (:where(html.js) &);
 
 @theme {
   --color-primary: var(--aw-color-primary);
