@@ -174,7 +174,7 @@ import { UI } from 'astrowind:config';
     animationCounter: 0,
     elements: null,
 
-    start(isNavigation) {
+    start() {
       if (this.observer) {
         this.observer.disconnect();
       }
@@ -204,18 +204,6 @@ import { UI } from 'astrowind:config';
         el.setAttribute('no-intersect', '');
         el._intersectionThreshold = getThreshold(el);
       });
-
-      if (isNavigation) {
-        const vh = window.innerHeight;
-        this.elements.forEach((el) => {
-          const rect = el.getBoundingClientRect();
-          if (rect.top < vh && rect.bottom > 0) {
-            el.removeAttribute('no-intersect');
-            el.setAttribute('data-animated', 'true');
-            el.style.animationDuration = '0s';
-          }
-        });
-      }
 
       const callback = (entries) => {
         entries.forEach((entry) => {
@@ -290,9 +278,9 @@ import { UI } from 'astrowind:config';
     },
   };
 
-  Observer.start(false);
+  Observer.start();
 
   document.addEventListener('astro:after-swap', () => {
-    Observer.start(true);
+    Observer.start();
   });
 </script>
