@@ -47,7 +47,7 @@ const isPast = variant === 'past';
         widths={[400, 600, 800]}
         sizes="(max-width: 768px) 100vw, 400px"
         layout="cover"
-        class:list={['w-full object-cover', isPast ? 'h-36 grayscale' : 'h-44']}
+        class:list={['w-full object-cover', isPast ? 'h-36 grayscale-[75%]' : 'h-44']}
         loading="lazy"
       />
     ) : isPast ? (
