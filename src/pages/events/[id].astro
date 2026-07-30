@@ -137,7 +137,10 @@ const jsonLd = {
       ? pricingRows.map((p) => ({
           '@type': 'Offer',
           name: p.ageRange,
-          price: p.fullWeekend === 'Free' ? '0' : (p.fullWeekend?.replace(/[^0-9.]/g, '') ?? '0'),
+          // For ranged prices (e.g. "$50–75"), use the first number as the starting price
+          // rather than concatenating all digits into a nonsensical value. Thousands
+          // separators are stripped first so "$1,200" still parses as 1200, not 1.
+          price: p.fullWeekend === 'Free' ? '0' : (p.fullWeekend?.replace(/,/g, '').match(/\d+(\.\d+)?/)?.[0] ?? '0'),
           priceCurrency: 'USD',
           availability: isPast ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
           url: data.registrationUrl ?? String(Astro.url),
@@ -278,6 +281,7 @@ const breadcrumbJsonLd = {
                 </p>
               )
             }
+            {!data.startTime && !data.endTime && !isPast && <p class="text-sm text-muted">Time TBD</p>}
           </div>
         </a>
 
@@ -890,9 +894,11 @@ const breadcrumbJsonLd = {
                 set:html={renderInlineMarkdown(leader.bio)}
               />
             )}
-            <a href={`/our-people#leader-${id}`} class="text-xs font-semibold text-primary hover:underline">
-              View full profile →
-            </a>
+            {(siteSettings.featureFlags.peopleWithoutPhotoOrBio || leader.photo || leader.bio) && (
+              <a href={`/our-people#leader-${id}`} class="text-xs font-semibold text-primary hover:underline">
+                View full profile →
+              </a>
+            )}
           </div>
         </div>
       );

@@ -1,8 +1,8 @@
 ---
 title: 'Fun Day in Philly'
 date: 2026-03-14
-startTime: 'TBD'
-endTime: 'TBD'
+startTime: ''
+endTime: ''
 siteId: the-philadelphia-ethical-society
 excerpt: 'Dancing, singing and playing with community. A day jam-packed with fun for all.'
 description: |

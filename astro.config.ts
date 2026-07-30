@@ -1,3 +1,4 @@
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -19,6 +20,32 @@ import react from '@astrojs/react';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// Content collections aren't queryable from astro.config.ts, so read `draft: true`
+// directly out of each entry's frontmatter to keep the sitemap in sync with the
+// noIndex logic in the events/activities detail pages.
+function draftSlugs(dir: string): string[] {
+  if (!fs.existsSync(dir)) return [];
+  return fs
+    .readdirSync(dir)
+    .filter((file) => file.endsWith('.md') || file.endsWith('.mdx'))
+    .filter((file) => {
+      const contents = fs.readFileSync(path.join(dir, file), 'utf-8');
+      const frontmatter = contents.match(/^---\n([\s\S]*?)\n---/)?.[1] ?? '';
+      return /^draft:\s*true\s*$/m.test(frontmatter);
+    })
+    .map((file) => file.replace(/\.mdx?$/, ''));
+}
+
+const draftEventSlugs = draftSlugs(path.join(__dirname, 'src/data/events'));
+const draftActivitySlugs = draftSlugs(path.join(__dirname, 'src/data/activities'));
+
+// Matches the slug as a full path segment (not a substring) so a draft like
+// "foo" doesn't also exclude an unrelated live page like "foo-extended".
+function isDraftPage(page: string, sectionPrefix: string, slugs: string[]): boolean {
+  const match = page.match(new RegExp(`${sectionPrefix}([^/]+)/?$`));
+  return !!match && slugs.includes(match[1]);
+}
+
 export default defineConfig({
   output: 'static',
 
@@ -27,9 +54,13 @@ export default defineConfig({
 
   integrations: [
     sitemap({
-      // Exclude e2e fixtures and pages marked `robots: { index: false }` —
+      // Exclude e2e fixtures, internal pages, and draft events/activities —
       // the sitemap should only list pages we want search engines to index.
-      filter: (page) => !page.includes('/events/e2e-') && !page.includes('/internal/'),
+      filter: (page) =>
+        !page.includes('/events/e2e-') &&
+        !page.includes('/internal/') &&
+        !isDraftPage(page, '/events/', draftEventSlugs) &&
+        !isDraftPage(page, '/activities/', draftActivitySlugs),
     }),
     icon({
       include: {

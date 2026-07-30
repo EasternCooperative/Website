@@ -72,6 +72,10 @@ const metadata = {
   description: data.excerpt ?? `How to lead "${data.title}" — steps and tips from ECRS.`,
 };
 
+// Keep draft activities out of the search index, mirroring the sitemap
+// (astro.config.ts) and listing exclusions.
+const noIndex = data.draft === true;
+
 // HowTo markup targets searches like "how to lead Zip Zap Zop" — the core
 // discovery goal of this library. Paragraphs of the instructions become steps.
 const howToJsonLd = data.instructions
@@ -108,7 +112,7 @@ const breadcrumbJsonLd = {
 };
 ---
 
-<Layout metadata={metadata}>
+<Layout metadata={metadata} noIndex={noIndex}>
   <Fragment slot="head">
     <script is:inline type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd)} />
     {howToJsonLd && <script is:inline type="application/ld+json" set:html={JSON.stringify(howToJsonLd)} />}

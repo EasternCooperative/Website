@@ -412,7 +412,11 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
     if (header) {
       const badge = section.querySelector<HTMLElement>('[data-hero-badge]');
       applyHeaderOffset(header, section, content, badge);
-      window.addEventListener('resize', () => applyHeaderOffset(header, section, content, badge));
+      const resizeController = new AbortController();
+      window.addEventListener('resize', () => applyHeaderOffset(header, section, content, badge), {
+        signal: resizeController.signal,
+      });
+      document.addEventListener('astro:before-preparation', () => resizeController.abort(), { once: true });
     }
 
     const videos = [...document.querySelectorAll<HTMLVideoElement>('[data-hero-video]')];
