@@ -97,7 +97,10 @@ const peopleJsonLd = {
           </h2>
           <ul class="grid sm:grid-cols-2 gap-8 list-none p-0 m-0">
             {leaders.map((leader) => (
-              <li id={`leader-${leader.id}`} class="scroll-mt-24">
+              <li
+                id={`leader-${leader.id}`}
+                class="scroll-mt-24 intersect-once intersect-quarter motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade"
+              >
                 <PersonCard
                   name={leader.data.name}
                   title={leader.data.title}
@@ -124,7 +127,7 @@ const peopleJsonLd = {
             </h2>
             <ul class="grid sm:grid-cols-2 gap-8 list-none p-0 m-0">
               {cat.people.map((person) => (
-                <li>
+                <li class="intersect-once intersect-quarter motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade">
                   <PersonCard
                     name={person.name}
                     title={person.title ?? undefined}
