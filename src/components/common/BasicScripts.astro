@@ -222,18 +222,21 @@ import { UI } from 'astrowind:config';
             const threshold = target._intersectionThreshold;
 
             if (target.classList.contains('intersect-no-queue')) {
+              const isOnceNoQueue = target.classList.contains('intersect-once');
               if (entry.isIntersecting) {
                 target.removeAttribute('no-intersect');
                 target.setAttribute('data-animated', 'true');
-                if (target.classList.contains('intersect-once')) {
+                if (isOnceNoQueue) {
                   this.observer.unobserve(target);
                 }
-              } else {
+              } else if (!isOnceNoQueue) {
                 target.setAttribute('no-intersect', '');
                 target.removeAttribute('data-animated');
               }
               return;
             }
+
+            const isOnce = target.classList.contains('intersect-once');
 
             if (entry.isIntersecting && intersectionRatio >= threshold) {
               if (!target.hasAttribute('data-animated')) {
@@ -247,11 +250,15 @@ import { UI } from 'astrowind:config';
                 target.style.transitionDelay = `${delay}ms`;
                 target.style.animationDelay = `${delay}ms`;
 
-                if (target.classList.contains('intersect-once')) {
+                if (isOnce) {
                   this.observer.unobserve(target);
                 }
               }
-            } else {
+            } else if (!isOnce) {
+              // intersect-once elements only ever transition hidden -> revealed; resetting
+              // them here would flicker them back to hidden on a stray/stale entry reporting
+              // a ratio dip right at the threshold boundary during scroll (REF: flicker on
+              // dense grids like Our People / Events).
               target.setAttribute('no-intersect', '');
               target.removeAttribute('data-animated');
               target.style.transitionDelay = '';
