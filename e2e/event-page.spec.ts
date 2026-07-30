@@ -136,36 +136,36 @@ test.describe('leader popover', () => {
   });
 
   test('leader name is a clickable button in the class listing', async ({ page }) => {
-    const trigger = page.getByRole('button', { name: 'Isaac Lebwohl-Steiner' }).first();
+    const trigger = page.getByRole('button', { name: 'Patricia Williams' }).first();
     await expect(trigger).toBeVisible();
   });
 
   test('clicking leader button opens the popover with name and profile link', async ({ page }) => {
-    const trigger = page.getByRole('button', { name: 'Isaac Lebwohl-Steiner' }).first();
+    const trigger = page.getByRole('button', { name: 'Patricia Williams' }).first();
     await trigger.scrollIntoViewIfNeeded();
     await trigger.click();
 
-    const popover = page.locator('[id="leader-isaac-lebwohl-steiner"]');
+    const popover = page.locator('[id="leader-patricia-williams"]');
     await expect(popover).toBeVisible();
-    await expect(popover.getByText('Isaac Lebwohl-Steiner')).toBeVisible();
+    await expect(popover.getByText('Patricia Williams')).toBeVisible();
     await expect(popover.getByRole('link', { name: /view full profile/i })).toBeVisible();
   });
 
   test('hovering leader button opens the popover', async ({ page }) => {
-    const trigger = page.getByRole('button', { name: 'Isaac Lebwohl-Steiner' }).first();
+    const trigger = page.getByRole('button', { name: 'Patricia Williams' }).first();
     await trigger.scrollIntoViewIfNeeded();
     await trigger.hover();
 
-    const popover = page.locator('[id="leader-isaac-lebwohl-steiner"]');
+    const popover = page.locator('[id="leader-patricia-williams"]');
     await expect(popover).toBeVisible();
   });
 
   test('popover closes after moving mouse away', async ({ page }) => {
-    const trigger = page.getByRole('button', { name: 'Isaac Lebwohl-Steiner' }).first();
+    const trigger = page.getByRole('button', { name: 'Patricia Williams' }).first();
     await trigger.scrollIntoViewIfNeeded();
     await trigger.hover();
 
-    const popover = page.locator('[id="leader-isaac-lebwohl-steiner"]');
+    const popover = page.locator('[id="leader-patricia-williams"]');
     await expect(popover).toBeVisible();
 
     // Move away from both trigger and popover
@@ -174,11 +174,11 @@ test.describe('leader popover', () => {
   });
 
   test('popover profile link points to /our-people with correct anchor', async ({ page }) => {
-    const trigger = page.getByRole('button', { name: 'Isaac Lebwohl-Steiner' }).first();
+    const trigger = page.getByRole('button', { name: 'Patricia Williams' }).first();
     await trigger.scrollIntoViewIfNeeded();
     await trigger.click();
 
-    const link = page.locator('[id="leader-isaac-lebwohl-steiner"]').getByRole('link', { name: /view full profile/i });
-    await expect(link).toHaveAttribute('href', '/our-people#leader-isaac-lebwohl-steiner');
+    const link = page.locator('[id="leader-patricia-williams"]').getByRole('link', { name: /view full profile/i });
+    await expect(link).toHaveAttribute('href', '/our-people#leader-patricia-williams');
   });
 });
