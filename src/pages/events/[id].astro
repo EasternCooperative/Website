@@ -628,7 +628,10 @@ const breadcrumbJsonLd = {
                       )}
                       <ul class="space-y-3 list-none p-0 m-0">
                         {classes.map((cls) => (
-                          <li class="rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3 intersect-once intersect-quarter motion-safe:md:js:opacity-0 motion-safe:md:intersect:animate-fade">
+                          <li
+                            class="rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3"
+                            data-scroll-reveal="up"
+                          >
                             <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                               <span class="font-semibold text-heading">{cls.name}</span>
                               {(() => {

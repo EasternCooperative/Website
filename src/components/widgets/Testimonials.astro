@@ -19,7 +19,8 @@ const { testimonials } = Astro.props;
             <li
               data-testimonial={i}
               hidden
-              class="relative flex flex-col rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.07)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.15)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6 intersect-once intersect-quarter motion-safe:md:js:opacity-0 motion-safe:md:intersect:animate-fade"
+              class="relative flex flex-col rounded-lg shadow-[0_4px_30px_rgba(0,0,0,0.07)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.15)] backdrop-blur border border-[#ffffff29] bg-white dark:bg-slate-900 p-6"
+              data-scroll-reveal="up"
             >
               <div class="flex-1 flex items-center">
                 <blockquote class="text-default italic leading-relaxed">
@@ -46,6 +47,8 @@ const { testimonials } = Astro.props;
 }
 
 <script>
+  import { initScrollReveal } from '~/utils/scrollReveal';
+
   function shuffle<T>(arr: T[]): T[] {
     const a = [...arr];
     for (let i = a.length - 1; i > 0; i--) {
@@ -60,6 +63,9 @@ const { testimonials } = Astro.props;
     if (cards.length > 0) {
       const picked = shuffle(cards).slice(0, 3);
       picked.forEach((card) => card.removeAttribute('hidden'));
+      // cards start [hidden], so the global scroll-reveal sweep in BasicScripts.astro
+      // skips them; wire up just-revealed cards here instead.
+      initScrollReveal();
     }
   }
 
