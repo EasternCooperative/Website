@@ -215,11 +215,13 @@ import { UI } from 'astrowind:config';
             if (target.classList.contains('intersect-no-queue')) {
               if (entry.isIntersecting) {
                 target.removeAttribute('no-intersect');
+                target.setAttribute('data-animated', 'true');
                 if (target.classList.contains('intersect-once')) {
                   this.observer.unobserve(target);
                 }
               } else {
                 target.setAttribute('no-intersect', '');
+                target.removeAttribute('data-animated');
               }
               return;
             }
