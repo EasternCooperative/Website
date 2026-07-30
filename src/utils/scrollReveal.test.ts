@@ -123,6 +123,17 @@ describe('initScrollReveal', () => {
     expect(transforms).toEqual(['translate(0px, 64px)', 'translate(-80px, 0px)', 'translate(80px, 0px)']);
   });
 
+  it('falls back to the "up" offset for an unrecognized direction value', async () => {
+    document.body.innerHTML = '<div data-scroll-reveal="sideways"></div>';
+    const { initScrollReveal } = await import('./scrollReveal');
+
+    initScrollReveal();
+
+    expect(animateMock).toHaveBeenCalledTimes(1);
+    const transform = (animateMock.mock.calls[0][1] as { transform: string[] }).transform[0];
+    expect(transform).toBe('translate(0px, 64px)');
+  });
+
   it('scopes to a given root without touching elements outside it', async () => {
     document.body.innerHTML =
       '<div id="a" data-scroll-reveal="up"></div><div id="scope"><div id="b" data-scroll-reveal="up"></div></div>';
