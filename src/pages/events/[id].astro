@@ -521,7 +521,7 @@ const breadcrumbJsonLd = {
                 <div>
                   <h3 class="font-heading text-lg font-bold text-heading mb-1">{accom.name}</h3>
                   {accom.description && (
-                    <p class="text-sm text-muted mb-3" set:html={renderInlineMarkdown(accom.description)} />
+                    <p class="text-sm text-muted mb-3 md-links" set:html={renderInlineMarkdown(accom.description)} />
                   )}
                   <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
                     <table class="w-full text-sm">
@@ -602,7 +602,9 @@ const breadcrumbJsonLd = {
           <div class="mt-10">
             <h2 class="font-heading text-2xl font-bold text-heading mb-3">Meals</h2>
             {data.mealsIncluded && <p class="text-default font-semibold">{data.mealsIncluded}</p>}
-            {data.mealsNote && <p class="text-sm text-muted mt-1" set:html={renderInlineMarkdown(data.mealsNote)} />}
+            {data.mealsNote && (
+              <p class="text-sm text-muted mt-1 md-links" set:html={renderInlineMarkdown(data.mealsNote)} />
+            )}
           </div>
         )
       }
@@ -720,7 +722,10 @@ const breadcrumbJsonLd = {
                               )}
                             </div>
                             {cls.description && (
-                              <p class="text-sm text-muted mt-1" set:html={renderInlineMarkdown(cls.description)} />
+                              <p
+                                class="text-sm text-muted mt-1 md-links"
+                                set:html={renderInlineMarkdown(cls.description)}
+                              />
                             )}
                             {cls.callout && <p class="text-sm font-semibold text-primary mt-1">{cls.callout}</p>}
                           </li>
@@ -739,13 +744,13 @@ const breadcrumbJsonLd = {
         (data.newcomerNote || data.financialAidNote) && (
           <div class="mt-10 flex flex-col gap-3">
             {data.newcomerNote && (
-              <p class="text-sm text-default bg-primary/5 rounded-xl px-4 py-3">
+              <p class="text-sm text-default bg-primary/5 rounded-xl px-4 py-3 md-links">
                 <span class="font-semibold">New to ECRS?</span>{' '}
                 <Fragment set:html={renderInlineMarkdown(data.newcomerNote)} />
               </p>
             )}
             {data.financialAidNote && (
-              <p class="text-sm text-default bg-accent/5 rounded-xl px-4 py-3">
+              <p class="text-sm text-default bg-accent/5 rounded-xl px-4 py-3 md-links">
                 <span class="font-semibold">Financial assistance:</span>{' '}
                 <Fragment set:html={renderInlineMarkdown(data.financialAidNote)} />
               </p>
@@ -886,7 +891,7 @@ const breadcrumbJsonLd = {
             </div>
             {leader.bio && (
               <p
-                class="text-sm text-gray-600 dark:text-gray-300 line-clamp-6 mb-3"
+                class="text-sm text-gray-600 dark:text-gray-300 line-clamp-6 mb-3 md-links"
                 set:html={renderInlineMarkdown(leader.bio)}
               />
             )}

@@ -97,6 +97,11 @@ const leaderCollection = defineCollection({
     title: z.string().optional(),
     photo: z.string().optional(),
     bio: z.string().optional(),
+    // id (filename slug) of another leader this person always co-leads with and
+    // shares a bio/photo with (e.g. a couple who only ever teach together). Set
+    // on both sides of the pair. Used by our-people.astro to render one combined
+    // card instead of two duplicate ones.
+    partnerId: z.string().optional(),
   }),
 });
 

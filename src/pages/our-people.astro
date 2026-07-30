@@ -5,6 +5,7 @@ import PersonCard from '~/components/ui/PersonCard.astro';
 import rawPeopleData from '~/data/pages/people.json';
 import siteSettings from '~/data/settings/site.json';
 import { renderInlineMarkdown, stripMarkdown } from '~/utils/markdown';
+import { balanceByWeight } from '~/utils/balanceGrid';
 
 interface PeoplePerson {
   name: string;
@@ -29,12 +30,66 @@ if (!showPeopleWithoutPhotoOrBio) {
     people: (cat.people ?? []).filter((p) => p.photo || p.bio),
   }));
 }
+// Same bio-length row-balancing as the Leaders grid below, applied per category.
+peoplePageData.categories = (peoplePageData.categories ?? []).map((cat) => ({
+  ...cat,
+  people: balanceByWeight(
+    [...(cat.people ?? [])].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })),
+    (p) => (p.bio ? stripMarkdown(p.bio).length : 0)
+  ),
+}));
 
 let leaders = await getCollection('leader');
 leaders.sort((a, b) => a.data.name.localeCompare(b.data.name, undefined, { sensitivity: 'base' }));
 if (!showPeopleWithoutPhotoOrBio) {
   leaders = leaders.filter((l) => l.data.photo || l.data.bio);
 }
+
+// Leaders with a mutual `partnerId` (e.g. a couple who only ever co-teach and
+// share one bio/photo) are combined into a single card instead of rendering
+// as two duplicate ones. The partner's own id is kept as a hidden in-page
+// anchor so existing deep links (event popovers, activity pill lists) that
+// point at `#leader-{their-id}` still land on the combined card.
+interface DisplayLeader {
+  id: string;
+  extraIds: string[];
+  name: string;
+  title?: string;
+  photo?: string;
+  bio?: string;
+}
+const leaderById = new Map(leaders.map((l) => [l.id, l]));
+const consumedLeaderIds = new Set<string>();
+const displayLeaders: DisplayLeader[] = [];
+for (const leader of leaders) {
+  if (consumedLeaderIds.has(leader.id)) continue;
+  const partner = leader.data.partnerId ? leaderById.get(leader.data.partnerId) : undefined;
+  const isMutualPartner = partner && partner.data.partnerId === leader.id && !consumedLeaderIds.has(partner.id);
+  consumedLeaderIds.add(leader.id);
+  if (isMutualPartner) {
+    consumedLeaderIds.add(partner.id);
+    displayLeaders.push({
+      id: leader.id,
+      extraIds: [partner.id],
+      name: `${leader.data.name} and ${partner.data.name}`,
+      title: leader.data.title ?? partner.data.title,
+      photo: leader.data.photo ?? partner.data.photo,
+      bio: leader.data.bio ?? partner.data.bio,
+    });
+  } else {
+    displayLeaders.push({
+      id: leader.id,
+      extraIds: [],
+      name: leader.data.name,
+      title: leader.data.title,
+      photo: leader.data.photo,
+      bio: leader.data.bio,
+    });
+  }
+}
+// Reorder (post name-sort, for a stable tiebreak) so long bios land next to long
+// bios in the two-column grid, rather than stretching short cards to match tall ones.
+const balancedLeaders = balanceByWeight(displayLeaders, (l) => (l.bio ? stripMarkdown(l.bio).length : 0));
 
 const metadata = {
   title: peoplePageData.title,
@@ -96,13 +151,16 @@ const peopleJsonLd = {
             Leaders
           </h2>
           <ul class="grid sm:grid-cols-2 gap-8 list-none p-0 m-0">
-            {leaders.map((leader) => (
+            {balancedLeaders.map((leader) => (
               <li id={`leader-${leader.id}`} class="scroll-mt-24" data-scroll-reveal="up">
+                {leader.extraIds.map((extraId) => (
+                  <span id={`leader-${extraId}`} class="sr-only scroll-mt-24" aria-hidden="true" />
+                ))}
                 <PersonCard
-                  name={leader.data.name}
-                  title={leader.data.title}
-                  photo={leader.data.photo}
-                  bio={leader.data.bio ? renderInlineMarkdown(leader.data.bio) : undefined}
+                  name={leader.name}
+                  title={leader.title}
+                  photo={leader.photo}
+                  bio={leader.bio ? renderInlineMarkdown(leader.bio) : undefined}
                 />
               </li>
             ))}

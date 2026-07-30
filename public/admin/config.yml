@@ -232,6 +232,17 @@ collections:
         }
       - { label: 'Photo', name: 'photo', widget: 'image', required: false }
       - { label: 'Bio', name: 'bio', widget: 'markdown', required: false }
+      - {
+          label: 'Co-Leader (from Leader Records)',
+          name: 'partnerId',
+          widget: 'relation',
+          collection: 'leader',
+          search_fields: ['name'],
+          value_field: '{{slug}}',
+          display_fields: ['name'],
+          required: false,
+          hint: 'Only for a person who always co-leads with one specific other leader and shares their bio/photo (e.g. a couple who only ever teach together). Set this on both leader records, pointing at each other — they will then show as a single combined card on the Our People page instead of two duplicates.',
+        }
 
   # --- VENUES (folder collection — one file per venue) ---
   - name: 'site'
