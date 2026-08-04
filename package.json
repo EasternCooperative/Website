@@ -1,9 +1,10 @@
 {
-  "name": "@onwidget/astrowind",
+  "name": "ecrs-website",
   "version": "1.0.0-beta.63",
-  "description": "AstroWind: A free template using Astro 6 and Tailwind CSS v4. Astro starter theme.",
+  "description": "ECRS website — built with Astro and Tailwind CSS.",
   "type": "module",
   "private": true,
+  "license": "UNLICENSED",
   "engines": {
     "node": ">=22.12.0"
   },
