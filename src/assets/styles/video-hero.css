@@ -1,0 +1,5 @@
+/* Solid header background over the video — matches the scrolled state */
+body:has([data-video-hero]) #header:not(.scroll) > div:first-child {
+  background-color: var(--aw-color-bg-page);
+  box-shadow: 0 0.375rem 1.5rem 0 rgb(140 152 164 / 13%);
+}

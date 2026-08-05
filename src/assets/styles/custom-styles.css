@@ -1,0 +1,153 @@
+:root {
+  --aw-font-sans: 'Inter Variable';
+  --aw-font-serif: 'Inter Variable';
+  --aw-font-heading: 'Oswald';
+
+  /* ECRS Brand — Pink-led palette */
+  --aw-color-primary: rgb(189 15 93); /* Neon Pink 600 — 5.6:1 on warm-white */
+  --aw-color-secondary: rgb(148 84 5); /* Carrot Orange 700 — 5.1:1 on warm-white */
+  --aw-color-accent: rgb(0 112 153); /* Fresh Sky 700 — 4.6:1 on warm-white */
+
+  /* ECRS supplemental tokens */
+  --ecrs-color-green: rgb(41 112 47); /* Medium Jungle 700 */
+  --ecrs-color-grey: rgb(54 48 49); /* Shadow Grey 800 */
+  --ecrs-color-pink-light: rgb(244 113 172); /* Neon Pink 300 — for dark mode */
+  --ecrs-color-orange-light: rgb(250 186 107); /* Carrot Orange 300 — for dark mode */
+  --ecrs-color-sky-light: rgb(102 214 255); /* Fresh Sky 300 — for dark mode */
+
+  --aw-color-text-heading: rgb(54 48 49);
+  --aw-color-text-default: rgb(54 48 49);
+  --aw-color-text-muted: rgb(54 48 49 / 72%);
+  --aw-color-bg-page: rgb(252 250 248); /* warm off-white — reads as white, not cream */
+
+  --aw-color-bg-page-dark: rgb(27 24 25);
+
+  ::selection {
+    background-color: rgb(253 208 227);
+  }
+}
+
+.dark {
+  --aw-font-sans: 'Inter Variable';
+  --aw-font-serif: 'Inter Variable';
+  --aw-font-heading: 'Oswald';
+
+  --aw-color-primary: rgb(244 113 172); /* Neon Pink 300 */
+  --aw-color-secondary: rgb(250 186 107); /* Carrot Orange 300 */
+  --aw-color-accent: rgb(102 214 255); /* Fresh Sky 300 */
+
+  --aw-color-text-heading: rgb(243 241 242);
+  --aw-color-text-default: rgb(229 226 227);
+  --aw-color-text-muted: rgb(229 226 227 / 66%);
+  --aw-color-bg-page: rgb(27 24 25);
+
+  ::selection {
+    background-color: rgb(94 8 46);
+    color: rgb(253 208 227);
+  }
+}
+
+/* ── Cognito Forms overrides ────────────────────────────────────────────
+   Font, color, and button shape — no input sizing, padding, or layout changes.
+*/
+
+/* Font — set at root so it cascades; belt-and-suspenders on elements that
+   set their own font-family explicitly (Element UI does this). */
+.cog-cognito {
+  font-family: var(--aw-font-sans) !important;
+  font-size: 1rem !important;
+}
+.cog-cognito .cog-label,
+.cog-cognito .el-form-item__label,
+.cog-cognito .el-input__inner,
+.cog-cognito .el-textarea__inner,
+.cog-cognito .el-radio__label,
+.cog-cognito .el-checkbox__label,
+.cog-cognito .cog-choice__value,
+.cog-cognito .cog-helptext,
+.cog-cognito .cog-html,
+.cog-cognito .cog-content,
+.cog-cognito .cog-button--submit {
+  font-family: var(--aw-font-sans) !important;
+  font-size: 1rem !important;
+}
+
+/* Submit button — pill shape + ECRS pink, matching site's btn-primary */
+.cog-cognito .cog-button--submit {
+  border-radius: 9999px !important;
+  font-weight: 600 !important;
+  padding: 0.875rem 1.5rem !important;
+  background-color: rgb(189 15 93) !important;
+  border-color: rgb(189 15 93) !important;
+  color: #fff !important;
+}
+.cog-cognito .cog-button--submit:hover {
+  background-color: rgb(148 84 5) !important;
+  border-color: rgb(148 84 5) !important;
+}
+
+/* Radio buttons — larger touch target, vertically centered label */
+.cog-cognito .el-radio {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.375rem !important;
+}
+.cog-cognito .el-radio__input {
+  flex-shrink: 0 !important;
+}
+.cog-cognito .el-radio__inner {
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+}
+.cog-cognito .el-radio__inner::after {
+  width: 0.5rem !important;
+  height: 0.5rem !important;
+  background-color: #fff !important;
+}
+.cog-cognito .el-radio__label {
+  line-height: 1.25rem !important;
+  padding-left: 0 !important;
+}
+.cog-cognito .el-radio__label .el-input__inner {
+  cursor: text !important;
+}
+.cog-cognito .el-radio.is-checked .el-radio__inner {
+  border-color: rgb(189 15 93) !important;
+  background-color: rgb(189 15 93) !important;
+}
+.cog-cognito .el-radio__inner::after {
+  display: none !important;
+}
+
+/* Focus ring */
+.cog-cognito .el-input__inner:focus,
+.cog-cognito .el-textarea__inner:focus {
+  border-color: rgb(189 15 93) !important;
+  box-shadow: 0 0 0 2px rgb(189 15 93 / 25%) !important;
+}
+
+/* Dark mode */
+html.dark .cog-cognito {
+  background-color: var(--aw-color-bg-page) !important;
+}
+html.dark .cog-cognito .cog-label,
+html.dark .cog-cognito .el-radio__label,
+html.dark .cog-cognito .el-checkbox__label,
+html.dark .cog-cognito .cog-choice__value {
+  color: var(--aw-color-text-default) !important;
+}
+html.dark .cog-cognito .el-input__inner,
+html.dark .cog-cognito .el-textarea__inner {
+  background-color: rgb(40 36 37) !important;
+  color: var(--aw-color-text-default) !important;
+  border-color: rgb(80 72 74) !important;
+}
+html.dark .cog-cognito .el-radio__inner,
+html.dark .cog-cognito .el-checkbox__inner {
+  background-color: rgb(40 36 37) !important;
+  border-color: rgb(80 72 74) !important;
+}
+html.dark .cog-cognito .cog-helptext,
+html.dark .cog-cognito .cog-html {
+  color: var(--aw-color-text-muted) !important;
+}
