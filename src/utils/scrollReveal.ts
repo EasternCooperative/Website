@@ -17,8 +17,8 @@ const OFFSETS: Record<Direction, { x: number; y: number }> = {
 // an element's reveal window has already been entered by its static position on the
 // page (e.g. content that's already mid-page on a fresh load, or a page opened via
 // back/forward at a scrolled position) — see the isAlreadyEngaged check below.
-const START_PERCENT = 95;
-const END_PERCENT = 55;
+const START_PERCENT = 85;
+const END_PERCENT = 65;
 
 /**
  * Wires up scroll-linked (scrubbed) reveal animations on every element under `root`
