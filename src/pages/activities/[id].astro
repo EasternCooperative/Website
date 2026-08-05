@@ -1,4 +1,6 @@
 ---
+import '~/assets/styles/activity-print.css';
+
 import { getCollection, type CollectionEntry } from 'astro:content';
 import Layout from '~/layouts/PageLayout.astro';
 import Image from '~/components/common/Image.astro';
@@ -533,15 +535,6 @@ const breadcrumbJsonLd = {
     </div>
   </section>
 </Layout>
-
-<style is:global>
-  @media print {
-    header,
-    footer {
-      display: none !important;
-    }
-  }
-</style>
 
 <script>
   document.getElementById('print-btn')?.addEventListener('click', () => window.print());

@@ -1,0 +1,68 @@
+/* Theme Pagefind's component UI with the ECRS color tokens. The --aw-color-*
+   tokens already flip under .dark (see CustomStyles.astro); only the neutral
+   border/hover surfaces need explicit dark overrides. */
+pagefind-modal,
+pagefind-modal-trigger,
+pagefind-input,
+pagefind-results {
+  --pf-background: var(--aw-color-bg-page);
+  --pf-text: var(--aw-color-text-default);
+  --pf-text-secondary: var(--aw-color-text-muted);
+  --pf-text-muted: var(--aw-color-text-muted);
+  --pf-border: rgb(229 231 235); /* gray-200 */
+  --pf-border-focus: var(--aw-color-primary);
+  --pf-hover: rgb(243 244 246); /* gray-100 */
+  --pf-mark: var(--aw-color-primary);
+  --pf-modal-backdrop: rgb(0 0 0 / 50%);
+  --pf-font: inherit;
+  --pf-input-height: 52px;
+  --pf-input-font-size: 1.125rem;
+  --pf-border-radius: 9999px;
+}
+pagefind-results {
+  --pf-border-radius: 6px;
+}
+
+.dark pagefind-modal,
+.dark pagefind-modal-trigger {
+  --pf-border: rgb(51 65 85); /* slate-700 */
+  --pf-hover: rgb(30 41 59); /* slate-800 */
+}
+
+/* Restyle the default trigger (a full-width search bar with a border) into a
+   compact icon button matching ToggleTheme / the social icons in the header.
+   The component ships these styles via a `:is(*, #\#)` specificity hack
+   (≈ 3 IDs), which classes alone can't beat, so the overrides use !important. */
+.ecrs-search .pf-trigger-btn {
+  width: auto !important;
+  height: auto !important;
+  padding: 0.625rem !important; /* p-2.5 */
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0.5rem !important; /* rounded-lg */
+  color: var(--aw-color-text-muted) !important;
+  transition:
+    background-color 0.15s,
+    color 0.15s !important;
+}
+.ecrs-search .pf-trigger-btn:hover {
+  background: rgb(243 244 246) !important; /* gray-100 */
+  color: var(--aw-color-primary) !important;
+}
+.dark .ecrs-search .pf-trigger-btn:hover {
+  background: rgb(55 65 81) !important; /* gray-700 */
+}
+/* Match the brand-colored focus ring used by the header's other icon buttons,
+   replacing the component's default blue outline. */
+.ecrs-search .pf-trigger-btn:focus-visible {
+  outline: 2px solid var(--aw-color-primary) !important;
+  outline-offset: 2px !important;
+}
+/* The Pagefind glyph fills its whole box, whereas the tabler icons (theme
+   toggle, socials) sit in a padded 24px viewBox. Render the glyph a little
+   smaller than the 20px box so it reads at the same visual size as the rest. */
+.ecrs-search .pf-trigger-icon {
+  width: 1rem !important; /* ~matches tabler glyphs' visible size in a w-5 box */
+  height: 1rem !important;
+  background: currentColor !important;
+}
