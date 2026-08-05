@@ -72,7 +72,7 @@ describe('initScrollReveal', () => {
     expect(scrollMock).toHaveBeenCalledTimes(1);
     expect(scrollMock).toHaveBeenCalledWith('animation-controls', {
       target: el,
-      offset: ['start 95%', 'start 55%'],
+      offset: ['start 85%', 'start 65%'],
     });
   });
 
