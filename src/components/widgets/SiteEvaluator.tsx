@@ -98,7 +98,10 @@ export default function SiteEvaluator({ cities, knownSites, onSiteChange }: Prop
     setLoading(true);
     setError('');
     try {
-      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(customAddress)}&format=json&limit=1`;
+      // Cache-bust: Nominatim's CDN caches responses (headers included) keyed only by query
+      // string, ignoring the Origin header. A cached hit from a non-browser client can strip
+      // the CORS header, breaking fetch() for that exact address until the entry expires.
+      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(customAddress)}&format=json&limit=1&_=${Date.now()}`;
       const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
       const data = await res.json();
       if (!data.length) {
