@@ -141,5 +141,12 @@ export default defineConfig({
         '~': path.resolve(__dirname, './src'),
       },
     },
+    build: {
+      // GenerateStep (pdfmake, with embedded fonts) and MemberHeatmap
+      // (react-simple-maps) are both already lazy-loaded/deferred on demand
+      // — the default 500kB warning is noise for these known-large,
+      // properly-isolated third-party bundles.
+      chunkSizeWarningLimit: 2000,
+    },
   },
 });

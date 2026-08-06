@@ -4,7 +4,7 @@ import { ANALYTICS } from 'astrowind:config';
 const id = ANALYTICS?.vendors?.metaPixel?.id ? String(ANALYTICS.vendors.metaPixel.id) : '';
 ---
 
-<script define:vars={{ META_PIXEL_ID: id }}>
+<script is:inline define:vars={{ META_PIXEL_ID: id }}>
   (function () {
     if (!META_PIXEL_ID) return;
 

@@ -105,12 +105,3 @@ export function validateLocations(workshops: Workshop[]): LocationConflict[] {
   }
   return conflicts;
 }
-
-export function durationDescription(startDay: number, endDay: number): string {
-  if (startDay === endDay) return `Day ${startDay}`;
-  return `Days ${startDay}-${endDay}`;
-}
-
-export function numberOfDays(startDay: number, endDay: number): number {
-  return endDay - startDay + 1;
-}
