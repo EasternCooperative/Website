@@ -71,6 +71,8 @@ export default [
       '.astro',
       // Prebuilt Sveltia CMS bundle copied from node_modules (gitignored)
       'public/admin/sveltia-cms.js',
+      // vitest --coverage HTML report (gitignored, only present locally)
+      'coverage',
     ],
   },
 ];

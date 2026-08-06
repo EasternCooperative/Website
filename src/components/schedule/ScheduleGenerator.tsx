@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import type { Workshop, TimeSlot } from './models';
 import { getUniquePeriods } from './scheduleBuilder';
 import { buildTimeslotsFromDefaults } from './winterAdventureDefaults';
-import UploadStep from './steps/UploadStep';
-import EditStep from './steps/EditStep';
-import GenerateStep from './steps/GenerateStep';
+
+// Lazy-loaded so each step's heavy dependencies (xlsx, pdfmake) only load
+// when that step is reached, instead of bundling ~2MB into the initial chunk.
+const UploadStep = lazy(() => import('./steps/UploadStep'));
+const EditStep = lazy(() => import('./steps/EditStep'));
+const GenerateStep = lazy(() => import('./steps/GenerateStep'));
 
 type Step = 'upload' | 'edit' | 'generate';
 
@@ -77,28 +80,30 @@ export default function ScheduleGenerator() {
       </nav>
 
       {/* Steps */}
-      {step === 'upload' && <UploadStep onParsed={handleParsed} />}
+      <Suspense fallback={<p className="text-sm text-muted">Loading…</p>}>
+        {step === 'upload' && <UploadStep onParsed={handleParsed} />}
 
-      {step === 'edit' && (
-        <EditStep
-          workshops={workshops}
-          timeslots={timeslots}
-          onWorkshopsChange={setWorkshops}
-          onTimeslotsChange={setTimeslots}
-          onBack={() => setStep('upload')}
-          onNext={() => setStep('generate')}
-        />
-      )}
+        {step === 'edit' && (
+          <EditStep
+            workshops={workshops}
+            timeslots={timeslots}
+            onWorkshopsChange={setWorkshops}
+            onTimeslotsChange={setTimeslots}
+            onBack={() => setStep('upload')}
+            onNext={() => setStep('generate')}
+          />
+        )}
 
-      {step === 'generate' && (
-        <GenerateStep
-          workshops={workshops}
-          timeslots={timeslots}
-          eventName={EVENT_NAME}
-          onBack={() => setStep('edit')}
-          onReset={handleReset}
-        />
-      )}
+        {step === 'generate' && (
+          <GenerateStep
+            workshops={workshops}
+            timeslots={timeslots}
+            eventName={EVENT_NAME}
+            onBack={() => setStep('edit')}
+            onReset={handleReset}
+          />
+        )}
+      </Suspense>
     </div>
   );
 }

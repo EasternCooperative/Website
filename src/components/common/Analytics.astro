@@ -4,7 +4,7 @@ import { ANALYTICS } from 'astrowind:config';
 const id = ANALYTICS?.vendors?.googleAnalytics?.id ? String(ANALYTICS.vendors.googleAnalytics.id) : '';
 ---
 
-<script define:vars={{ GA_ID: id }}>
+<script is:inline define:vars={{ GA_ID: id }}>
   (function () {
     if (!GA_ID) return;
 

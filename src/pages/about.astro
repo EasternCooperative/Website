@@ -44,7 +44,7 @@ const pillars = aboutSettings.pillars.map((pillar) => ({
         />
 
         <section class="py-8 px-4 max-w-4xl mx-auto" data-scroll-reveal="up">
-          <MemberHeatmap cities={memberLocations.cities} maskSmallCounts client:load />
+          <MemberHeatmap cities={memberLocations.cities} maskSmallCounts client:visible />
         </section>
       </>
     )
