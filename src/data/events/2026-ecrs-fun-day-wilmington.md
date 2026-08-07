@@ -1,28 +1,52 @@
 ---
-title: 'ECRS Fun Day in Wilmington'
+title: ECRS Fun Day in Wilmington
 date: 2026-09-27
-startTime: '10:00 AM'
-endTime: '1:00 PM'
+endDate: ''
+startTime: 10:00 AM
+endTime: 12:00 PM
 siteId: mid-county-center
-image: '~/assets/images/sites/mid-county-center.jpg'
-fee: '$15 suggested donation'
+excerpt: ''
+description: ''
+image: ~/assets/images/sites/mid-county-center.jpg
+phone: ''
+accessibilityNote: ''
+registrationUrl: ''
+registrationDeadline: ''
+earlyBirdDeadline: ''
+earlyBirdFeeNote: ''
+cognitoFormId: ''
+fee: $15 suggested donation
+tuitionLabel: ''
+mealsIncluded: ''
+mealsNote: ''
+cancellationCutoffDate: ''
+cancellationPolicy: ''
 showHealthPolicy: true
 healthPolicy: 'ECRS events are fragrance-, drug-, and alcohol-free.'
-tags:
-  - one-day
 classes:
-  - name: 'Games'
+  - name: Games
     leaderId: heather-klemanski
-    period: '10:00 – 10:45 AM'
-  - name: 'Break/Snacks'
-    period: '10:45 – 10:55 AM'
-  - name: 'Improv'
+    leader: ''
+    ageRange: ''
+    period: 10:00 – 10:45 AM
+    days: ''
+    description: ''
+    callout: ''
+  - name: Break/Snacks
+    leader: ''
+    ageRange: ''
+    period: 10:45 – 10:55 AM
+  - name: Improv
+    period: 10:55 – 11:40 AM
     leaders:
-      - name: 'Maria Paciona'
+      - name: Maria Paciona
       - id: heather-klemanski
         role: assistant
-    period: '10:55 – 11:40 AM'
-  - name: 'Closing Circle'
+  - name: Closing Circle
     leaderId: heather-klemanski
-    period: '11:40 AM – 12:00 PM'
+    period: 11:40 AM – 12:00 PM
+newcomerNote: ''
+financialAidNote: ''
+tags:
+  - one-day
 ---
