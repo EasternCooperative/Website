@@ -112,14 +112,7 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
     data-video-hero-content
     class="relative z-10 flex items-center text-white px-6 sm:px-8 lg:px-12 py-20 min-h-[max(600px,100svh)]"
   >
-    <div class="relative w-full max-w-7xl mx-auto">
-      <img
-        src="/images/1940.svg"
-        alt="Founded 1940 — 85+ Years of Play"
-        loading="lazy"
-        class="hidden lg:block absolute -top-10 right-4 lg:right-6 z-10 opacity-90 rotate-6 pointer-events-none w-28 h-28"
-        style="filter: invert(1);"
-      />
+    <div class="w-full max-w-7xl mx-auto">
       {
         eventCard ? (
           /* Two-column: text left, event card right */
@@ -165,124 +158,144 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
             </div>
 
             {eventHref ? (
-              <a
-                href={eventHref}
-                class="group flex flex-col bg-white/15 hover:bg-white/20 dark:bg-black/50 dark:hover:bg-black/65 backdrop-blur-md rounded-3xl border border-white/35 hover:border-white/60 dark:border-white/25 dark:hover:border-white/50 overflow-hidden transition-all w-full"
-              >
-                {eventCard.image && (
-                  <Image
-                    src={eventCard.image}
-                    alt=""
-                    width={600}
-                    height={280}
-                    widths={[300, 400, 600, 800]}
-                    sizes="(max-width: 640px) calc(100vw - 3rem), (max-width: 1024px) 100vw, 600px"
-                    layout="cover"
-                    class="w-full h-44 object-cover"
-                    loading="eager"
-                  />
-                )}
-                <div class="flex flex-col sm:flex-row items-start gap-6 p-5 sm:p-8 lg:p-10">
-                  <div class="flex-1 min-w-0">
-                    <p class="text-xs font-bold uppercase tracking-widest text-white/90 mb-3">{eventCard.label}</p>
-                    <p class="font-heading text-2xl lg:text-3xl font-bold text-white leading-snug mb-2 group-hover:underline">
-                      {eventCard.title}
-                    </p>
-                    <p class="text-white/90 text-base lg:text-lg mt-1">{eventCard.date}</p>
-                    {eventCard.location && (
-                      <p class="text-white/85 text-sm mt-1 flex items-center gap-1.5">
-                        <svg
-                          class="w-4 h-4 shrink-0"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          viewBox="0 0 24 24"
-                          aria-hidden="true"
-                        >
-                          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z" />
-                        </svg>
-                        {eventCard.location}
-                      </p>
-                    )}
-                    {eventCard.deadline && (
-                      <p class="text-amber-300 text-sm font-semibold mt-4 flex items-center gap-1.5">
-                        <svg
-                          class="w-4 h-4 shrink-0"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          viewBox="0 0 24 24"
-                          aria-hidden="true"
-                        >
-                          <circle cx="12" cy="12" r="10" />
-                          <path d="M12 6v6l4 2" />
-                        </svg>
-                        {eventCard.deadline}
-                      </p>
-                    )}
-                  </div>
-                  <div class="shrink-0 flex flex-row sm:flex-col items-center gap-5 border-t sm:border-t-0 sm:border-l border-white/20 pt-4 sm:pt-0 sm:pl-6 w-full sm:w-auto">
-                    {ssrCountdown.length > 0 && (
-                      <div data-countdown={eventCard.dateISO}>
-                        <div class="flex gap-4 items-start">
-                          {ssrCountdown.map((u) => (
-                            <div class="text-center">
-                              <span class="font-mono text-2xl sm:text-3xl font-bold text-white leading-none">
-                                {u.value}
-                              </span>
-                              <span class="block text-xs text-white/70 uppercase tracking-widest mt-1">{u.label}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    <span class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[rgb(214,40,115)] group-hover:bg-secondary text-white text-sm font-bold uppercase tracking-wide transition-colors shadow-lg whitespace-nowrap">
-                      {eventCard.hasRegistration ? 'Register Now' : 'Learn More'}
-                      <svg
-                        class="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2.5"
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                      >
-                        <path d="M5 12h14M12 5l7 7-7 7" />
-                      </svg>
-                    </span>
-                  </div>
-                </div>
-              </a>
-            ) : (
-              <div class="flex flex-col bg-white/15 dark:bg-black/50 backdrop-blur-md rounded-3xl border border-white/35 dark:border-white/25 overflow-hidden w-full">
-                {eventCard.image && (
-                  <Image
-                    src={eventCard.image}
-                    alt=""
-                    width={600}
-                    height={280}
-                    widths={[300, 400, 600, 800]}
-                    sizes="(max-width: 640px) calc(100vw - 3rem), (max-width: 1024px) 100vw, 600px"
-                    layout="cover"
-                    class="w-full h-44 object-cover"
-                    loading="eager"
-                  />
-                )}
-                <div class="flex flex-col p-8 lg:p-10">
-                  <div class="flex items-start gap-6">
+              <div class="relative w-full">
+                <img
+                  src="/images/1940.svg"
+                  alt="Founded 1940 — 85+ Years of Play"
+                  loading="lazy"
+                  class="hidden lg:block absolute bottom-full right-4 mb-3 z-20 opacity-90 rotate-6 pointer-events-none w-24 h-24"
+                  style="filter: invert(1);"
+                />
+                <a
+                  href={eventHref}
+                  class="group flex flex-col bg-white/15 hover:bg-white/20 dark:bg-black/50 dark:hover:bg-black/65 backdrop-blur-md rounded-3xl border border-white/35 hover:border-white/60 dark:border-white/25 dark:hover:border-white/50 overflow-hidden transition-all w-full"
+                >
+                  {eventCard.image && (
+                    <Image
+                      src={eventCard.image}
+                      alt=""
+                      width={600}
+                      height={280}
+                      widths={[300, 400, 600, 800]}
+                      sizes="(max-width: 640px) calc(100vw - 3rem), (max-width: 1024px) 100vw, 600px"
+                      layout="cover"
+                      class="w-full h-44 object-cover"
+                      loading="eager"
+                    />
+                  )}
+                  <div class="flex flex-col sm:flex-row items-start gap-6 p-5 sm:p-8 lg:p-10">
                     <div class="flex-1 min-w-0">
                       <p class="text-xs font-bold uppercase tracking-widest text-white/90 mb-3">{eventCard.label}</p>
-                      <p class="font-heading text-2xl lg:text-3xl font-bold text-white leading-snug mb-2">
+                      <p class="font-heading text-2xl lg:text-3xl font-bold text-white leading-snug mb-2 group-hover:underline">
                         {eventCard.title}
                       </p>
                       <p class="text-white/90 text-base lg:text-lg mt-1">{eventCard.date}</p>
-                      {eventCard.location && <p class="text-white/85 text-sm mt-1">{eventCard.location}</p>}
+                      {eventCard.location && (
+                        <p class="text-white/85 text-sm mt-1 flex items-center gap-1.5">
+                          <svg
+                            class="w-4 h-4 shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                          >
+                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z" />
+                          </svg>
+                          {eventCard.location}
+                        </p>
+                      )}
                       {eventCard.deadline && (
-                        <p class="text-amber-300 text-sm font-semibold mt-4">{eventCard.deadline}</p>
+                        <p class="text-amber-300 text-sm font-semibold mt-4 flex items-center gap-1.5">
+                          <svg
+                            class="w-4 h-4 shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                          >
+                            <circle cx="12" cy="12" r="10" />
+                            <path d="M12 6v6l4 2" />
+                          </svg>
+                          {eventCard.deadline}
+                        </p>
                       )}
                     </div>
-                    {eventCard.dateISO && (
-                      <div data-countdown={eventCard.dateISO} class="shrink-0 border-l border-white/20 pl-6" />
-                    )}
+                    <div class="shrink-0 flex flex-row sm:flex-col items-center gap-5 border-t sm:border-t-0 sm:border-l border-white/20 pt-4 sm:pt-0 sm:pl-6 w-full sm:w-auto">
+                      {ssrCountdown.length > 0 && (
+                        <div data-countdown={eventCard.dateISO}>
+                          <div class="flex gap-4 items-start">
+                            {ssrCountdown.map((u) => (
+                              <div class="text-center">
+                                <span class="font-mono text-2xl sm:text-3xl font-bold text-white leading-none">
+                                  {u.value}
+                                </span>
+                                <span class="block text-xs text-white/70 uppercase tracking-widest mt-1">
+                                  {u.label}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      <span class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[rgb(214,40,115)] group-hover:bg-secondary text-white text-sm font-bold uppercase tracking-wide transition-colors shadow-lg whitespace-nowrap">
+                        {eventCard.hasRegistration ? 'Register Now' : 'Learn More'}
+                        <svg
+                          class="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2.5"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                        >
+                          <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                      </span>
+                    </div>
+                  </div>
+                </a>
+              </div>
+            ) : (
+              <div class="relative w-full">
+                <img
+                  src="/images/1940.svg"
+                  alt="Founded 1940 — 85+ Years of Play"
+                  loading="lazy"
+                  class="hidden lg:block absolute bottom-full right-4 mb-3 z-20 opacity-90 rotate-6 pointer-events-none w-24 h-24"
+                  style="filter: invert(1);"
+                />
+                <div class="flex flex-col bg-white/15 dark:bg-black/50 backdrop-blur-md rounded-3xl border border-white/35 dark:border-white/25 overflow-hidden w-full">
+                  {eventCard.image && (
+                    <Image
+                      src={eventCard.image}
+                      alt=""
+                      width={600}
+                      height={280}
+                      widths={[300, 400, 600, 800]}
+                      sizes="(max-width: 640px) calc(100vw - 3rem), (max-width: 1024px) 100vw, 600px"
+                      layout="cover"
+                      class="w-full h-44 object-cover"
+                      loading="eager"
+                    />
+                  )}
+                  <div class="flex flex-col p-8 lg:p-10">
+                    <div class="flex items-start gap-6">
+                      <div class="flex-1 min-w-0">
+                        <p class="text-xs font-bold uppercase tracking-widest text-white/90 mb-3">{eventCard.label}</p>
+                        <p class="font-heading text-2xl lg:text-3xl font-bold text-white leading-snug mb-2">
+                          {eventCard.title}
+                        </p>
+                        <p class="text-white/90 text-base lg:text-lg mt-1">{eventCard.date}</p>
+                        {eventCard.location && <p class="text-white/85 text-sm mt-1">{eventCard.location}</p>}
+                        {eventCard.deadline && (
+                          <p class="text-amber-300 text-sm font-semibold mt-4">{eventCard.deadline}</p>
+                        )}
+                      </div>
+                      {eventCard.dateISO && (
+                        <div data-countdown={eventCard.dateISO} class="shrink-0 border-l border-white/20 pl-6" />
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
