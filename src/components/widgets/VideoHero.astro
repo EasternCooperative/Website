@@ -112,15 +112,14 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
     data-video-hero-content
     class="relative z-10 flex items-center text-white px-6 sm:px-8 lg:px-12 py-20 min-h-[max(600px,100svh)]"
   >
-    <img
-      src="/images/1940.svg"
-      alt="Founded 1940 — 85+ Years of Play"
-      data-hero-badge
-      loading="lazy"
-      class="hidden lg:block absolute right-6 lg:right-12 top-0 z-10 opacity-90 rotate-6 pointer-events-none w-28 h-28"
-      style="filter: invert(1);"
-    />
-    <div class="w-full max-w-7xl mx-auto">
+    <div class="relative w-full max-w-7xl mx-auto">
+      <img
+        src="/images/1940.svg"
+        alt="Founded 1940 — 85+ Years of Play"
+        loading="lazy"
+        class="hidden lg:block absolute -top-10 right-4 lg:right-6 z-10 opacity-90 rotate-6 pointer-events-none w-28 h-28"
+        style="filter: invert(1);"
+      />
       {
         eventCard ? (
           /* Two-column: text left, event card right */
@@ -378,8 +377,6 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
     section.style.marginTop = '-' + h + 'px';
     const content = section.querySelector('[data-video-hero-content]');
     if (content) content.style.paddingTop = h + 32 + 'px';
-    const badge = section.querySelector('[data-hero-badge]');
-    if (badge) badge.style.top = h + 12 + 'px';
   })();
 </script>
 

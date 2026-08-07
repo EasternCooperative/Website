@@ -12,16 +12,16 @@ tags:
 classes:
   - name: 'Games'
     leaderId: heather-klemanski
-    period: '45 minutes'
+    period: '10:00 – 10:45 AM'
   - name: 'Break/Snacks'
-    period: '10 minutes'
+    period: '10:45 – 10:55 AM'
   - name: 'Improv'
     leaders:
       - name: 'Maria Paciona'
       - id: heather-klemanski
         role: assistant
-    period: '45 minutes'
-  - name: 'Gratitude Circle/Wrap Up/ECRS Promotion'
+    period: '10:55 – 11:40 AM'
+  - name: 'Closing Circle'
     leaderId: heather-klemanski
-    period: '20 minutes'
+    period: '11:40 AM – 12:00 PM'
 ---

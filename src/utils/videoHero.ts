@@ -1,13 +1,7 @@
-function applyHeaderOffset(
-  header: HTMLElement,
-  section: HTMLElement,
-  content: HTMLElement | null,
-  badge: HTMLElement | null
-) {
+function applyHeaderOffset(header: HTMLElement, section: HTMLElement, content: HTMLElement | null) {
   const h = header.getBoundingClientRect().height;
   section.style.marginTop = `-${h}px`;
   if (content) content.style.paddingTop = `${h + 32}px`;
-  if (badge) badge.style.top = `${h + 12}px`;
 }
 
 function initVideoHero() {
@@ -18,10 +12,9 @@ function initVideoHero() {
   if (!section) return;
 
   if (header) {
-    const badge = section.querySelector<HTMLElement>('[data-hero-badge]');
-    applyHeaderOffset(header, section, content, badge);
+    applyHeaderOffset(header, section, content);
     const resizeController = new AbortController();
-    window.addEventListener('resize', () => applyHeaderOffset(header, section, content, badge), {
+    window.addEventListener('resize', () => applyHeaderOffset(header, section, content), {
       signal: resizeController.signal,
     });
     document.addEventListener('astro:before-preparation', () => resizeController.abort(), { once: true });

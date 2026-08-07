@@ -117,7 +117,7 @@ test.describe('e2e fixture event (draft)', () => {
     const nav = page.getByRole('navigation', { name: 'Jump to section' });
     await expect(nav).toBeVisible();
     await expect(nav.getByRole('link', { name: /Costs/i })).toBeVisible();
-    await expect(nav.getByRole('link', { name: /Classes/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /Schedule/i })).toBeVisible();
     await expect(nav.getByRole('link', { name: /Register/i })).toBeVisible();
   });
 
@@ -126,7 +126,7 @@ test.describe('e2e fixture event (draft)', () => {
   });
 
   test('classes section is present', async ({ page }) => {
-    await expect(page.locator('#classes')).toBeAttached();
+    await expect(page.locator('#schedule')).toBeAttached();
   });
 });
 
