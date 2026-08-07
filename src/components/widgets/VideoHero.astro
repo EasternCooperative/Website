@@ -117,9 +117,12 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
   >
     {
       eventCard && (
-        // Badge band: this slack IS the gap between the header and the grid below,
-        // so centering/sizing the badge within it needs no JS measurement.
-        <div class="flex-1 min-h-0 w-full max-w-7xl mx-auto flex items-center justify-end">
+        // Badge band: this slack IS the gap between the header and the grid below.
+        // The badge sits a small fixed distance under the nav, and a flexible spacer
+        // below it absorbs the rest of the band — so it hugs the nav instead of
+        // floating centered in what can be a very tall gap on short-viewport pages.
+        <div class="flex-1 min-h-0 w-full max-w-7xl mx-auto flex flex-col items-end">
+          <div class="h-4" aria-hidden="true" />
           <img
             src="/images/1940.svg"
             alt="Founded 1940 — 85+ Years of Play"
@@ -127,6 +130,7 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
             class="hidden nav:block h-28 w-28 opacity-90 rotate-6"
             style="filter: invert(1);"
           />
+          <div class="flex-1 min-h-0" aria-hidden="true" />
         </div>
       )
     }
