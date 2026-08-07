@@ -146,7 +146,7 @@ describe('jumpLinks', () => {
 
   it('includes Classes when hasClasses is true', () => {
     const { jumpLinks } = computeEventSections(base({ classes: [{ name: 'Dance' }] }), NOW);
-    expect(jumpLinks).toContainEqual({ href: '#classes', label: 'Classes' });
+    expect(jumpLinks).toContainEqual({ href: '#schedule', label: 'Schedule' });
   });
 
   it('includes Register when hasEmbeddedForm is true', () => {

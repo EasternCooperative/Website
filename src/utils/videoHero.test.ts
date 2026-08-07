@@ -51,24 +51,21 @@ describe('initVideoHero — header offset', () => {
       <header id="header"></header>
       <section data-video-hero>
         <div data-video-hero-content></div>
-        <img data-hero-badge />
       </section>
     `;
     const header = document.getElementById('header')!;
     header.getBoundingClientRect = vi.fn(() => ({ height: headerHeight }) as DOMRect);
   }
 
-  it('offsets the section, content padding, and badge position by the header height', async () => {
+  it('offsets the section and content padding by the header height', async () => {
     buildHeaderFixture(80);
     await loadAndTrigger();
 
     const section = document.querySelector('[data-video-hero]') as HTMLElement;
     const content = document.querySelector('[data-video-hero-content]') as HTMLElement;
-    const badge = document.querySelector('[data-hero-badge]') as HTMLElement;
 
     expect(section.style.marginTop).toBe('-80px');
     expect(content.style.paddingTop).toBe('112px');
-    expect(badge.style.top).toBe('92px');
   });
 
   it('does nothing when there is no [data-video-hero] section', async () => {

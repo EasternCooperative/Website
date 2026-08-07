@@ -44,7 +44,7 @@ export function computeEventSections(data: EventSectionsInput, now = new Date())
 
   const jumpLinks: JumpLink[] = [
     hasCosts && { href: '#costs', label: 'Costs' },
-    hasClasses && { href: '#classes', label: 'Classes' },
+    hasClasses && { href: '#schedule', label: 'Schedule' },
     hasEmbeddedForm && { href: '#registration', label: 'Register' },
   ].filter(Boolean) as JumpLink[];
 

@@ -622,8 +622,8 @@ const breadcrumbJsonLd = {
             const isFlat = groups.size === 1 && groups.has('');
             const isMultiDay = !!data.endDate;
             return (
-              <div id="classes" class="mt-10 scroll-mt-24">
-                <h2 class="font-heading text-2xl font-bold text-heading mb-6">Classes</h2>
+              <div id="schedule" class="mt-10 scroll-mt-24">
+                <h2 class="font-heading text-2xl font-bold text-heading mb-6">Schedule</h2>
                 <div class="space-y-8">
                   {[...groups.entries()].map(([period, classes]) => (
                     <div>
