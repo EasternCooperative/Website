@@ -4,6 +4,8 @@ interface SiteData {
   phone?: string;
   accessibilityNote?: string;
   image?: string;
+  lat?: number;
+  lng?: number;
 }
 
 export interface ResolvedVenue {
@@ -12,6 +14,8 @@ export interface ResolvedVenue {
   phone?: string;
   accessibilityNote?: string;
   image?: string;
+  lat?: number;
+  lng?: number;
 }
 
 export function resolveVenue(
@@ -21,6 +25,8 @@ export function resolveVenue(
     phone?: string;
     accessibilityNote?: string;
     image?: string;
+    lat?: number;
+    lng?: number;
   },
   site?: SiteData
 ): ResolvedVenue {
@@ -30,5 +36,7 @@ export function resolveVenue(
     phone: event.phone ?? site?.phone,
     accessibilityNote: event.accessibilityNote ?? site?.accessibilityNote,
     image: event.image ?? site?.image,
+    lat: event.lat ?? site?.lat,
+    lng: event.lng ?? site?.lng,
   };
 }

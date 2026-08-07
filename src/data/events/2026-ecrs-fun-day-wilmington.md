@@ -4,11 +4,10 @@ date: 2026-09-27
 endDate: ''
 startTime: 10:00 AM
 endTime: 12:00 PM
-location: Mid-County Center
-address: Wilmington, DE
+siteId: mid-county-center
 excerpt: ''
 description: ''
-image: ~/assets/images/sites/mid-county-senior-center.jpg
+image: ~/assets/images/sites/mid-county-center.jpg
 phone: ''
 accessibilityNote: ''
 registrationUrl: ''
@@ -22,7 +21,8 @@ mealsIncluded: ''
 mealsNote: ''
 cancellationCutoffDate: ''
 cancellationPolicy: ''
-healthPolicy: ''
+showHealthPolicy: true
+healthPolicy: 'ECRS events are fragrance-, drug-, and alcohol-free.'
 classes:
   - name: Games
     leaderId: heather-klemanski
