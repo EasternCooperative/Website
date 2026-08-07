@@ -3,10 +3,11 @@ title: 'ECRS Fun Day in Wilmington'
 date: 2026-09-27
 startTime: '10:00 AM'
 endTime: '1:00 PM'
-location: 'Mid-County Senior Center'
-address: 'Wilmington, DE'
-image: '~/assets/images/sites/mid-county-senior-center.jpg'
+siteId: mid-county-center
+image: '~/assets/images/sites/mid-county-center.jpg'
 fee: '$15 suggested donation'
+showHealthPolicy: true
+healthPolicy: 'ECRS events are fragrance-, drug-, and alcohol-free.'
 tags:
   - one-day
 classes:

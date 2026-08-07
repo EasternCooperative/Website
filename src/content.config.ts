@@ -113,6 +113,10 @@ const siteCollection = defineCollection({
     phone: z.string().optional(),
     accessibilityNote: z.string().optional(),
     image: z.string().optional(),
+    // Overrides geocoding the address text for the map link when it's imprecise
+    // (e.g. "Wilmington, DE") — displayed address text is unaffected.
+    lat: z.number().optional(),
+    lng: z.number().optional(),
   }),
 });
 
@@ -129,6 +133,8 @@ const eventCollection = defineCollection({
     address: z.string().optional(),
     phone: z.string().optional(),
     accessibilityNote: z.string().optional(),
+    lat: z.number().optional(),
+    lng: z.number().optional(),
     excerpt: z.string().optional(),
     description: z.string().optional(),
     image: z.string().optional(),
