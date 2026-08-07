@@ -4,7 +4,7 @@ date: 2026-09-27
 endDate: ''
 startTime: 10:00 AM
 endTime: 12:00 PM
-location: Mid-County Senior Center
+location: Mid-County Center
 address: Wilmington, DE
 excerpt: ''
 description: ''
