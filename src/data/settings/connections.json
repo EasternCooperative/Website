@@ -5,26 +5,84 @@
   "affiliationsTitle": "Some affiliations of our staff and members",
   "affiliationsIntro": "Organizations our people are involved with, teach at, or belong to.",
   "affiliations": [
-    { "name": "Country Dance & Song Society", "url": "https://cdss.org/" },
-    { "name": "Omega Institute", "url": "https://www.eomega.org/" },
-    { "name": "Mainewoods Dance Camp", "url": "https://www.mainewoodsdancecamp.org/" },
-    { "name": "Wayfinder Adventures", "url": "https://wayfinderadventures.org/mission/" },
-    { "name": "Camp Common Ground", "url": "https://cgcvt.org/family-camps/camp-common-ground/" },
-    { "name": "Camp Winni", "url": "https://www.campwinni.org/home.html" },
-    { "name": "National Folk Organization", "url": "https://www.nfo-usa.org/" },
-    { "name": "Great Lakes Recreation Leaders Lab", "url": "https://www.greatlakesreclab.com/" },
-    { "name": "Sing Out Publications", "url": "https://singout.org/" }
+    {
+      "name": "Country Dance & Song Society",
+      "url": "https://cdss.org/",
+      "logo": "/images/logos/cdss.webp"
+    },
+    {
+      "name": "Omega Institute",
+      "url": "https://www.eomega.org/"
+    },
+    {
+      "name": "Mainewoods Dance Camp",
+      "url": "https://www.mainewoodsdancecamp.org/",
+      "logo": "/images/logos/mainewoods.webp"
+    },
+    {
+      "name": "Wayfinder Adventures",
+      "url": "https://wayfinderadventures.org/mission/",
+      "logo": "/images/logos/wayfinder.webp"
+    },
+    {
+      "name": "Camp Common Ground",
+      "url": "https://cgcvt.org/family-camps/camp-common-ground/",
+      "logo": "/images/logos/common-ground.webp"
+    },
+    {
+      "name": "Camp Winni",
+      "url": "https://www.campwinni.org/home.html"
+    },
+    {
+      "name": "National Folk Organization",
+      "url": "https://www.nfo-usa.org/"
+    },
+    {
+      "name": "Great Lakes Recreation Leaders Lab",
+      "url": "https://www.greatlakesreclab.com/",
+      "logo": "/images/logos/great-lakes.webp"
+    },
+    {
+      "name": "Sing Out Publications",
+      "url": "https://singout.org/",
+      "logo": "/images/logos/sing-out.webp"
+    }
   ],
   "festivalsTitle": "Festivals our staff lead and members attend",
   "festivalsIntro": "If you've enjoyed an ECRS weekend, you may well enjoy these too.",
   "festivals": [
-    { "name": "Flurry Festival", "url": "https://www.flurryfestival.org/" },
-    { "name": "Philadelphia Folksong Society", "url": "https://pfs.org/" },
-    { "name": "New England Folk Festival", "url": "https://www.neffa.org/" },
-    { "name": "Clearwater's Great Hudson River Revival", "url": "https://www.clearwater.org/music/" },
-    { "name": "People's Music Network", "url": "https://peoplesmusic.org/" },
-    { "name": "Pourparler", "url": "https://www.nfo-usa.org/pourparler.htm" },
-    { "name": "Mount Airy Contra Dance", "url": "https://thursdaycontra.com/" }
+    {
+      "name": "Flurry Festival",
+      "url": "https://www.flurryfestival.org/"
+    },
+    {
+      "name": "Philadelphia Folksong Society",
+      "url": "https://pfs.org/",
+      "logo": "/images/logos/pfs.webp"
+    },
+    {
+      "name": "New England Folk Festival",
+      "url": "https://www.neffa.org/",
+      "logo": "/images/logos/neffa.webp"
+    },
+    {
+      "name": "Clearwater's Great Hudson River Revival",
+      "url": "https://www.clearwater.org/music/",
+      "logo": "/images/logos/clearwater.webp"
+    },
+    {
+      "name": "People's Music Network",
+      "url": "https://peoplesmusic.org/"
+    },
+    {
+      "name": "Pourparler",
+      "url": "https://www.nfo-usa.org/pourparler.htm"
+    },
+    {
+      "name": "Mount Airy Contra Dance",
+      "url": "https://thursdaycontra.com/",
+      "logo": "/images/logos/mount-airy-contra.webp"
+    }
   ],
   "venuesTitle": "Places we meet or have met",
   "venuesIntro": "Camps, retreat centers and meeting houses that have made room for us.",

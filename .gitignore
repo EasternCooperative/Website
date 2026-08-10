@@ -57,3 +57,6 @@ public/admin/sveltia-cms.js
 
 # CMS-uploaded raster images mirrored from public/images/ by scripts/copy-public-images.mjs
 src/assets/images/headshots/
+# Partner logos are served straight from public/ via a plain <img> (see connections.astro),
+# so the mirrored copies are never used by Sharp.
+src/assets/images/logos/
