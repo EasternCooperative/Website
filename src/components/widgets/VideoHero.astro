@@ -110,16 +110,10 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
   <!-- Content — padding handles the header offset; JS also sets paddingTop -->
   <div
     data-video-hero-content
-    class:list={[
-      'relative z-10 flex flex-col text-white px-6 sm:px-8 lg:px-12 py-20 min-h-[max(600px,100svh)]',
-      { 'justify-center': !eventCard },
-    ]}
+    class="relative z-10 flex flex-col justify-center text-white px-6 sm:px-8 lg:px-12 py-20 min-h-[max(600px,100svh)]"
   >
     {
       eventCard && (
-        // Fixed gaps on both sides (mt-4 to the header, mb-6 to the card below) —
-        // deterministic regardless of viewport height, unlike a flex-space-absorbing
-        // gap that grows or shrinks with whatever room happens to be left over.
         <div class="w-full max-w-7xl mx-auto flex justify-end">
           <img
             src="/images/1940.svg"
@@ -349,7 +343,6 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
         )
       }
     </div>
-    {eventCard && <div class="flex-1 min-h-0" aria-hidden="true" />}
   </div>
 
   <!-- Scroll cue — hidden on small screens where the section may be taller than the viewport -->
@@ -362,11 +355,14 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
     </svg>
   </div>
 
-  <!-- Video pause/play toggle — WCAG 2.2.2 requirement for autoplaying motion -->
+  <!-- Video pause/play toggle — WCAG 2.2.2 requirement for autoplaying motion.
+       Gains `data-video-toggle-attention` (bigger, higher-contrast, with a visible
+       label) when the browser blocked autoplay, since it's then the only way to
+       start the video rather than just an accessibility nicety. -->
   <button
     data-video-toggle
     type="button"
-    class="absolute bottom-8 right-6 sm:right-8 z-20 flex items-center justify-center w-9 h-9 rounded-full bg-black/40 hover:bg-black/65 border border-white/30 text-white/80 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+    class="absolute bottom-8 right-6 sm:right-8 z-20 flex items-center gap-2 rounded-full bg-black/40 hover:bg-black/65 border border-white/30 text-white/80 hover:text-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white p-2.5 data-[attention=true]:p-3.5 data-[attention=true]:bg-black/70 data-[attention=true]:border-white/60 data-[attention=true]:text-white data-[attention=true]:shadow-lg data-[attention=true]:animate-[video-toggle-pulse_2s_ease-in-out_infinite]"
     aria-label="Pause background video"
   >
     <!-- Pause icon (shown while playing) -->
@@ -377,6 +373,8 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
     <svg data-icon-play class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
       <path d="M8 5v14l11-7z"></path>
     </svg>
+    <!-- Visible label — only shown when autoplay was blocked, via data-attention -->
+    <span data-video-toggle-label class="hidden text-sm font-medium pr-1">Play video</span>
   </button>
 </section>
 

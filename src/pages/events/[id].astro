@@ -180,14 +180,17 @@ const breadcrumbJsonLd = {
   <section class="relative not-prose" aria-label={data.title}>
     {
       venue.image && (
-        <div class="relative w-full h-[40vh] overflow-hidden" aria-hidden="true">
+        <div
+          class="relative w-full h-[40vh] lg:h-auto lg:aspect-[2/1] lg:max-h-[min(55vh,640px)] max-w-[2400px] mx-auto overflow-hidden"
+          aria-hidden="true"
+        >
           <Image
             src={venue.image}
             alt={data.title}
             width={1200}
             height={600}
-            widths={[640, 960, 1200, 1600]}
-            sizes="100vw"
+            widths={[640, 960, 1200, 1600, 1920, 2400]}
+            sizes="(min-width: 2400px) 2400px, 100vw"
             layout="cover"
             class="w-full h-full object-cover"
             loading="eager"

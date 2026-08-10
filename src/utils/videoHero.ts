@@ -24,9 +24,22 @@ function initVideoHero() {
   const toggleBtn = document.querySelector<HTMLButtonElement>('[data-video-toggle]');
   const pauseIcon = toggleBtn?.querySelector<SVGElement>('[data-icon-pause]');
   const playIcon = toggleBtn?.querySelector<SVGElement>('[data-icon-play]');
+  const toggleLabel = toggleBtn?.querySelector<HTMLElement>('[data-video-toggle-label]');
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   let isPlaying = false;
+
+  // Makes the toggle bigger/higher-contrast/labeled when autoplay was actually
+  // blocked by the browser — at that point it's the only way to start the video,
+  // not just the WCAG pause affordance, so it shouldn't stay a subtle corner icon.
+  function flagAutoplayBlocked() {
+    toggleBtn?.setAttribute('data-attention', 'true');
+    toggleLabel?.classList.remove('hidden');
+  }
+  function clearAutoplayBlocked() {
+    toggleBtn?.removeAttribute('data-attention');
+    toggleLabel?.classList.add('hidden');
+  }
 
   // Icon reflects user intent (`isPlaying`), not raw per-video pause/play events — the
   // crossfade pauses the outgoing clip and plays the incoming one internally on every
@@ -60,6 +73,8 @@ function initVideoHero() {
     if (toggleBtn) {
       toggleBtn.setAttribute('aria-label', paused ? 'Play background video' : 'Pause background video');
     }
+    // A manual click means the visitor found the control — the extra emphasis has done its job.
+    clearAutoplayBlocked();
     syncIcon(!paused);
     // Hide button when no motion to toggle
     if (toggleBtn) toggleBtn.style.display = reducedMotion ? 'none' : '';
@@ -133,6 +148,7 @@ function initVideoHero() {
       videos[0]?.play().catch(() => {
         isPlaying = false;
         syncIcon(false);
+        flagAutoplayBlocked();
       });
       isPlaying = true;
     } else if (videos.length === 1) {
@@ -149,6 +165,7 @@ function initVideoHero() {
       v.play().catch(() => {
         isPlaying = false;
         syncIcon(false);
+        flagAutoplayBlocked();
       });
       isPlaying = true;
     }
