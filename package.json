@@ -41,7 +41,7 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vnedyalk0v/react19-simple-maps": "^2.0.9",
-    "astro": "^7.1.4",
+    "astro": "^7.2.0",
     "astro-icon": "^1.1.5",
     "astro-pagefind": "^2.0.1",
     "astro-seo": "^1.1.0",
