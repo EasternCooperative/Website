@@ -30,7 +30,12 @@ const pastVenues = allSites.filter((s) => s.data.historical).sort(sortByName);
 <Layout metadata={metadata} noIndex={!isPublished}>
   <HeroText tagline={connections.heroTagline} title={connections.heroTitle} content={connections.introText} />
 
-  <WidgetWrapper containerClass="pt-0 md:pt-0 lg:pt-0">
+  <!-- HeroText deliberately has no bottom padding — the following section owns
+       that gap. Reduced (not removed) from WidgetWrapper's default so the intro
+       reads as belonging with the first list, but kept a step above
+       about.astro's equivalent because a large heading follows here rather than
+       body copy, and it needs the breathing room. -->
+  <WidgetWrapper containerClass="pt-8 md:pt-10 lg:pt-12">
     <Headline title={connections.affiliationsTitle} subtitle={connections.affiliationsIntro} />
     <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" role="list">
       {
