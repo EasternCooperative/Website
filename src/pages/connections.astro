@@ -20,6 +20,15 @@ const metadata = {
 // decade old and need verifying before members are pointed at them.
 const isPublished = siteSettings.featureFlags.connectionsPage;
 
+// `logo` is optional and usually absent, so it is typed here rather than
+// inferred from the JSON — otherwise adding the first logo would be a type error.
+// Logos are rendered as a plain <img> (see Logo.astro for the same pattern):
+// most org logos are SVG, which astro:assets cannot process, and findImage
+// deliberately passes `/images/…` through untouched for exactly this case.
+type LinkItem = { name: string; url: string; logo?: string };
+const affiliations: LinkItem[] = connections.affiliations;
+const festivals: LinkItem[] = connections.festivals;
+
 const allSites = await getCollection('site');
 const sortByName = (a: { data: { name: string } }, b: { data: { name: string } }) =>
   a.data.name.localeCompare(b.data.name);
@@ -39,13 +48,23 @@ const pastVenues = allSites.filter((s) => s.data.historical).sort(sortByName);
     <Headline title={connections.affiliationsTitle} subtitle={connections.affiliationsIntro} />
     <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" role="list">
       {
-        connections.affiliations.map((item) => (
+        affiliations.map((item) => (
           <li>
             <a
               href={item.url}
               rel="noopener noreferrer"
-              class="flex h-full items-center rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-3 text-default transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              class="flex h-full items-center gap-3 rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-3 text-default transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
+              {item.logo && (
+                <img
+                  src={item.logo}
+                  alt=""
+                  height="28"
+                  class="h-7 w-auto max-w-20 shrink-0 object-contain dark:rounded dark:bg-white/90 dark:p-0.5"
+                  loading="lazy"
+                  decoding="async"
+                />
+              )}
               {item.name}
             </a>
           </li>
@@ -58,13 +77,23 @@ const pastVenues = allSites.filter((s) => s.data.historical).sort(sortByName);
     <Headline title={connections.festivalsTitle} subtitle={connections.festivalsIntro} />
     <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" role="list">
       {
-        connections.festivals.map((item) => (
+        festivals.map((item) => (
           <li>
             <a
               href={item.url}
               rel="noopener noreferrer"
-              class="flex h-full items-center rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-3 text-default transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              class="flex h-full items-center gap-3 rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-3 text-default transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
+              {item.logo && (
+                <img
+                  src={item.logo}
+                  alt=""
+                  height="28"
+                  class="h-7 w-auto max-w-20 shrink-0 object-contain dark:rounded dark:bg-white/90 dark:p-0.5"
+                  loading="lazy"
+                  decoding="async"
+                />
+              )}
               {item.name}
             </a>
           </li>
