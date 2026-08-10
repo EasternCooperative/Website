@@ -110,16 +110,10 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
   <!-- Content — padding handles the header offset; JS also sets paddingTop -->
   <div
     data-video-hero-content
-    class:list={[
-      'relative z-10 flex flex-col text-white px-6 sm:px-8 lg:px-12 py-20 min-h-[max(600px,100svh)]',
-      { 'justify-center': !eventCard },
-    ]}
+    class="relative z-10 flex flex-col justify-center text-white px-6 sm:px-8 lg:px-12 py-20 min-h-[max(600px,100svh)]"
   >
     {
       eventCard && (
-        // Fixed gaps on both sides (mt-4 to the header, mb-6 to the card below) —
-        // deterministic regardless of viewport height, unlike a flex-space-absorbing
-        // gap that grows or shrinks with whatever room happens to be left over.
         <div class="w-full max-w-7xl mx-auto flex justify-end">
           <img
             src="/images/1940.svg"
@@ -349,7 +343,6 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
         )
       }
     </div>
-    {eventCard && <div class="flex-1 min-h-0" aria-hidden="true" />}
   </div>
 
   <!-- Scroll cue — hidden on small screens where the section may be taller than the viewport -->
