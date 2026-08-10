@@ -1,0 +1,39 @@
+{
+  "heroTagline": "Our Wider Community",
+  "heroTitle": "Friends, Festivals and Places",
+  "introText": "ECRS has never existed on its own. Our staff and members come from — and give back to — a wide world of folk dance, song, camping and recreation. These are some of the organizations we're connected to, the festivals we lead at and attend, and the places that have hosted us over the years.",
+  "affiliationsTitle": "Some affiliations of our staff and members",
+  "affiliationsIntro": "Organizations our people are involved with, teach at, or belong to.",
+  "affiliations": [
+    { "name": "Country Dance & Song Society", "url": "https://cdss.org/" },
+    { "name": "Omega Institute", "url": "https://www.eomega.org/" },
+    { "name": "Maine Woods Dance Camp", "url": "https://www.mainewoodsdancecamp.org/" },
+    { "name": "Wayfinder Adventures", "url": "https://wayfinderadventures.org/mission/" },
+    { "name": "Camp Common Ground", "url": "https://cgcvt.org/family-camps/camp-common-ground/" },
+    { "name": "Camp Winni", "url": "https://www.campwinni.org/home.html" },
+    { "name": "National Folk Organization", "url": "https://www.nfo-usa.org/" },
+    { "name": "Great Lakes Recreation Leaders Lab", "url": "https://www.greatlakesreclab.com/" },
+    { "name": "Sing Out Publications", "url": "https://singout.org/" }
+  ],
+  "festivalsTitle": "Festivals our staff lead and members attend",
+  "festivalsIntro": "If you've enjoyed an ECRS weekend, you may well enjoy these too.",
+  "festivals": [
+    { "name": "Flurry Festival", "url": "https://www.flurryfestival.org/" },
+    { "name": "Philadelphia Folksong Society", "url": "https://pfs.org/" },
+    { "name": "New England Folk Festival", "url": "https://www.neffa.org/" },
+    { "name": "Clearwater's Great Hudson River Revival", "url": "https://www.clearwater.org/music/" },
+    { "name": "People's Music Network", "url": "https://peoplesmusic.org/" },
+    { "name": "Pourparler", "url": "https://www.nfo-usa.org/pourparler.htm" },
+    { "name": "Mount Airy Contra Dance", "url": "https://thursdaycontra.com/" }
+  ],
+  "venuesTitle": "Places we meet or have met",
+  "venuesIntro": "Camps, retreat centers and meeting houses that have made room for us.",
+  "currentVenuesTitle": "Where we gather now",
+  "historicalVenuesTitle": "Where we've gathered before",
+  "ctaTitle": "Come play with us",
+  "ctaSubtitle": "Newcomers always receive 50% off their first event.",
+  "ctaPrimaryText": "See Events",
+  "ctaPrimaryHref": "/events",
+  "ctaSecondaryText": "Become a Member",
+  "ctaSecondaryHref": "/membership"
+}

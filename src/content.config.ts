@@ -117,6 +117,10 @@ const siteCollection = defineCollection({
     // (e.g. "Wilmington, DE") — displayed address text is unaffected.
     lat: z.number().optional(),
     lng: z.number().optional(),
+    website: z.url().optional(),
+    // A venue ECRS has used but no longer does. Only surfaces on /connections —
+    // events resolve venues by siteId, so these records appear nowhere else.
+    historical: z.boolean().default(false),
   }),
 });
 

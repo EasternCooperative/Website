@@ -12,6 +12,7 @@
   ],
   "featureFlags": {
     "activitiesNavLink": false,
+    "connectionsPage": false,
     "aboutPageMap": true,
     "peopleWithoutPhotoOrBio": false
   }

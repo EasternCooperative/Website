@@ -4,12 +4,15 @@ import Layout from '~/layouts/PageLayout.astro';
 import ScheduleGenerator from '~/components/schedule/ScheduleGenerator';
 ---
 
+<!-- Staff tool. `noIndex` also excludes it from the on-site Pagefind index; it
+     escapes that index today only because the page body is client-rendered. -->
 <Layout
   metadata={{
     title: 'Schedule Generator',
     description: 'Generate workshop schedules from a Cognito Forms Excel export.',
     robots: { index: false, follow: false },
   }}
+  noIndex
 >
   <ScheduleGenerator client:only="react" />
 </Layout>
