@@ -1,0 +1,187 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '~/layouts/PageLayout.astro';
+import HeroText from '~/components/widgets/HeroText.astro';
+import CallToAction from '~/components/widgets/CallToAction.astro';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+import Headline from '~/components/ui/Headline.astro';
+import Image from '~/components/common/Image.astro';
+import connections from '~/data/settings/connections.json';
+import siteSettings from '~/data/settings/site.json';
+
+const metadata = {
+  title: connections.heroTitle,
+  description: connections.introText,
+  openGraph: { images: [{ url: '/og/default.jpg', width: 1200, height: 630 }] },
+};
+
+// Until the feature flag is turned on this page stays reachable by URL but is
+// kept out of Google and out of the Pagefind index — the curated links are a
+// decade old and need verifying before members are pointed at them.
+const isPublished = siteSettings.featureFlags.connectionsPage;
+
+// `logo` is optional and usually absent, so it is typed here rather than
+// inferred from the JSON — otherwise adding the first logo would be a type error.
+// Logos are rendered as a plain <img> (see Logo.astro for the same pattern):
+// most org logos are SVG, which astro:assets cannot process, and findImage
+// deliberately passes `/images/…` through untouched for exactly this case.
+type LinkItem = { name: string; url: string; logo?: string };
+const affiliations: LinkItem[] = connections.affiliations;
+const festivals: LinkItem[] = connections.festivals;
+
+const allSites = await getCollection('site');
+const sortByName = (a: { data: { name: string } }, b: { data: { name: string } }) =>
+  a.data.name.localeCompare(b.data.name);
+const currentVenues = allSites.filter((s) => !s.data.historical).sort(sortByName);
+const pastVenues = allSites.filter((s) => s.data.historical).sort(sortByName);
+---
+
+<Layout metadata={metadata} noIndex={!isPublished}>
+  <HeroText tagline={connections.heroTagline} title={connections.heroTitle} content={connections.introText} />
+
+  <!-- HeroText deliberately has no bottom padding — the following section owns
+       that gap. Reduced (not removed) from WidgetWrapper's default so the intro
+       reads as belonging with the first list, but kept a step above
+       about.astro's equivalent because a large heading follows here rather than
+       body copy, and it needs the breathing room. -->
+  <WidgetWrapper containerClass="pt-8 md:pt-10 lg:pt-12">
+    <Headline title={connections.affiliationsTitle} subtitle={connections.affiliationsIntro} />
+    <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" role="list">
+      {
+        affiliations.map((item) => (
+          <li>
+            <a
+              href={item.url}
+              rel="noopener noreferrer"
+              class="flex h-full items-center gap-3 rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-3 text-default transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            >
+              {item.logo && (
+                <img
+                  src={item.logo}
+                  alt=""
+                  height="32"
+                  class="h-8 w-auto max-w-28 shrink-0 object-contain dark:rounded dark:bg-white/90 dark:p-0.5"
+                  loading="lazy"
+                  decoding="async"
+                />
+              )}
+              {item.name}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </WidgetWrapper>
+
+  <WidgetWrapper>
+    <Headline title={connections.festivalsTitle} subtitle={connections.festivalsIntro} />
+    <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" role="list">
+      {
+        festivals.map((item) => (
+          <li>
+            <a
+              href={item.url}
+              rel="noopener noreferrer"
+              class="flex h-full items-center gap-3 rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-3 text-default transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            >
+              {item.logo && (
+                <img
+                  src={item.logo}
+                  alt=""
+                  height="32"
+                  class="h-8 w-auto max-w-28 shrink-0 object-contain dark:rounded dark:bg-white/90 dark:p-0.5"
+                  loading="lazy"
+                  decoding="async"
+                />
+              )}
+              {item.name}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </WidgetWrapper>
+
+  <WidgetWrapper>
+    <Headline title={connections.venuesTitle} subtitle={connections.venuesIntro} />
+
+    <h3 class="mb-6 text-xl font-bold text-heading">{connections.currentVenuesTitle}</h3>
+    <ul class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-12" role="list">
+      {
+        currentVenues.map((venue) => (
+          <li class="flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+            {venue.data.image && (
+              <Image
+                src={venue.data.image}
+                alt=""
+                width={600}
+                height={340}
+                widths={[400, 600]}
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                layout="cover"
+                format="webp"
+                class="h-40 w-full object-cover"
+              />
+            )}
+            <div class="flex flex-1 flex-col p-4">
+              <p class="font-bold text-heading">{venue.data.name}</p>
+              {venue.data.address && <p class="text-sm text-muted">{venue.data.address}</p>}
+              {venue.data.website && (
+                <a
+                  href={venue.data.website}
+                  rel="noopener noreferrer"
+                  class="mt-2 text-sm text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                >
+                  Visit website
+                </a>
+              )}
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+
+    <h3 class="mb-6 text-xl font-bold text-heading">{connections.historicalVenuesTitle}</h3>
+    <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" role="list">
+      {
+        pastVenues.map((venue) => {
+          // A venue can be flagged historical from the CMS at any time, and most
+          // venue records have no website — so render plain text rather than an
+          // anchor with an empty href, which would be focusable but go nowhere.
+          const body = (
+            <>
+              <span class="text-default">{venue.data.name}</span>
+              {venue.data.address && <span class="text-sm text-muted">{venue.data.address}</span>}
+            </>
+          );
+          const boxClass =
+            'flex h-full flex-col justify-center rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-3';
+          return (
+            <li>
+              {venue.data.website ? (
+                <a
+                  href={venue.data.website}
+                  rel="noopener noreferrer"
+                  class={`${boxClass} transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`}
+                >
+                  {body}
+                </a>
+              ) : (
+                <div class={boxClass}>{body}</div>
+              )}
+            </li>
+          );
+        })
+      }
+    </ul>
+  </WidgetWrapper>
+
+  <CallToAction
+    title={connections.ctaTitle}
+    subtitle={connections.ctaSubtitle}
+    actions={[
+      { text: connections.ctaPrimaryText, href: connections.ctaPrimaryHref, variant: 'primary' },
+      { text: connections.ctaSecondaryText, href: connections.ctaSecondaryHref, variant: 'secondary' },
+    ]}
+  />
+</Layout>

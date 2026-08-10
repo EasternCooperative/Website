@@ -6,6 +6,8 @@ import siteGeocodesRaw from '~/data/site-geocodes.json';
 
 // Not linked from public nav — internal planning tool.
 // Data shown here is aggregated at city level; no PII is present.
+// `noIndex` on the Layout below keeps this out of the on-site Pagefind index as
+// well as out of search engines — the `robots` metadata alone only does the latter.
 
 const metadata = {
   title: 'Member Map (Internal)',
@@ -16,7 +18,7 @@ const metadata = {
 const knownSites = siteGeocodesRaw;
 ---
 
-<Layout metadata={metadata}>
+<Layout metadata={metadata} noIndex>
   <section class="py-10 px-4 max-w-5xl mx-auto space-y-12">
     <div>
       <div class="flex items-baseline justify-between mb-1">

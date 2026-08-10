@@ -15,6 +15,7 @@ import AxeBuilder from '@axe-core/playwright';
  *   /events/<fix>  — fixture event (cognitoFormId, classes, leader popover)
  *   /our-people    — leader cards, category sections
  *   /contact       — contact page
+ *   /connections   — link lists + venue cards (feature-flagged, still built)
  */
 
 type AxeViolation = {
@@ -98,4 +99,8 @@ test('our-people page has no critical a11y violations', async ({ page }, testInf
 
 test('contact page has no critical a11y violations', async ({ page }, testInfo) => {
   await audit(page, testInfo, '/contact');
+});
+
+test('connections page has no critical a11y violations', async ({ page }, testInfo) => {
+  await audit(page, testInfo, '/connections');
 });

@@ -90,6 +90,62 @@ collections:
           - { label: 'CTA Secondary Button Text', name: 'ctaSecondaryText', widget: 'string' }
           - { label: 'CTA Secondary Button URL', name: 'ctaSecondaryHref', widget: 'string' }
 
+      - name: 'connections'
+        label: 'Connections'
+        file: 'src/data/settings/connections.json'
+        fields:
+          - { label: 'Hero Tagline', name: 'heroTagline', widget: 'string' }
+          - { label: 'Hero Title', name: 'heroTitle', widget: 'string' }
+          - { label: 'Intro Text', name: 'introText', widget: 'text' }
+          - { label: 'Affiliations Heading', name: 'affiliationsTitle', widget: 'string' }
+          - { label: 'Affiliations Intro', name: 'affiliationsIntro', widget: 'string' }
+          - label: 'Affiliations'
+            name: 'affiliations'
+            widget: 'list'
+            fields:
+              - { label: 'Name', name: 'name', widget: 'string' }
+              - { label: 'URL', name: 'url', widget: 'string' }
+              - {
+                  label: 'Logo',
+                  name: 'logo',
+                  widget: 'image',
+                  required: false,
+                  hint: "Optional. The organization's logo, shown beside the name. Displays at 28px
+                    tall, so a transparent PNG or SVG works best. Check it is still legible in dark
+                    mode — a dark logo on a transparent background can disappear.",
+                }
+          - { label: 'Festivals Heading', name: 'festivalsTitle', widget: 'string' }
+          - { label: 'Festivals Intro', name: 'festivalsIntro', widget: 'string' }
+          - label: 'Festivals'
+            name: 'festivals'
+            widget: 'list'
+            fields:
+              - { label: 'Name', name: 'name', widget: 'string' }
+              - { label: 'URL', name: 'url', widget: 'string' }
+              - {
+                  label: 'Logo',
+                  name: 'logo',
+                  widget: 'image',
+                  required: false,
+                  hint: "Optional. The festival's logo, shown beside the name. Displays at 28px tall,
+                    so a transparent PNG or SVG works best. Check it is still legible in dark mode.",
+                }
+          - { label: 'Venues Heading', name: 'venuesTitle', widget: 'string' }
+          - { label: 'Venues Intro', name: 'venuesIntro', widget: 'string' }
+          - {
+              label: 'Current Venues Subheading',
+              name: 'currentVenuesTitle',
+              widget: 'string',
+              hint: 'Venues are managed under Venues, not here.',
+            }
+          - { label: 'Past Venues Subheading', name: 'historicalVenuesTitle', widget: 'string' }
+          - { label: 'CTA Title', name: 'ctaTitle', widget: 'string' }
+          - { label: 'CTA Subtitle', name: 'ctaSubtitle', widget: 'string' }
+          - { label: 'CTA Primary Button Text', name: 'ctaPrimaryText', widget: 'string' }
+          - { label: 'CTA Primary Button URL', name: 'ctaPrimaryHref', widget: 'string' }
+          - { label: 'CTA Secondary Button Text', name: 'ctaSecondaryText', widget: 'string' }
+          - { label: 'CTA Secondary Button URL', name: 'ctaSecondaryHref', widget: 'string' }
+
       - name: 'events-list'
         label: 'Events'
         file: 'src/data/settings/events-list.json'
@@ -270,6 +326,21 @@ collections:
           required: false,
           hint: 'Default image shown on all events at this venue.',
         }
+      - {
+          label: 'Website',
+          name: 'website',
+          widget: 'string',
+          required: false,
+          hint: "The venue's own website. Shown on the Connections page.",
+        }
+      - {
+          label: 'No Longer Used',
+          name: 'historical',
+          widget: 'boolean',
+          required: false,
+          default: false,
+          hint: 'A venue we have used in the past but not any more. Listed under "Where we have gathered before" on the Connections page.',
+        }
 
   # --- EVENTS (folder collection — one file per event) ---
   - name: 'event'
@@ -300,7 +371,9 @@ collections:
           value_field: '{{slug}}',
           display_fields: ['name'],
           required: false,
-          hint: 'Select a venue — location name, address, and image will be pulled automatically.',
+          hint: 'Select a venue — location name, address, and image will be pulled automatically. Note
+            that venues marked "No Longer Used" also appear here; those have no photo or full address,
+            so pick one only if ECRS is meeting there again, and fill in its details first.',
         }
       - {
           label: 'Location Name Override',

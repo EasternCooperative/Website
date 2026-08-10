@@ -16,6 +16,8 @@ import astrowind from './vendor/integration';
 
 import { responsiveTablesRehypePlugin } from './src/utils/frontmatter';
 
+import siteSettings from './src/data/settings/site.json';
+
 import react from '@astrojs/react';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -56,9 +58,12 @@ export default defineConfig({
     sitemap({
       // Exclude e2e fixtures, internal pages, and draft events/activities —
       // the sitemap should only list pages we want search engines to index.
+      // /connections is gated on the same flag the page uses for its noIndex,
+      // so the sitemap and the robots meta tag can't drift apart.
       filter: (page) =>
         !page.includes('/events/e2e-') &&
         !page.includes('/internal/') &&
+        (siteSettings.featureFlags.connectionsPage || !/\/connections\/?$/.test(page)) &&
         !isDraftPage(page, '/events/', draftEventSlugs) &&
         !isDraftPage(page, '/activities/', draftActivitySlugs),
     }),
