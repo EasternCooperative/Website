@@ -17,17 +17,17 @@ const { name, title, photo, bio } = Astro.props;
       <Image
         src={photo}
         alt={name}
-        width={72}
-        height={72}
-        widths={[72, 144]}
-        sizes="72px"
+        width={88}
+        height={88}
+        widths={[88, 176]}
+        sizes="88px"
         layout="cover"
-        class:list={['w-18 h-18 rounded-full object-cover flex-shrink-0', bio && 'mt-1']}
+        class:list={['w-[88px] h-[88px] rounded-full object-cover flex-shrink-0', bio && 'mt-1']}
       />
     ) : (
       <div
         class:list={[
-          'w-18 h-18 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0',
+          'w-[88px] h-[88px] rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0',
           bio && 'mt-1',
         ]}
         aria-hidden="true"
@@ -37,8 +37,8 @@ const { name, title, photo, bio } = Astro.props;
     )
   }
   <div class="min-w-0">
-    <p class="font-semibold text-heading leading-snug">{name}</p>
-    {title && <p class="text-sm text-muted mb-1">{title}</p>}
-    {bio && <p class="text-sm text-default mt-1 leading-relaxed md-links" set:html={bio} />}
+    <p class="font-semibold text-lg text-heading leading-snug">{name}</p>
+    {title && <p class="text-base text-muted mb-1">{title}</p>}
+    {bio && <p class="text-base text-default mt-1 leading-relaxed md-links" set:html={bio} />}
   </div>
 </div>
