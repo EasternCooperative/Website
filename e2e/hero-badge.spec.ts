@@ -25,6 +25,39 @@ async function heroRects(page: import('@playwright/test').Page) {
   };
 }
 
+/**
+ * The centered flex area of [data-video-hero-content], excluding its own
+ * padding — one edge is the dynamic header-clearance padding-top, the other
+ * is a fixed py-20 padding-bottom, so raw header/viewport coordinates aren't
+ * directly comparable. This is the box `justify-center` actually centers within.
+ */
+async function heroContentInterior(page: import('@playwright/test').Page) {
+  const content = page.locator('[data-video-hero-content]');
+  const box = await content.boundingBox();
+  const padding = await content.evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return { top: parseFloat(cs.paddingTop), bottom: parseFloat(cs.paddingBottom) };
+  });
+  if (!box) return null;
+  return { top: box.y + padding.top, bottom: box.y + box.height - padding.bottom };
+}
+
+/**
+ * The combined top/bottom of [data-video-hero-content]'s direct flex children
+ * (the badge row and the grid row) — i.e. the actual block `justify-center`
+ * centers. Deliberately not the badge/card elements themselves: the grid uses
+ * `items-center` with the card set to `self-start`, so when the text column
+ * is taller than the card, the card's own bottom edge sits well above the
+ * row's real bottom — a pre-existing column-height quirk unrelated to
+ * top/bottom centering, which would otherwise show up as a false gap mismatch.
+ */
+async function heroContentBlockSpan(page: import('@playwright/test').Page) {
+  return page.locator('[data-video-hero-content] > *').evaluateAll((els) => {
+    const rects = els.map((el) => el.getBoundingClientRect());
+    return { top: Math.min(...rects.map((r) => r.top)), bottom: Math.max(...rects.map((r) => r.bottom)) };
+  });
+}
+
 test.describe('hero badge — below the nav breakpoint (1024x800)', () => {
   test.use({ viewport: { width: 1024, height: 800 } });
 
@@ -64,20 +97,24 @@ test.describe('hero badge — above the nav breakpoint', () => {
         expect(card!.y).toBeGreaterThanOrEqual(badge!.y + badge!.height);
       });
 
-      test('sits roughly equidistant between the header and the card', async ({ page }) => {
+      // The hero content (badge + grid, as a group) is vertically centered within
+      // its content box, rather than top-anchored — the leftover space above the
+      // group should roughly match the leftover space below it. Catches a
+      // regression back to top-anchoring, which piles all the leftover space below
+      // the content instead of splitting it evenly.
+      test('leftover space splits evenly above and below the hero content', async ({ page }) => {
         await page.goto('/');
-        const { header, badge, card } = await heroRects(page);
-        expect(header).toBeTruthy();
-        expect(badge).toBeTruthy();
-        expect(card).toBeTruthy();
+        const interior = await heroContentInterior(page);
+        const block = await heroContentBlockSpan(page);
+        expect(interior).toBeTruthy();
 
-        const navGap = badge!.y - (header!.y + header!.height);
-        const cardGap = card!.y - (badge!.y + badge!.height);
+        const topGap = block.top - interior!.top;
+        const bottomGap = interior!.bottom - block.bottom;
 
-        // Generous tolerance — this only needs to catch a gap ballooning or
-        // collapsing (e.g. a flex-space-absorbing spacer regressing), not
-        // pin an exact pixel value that would break on font-metric changes.
-        expect(Math.abs(navGap - cardGap)).toBeLessThan(15);
+        // Generous tolerance — this only needs to catch the gaps badly diverging
+        // (e.g. content reverting to top-anchored), not pin an exact pixel value
+        // that would break on font-metric changes.
+        expect(Math.abs(topGap - bottomGap)).toBeLessThan(30);
       });
     });
   }

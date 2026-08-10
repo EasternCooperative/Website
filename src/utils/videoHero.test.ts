@@ -108,6 +108,7 @@ describe('initVideoHero — playback toggle', () => {
         <button data-video-toggle aria-label="Pause background video">
           <svg data-icon-pause></svg>
           <svg data-icon-play class="hidden"></svg>
+          <span data-video-toggle-label class="hidden">Play video</span>
         </button>
       </section>
     `;
@@ -153,6 +154,59 @@ describe('initVideoHero — playback toggle', () => {
 
     expect(document.querySelector('[data-icon-play]')!.classList.contains('hidden')).toBe(false);
     expect(document.querySelector('[data-icon-pause]')!.classList.contains('hidden')).toBe(true);
+  });
+
+  it('flags the toggle for attention and reveals its label when autoplay is blocked', async () => {
+    buildToggleFixture();
+    HTMLMediaElement.prototype.play = vi.fn().mockRejectedValue(new Error('NotAllowedError'));
+    await loadAndTrigger();
+
+    const toggle = document.querySelector('[data-video-toggle]')!;
+    expect(toggle.getAttribute('data-attention')).toBe('true');
+    expect(document.querySelector('[data-video-toggle-label]')!.classList.contains('hidden')).toBe(false);
+  });
+
+  it('does not flag the toggle for attention when autoplay succeeds', async () => {
+    buildToggleFixture();
+    await loadAndTrigger();
+
+    const toggle = document.querySelector('[data-video-toggle]')!;
+    expect(toggle.getAttribute('data-attention')).toBeNull();
+    expect(document.querySelector('[data-video-toggle-label]')!.classList.contains('hidden')).toBe(true);
+  });
+
+  it('clears the attention flag once the visitor manually clicks the toggle', async () => {
+    buildToggleFixture();
+    HTMLMediaElement.prototype.play = vi.fn().mockRejectedValue(new Error('NotAllowedError'));
+    await loadAndTrigger();
+
+    const toggle = document.querySelector<HTMLButtonElement>('[data-video-toggle]')!;
+    expect(toggle.getAttribute('data-attention')).toBe('true');
+
+    toggle.click();
+
+    expect(toggle.getAttribute('data-attention')).toBeNull();
+    expect(document.querySelector('[data-video-toggle-label]')!.classList.contains('hidden')).toBe(true);
+  });
+
+  it('flags the toggle for attention when autoplay is blocked in the multi-video crossfade branch', async () => {
+    document.body.innerHTML = `
+      <section data-video-hero>
+        <video data-hero-video></video>
+        <video data-hero-video></video>
+        <button data-video-toggle aria-label="Pause background video">
+          <svg data-icon-pause></svg>
+          <svg data-icon-play class="hidden"></svg>
+          <span data-video-toggle-label class="hidden">Play video</span>
+        </button>
+      </section>
+    `;
+    HTMLMediaElement.prototype.play = vi.fn().mockRejectedValue(new Error('NotAllowedError'));
+    await loadAndTrigger();
+
+    const toggle = document.querySelector('[data-video-toggle]')!;
+    expect(toggle.getAttribute('data-attention')).toBe('true');
+    expect(document.querySelector('[data-video-toggle-label]')!.classList.contains('hidden')).toBe(false);
   });
 });
 
