@@ -1,0 +1,62 @@
+---
+/**
+ * Markup for a dual-handle range slider — track + fill bar + two native
+ * `<input type="range">` thumbs. Pair with `RangeSliderControl`
+ * (src/utils/rangeSlider.ts) to wire up clamping and the fill bar; this
+ * component only renders the DOM, it does not attach any behavior itself
+ * (so it works the same whether the caller drives it from a plain
+ * `<script>`, as src/pages/activities/index.astro does, or from a React
+ * island via refs, as GalleryBrowser.tsx does).
+ */
+interface Props {
+  idPrefix: string;
+  boundMin: number;
+  boundMax: number;
+  initialMin?: number;
+  initialMax?: number;
+  step?: number;
+  ariaLabelMin: string;
+  ariaLabelMax: string;
+}
+
+const {
+  idPrefix,
+  boundMin,
+  boundMax,
+  initialMin = boundMin,
+  initialMax = boundMax,
+  step = 1,
+  ariaLabelMin,
+  ariaLabelMax,
+} = Astro.props;
+---
+
+<div class="relative h-5">
+  <div class="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+  <div
+    id={`${idPrefix}-fill`}
+    class="absolute top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-primary"
+    style="left: 0%; right: 0%;"
+  >
+  </div>
+  <input
+    type="range"
+    id={`${idPrefix}-min`}
+    class="range-slider-input"
+    min={boundMin}
+    max={boundMax}
+    value={initialMin}
+    step={step}
+    aria-label={ariaLabelMin}
+  />
+  <input
+    type="range"
+    id={`${idPrefix}-max`}
+    class="range-slider-input"
+    min={boundMin}
+    max={boundMax}
+    value={initialMax}
+    step={step}
+    aria-label={ariaLabelMax}
+  />
+</div>

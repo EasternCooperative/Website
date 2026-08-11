@@ -150,6 +150,81 @@
 .aw-link-active::after {
   transform: scaleX(1);
 }
+/* Two native range inputs stacked on the same track give a single slider with
+   two independently draggable handles, without a custom pointer-drag
+   implementation. Each input's own track is hidden; only its thumb shows,
+   positioned by the browser along the shared 0-100% track underneath.
+   Shared by the Activities group-size filter and the Gallery year filter —
+   see src/utils/rangeSlider.ts for the paired behavior (clamping, fill bar). */
+.range-slider-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  margin: 0;
+  background: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  pointer-events: none;
+}
+.range-slider-input::-webkit-slider-runnable-track {
+  -webkit-appearance: none;
+  background: transparent;
+  height: 100%;
+}
+.range-slider-input::-moz-range-track {
+  background: transparent;
+  height: 100%;
+  border: none;
+}
+.range-slider-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: auto;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 9999px;
+  background: var(--aw-color-primary);
+  border: 2px solid var(--aw-color-bg-page, white);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 30%);
+  cursor: pointer;
+}
+.range-slider-input::-moz-range-thumb {
+  pointer-events: auto;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 9999px;
+  background: var(--aw-color-primary);
+  border: 2px solid var(--aw-color-bg-page, white);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 30%);
+  cursor: pointer;
+}
+/* The inputs themselves are invisible (only the thumbs show), so keyboard
+   focus has to be indicated on the thumb pseudo-elements instead. */
+.range-slider-input:focus-visible {
+  outline: none;
+}
+.range-slider-input:focus-visible::-webkit-slider-thumb {
+  box-shadow:
+    0 0 0 2px var(--aw-color-bg-page, white),
+    0 0 0 4px var(--aw-color-primary);
+}
+.range-slider-input:focus-visible::-moz-range-thumb {
+  box-shadow:
+    0 0 0 2px var(--aw-color-bg-page, white),
+    0 0 0 4px var(--aw-color-primary);
+}
+/* The thumb is the entire touch target, so give it a finger-sized hit area
+   (~24px, WCAG 2.5.8) on touch devices. */
+@media (pointer: coarse) {
+  .range-slider-input::-webkit-slider-thumb {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+  .range-slider-input::-moz-range-thumb {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+}
+
 .aw-link-active {
   color: var(--aw-color-primary);
   font-weight: 600;

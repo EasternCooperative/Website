@@ -1,0 +1,57 @@
+---
+import { getCollection } from 'astro:content';
+import { getImage } from 'astro:assets';
+import Layout from '~/layouts/PageLayout.astro';
+import HeroText from '~/components/widgets/HeroText.astro';
+import GalleryBrowser from '~/components/widgets/GalleryBrowser';
+import { findImage } from '~/utils/images';
+
+const allPhotos = await getCollection('galleryPhoto');
+
+const photos = await Promise.all(
+  allPhotos.map(async (photo) => {
+    const resolved = await findImage(photo.data.image);
+    const isLocal = resolved && typeof resolved === 'object';
+
+    const thumb = isLocal ? await getImage({ src: resolved, width: 480, format: 'webp' }) : null;
+    const full = isLocal ? await getImage({ src: resolved, width: 1600, format: 'jpeg' }) : null;
+
+    const fallbackSrc = typeof resolved === 'string' ? resolved : photo.data.image;
+
+    return {
+      id: photo.id,
+      src: thumb?.src ?? fallbackSrc,
+      full: full?.src ?? thumb?.src ?? fallbackSrc,
+      width: full ? Number(full.attributes.width) : isLocal ? resolved.width : 0,
+      height: full ? Number(full.attributes.height) : isLocal ? resolved.height : 0,
+      alt: photo.data.alt,
+      caption: photo.data.caption,
+      year: photo.data.year,
+      photographer: photo.data.photographer,
+      event: photo.data.event,
+    };
+  })
+);
+
+photos.sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
+
+const years = [...new Set(photos.map((p) => p.year).filter((y): y is number => y != null))].sort((a, b) => b - a);
+const photographers = [...new Set(photos.map((p) => p.photographer).filter((v): v is string => !!v))].sort((a, b) =>
+  a.localeCompare(b)
+);
+const events = [...new Set(photos.map((p) => p.event).filter((v): v is string => !!v))].sort((a, b) =>
+  a.localeCompare(b)
+);
+
+const metadata = {
+  title: 'Photo Gallery',
+  description: 'Browse photos from ECRS events and workshops over the years.',
+};
+---
+
+<Layout metadata={metadata}>
+  <HeroText tagline="Gallery" title="Photo Gallery" subtitle="Browse decades of ECRS memories." />
+  <section class="px-4 max-w-7xl mx-auto pb-16">
+    <GalleryBrowser photos={photos} years={years} photographers={photographers} events={events} client:visible />
+  </section>
+</Layout>
