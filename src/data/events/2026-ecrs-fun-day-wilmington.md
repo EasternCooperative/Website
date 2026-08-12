@@ -5,8 +5,15 @@ endDate: ''
 startTime: 10:00 AM
 endTime: 12:00 PM
 siteId: mid-county-center
-excerpt: ''
-description: ''
+location: ''
+address: ''
+excerpt: Join us for a morning of play and laughter with games and improv theater
+description: |-
+  Join us for a morning of play and laughter! We'll play cooperative games suitable for every age and every level of physical mobility. No losers here, it's all about having fun and laughing together.
+
+  Then you'll get a chance to learn a little about improvisational theater. No experience necessary, anyone can make things up...you do it every day already!
+
+  You're always welcome to participate at your own level of interest, ability, and comfort. So come as you are, meet some new friends, and play some games to start your weekend.
 image: ~/assets/images/sites/mid-county-center.jpg
 phone: ''
 accessibilityNote: ''
@@ -22,7 +29,7 @@ mealsNote: ''
 cancellationCutoffDate: ''
 cancellationPolicy: ''
 showHealthPolicy: true
-healthPolicy: 'ECRS events are fragrance-, drug-, and alcohol-free.'
+healthPolicy: ECRS events are fragrance-, drug-, and alcohol-free.
 classes:
   - name: Games
     leaderId: heather-klemanski
