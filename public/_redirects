@@ -15,8 +15,7 @@
 /what-makes-ecrs-special/*                        /about   301
 /leadership-development/*                         /about   301
 /leadership_training_track/*                      /about   301
-/gallery/*                                        /about   301
-/photo-gallery/*                                  /about   301
+/photo-gallery/*                                  /gallery   301
 
 /our-leadership/*                                 /our-people   301
 /whos-on-the-board/*                              /our-people   301
