@@ -982,6 +982,33 @@ collections:
       - { label: 'Name', name: 'name', widget: 'string', required: false }
       - { label: 'Role / Affiliation', name: 'role', widget: 'string', required: false }
 
+  # --- PHOTO GALLERY (folder collection — one file per photo) ---
+  - name: 'galleryPhoto'
+    label: 'Photo Gallery'
+    label_singular: 'Photo'
+    folder: 'src/data/gallery'
+    create: true
+    identifier_field: alt
+    media_folder: '/images/gallery'
+    public_folder: '/images/gallery'
+    slug: '{{fields.year}}-{{slug}}'
+    summary: '{{fields.alt}}'
+    fields:
+      - { label: 'Image', name: 'image', widget: 'image' }
+      - { label: 'Alt text', name: 'alt', widget: 'string' }
+      - { label: 'Caption', name: 'caption', widget: 'text', required: false }
+      - { label: 'Year', name: 'year', widget: 'number', value_type: 'int', required: false }
+      - { label: 'Date', name: 'date', widget: 'datetime', required: false }
+      - { label: 'Photographer', name: 'photographer', widget: 'string', required: false }
+      - { label: 'Event', name: 'event', widget: 'string', required: false }
+      - {
+          label: 'Source URL',
+          name: 'sourceUrl',
+          widget: 'string',
+          required: false,
+          hint: 'Original WordPress link, for provenance — not shown on the site.',
+        }
+
   # --- GLOBAL SETTINGS (navigation, footer, social) ---
   - name: 'settings'
     label: 'Site Settings'

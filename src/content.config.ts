@@ -282,6 +282,20 @@ const activityCollection = defineCollection({
   }),
 });
 
+const galleryPhotoCollection = defineCollection({
+  loader: glob({ pattern: '*.md', base: 'src/data/gallery' }),
+  schema: z.object({
+    image: z.string(),
+    alt: z.string(),
+    caption: z.string().optional(),
+    year: z.number().int().optional(),
+    date: z.string().optional(), // ISO date, when known precisely
+    photographer: z.string().optional(),
+    event: z.string().optional(),
+    sourceUrl: z.string().optional(), // provenance back to the WordPress original
+  }),
+});
+
 export const collections = {
   event: eventCollection,
   leader: leaderCollection,
@@ -289,4 +303,5 @@ export const collections = {
   testimonial: testimonialCollection,
   landingSettings: landingSettingsCollection,
   activity: activityCollection,
+  galleryPhoto: galleryPhotoCollection,
 };

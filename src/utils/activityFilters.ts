@@ -1,4 +1,5 @@
 import { RollingLabel } from '~/utils/numberRoll';
+import { RangeSliderControl, updateRangeLabel } from '~/utils/rangeSlider';
 
 // Client-side facet filter over the already-rendered card set — deliberately
 // independent of the pagefind search modal (see Header.astro / PagefindConfig),
@@ -46,6 +47,20 @@ function initActivityFilters() {
   const GROUP_SIZE_RELEVANT_TYPES = ['game', 'dance'];
   const groupSizeBoundMin = groupSizeMinInput ? Number(groupSizeMinInput.min) : 1;
   const groupSizeBoundMax = groupSizeMinInput ? Number(groupSizeMinInput.max) : 1;
+  const groupSizeSlider =
+    groupSizeMinInput && groupSizeMaxInput && groupSizeFill
+      ? new RangeSliderControl(
+          { minInput: groupSizeMinInput, maxInput: groupSizeMaxInput, fill: groupSizeFill },
+          {
+            boundMin: groupSizeBoundMin,
+            boundMax: groupSizeBoundMax,
+            onChange: (min, max) => {
+              updateGroupSizeLabel(min, max);
+              apply();
+            },
+          }
+        )
+      : null;
 
   function setActive(btn: HTMLButtonElement, active: boolean) {
     btn.classList.toggle('bg-primary', active);
@@ -88,58 +103,33 @@ function initActivityFilters() {
   }
 
   // Crossfades the whole label when its sentence shape changes (e.g. "Any
-  // size" → "At least X people"), since that means rebuilding the DOM.
-  // When the shape stays the same, only the changed number(s) roll — the
-  // surrounding phrase text never re-renders. See src/utils/numberRoll.ts.
-  function updateGroupSizeDisplay() {
-    if (!groupSizeMinInput || !groupSizeMaxInput) return;
-    const minVal = Number(groupSizeMinInput.value);
-    const maxVal = Number(groupSizeMaxInput.value);
-
-    if (groupSizeLabel) {
-      const minSet = minVal > groupSizeBoundMin;
-      const maxSet = maxVal < groupSizeBoundMax;
-      const shape = minSet && maxSet ? 'between' : minSet ? 'atLeast' : maxSet ? 'noMoreThan' : 'any';
-
-      const rebuilt = groupSizeLabel.setShape(shape, (label) => {
-        if (shape === 'any') {
-          label.text('Any size');
-        } else if (shape === 'atLeast') {
-          label.text('At least ');
-          label.reel('min', minVal);
-          label.text(' people');
-        } else if (shape === 'noMoreThan') {
-          label.text('No more than ');
-          label.reel('max', maxVal);
-          label.text(' people');
-        } else {
-          label.text('Between ');
-          label.reel('min', minVal);
-          label.text(' and ');
-          label.reel('max', maxVal);
-          label.text(' people');
-        }
-      });
-      if (!rebuilt && shape !== 'any') {
-        groupSizeLabel.roll('min', minVal);
-        groupSizeLabel.roll('max', maxVal);
-      }
-    }
-
-    if (groupSizeFill) {
-      const span = Math.max(1, groupSizeBoundMax - groupSizeBoundMin);
-      const leftPct = ((minVal - groupSizeBoundMin) / span) * 100;
-      const rightPct = 100 - ((maxVal - groupSizeBoundMin) / span) * 100;
-      groupSizeFill.style.left = `${leftPct}%`;
-      groupSizeFill.style.right = `${rightPct}%`;
-    }
-
-    // When the two thumbs coincide, the max input (later in the DOM) is on
-    // top and wins the pointer. That deadlocks at the far right: max can't
-    // move further and min is buried. Putting min on top whenever the pair
-    // sits in the upper half of the range keeps a movable thumb grabbable
-    // at both extremes.
-    groupSizeMinInput.classList.toggle('z-10', minVal > (groupSizeBoundMin + groupSizeBoundMax) / 2);
+  // size" → "At least X people"), since that means rebuilding the DOM. When
+  // the shape stays the same, only the changed number(s) roll — the
+  // surrounding phrase text never re-renders. The shape-picking/rebuild-vs-
+  // roll logic itself is shared (updateRangeLabel, src/utils/rangeSlider.ts)
+  // with the Gallery year filter; only this phrasing is specific to group size.
+  function updateGroupSizeLabel(minVal: number, maxVal: number) {
+    if (!groupSizeLabel) return;
+    updateRangeLabel(groupSizeLabel, minVal, maxVal, groupSizeBoundMin, groupSizeBoundMax, {
+      all: (l) => l.text('Any size'),
+      minOnly: (l, min) => {
+        l.text('At least ');
+        l.reel('min', min);
+        l.text(' people');
+      },
+      maxOnly: (l, max) => {
+        l.text('No more than ');
+        l.reel('max', max);
+        l.text(' people');
+      },
+      between: (l, min, max) => {
+        l.text('Between ');
+        l.reel('min', min);
+        l.text(' and ');
+        l.reel('max', max);
+        l.text(' people');
+      },
+    });
   }
 
   // Some facets only make sense for certain activity types (e.g. Meter/Key only
@@ -163,17 +153,16 @@ function initActivityFilters() {
     if (groupSizeRow) {
       const relevant = activeType === 'all' || GROUP_SIZE_RELEVANT_TYPES.includes(activeType);
       if (!relevant) {
-        if (groupSizeMinInput) groupSizeMinInput.value = String(groupSizeBoundMin);
-        if (groupSizeMaxInput) groupSizeMaxInput.value = String(groupSizeBoundMax);
-        updateGroupSizeDisplay();
+        groupSizeSlider?.setValues(groupSizeBoundMin, groupSizeBoundMax);
+        updateGroupSizeLabel(groupSizeBoundMin, groupSizeBoundMax);
       }
       groupSizeRow.classList.toggle('hidden', !relevant);
     }
   }
 
   function isAnyFilterActive(): boolean {
-    const selMin = groupSizeMinInput ? Number(groupSizeMinInput.value) : groupSizeBoundMin;
-    const selMax = groupSizeMaxInput ? Number(groupSizeMaxInput.value) : groupSizeBoundMax;
+    const selMin = groupSizeSlider?.min ?? groupSizeBoundMin;
+    const selMax = groupSizeSlider?.max ?? groupSizeBoundMax;
     return (
       activeType !== 'all' ||
       activeTags.size > 0 ||
@@ -209,8 +198,8 @@ function initActivityFilters() {
       // selected slider range. At full extents (no narrowing), everything matches,
       // including cards with no size data — narrowing excludes cards with no data,
       // since we can't confirm they'd fit.
-      const selMin = groupSizeMinInput ? Number(groupSizeMinInput.value) : groupSizeBoundMin;
-      const selMax = groupSizeMaxInput ? Number(groupSizeMaxInput.value) : groupSizeBoundMax;
+      const selMin = groupSizeSlider?.min ?? groupSizeBoundMin;
+      const selMax = groupSizeSlider?.max ?? groupSizeBoundMax;
       const groupSizeFilterActive = selMin > groupSizeBoundMin || selMax < groupSizeBoundMax;
       let matchesGroupSize = !groupSizeFilterActive;
       if (groupSizeFilterActive && (cardGroupMin !== '' || cardGroupMax !== '')) {
@@ -256,9 +245,8 @@ function initActivityFilters() {
     wheelchairOnly = false;
     if (wheelchairButton) setActive(wheelchairButton, false);
 
-    if (groupSizeMinInput) groupSizeMinInput.value = String(groupSizeBoundMin);
-    if (groupSizeMaxInput) groupSizeMaxInput.value = String(groupSizeBoundMax);
-    updateGroupSizeDisplay();
+    groupSizeSlider?.setValues(groupSizeBoundMin, groupSizeBoundMax);
+    updateGroupSizeLabel(groupSizeBoundMin, groupSizeBoundMax);
 
     if (searchInput) searchInput.value = '';
     searchQuery = '';
@@ -300,22 +288,6 @@ function initActivityFilters() {
     apply();
   });
 
-  groupSizeMinInput?.addEventListener('input', () => {
-    if (groupSizeMaxInput && Number(groupSizeMinInput.value) > Number(groupSizeMaxInput.value)) {
-      groupSizeMinInput.value = groupSizeMaxInput.value;
-    }
-    updateGroupSizeDisplay();
-    apply();
-  });
-
-  groupSizeMaxInput?.addEventListener('input', () => {
-    if (groupSizeMinInput && Number(groupSizeMaxInput.value) < Number(groupSizeMinInput.value)) {
-      groupSizeMaxInput.value = groupSizeMinInput.value;
-    }
-    updateGroupSizeDisplay();
-    apply();
-  });
-
   searchInput?.addEventListener('input', () => {
     searchQuery = searchInput.value.trim().toLowerCase();
     apply();
@@ -323,7 +295,7 @@ function initActivityFilters() {
 
   clearAllButton?.addEventListener('click', resetAllFilters);
 
-  updateGroupSizeDisplay();
+  updateGroupSizeLabel(groupSizeSlider?.min ?? groupSizeBoundMin, groupSizeSlider?.max ?? groupSizeBoundMax);
   updateFacetVisibility();
 }
 
