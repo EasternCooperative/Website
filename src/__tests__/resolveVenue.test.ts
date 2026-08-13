@@ -66,6 +66,26 @@ describe('resolveVenue', () => {
     expect(result.image).toBe('/images/camp-onas.jpg');
   });
 
+  // The CMS writes '' for every optional field left blank, so empty strings must
+  // fall through to the site data. Regression: `??` let '' win, and the Fun Day
+  // page rendered a bare "Location" label and a `· —` title.
+  it('treats empty-string event fields as absent and falls back to the site', () => {
+    const result = resolveVenue({ location: '', address: '', phone: '', accessibilityNote: '', image: '' }, site);
+    expect(result).toEqual({
+      location: 'Camp Onas',
+      address: '1100 Blooming Glen Rd',
+      phone: '215-555-0000',
+      accessibilityNote: 'Partially accessible',
+      image: '/images/camp-onas.jpg',
+    });
+  });
+
+  it('keeps lat/lng of 0 rather than falling back to the site', () => {
+    const result = resolveVenue({ lat: 0, lng: 0 }, { ...site, lat: 39.7, lng: -75.6 });
+    expect(result.lat).toBe(0);
+    expect(result.lng).toBe(0);
+  });
+
   it('works with no site argument', () => {
     const result = resolveVenue({ location: 'Solo Venue', address: '1 Elm St' });
     expect(result.location).toBe('Solo Venue');
