@@ -5,6 +5,8 @@ import Layout from '~/layouts/PageLayout.astro';
 import HeroText from '~/components/widgets/HeroText.astro';
 import GalleryBrowser from '~/components/widgets/GalleryBrowser';
 import { findImage } from '~/utils/images';
+import gallery from '~/data/settings/gallery.json';
+import { renderInlineMarkdown } from '~/utils/markdown';
 
 const allPhotos = await getCollection('galleryPhoto');
 
@@ -44,13 +46,17 @@ const events = [...new Set(photos.map((p) => p.event).filter((v): v is string =>
 );
 
 const metadata = {
-  title: 'Photo Gallery',
-  description: 'Browse photos from ECRS events and workshops over the years.',
+  title: gallery.heroTitle,
+  description: gallery.metaDescription,
 };
 ---
 
 <Layout metadata={metadata}>
-  <HeroText tagline="Gallery" title="Photo Gallery" subtitle="Browse decades of ECRS memories." />
+  <HeroText
+    tagline={gallery.heroTagline}
+    title={gallery.heroTitle}
+    subtitle={renderInlineMarkdown(gallery.heroSubtitle)}
+  />
   <section class="px-4 max-w-7xl mx-auto pb-16">
     <GalleryBrowser photos={photos} years={years} photographers={photographers} events={events} client:visible />
   </section>

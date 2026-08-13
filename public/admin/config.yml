@@ -173,6 +173,21 @@ collections:
               hint: 'Rich shows images/excerpts on cards — fine for a small library. Switch to Lean if the catalog grows into the hundreds, to keep the list page light.',
             }
 
+      # Copy only — the photos themselves live in the "Photo Gallery" collection.
+      - name: 'gallery'
+        label: 'Gallery'
+        file: 'src/data/settings/gallery.json'
+        fields:
+          - { label: 'Hero Tagline', name: 'heroTagline', widget: 'string' }
+          - { label: 'Hero Title', name: 'heroTitle', widget: 'string' }
+          - { label: 'Hero Subtitle', name: 'heroSubtitle', widget: 'markdown' }
+          - {
+              label: 'Search Engine Description',
+              name: 'metaDescription',
+              widget: 'text',
+              hint: 'Plain text shown in Google results and link previews. Aim for one sentence.',
+            }
+
       - name: 'contact'
         label: 'Contact'
         file: 'src/data/settings/contact.json'
