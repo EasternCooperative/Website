@@ -7,19 +7,40 @@ import siteData from './data/settings/site.json';
 // Each flag is the single switch for its section: nav, footer, robots noindex,
 // Pagefind, and the sitemap filter in astro.config.ts all read the same value,
 // so a page can't be hidden in one place and exposed in another. The pages stay
-// reachable by URL when hidden. Any href not listed here is always shown.
+// reachable by URL when hidden. Any href not listed here is always shown, and
+// the gating reaches into dropdown submenus as well as top-level links.
 const flaggedLinks: Record<string, boolean> = {
   '/activities': siteData.featureFlags.activitiesLibrary,
   '/connections': siteData.featureFlags.connectionsPage,
 };
 
+type NavLink = { text: string; href?: string; links?: NavLink[] };
+
+const isVisible = (link: NavLink) => (link.href === undefined ? true : (flaggedLinks[link.href] ?? true));
+
+// Dropdown parents carry no href of their own, so they're gated by their
+// children: a parent whose entire submenu is hidden by flags is dropped rather
+// than rendering a chevron that opens an empty menu. Same rule the footer uses
+// for a column emptied by gating.
+const resolveLink = (link: NavLink) => {
+  // `?.length`, not `?.links`: the CMS gives every entry an optional Sub-links
+  // list, and an empty array is truthy. A plain link saved as `links: []` would
+  // otherwise take the dropdown branch, find no children, and vanish from the nav.
+  if (link.links?.length) {
+    const children = link.links.filter(isVisible).map((child) => ({
+      text: child.text,
+      href: getPermalink(child.href),
+    }));
+    return children.length > 0 ? { text: link.text, links: children } : null;
+  }
+  return { text: link.text, href: getPermalink(link.href) };
+};
+
 export const headerData = {
-  links: navData.links
-    .filter((link) => flaggedLinks[link.href] ?? true)
-    .map((link) => ({
-      text: link.text,
-      href: getPermalink(link.href),
-    })),
+  links: (navData.links as NavLink[])
+    .filter(isVisible)
+    .map(resolveLink)
+    .filter((link): link is NonNullable<typeof link> => link !== null),
   actions: [{ text: navData.cta.text, href: getPermalink(navData.cta.href), variant: 'primary' as const }],
 };
 

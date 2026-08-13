@@ -2,11 +2,16 @@
   "links": [
     { "text": "Home", "href": "/" },
     { "text": "Events", "href": "/events" },
-    { "text": "Activities", "href": "/activities" },
-    { "text": "Gallery", "href": "/gallery" },
-    { "text": "About", "href": "/about" },
-    { "text": "Our People", "href": "/our-people" },
-    { "text": "Connections", "href": "/connections" },
+    {
+      "text": "About",
+      "links": [
+        { "text": "Who is ECRS?", "href": "/about" },
+        { "text": "Our People", "href": "/our-people" },
+        { "text": "Connections", "href": "/connections" },
+        { "text": "Activities", "href": "/activities" },
+        { "text": "Gallery", "href": "/gallery" }
+      ]
+    },
     { "text": "Contact Us", "href": "/contact" },
     { "text": "Donate", "href": "/donate" }
   ],

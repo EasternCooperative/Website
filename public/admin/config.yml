@@ -68,7 +68,7 @@ collections:
           - { label: 'CTA Secondary Button URL', name: 'ctaSecondaryHref', widget: 'string' }
 
       - name: 'about'
-        label: 'About'
+        label: 'Who is ECRS?'
         file: 'src/data/settings/about.json'
         fields:
           - { label: 'Hero Tagline', name: 'heroTagline', widget: 'string' }
@@ -1078,7 +1078,21 @@ collections:
             widget: 'list'
             fields:
               - { label: 'Label', name: 'text', widget: 'string' }
-              - { label: 'URL', name: 'href', widget: 'string' }
+              - {
+                  label: 'URL',
+                  name: 'href',
+                  widget: 'string',
+                  required: false,
+                  hint: 'Leave blank to make this a dropdown, then add its Sub-links below.',
+                }
+              - label: 'Sub-links'
+                name: 'links'
+                widget: 'list'
+                required: false
+                summary: '{{fields.text}}'
+                fields:
+                  - { label: 'Label', name: 'text', widget: 'string' }
+                  - { label: 'URL', name: 'href', widget: 'string' }
           - label: 'Header CTA Button'
             name: 'cta'
             widget: 'object'
