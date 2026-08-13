@@ -24,7 +24,8 @@
 /join-our-mailing-list/*                          /contact   301
 
 /upcoming-events/*                                /events   301
-/our-activities/*                                 /activities   301
+/event/*                                          /events   301
+/our-activities/*                                 /about   301
 
 /membership-backup/*                              /membership   301
 
