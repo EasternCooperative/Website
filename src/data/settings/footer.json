@@ -5,7 +5,7 @@
     {
       "title": "Organization",
       "links": [
-        { "text": "About ECRS", "href": "/about" },
+        { "text": "Who is ECRS?", "href": "/about" },
         { "text": "Our People", "href": "/our-people" },
         { "text": "Photo Gallery", "href": "/gallery" },
         { "text": "Connections", "href": "/connections" }

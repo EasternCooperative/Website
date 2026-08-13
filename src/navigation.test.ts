@@ -12,6 +12,11 @@ function mockFlags(flags: { activitiesLibrary: boolean; connectionsPage: boolean
 const allOff = { activitiesLibrary: false, connectionsPage: false };
 const allOn = { activitiesLibrary: true, connectionsPage: true };
 
+// Flagged links now live inside a dropdown, so an assertion against the
+// top-level array alone would pass no matter what the submenu contains.
+type HeaderLink = { text: string; href?: string; links?: { text: string; href: string }[] };
+const allHrefs = (links: HeaderLink[]) => links.flatMap((l) => (l.links ? l.links.map((c) => c.href) : [l.href!]));
+
 describe('headerData', () => {
   beforeEach(() => {
     vi.resetModules();
@@ -20,31 +25,31 @@ describe('headerData', () => {
   it('includes the Activities link when the activitiesLibrary flag is on', async () => {
     mockFlags({ ...allOff, activitiesLibrary: true });
     const { headerData } = await import('./navigation');
-    expect(headerData.links.some((l) => l.href === '/activities')).toBe(true);
+    expect(allHrefs(headerData.links)).toContain('/activities');
   });
 
   it('hides the Activities link when the activitiesLibrary flag is off', async () => {
     mockFlags(allOff);
     const { headerData } = await import('./navigation');
-    expect(headerData.links.some((l) => l.href === '/activities')).toBe(false);
+    expect(allHrefs(headerData.links)).not.toContain('/activities');
   });
 
   it('includes the Connections link when the connectionsPage flag is on', async () => {
     mockFlags({ ...allOff, connectionsPage: true });
     const { headerData } = await import('./navigation');
-    expect(headerData.links.some((l) => l.href === '/connections')).toBe(true);
+    expect(allHrefs(headerData.links)).toContain('/connections');
   });
 
   it('hides the Connections link when the connectionsPage flag is off', async () => {
     mockFlags(allOff);
     const { headerData } = await import('./navigation');
-    expect(headerData.links.some((l) => l.href === '/connections')).toBe(false);
+    expect(allHrefs(headerData.links)).not.toContain('/connections');
   });
 
   it('gates each link independently', async () => {
     mockFlags({ activitiesLibrary: true, connectionsPage: false });
     const { headerData } = await import('./navigation');
-    const hrefs = headerData.links.map((l) => l.href);
+    const hrefs = allHrefs(headerData.links);
     expect(hrefs).toContain('/activities');
     expect(hrefs).not.toContain('/connections');
   });
@@ -52,8 +57,58 @@ describe('headerData', () => {
   it('keeps every other link regardless of the flags', async () => {
     mockFlags(allOff);
     const { headerData } = await import('./navigation');
-    const hrefs = headerData.links.map((l) => l.href);
+    const hrefs = allHrefs(headerData.links);
     expect(hrefs).toEqual(expect.arrayContaining(['/', '/events', '/about', '/our-people', '/contact', '/donate']));
+  });
+
+  it('keeps the flagged links inside the dropdown rather than at the top level', async () => {
+    mockFlags(allOn);
+    const { headerData } = await import('./navigation');
+    const topLevel = (headerData.links as HeaderLink[]).map((l) => l.href);
+    expect(topLevel).not.toContain('/activities');
+    expect(topLevel).not.toContain('/connections');
+
+    const dropdown = (headerData.links as HeaderLink[]).find((l) => l.links);
+    expect(dropdown?.href).toBeUndefined();
+    expect(dropdown?.links?.map((c) => c.href)).toEqual([
+      '/about',
+      '/our-people',
+      '/connections',
+      '/activities',
+      '/gallery',
+    ]);
+  });
+
+  // The real menu always keeps About/Our People/Gallery, so only a synthetic nav
+  // can reach the empty-parent branch. Without it a future flag on every child
+  // would ship a chevron that opens nothing.
+  it('drops a dropdown whose children are all hidden by flags', async () => {
+    mockFlags(allOff);
+    vi.doMock('./data/settings/navigation.json', () => ({
+      default: {
+        links: [
+          { text: 'Events', href: '/events' },
+          { text: 'About', links: [{ text: 'Activities', href: '/activities' }] },
+        ],
+        cta: { text: 'See Events', href: '/events' },
+      },
+    }));
+    const { headerData } = await import('./navigation');
+    expect(headerData.links.map((l) => l.text)).toEqual(['Events']);
+  });
+
+  // The CMS offers a Sub-links list on every entry, so a plain link can come back
+  // carrying an empty array. That must stay a link, not become an empty dropdown.
+  it('treats a link with an empty sub-link list as an ordinary link', async () => {
+    mockFlags(allOff);
+    vi.doMock('./data/settings/navigation.json', () => ({
+      default: {
+        links: [{ text: 'Home', href: '/', links: [] }],
+        cta: { text: 'See Events', href: '/events' },
+      },
+    }));
+    const { headerData } = await import('./navigation');
+    expect(headerData.links).toEqual([{ text: 'Home', href: '/' }]);
   });
 });
 

@@ -65,7 +65,11 @@ const currentPath = `/${trimSlash(new URL(Astro.url).pathname)}`;
         'nav:flex nav:justify-between': position !== 'center',
       },
       {
-        'nav:grid nav:grid-cols-3 nav:items-center': position === 'center',
+        // The nav column is auto-sized, not a hard 1fr: `grid-cols-3` capped it
+        // at a third of the header while the links are `whitespace-nowrap`, so a
+        // long nav overflowed its column and printed on top of the search and
+        // theme icons. The 1fr side columns keep the nav optically centred.
+        'nav:grid nav:grid-cols-[1fr_auto_1fr] nav:items-center': position === 'center',
       },
       {
         'max-w-7xl': !isFullWidth,
@@ -115,7 +119,13 @@ const currentPath = `/${trimSlash(new URL(Astro.url).pathname)}`;
                 <>
                   <button
                     type="button"
-                    class="hover:text-link dark:hover:text-white px-4 py-3 flex items-center whitespace-nowrap"
+                    class:list={[
+                      'hover:text-link dark:hover:text-white px-4 py-3 flex items-center whitespace-nowrap',
+                      // Keep the active underline visible on the parent while the
+                      // current page is one of its children, which a flat link got
+                      // for free before the submenu existed.
+                      { 'aw-link-active': links.some((child) => child.href === currentPath) },
+                    ]}
                   >
                     {text}{' '}
                     <Icon name="tabler:chevron-down" class="w-3.5 h-3.5 ml-0.5 rtl:ml-0 rtl:mr-0.5 hidden nav:inline" />
