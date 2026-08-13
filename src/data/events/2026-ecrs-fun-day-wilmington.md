@@ -7,13 +7,13 @@ endTime: 12:00 PM
 siteId: mid-county-center
 location: ''
 address: ''
-excerpt: Join us for a morning of play and laughter with games and improv theater
+excerpt: Join us for a morning of play and laughter with games and improv theater.
 description: |-
   Join us for a morning of play and laughter! We'll play cooperative games suitable for every age and every level of physical mobility. No losers here, it's all about having fun and laughing together.
 
   Then you'll get a chance to learn a little about improvisational theater. No experience necessary, anyone can make things up...you do it every day already!
 
-  You're always welcome to participate at your own level of interest, ability, and comfort. So come as you are, meet some new friends, and play some games to start your weekend.
+  You're always welcome to participate at your own level of interest, ability, and comfort. No registration required — so come as you are, meet some new friends, and play some games to start your Sunday.
 image: ~/assets/images/sites/mid-county-center.jpg
 phone: ''
 accessibilityNote: ''
