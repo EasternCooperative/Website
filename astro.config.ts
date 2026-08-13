@@ -66,7 +66,7 @@ export default defineConfig({
         !page.includes('/events/e2e-') &&
         !page.includes('/internal/') &&
         (siteSettings.featureFlags.connectionsPage || !/\/connections\/?$/.test(page)) &&
-        (siteSettings.featureFlags.activitiesNavLink || !/\/activities(?:\/|$)/.test(page)) &&
+        (siteSettings.featureFlags.activitiesLibrary || !/\/activities(?:\/|$)/.test(page)) &&
         !isDraftPage(page, '/events/', draftEventSlugs) &&
         !isDraftPage(page, '/activities/', draftActivitySlugs),
     }),

@@ -1032,7 +1032,13 @@ collections:
             name: 'featureFlags'
             widget: 'object'
             fields:
-              - { label: 'Show Activities Nav Link', name: 'activitiesNavLink', widget: 'boolean', default: false }
+              - {
+                  label: 'Publish Activities Library',
+                  name: 'activitiesLibrary',
+                  widget: 'boolean',
+                  default: false,
+                  hint: 'Shows Activities in the nav and footer, and lets search engines index it. Off keeps the pages reachable by URL only.',
+                }
               - {
                   label: 'Publish Connections Page',
                   name: 'connectionsPage',

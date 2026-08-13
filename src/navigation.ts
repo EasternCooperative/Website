@@ -9,7 +9,7 @@ import siteData from './data/settings/site.json';
 // so a page can't be hidden in one place and exposed in another. The pages stay
 // reachable by URL when hidden. Any href not listed here is always shown.
 const flaggedLinks: Record<string, boolean> = {
-  '/activities': siteData.featureFlags.activitiesNavLink,
+  '/activities': siteData.featureFlags.activitiesLibrary,
   '/connections': siteData.featureFlags.connectionsPage,
 };
 

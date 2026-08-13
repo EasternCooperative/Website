@@ -17,7 +17,7 @@ const cardStyle = (activitiesListSettings.cardStyle ?? 'rich') as 'rich' | 'lean
 // renders "No activities", so it stays reachable by URL but out of Google and
 // out of the Pagefind index. The sitemap filter in astro.config.ts reads the
 // same flag, so the two can't drift apart. Mirrors /connections.
-const isPublished = siteSettings.featureFlags.activitiesNavLink;
+const isPublished = siteSettings.featureFlags.activitiesLibrary;
 
 const allActivities = (await getCollection('activity', ({ data }) => !data.draft)).sort((a, b) =>
   a.data.title.localeCompare(b.data.title)

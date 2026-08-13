@@ -3,27 +3,27 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 // Both flags are always mocked explicitly. Mocking only one leaves the other
 // `undefined`, and `undefined ?? true` shows the link — so a partial mock would
 // silently assert the opposite of what it claims for the flag it left out.
-function mockFlags(flags: { activitiesNavLink: boolean; connectionsPage: boolean }) {
+function mockFlags(flags: { activitiesLibrary: boolean; connectionsPage: boolean }) {
   vi.doMock('./data/settings/site.json', () => ({
     default: { featureFlags: flags, socialLinks: [] },
   }));
 }
 
-const allOff = { activitiesNavLink: false, connectionsPage: false };
-const allOn = { activitiesNavLink: true, connectionsPage: true };
+const allOff = { activitiesLibrary: false, connectionsPage: false };
+const allOn = { activitiesLibrary: true, connectionsPage: true };
 
 describe('headerData', () => {
   beforeEach(() => {
     vi.resetModules();
   });
 
-  it('includes the Activities link when the activitiesNavLink flag is on', async () => {
-    mockFlags({ ...allOff, activitiesNavLink: true });
+  it('includes the Activities link when the activitiesLibrary flag is on', async () => {
+    mockFlags({ ...allOff, activitiesLibrary: true });
     const { headerData } = await import('./navigation');
     expect(headerData.links.some((l) => l.href === '/activities')).toBe(true);
   });
 
-  it('hides the Activities link when the activitiesNavLink flag is off', async () => {
+  it('hides the Activities link when the activitiesLibrary flag is off', async () => {
     mockFlags(allOff);
     const { headerData } = await import('./navigation');
     expect(headerData.links.some((l) => l.href === '/activities')).toBe(false);
@@ -42,7 +42,7 @@ describe('headerData', () => {
   });
 
   it('gates each link independently', async () => {
-    mockFlags({ activitiesNavLink: true, connectionsPage: false });
+    mockFlags({ activitiesLibrary: true, connectionsPage: false });
     const { headerData } = await import('./navigation');
     const hrefs = headerData.links.map((l) => l.href);
     expect(hrefs).toContain('/activities');

@@ -11,7 +11,7 @@
     }
   ],
   "featureFlags": {
-    "activitiesNavLink": false,
+    "activitiesLibrary": false,
     "connectionsPage": false,
     "aboutPageMap": true,
     "peopleWithoutPhotoOrBio": false
