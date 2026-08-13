@@ -12,7 +12,7 @@
   ],
   "featureFlags": {
     "activitiesLibrary": false,
-    "connectionsPage": false,
+    "connectionsPage": true,
     "aboutPageMap": true,
     "peopleWithoutPhotoOrBio": false
   }
