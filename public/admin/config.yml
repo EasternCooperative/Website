@@ -1033,6 +1033,13 @@ collections:
             widget: 'object'
             fields:
               - { label: 'Show Activities Nav Link', name: 'activitiesNavLink', widget: 'boolean', default: false }
+              - {
+                  label: 'Publish Connections Page',
+                  name: 'connectionsPage',
+                  widget: 'boolean',
+                  default: false,
+                  hint: 'Shows Connections in the nav and footer, and lets search engines index it. Off keeps the page reachable by URL only.',
+                }
               - { label: 'Show About Page Map', name: 'aboutPageMap', widget: 'boolean', default: false }
               - {
                   label: 'Show People Without Photo or Bio',

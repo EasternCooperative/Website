@@ -58,12 +58,15 @@ export default defineConfig({
     sitemap({
       // Exclude e2e fixtures, internal pages, and draft events/activities —
       // the sitemap should only list pages we want search engines to index.
-      // /connections is gated on the same flag the page uses for its noIndex,
-      // so the sitemap and the robots meta tag can't drift apart.
+      // /connections and /activities are each gated on the same flag their page
+      // uses for its noIndex, so the sitemap and the robots meta tag can't drift
+      // apart. The /activities pattern covers the catalogue and its detail pages
+      // both — while the library is dark there is no way into it from search.
       filter: (page) =>
         !page.includes('/events/e2e-') &&
         !page.includes('/internal/') &&
         (siteSettings.featureFlags.connectionsPage || !/\/connections\/?$/.test(page)) &&
+        (siteSettings.featureFlags.activitiesNavLink || !/\/activities(?:\/|$)/.test(page)) &&
         !isDraftPage(page, '/events/', draftEventSlugs) &&
         !isDraftPage(page, '/activities/', draftActivitySlugs),
     }),
