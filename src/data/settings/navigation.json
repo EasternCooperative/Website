@@ -6,6 +6,7 @@
     { "text": "Gallery", "href": "/gallery" },
     { "text": "About", "href": "/about" },
     { "text": "Our People", "href": "/our-people" },
+    { "text": "Connections", "href": "/connections" },
     { "text": "Contact Us", "href": "/contact" },
     { "text": "Donate", "href": "/donate" }
   ],

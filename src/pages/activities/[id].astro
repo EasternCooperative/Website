@@ -6,6 +6,7 @@ import Layout from '~/layouts/PageLayout.astro';
 import Image from '~/components/common/Image.astro';
 import { Icon } from 'astro-icon/components';
 import { renderMarkdown, stripMarkdown } from '~/utils/markdown';
+import siteSettings from '~/data/settings/site.json';
 import {
   activityLevelLabel,
   formatGroupSize,
@@ -75,8 +76,10 @@ const metadata = {
 };
 
 // Keep draft activities out of the search index, mirroring the sitemap
-// (astro.config.ts) and listing exclusions.
-const noIndex = data.draft === true;
+// (astro.config.ts) and listing exclusions. Also honour the library-wide flag:
+// while the catalogue itself is unindexed there is no reason for its detail
+// pages to be Google's only way in.
+const noIndex = data.draft === true || !siteSettings.featureFlags.activitiesLibrary;
 
 // HowTo markup targets searches like "how to lead Zip Zap Zop" — the core
 // discovery goal of this library. Paragraphs of the instructions become steps.
