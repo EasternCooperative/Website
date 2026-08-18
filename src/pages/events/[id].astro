@@ -431,6 +431,42 @@ const breadcrumbJsonLd = {
         <a href="/events" class="btn btn-secondary">← All Events</a>
       </div>
 
+      <script
+        is:inline
+        data-astro-rerun
+        define:vars={{
+          isConversion: !isPast && !data.cognitoFormId && !data.registrationUrl,
+          eventId: event.id,
+          eventTitle: data.title,
+        }}
+      >
+        // No signup path exists for this event (no Cognito form, no external
+        // registration link) — opening the page is the whole conversion.
+        // Deduplicated per browser via localStorage: only counts once per
+        // visitor per event, not once per page view/refresh/return visit —
+        // only set the flag once tracking actually had somewhere to go
+        // (gtag/fbq loaded), so a gated visitor who hasn't consented yet
+        // isn't silently marked as tracked when nothing was sent.
+        if (isConversion && window.ecrsTrack && (window.gtag || window.fbq)) {
+          const storageKey = 'ecrs-event-view-' + eventId;
+          let alreadyTracked = false;
+          try {
+            alreadyTracked = localStorage.getItem(storageKey) === '1';
+          } catch {
+            /* localStorage may be unavailable (private mode) */
+          }
+          if (!alreadyTracked) {
+            const params = { event_id: eventId, event_name: eventTitle };
+            window.ecrsTrack('event_view_conversion', params);
+            try {
+              localStorage.setItem(storageKey, '1');
+            } catch {
+              /* localStorage may be unavailable (private mode) */
+            }
+          }
+        }
+      </script>
+
       <!-- Jump nav -->
       {
         showJumpNav && (
