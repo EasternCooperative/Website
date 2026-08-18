@@ -20,6 +20,9 @@
 /our-leadership/*                                 /our-people   301
 /whos-on-the-board/*                              /our-people   301
 
+/public-resources/*                               /connections   301
+/resources/*                                      /connections   301
+
 /contact-us/*                                     /contact   301
 /join-our-mailing-list/*                          /contact   301
 
@@ -71,8 +74,6 @@
 /author/*                                         /   301
 /board-resources/*                                /   301
 /member-resources/*                               /   301
-/public-resources/*                               /   301
-/resources/*                                      /   301
 /finance/*                                        /   301
 /ecrs-travel/*                                     /   301
 /faqs-2/*                                         /   301
