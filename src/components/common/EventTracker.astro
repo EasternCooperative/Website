@@ -9,6 +9,7 @@
         form_submit_contact: 'Lead',
         form_submit_event: 'CompleteRegistration',
         form_submit_donation: 'Donate',
+        event_view_conversion: 'CompleteRegistration',
       };
       const metaEvent = metaMap[eventName];
       if (metaEvent) window.fbq('track', metaEvent, params);
