@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
+import { Icon } from 'astro-icon/components';
 import Layout from '~/layouts/PageLayout.astro';
 import PersonCard from '~/components/ui/PersonCard.astro';
 import rawPeopleData from '~/data/pages/people.json';
@@ -23,14 +24,18 @@ interface PeoplePageData {
 }
 
 const peoplePageData = rawPeopleData as PeoplePageData;
-const showPeopleWithoutPhotoOrBio = siteSettings.featureFlags.peopleWithoutPhotoOrBio;
-if (!showPeopleWithoutPhotoOrBio) {
-  peoplePageData.categories = (peoplePageData.categories ?? []).map((cat) => ({
-    ...cat,
-    people: (cat.people ?? []).filter((p) => p.photo || p.bio),
-  }));
-}
+
+// The default state of the "name-only" filter (people with neither a photo
+// nor a bio) — everyone still renders regardless, this only decides whether
+// they start out visible or hidden before the reader touches the toolbar.
+const includeNameOnlyByDefault = siteSettings.featureFlags.peopleWithoutPhotoOrBio;
+const hasProfile = (p: { photo?: string | null; bio?: string | null }) => Boolean(p.photo || p.bio);
+const hiddenByDefault = (p: { photo?: string | null; bio?: string | null }) =>
+  !includeNameOnlyByDefault && !hasProfile(p);
+
 // Same bio-length row-balancing as the Leaders grid below, applied per category.
+// This is the "Balanced" sort option's order — alphabetical is the sort tiebreak,
+// weight-descending is the primary key.
 peoplePageData.categories = (peoplePageData.categories ?? []).map((cat) => ({
   ...cat,
   people: balanceByWeight(
@@ -41,9 +46,6 @@ peoplePageData.categories = (peoplePageData.categories ?? []).map((cat) => ({
 
 let leaders = await getCollection('leader');
 leaders.sort((a, b) => a.data.name.localeCompare(b.data.name, undefined, { sensitivity: 'base' }));
-if (!showPeopleWithoutPhotoOrBio) {
-  leaders = leaders.filter((l) => l.data.photo || l.data.bio);
-}
 
 // Leaders with a mutual `partnerId` (e.g. a couple who only ever co-teach and
 // share one bio/photo) are combined into a single card instead of rendering
@@ -136,23 +138,114 @@ const peopleJsonLd = {
     <script is:inline type="application/ld+json" set:html={JSON.stringify(peopleJsonLd)} />
   </Fragment>
   <div class="max-w-5xl mx-auto px-4 sm:px-6 py-16">
-    <h1 class="font-heading text-4xl md:text-5xl font-bold text-heading mb-12">
+    <h1 class="font-heading text-4xl md:text-5xl font-bold text-heading mb-8">
       {peoplePageData.title}
     </h1>
 
+    <!-- ── Sort + filter toolbar ── -->
+    <div
+      id="people-toolbar"
+      class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50/95 dark:bg-gray-900/95 p-5 md:p-6 mb-12"
+    >
+      <div class="relative mb-4">
+        <svg
+          class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input
+          type="search"
+          id="people-search"
+          placeholder="Search by name…"
+          aria-label="Search by name"
+          class="w-full rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-transparent pl-10 pr-4 py-2.5 text-sm text-default placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/40"
+        />
+      </div>
+
+      <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+        <div class="flex items-center gap-2 sm:gap-5">
+          <span class="text-xs font-bold uppercase tracking-widest text-muted shrink-0">Sort</span>
+          <div class="flex flex-wrap gap-2" role="group" aria-label="Sort order">
+            <button
+              type="button"
+              data-people-sort="balanced"
+              aria-pressed="true"
+              class="text-sm font-semibold rounded-full px-4 py-2 border transition-colors cursor-pointer bg-primary text-white border-primary"
+            >
+              Balanced
+            </button>
+            <button
+              type="button"
+              data-people-sort="az"
+              aria-pressed="false"
+              class="text-sm font-semibold rounded-full px-4 py-2 border transition-colors cursor-pointer border-gray-200 dark:border-gray-700 text-default hover:border-primary/40"
+            >
+              A–Z
+            </button>
+            <button
+              type="button"
+              data-people-sort="za"
+              aria-pressed="false"
+              class="text-sm font-semibold rounded-full px-4 py-2 border transition-colors cursor-pointer border-gray-200 dark:border-gray-700 text-default hover:border-primary/40"
+            >
+              Z–A
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 sm:gap-5 sm:border-l sm:border-gray-200 dark:sm:border-gray-700 sm:pl-6">
+          <button
+            type="button"
+            id="people-filter-name-only"
+            aria-pressed={includeNameOnlyByDefault}
+            class:list={[
+              'inline-flex items-center gap-1.5 text-xs font-medium rounded-full px-3 py-2 border transition-colors cursor-pointer',
+              includeNameOnlyByDefault
+                ? 'bg-primary text-white border-primary'
+                : 'border-gray-200 dark:border-gray-700 text-default hover:border-primary/40',
+            ]}
+          >
+            <Icon name="tabler:user" class="w-3.5 h-3.5" aria-hidden="true" />
+            Show name-only entries
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <p data-people-empty class="hidden text-muted text-lg mb-12">No one matches your search.</p>
+
     <!-- ── Program Leaders (auto from leader records) ── -->
     {
-      leaders.length > 0 && (
-        <section class="mb-16" aria-labelledby="leaders-heading">
+      balancedLeaders.length > 0 && (
+        <section
+          class:list={['mb-16', balancedLeaders.every(hiddenByDefault) && 'hidden']}
+          aria-labelledby="leaders-heading"
+          data-people-section
+        >
           <h2
             id="leaders-heading"
             class="font-heading text-2xl font-bold text-heading mb-8 pb-2 border-b border-gray-200 dark:border-gray-700"
           >
             Leaders
           </h2>
-          <ul class="grid sm:grid-cols-2 gap-8 list-none p-0 m-0">
+          <ul class="grid sm:grid-cols-2 gap-8 list-none p-0 m-0" data-people-list>
             {balancedLeaders.map((leader) => (
-              <li id={`leader-${leader.id}`} class="scroll-mt-24" data-scroll-reveal="up">
+              <li
+                id={`leader-${leader.id}`}
+                class:list={['scroll-mt-24', hiddenByDefault(leader) && 'hidden']}
+                data-scroll-reveal="up"
+                data-person-card
+                data-name={leader.name}
+                data-has-profile={String(hasProfile(leader))}
+              >
                 {leader.extraIds.map((extraId) => (
                   <span id={`leader-${extraId}`} class="sr-only scroll-mt-24" aria-hidden="true" />
                 ))}
@@ -173,16 +266,26 @@ const peopleJsonLd = {
     {
       (peoplePageData.categories ?? []).map((cat) =>
         cat.people && cat.people.length > 0 ? (
-          <section class="mb-16" aria-labelledby={`section-${cat.label.toLowerCase().replace(/\s+/g, '-')}`}>
+          <section
+            class:list={['mb-16', cat.people.every(hiddenByDefault) && 'hidden']}
+            aria-labelledby={`section-${cat.label.toLowerCase().replace(/\s+/g, '-')}`}
+            data-people-section
+          >
             <h2
               id={`section-${cat.label.toLowerCase().replace(/\s+/g, '-')}`}
               class="font-heading text-2xl font-bold text-heading mb-8 pb-2 border-b border-gray-200 dark:border-gray-700"
             >
               {cat.label}
             </h2>
-            <ul class="grid sm:grid-cols-2 gap-8 list-none p-0 m-0">
+            <ul class="grid sm:grid-cols-2 gap-8 list-none p-0 m-0" data-people-list>
               {cat.people.map((person) => (
-                <li data-scroll-reveal="up">
+                <li
+                  class:list={[hiddenByDefault(person) && 'hidden']}
+                  data-scroll-reveal="up"
+                  data-person-card
+                  data-name={person.name}
+                  data-has-profile={String(hasProfile(person))}
+                >
                   <PersonCard
                     name={person.name}
                     title={person.title ?? undefined}
@@ -198,3 +301,9 @@ const peopleJsonLd = {
     }
   </div>
 </Layout>
+
+<script>
+  import { initPeopleFiltersPage } from '~/utils/peopleFilters';
+
+  initPeopleFiltersPage();
+</script>
