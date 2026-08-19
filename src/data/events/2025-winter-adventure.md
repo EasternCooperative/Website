@@ -83,7 +83,7 @@ classes:
     days: 'Days 3–4'
   - name: "Children's Program"
     leaders:
-      - id: lisa-natle
+      - id: lisa-natale
     description: 'Why should the grown-ups have all the fun? ECRS offers a completely integrated program for children ages 2–11 during two class periods. Children may learn new games, create new crafts, sing silly songs, and more.'
     days: 'All 4 days'
 ---

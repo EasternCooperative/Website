@@ -1,0 +1,18 @@
+{
+  "_comment": "Template for a manual supplement, merged in alongside the event-attendance export (member-locations.json) in this same folder. Use this for members who should show on the map even though they don't register for events — e.g. life members. Copy this file to life-members.json (dropping the .example extension) and fill in real entries before running the script — files ending in .json.example are ignored, so a stray placeholder can't leak into the real data. Each entry needs a country and count. If you know the city, give a name (\"City, ST\" or \"City, Province\") — lat/lng are optional and will be geocoded automatically if left null. If you only know the state, omit name/lat/lng and the script plots the entry at that state's capital instead.",
+  "cities": [
+    {
+      "name": "PLACEHOLDER_CITY, MI",
+      "country": "US",
+      "state": "MI",
+      "lat": null,
+      "lng": null,
+      "count": 1
+    },
+    {
+      "country": "US",
+      "state": "MI",
+      "count": 1
+    }
+  ]
+}

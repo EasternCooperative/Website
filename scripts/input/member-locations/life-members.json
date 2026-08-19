@@ -1,0 +1,9 @@
+{
+  "cities": [
+    {
+      "country": "US",
+      "state": "MI",
+      "count": 1
+    }
+  ]
+}

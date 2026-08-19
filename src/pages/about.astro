@@ -26,13 +26,13 @@ const pillars = aboutSettings.pillars.map((pillar) => ({
   <HeroText tagline={aboutSettings.heroTagline} title={aboutSettings.heroTitle} />
 
   <Content
-    image={{ src: aboutSettings.introImage, alt: aboutSettings.introImageAlt }}
-    classes={{ container: 'pt-6 md:pt-8 lg:pt-10' }}
+    image={{ src: aboutSettings.introImage, alt: aboutSettings.introImageAlt, width: 800, height: 400 }}
+    classes={{ container: 'pt-6 md:pt-8 lg:pt-10 pb-4 md:pb-6 lg:pb-8' }}
   >
     <Fragment slot="content" set:html={renderMarkdown(aboutSettings.introText)} />
   </Content>
 
-  <Features2 title="" columns={2} items={pillars} />
+  <Features2 title="" columns={2} items={pillars} classes={{ container: 'pt-4 md:pt-6 lg:pt-8' }} />
 
   {
     siteSettings.featureFlags.aboutPageMap && (

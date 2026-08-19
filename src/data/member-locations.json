@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-03T02:30:55.399Z",
+  "generatedAt": "2026-08-19T17:40:38.481Z",
   "cities": [
     {
       "name": "Philadelphia, PA",
@@ -224,6 +224,14 @@
       "lat": 41.343056,
       "lng": -70.7440232,
       "count": 2
+    },
+    {
+      "country": "US",
+      "state": "MI",
+      "count": 1,
+      "name": "Lansing, MI",
+      "lat": 42.7325,
+      "lng": -84.5555
     },
     {
       "name": "Concord, MA",
