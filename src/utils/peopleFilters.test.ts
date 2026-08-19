@@ -8,10 +8,23 @@ const STORAGE_KEY = 'ecrs-people-show-name-only';
 // would keep firing and contaminate later tests.
 let addedDocListeners: [string, EventListenerOrEventListenerObject][] = [];
 
+// applySort() calls scrollReveal's initScrollReveal() after reordering. Reporting
+// "not desktop" here makes it a no-op (see its own isDesktop check), so these tests
+// don't also need to stand up the underlying 'motion' scroll-linked animation machinery.
+function mockNotDesktop() {
+  window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+    matches: false,
+    media: query,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+  }));
+}
+
 beforeEach(() => {
   document.body.innerHTML = '';
   localStorage.clear();
   vi.resetModules();
+  mockNotDesktop();
   addedDocListeners = [];
   const originalAddEventListener = document.addEventListener.bind(document);
   vi.spyOn(document, 'addEventListener').mockImplementation((type, listener, options) => {
@@ -123,6 +136,26 @@ describe('initPeopleFiltersPage — sort', () => {
 
     const list = document.querySelector<HTMLElement>('[data-people-list]')!;
     expect(listOrder(list)).toEqual(['Za McDonnell', 'Rain Woods', 'Bonnie Ostrofsky']);
+  });
+
+  it("cancels each card's existing animations and clears its scroll-reveal-ready flag on reorder, so stale reveal state (e.g. stuck at opacity 0) does not survive a sort", async () => {
+    buildFixture();
+    const { initPeopleFiltersPage } = await import('./peopleFilters');
+    initPeopleFiltersPage();
+
+    const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-person-card]'));
+    const cancel = vi.fn();
+    for (const card of cards) {
+      card.dataset.scrollRevealReady = 'true';
+      card.getAnimations = vi.fn().mockReturnValue([{ cancel }]);
+    }
+
+    document.querySelector<HTMLButtonElement>('[data-people-sort="az"]')!.click();
+
+    expect(cancel).toHaveBeenCalledTimes(cards.length);
+    for (const card of cards) {
+      expect(card.dataset.scrollRevealReady).toBeUndefined();
+    }
   });
 
   it('marks the clicked sort button active and the others inactive', async () => {

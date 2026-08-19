@@ -1,3 +1,5 @@
+import { initScrollReveal } from './scrollReveal';
+
 // Client-side sort + filter over the already-rendered People page card set.
 // "Balanced" restores each list's original (server-rendered) order — the
 // bio-length row-balancing computed in our-people.astro — rather than
@@ -74,6 +76,21 @@ function initPeopleFilters() {
               return sortMode === 'az' ? cmp : -cmp;
             });
       for (const card of ordered) list.appendChild(card);
+
+      // Reordering moves each card to a new on-page position, but the scroll-linked
+      // reveal animation wired on first load (see scrollReveal.ts) is bound to the
+      // card's position at wire-time — it only recomputes on a real scroll event, so a
+      // card that becomes already-visible purely from being moved would otherwise sit
+      // at opacity 0 until the reader scrolls. Cancel those stale bindings and let
+      // scrollReveal re-derive each card's state from its new position: instantly
+      // visible if it's now on-screen, freshly (and correctly) scroll-linked if not.
+      for (const card of ordered) {
+        // getAnimations() isn't implemented in every test/runtime environment
+        // (e.g. jsdom) — harmless to skip there since there's nothing to cancel.
+        card.getAnimations?.().forEach((anim) => anim.cancel());
+        delete card.dataset.scrollRevealReady;
+      }
+      initScrollReveal(list);
     }
   }
 
