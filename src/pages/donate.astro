@@ -2,7 +2,9 @@
 import CognitoForm from '~/components/widgets/CognitoForm.astro';
 import HeroText from '~/components/widgets/HeroText.astro';
 import Layout from '~/layouts/PageLayout.astro';
+import Image from '~/components/common/Image.astro';
 import donationSettings from '~/data/settings/donation.json';
+import paypalMonogram from '~/assets/images/paypal-monogram.png';
 import { renderMarkdown } from '~/utils/markdown';
 
 const metadata = {
@@ -17,7 +19,10 @@ const metadata = {
 
   <section class="py-8 px-4 max-w-3xl mx-auto">
     <div class="text-center text-muted" set:html={renderMarkdown(donationSettings.introText)} />
-    <p class="text-center text-muted text-sm mt-6">{donationSettings.paymentNotice}</p>
+    <p class="flex items-center justify-center gap-1.5 text-center text-muted text-sm mt-6">
+      <Image src={paypalMonogram} alt="" width={16} class="shrink-0" />
+      {donationSettings.paymentNotice}
+    </p>
     <p class="text-center text-muted text-sm mt-2">
       Trouble loading the form? Email us directly at{' '}
       <a href="mailto:contact@ecrs.org" class="text-link underline">contact@ecrs.org</a>.
