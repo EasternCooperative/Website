@@ -340,6 +340,67 @@ function lookupCanadianFSA(fsa) {
 }
 
 // ---------------------------------------------------------------------------
+// US state → capital city + coordinates
+// ---------------------------------------------------------------------------
+
+// Fallback for manual JSON-merge entries (see life-members.json.example) that give a
+// state but no specific city — e.g. a life member with no known address on file. Rather
+// than skip them or guess a city, plot them at their state capital.
+const US_STATE_CAPITALS = {
+  AL: { city: 'Montgomery', lat: 32.3617, lng: -86.2792 },
+  AK: { city: 'Juneau', lat: 58.3019, lng: -134.4197 },
+  AZ: { city: 'Phoenix', lat: 33.4484, lng: -112.074 },
+  AR: { city: 'Little Rock', lat: 34.7465, lng: -92.2896 },
+  CA: { city: 'Sacramento', lat: 38.5816, lng: -121.4944 },
+  CO: { city: 'Denver', lat: 39.7392, lng: -104.9903 },
+  CT: { city: 'Hartford', lat: 41.7658, lng: -72.6734 },
+  DE: { city: 'Dover', lat: 39.1582, lng: -75.5244 },
+  FL: { city: 'Tallahassee', lat: 30.4383, lng: -84.2807 },
+  GA: { city: 'Atlanta', lat: 33.749, lng: -84.388 },
+  HI: { city: 'Honolulu', lat: 21.3069, lng: -157.8583 },
+  ID: { city: 'Boise', lat: 43.615, lng: -116.2023 },
+  IL: { city: 'Springfield', lat: 39.7817, lng: -89.6501 },
+  IN: { city: 'Indianapolis', lat: 39.7684, lng: -86.1581 },
+  IA: { city: 'Des Moines', lat: 41.5868, lng: -93.625 },
+  KS: { city: 'Topeka', lat: 39.0473, lng: -95.6752 },
+  KY: { city: 'Frankfort', lat: 38.2009, lng: -84.8733 },
+  LA: { city: 'Baton Rouge', lat: 30.4515, lng: -91.1871 },
+  ME: { city: 'Augusta', lat: 44.3106, lng: -69.7795 },
+  MD: { city: 'Annapolis', lat: 38.9784, lng: -76.4922 },
+  MA: { city: 'Boston', lat: 42.3601, lng: -71.0589 },
+  MI: { city: 'Lansing', lat: 42.7325, lng: -84.5555 },
+  MN: { city: 'Saint Paul', lat: 44.9537, lng: -93.09 },
+  MS: { city: 'Jackson', lat: 32.2988, lng: -90.1848 },
+  MO: { city: 'Jefferson City', lat: 38.5767, lng: -92.1735 },
+  MT: { city: 'Helena', lat: 46.5891, lng: -112.0391 },
+  NE: { city: 'Lincoln', lat: 40.8136, lng: -96.7026 },
+  NV: { city: 'Carson City', lat: 39.1638, lng: -119.7674 },
+  NH: { city: 'Concord', lat: 43.2081, lng: -71.5376 },
+  NJ: { city: 'Trenton', lat: 40.2206, lng: -74.7597 },
+  NM: { city: 'Santa Fe', lat: 35.687, lng: -105.9378 },
+  NY: { city: 'Albany', lat: 42.6526, lng: -73.7562 },
+  NC: { city: 'Raleigh', lat: 35.7796, lng: -78.6382 },
+  ND: { city: 'Bismarck', lat: 46.8083, lng: -100.7837 },
+  OH: { city: 'Columbus', lat: 39.9612, lng: -82.9988 },
+  OK: { city: 'Oklahoma City', lat: 35.4676, lng: -97.5164 },
+  OR: { city: 'Salem', lat: 44.9429, lng: -123.0351 },
+  PA: { city: 'Harrisburg', lat: 40.2732, lng: -76.8867 },
+  RI: { city: 'Providence', lat: 41.824, lng: -71.4128 },
+  SC: { city: 'Columbia', lat: 34.0007, lng: -81.0348 },
+  SD: { city: 'Pierre', lat: 44.3683, lng: -100.351 },
+  TN: { city: 'Nashville', lat: 36.1627, lng: -86.7816 },
+  TX: { city: 'Austin', lat: 30.2672, lng: -97.7431 },
+  UT: { city: 'Salt Lake City', lat: 40.7608, lng: -111.891 },
+  VT: { city: 'Montpelier', lat: 44.2601, lng: -72.5754 },
+  VA: { city: 'Richmond', lat: 37.5407, lng: -77.436 },
+  WA: { city: 'Olympia', lat: 47.0379, lng: -122.9007 },
+  WV: { city: 'Charleston', lat: 38.3498, lng: -81.6326 },
+  WI: { city: 'Madison', lat: 43.0731, lng: -89.4012 },
+  WY: { city: 'Cheyenne', lat: 41.14, lng: -104.8202 },
+  DC: { city: 'Washington', lat: 38.9072, lng: -77.0369 },
+};
+
+// ---------------------------------------------------------------------------
 // Country code normalization
 // ---------------------------------------------------------------------------
 
@@ -415,7 +476,22 @@ async function runJsonMergeMode(jsonFiles) {
   for (const file of jsonFiles) {
     const data = JSON.parse(fs.readFileSync(file, 'utf-8'));
     const cities = Array.isArray(data.cities) ? data.cities : [];
-    for (const city of cities) {
+    for (const rawCity of cities) {
+      // No city name given (just a state) — fall back to the state capital rather
+      // than skipping the entry or guessing. Mainly for the manual life-members
+      // supplement, where a member's specific city isn't always on file.
+      let city = rawCity;
+      if (!city.name && city.state && (city.country ?? 'US') === 'US') {
+        const capital = US_STATE_CAPITALS[city.state.toUpperCase()];
+        if (capital) {
+          city = {
+            ...city,
+            name: `${capital.city}, ${city.state.toUpperCase()}`,
+            lat: city.lat ?? capital.lat,
+            lng: city.lng ?? capital.lng,
+          };
+        }
+      }
       const normalizedName = normalizeCity(city.name);
       const key = `${normalizedName}|${city.country}`;
       const existing = merged.get(key);
