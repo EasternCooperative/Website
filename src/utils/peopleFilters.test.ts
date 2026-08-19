@@ -8,9 +8,10 @@ const STORAGE_KEY = 'ecrs-people-show-name-only';
 // would keep firing and contaminate later tests.
 let addedDocListeners: [string, EventListenerOrEventListenerObject][] = [];
 
-// applySort() calls scrollReveal's initScrollReveal() after reordering. Reporting
-// "not desktop" here makes it a no-op (see its own isDesktop check), so these tests
-// don't also need to stand up the underlying 'motion' scroll-linked animation machinery.
+// applySort()/applyFilter() call scrollReveal's initScrollReveal() after touching the
+// DOM. Reporting "not desktop" here makes it a no-op (see its own isDesktop check), so
+// these tests don't also need to stand up the underlying 'motion' scroll-linked
+// animation machinery.
 function mockNotDesktop() {
   window.matchMedia = vi.fn().mockImplementation((query: string) => ({
     matches: false,
@@ -40,9 +41,6 @@ afterEach(() => {
 
 function buildFixture() {
   document.body.innerHTML = `
-    <div class="relative mb-4">
-      <input type="search" id="people-search" />
-    </div>
     <div>
       <button type="button" data-people-sort="balanced" aria-pressed="true">Balanced</button>
       <button type="button" data-people-sort="az" aria-pressed="false">A–Z</button>
@@ -224,62 +222,73 @@ describe('initPeopleFiltersPage — name-only filter', () => {
   });
 
   it('hides a whole section once every card in its list is filtered out', async () => {
-    buildFixture();
-    const { initPeopleFiltersPage } = await import('./peopleFilters');
-    initPeopleFiltersPage();
-
-    const input = document.getElementById('people-search') as HTMLInputElement;
-    input.value = 'Za McDonnell';
-    input.dispatchEvent(new Event('input'));
-
-    const [leadersSection, boardSection] = Array.from(document.querySelectorAll<HTMLElement>('[data-people-section]'));
-    expect(leadersSection.classList.contains('hidden')).toBe(false);
-    expect(boardSection.classList.contains('hidden')).toBe(true);
-  });
-});
-
-describe('initPeopleFiltersPage — search', () => {
-  it('filters by a case-insensitive, trimmed substring match on name', async () => {
-    buildFixture();
-    const { initPeopleFiltersPage } = await import('./peopleFilters');
-    initPeopleFiltersPage();
-
-    const input = document.getElementById('people-search') as HTMLInputElement;
-    input.value = '  rain  ';
-    input.dispatchEvent(new Event('input'));
-
-    expect(visibleNames()).toEqual(['Rain Woods']);
-  });
-
-  it('combines with the name-only filter (AND)', async () => {
-    buildFixture();
+    document.body.innerHTML = `
+      <button type="button" id="people-filter-name-only" aria-pressed="true"></button>
+      <p data-people-empty class="hidden"></p>
+      <section data-people-section>
+        <ul data-people-list>
+          <li data-person-card data-name="Only Nameonly" data-has-profile="false"></li>
+        </ul>
+      </section>
+      <section data-people-section>
+        <ul data-people-list>
+          <li data-person-card data-name="Has Profile" data-has-profile="true"></li>
+        </ul>
+      </section>
+    `;
     const { initPeopleFiltersPage } = await import('./peopleFilters');
     initPeopleFiltersPage();
 
     document.getElementById('people-filter-name-only')!.click(); // hide profile-less
-    const input = document.getElementById('people-search') as HTMLInputElement;
-    input.value = 'za';
-    input.dispatchEvent(new Event('input'));
 
-    // "Za McDonnell" matches the search but has no profile, so it stays hidden.
-    expect(visibleNames()).toEqual([]);
+    const [emptiedSection, remainingSection] = Array.from(
+      document.querySelectorAll<HTMLElement>('[data-people-section]')
+    );
+    expect(emptiedSection.classList.contains('hidden')).toBe(true);
+    expect(remainingSection.classList.contains('hidden')).toBe(false);
   });
-});
 
-describe('initPeopleFiltersPage — empty state', () => {
-  it('shows the empty message when nothing matches, across every section', async () => {
-    buildFixture();
+  it('shows the empty message when the filter hides every card across every section', async () => {
+    document.body.innerHTML = `
+      <button type="button" id="people-filter-name-only" aria-pressed="true"></button>
+      <p data-people-empty class="hidden"></p>
+      <section data-people-section>
+        <ul data-people-list>
+          <li data-person-card data-name="Only Nameonly" data-has-profile="false"></li>
+        </ul>
+      </section>
+    `;
     const { initPeopleFiltersPage } = await import('./peopleFilters');
     initPeopleFiltersPage();
 
-    const input = document.getElementById('people-search') as HTMLInputElement;
-    input.value = 'nonexistent-person';
-    input.dispatchEvent(new Event('input'));
+    document.getElementById('people-filter-name-only')!.click();
 
     expect(document.querySelector('[data-people-empty]')!.classList.contains('hidden')).toBe(false);
   });
 
-  it('stays hidden while at least one card matches', async () => {
+  it("cancels each card's existing animations and clears its scroll-reveal-ready flag when the filter changes, so stale reveal state does not survive a reflow", async () => {
+    buildFixture();
+    const { initPeopleFiltersPage } = await import('./peopleFilters');
+    initPeopleFiltersPage();
+
+    const cards = Array.from(document.querySelectorAll<HTMLElement>('[data-person-card]'));
+    const cancel = vi.fn();
+    for (const card of cards) {
+      card.dataset.scrollRevealReady = 'true';
+      card.getAnimations = vi.fn().mockReturnValue([{ cancel }]);
+    }
+
+    document.getElementById('people-filter-name-only')!.click();
+
+    expect(cancel).toHaveBeenCalledTimes(cards.length);
+    for (const card of cards) {
+      expect(card.dataset.scrollRevealReady).toBeUndefined();
+    }
+  });
+});
+
+describe('initPeopleFiltersPage — empty state', () => {
+  it('stays hidden while at least one card is visible', async () => {
     buildFixture();
     const { initPeopleFiltersPage } = await import('./peopleFilters');
     initPeopleFiltersPage();

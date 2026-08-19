@@ -46,13 +46,11 @@ function initPeopleFilters() {
 
   const sortButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-people-sort]'));
   const nameOnlyToggle = document.getElementById('people-filter-name-only') as HTMLButtonElement | null;
-  const searchInput = document.getElementById('people-search') as HTMLInputElement | null;
   const emptyState = document.querySelector<HTMLElement>('[data-people-empty]');
 
   let sortMode: SortMode = 'balanced';
   const storedNameOnly = readStoredNameOnly();
   let includeNameOnly = storedNameOnly ?? nameOnlyToggle?.getAttribute('aria-pressed') === 'true';
-  let searchQuery = '';
 
   function setActive(btn: HTMLButtonElement, active: boolean) {
     btn.classList.toggle('bg-primary', active);
@@ -62,6 +60,24 @@ function initPeopleFilters() {
     btn.classList.toggle('dark:border-gray-700', !active);
     btn.classList.toggle('text-default', !active);
     btn.setAttribute('aria-pressed', String(active));
+  }
+
+  // Reordering or hiding/showing cards moves them to new on-page positions (directly,
+  // or indirectly via the reflow when a sibling collapses/expands), but the
+  // scroll-linked reveal animation wired on first load (see scrollReveal.ts) is bound
+  // to each card's position at wire-time — it only recomputes on a real scroll event,
+  // so a card that becomes already-visible purely from moving would otherwise sit at
+  // opacity 0 until the reader scrolls. Cancel those stale bindings and let scrollReveal
+  // re-derive state from the card's new position: instantly visible if it's now
+  // on-screen, freshly (and correctly) scroll-linked if not.
+  function refreshScrollReveal(list: HTMLElement) {
+    for (const card of list.querySelectorAll<HTMLElement>('[data-person-card]')) {
+      // getAnimations() isn't implemented in every test/runtime environment
+      // (e.g. jsdom) — harmless to skip there since there's nothing to cancel.
+      card.getAnimations?.().forEach((anim) => anim.cancel());
+      delete card.dataset.scrollRevealReady;
+    }
+    initScrollReveal(list);
   }
 
   function applySort() {
@@ -76,21 +92,7 @@ function initPeopleFilters() {
               return sortMode === 'az' ? cmp : -cmp;
             });
       for (const card of ordered) list.appendChild(card);
-
-      // Reordering moves each card to a new on-page position, but the scroll-linked
-      // reveal animation wired on first load (see scrollReveal.ts) is bound to the
-      // card's position at wire-time — it only recomputes on a real scroll event, so a
-      // card that becomes already-visible purely from being moved would otherwise sit
-      // at opacity 0 until the reader scrolls. Cancel those stale bindings and let
-      // scrollReveal re-derive each card's state from its new position: instantly
-      // visible if it's now on-screen, freshly (and correctly) scroll-linked if not.
-      for (const card of ordered) {
-        // getAnimations() isn't implemented in every test/runtime environment
-        // (e.g. jsdom) — harmless to skip there since there's nothing to cancel.
-        card.getAnimations?.().forEach((anim) => anim.cancel());
-        delete card.dataset.scrollRevealReady;
-      }
-      initScrollReveal(list);
+      refreshScrollReveal(list);
     }
   }
 
@@ -100,14 +102,13 @@ function initPeopleFilters() {
       const cards = Array.from(list.querySelectorAll<HTMLElement>('[data-person-card]'));
       let visibleInList = 0;
       for (const card of cards) {
-        const matchesProfile = includeNameOnly || card.dataset.hasProfile === 'true';
-        const matchesSearch = searchQuery === '' || (card.dataset.name ?? '').toLowerCase().includes(searchQuery);
-        const visible = matchesProfile && matchesSearch;
+        const visible = includeNameOnly || card.dataset.hasProfile === 'true';
         card.classList.toggle('hidden', !visible);
         if (visible) visibleInList++;
       }
       list.closest<HTMLElement>('[data-people-section]')?.classList.toggle('hidden', visibleInList === 0);
       totalVisible += visibleInList;
+      refreshScrollReveal(list);
     }
     emptyState?.classList.toggle('hidden', totalVisible !== 0);
   }
@@ -124,11 +125,6 @@ function initPeopleFilters() {
     includeNameOnly = !includeNameOnly;
     setActive(nameOnlyToggle, includeNameOnly);
     writeStoredNameOnly(includeNameOnly);
-    applyFilter();
-  });
-
-  searchInput?.addEventListener('input', () => {
-    searchQuery = searchInput.value.trim().toLowerCase();
     applyFilter();
   });
 

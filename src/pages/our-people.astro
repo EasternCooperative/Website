@@ -147,29 +147,6 @@ const peopleJsonLd = {
       id="people-toolbar"
       class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50/95 dark:bg-gray-900/95 p-5 md:p-6 mb-12"
     >
-      <div class="relative mb-4">
-        <svg
-          class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <circle cx="11" cy="11" r="8"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
-        <input
-          type="search"
-          id="people-search"
-          placeholder="Search by name…"
-          aria-label="Search by name"
-          class="w-full rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-transparent pl-10 pr-4 py-2.5 text-sm text-default placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/40"
-        />
-      </div>
-
       <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
         <div class="flex items-center gap-2 sm:gap-5">
           <span class="text-xs font-bold uppercase tracking-widest text-muted shrink-0">Sort</span>
@@ -220,7 +197,7 @@ const peopleJsonLd = {
       </div>
     </div>
 
-    <p data-people-empty class="hidden text-muted text-lg mb-12">No one matches your search.</p>
+    <p data-people-empty class="hidden text-muted text-lg mb-12">No one to show with the current filter.</p>
 
     <!-- ── Program Leaders (auto from leader records) ── -->
     {
