@@ -13,7 +13,7 @@ description: |-
 
   Then you'll get a chance to learn a little about improvisational theater. No experience necessary, anyone can make things up...you do it every day already!
 
-  You're always welcome to participate at your own level of interest, ability, and comfort. No registration required — so come as you are, meet some new friends, and play some games to start your Sunday.
+  You're always welcome to participate at your own level of interest, ability, and comfort. Register below to reserve your spot, then come as you are, meet some new friends, and play some games to start your Sunday.
 image: ~/assets/images/sites/mid-county-center.jpg
 phone: ''
 accessibilityNote: ''
@@ -22,6 +22,7 @@ registrationDeadline: ''
 earlyBirdDeadline: ''
 earlyBirdFeeNote: ''
 cognitoFormId: ''
+zeffyFormUrl: /embed/ticketing/ecrs-fun-day-in-wilmington
 fee: $15 suggested donation
 tuitionLabel: ''
 mealsIncluded: ''

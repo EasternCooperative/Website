@@ -149,6 +149,7 @@ const eventCollection = defineCollection({
     earlyBirdDeadline: optionalDate,
     earlyBirdFeeNote: z.string().optional(),
     cognitoFormId: z.string().optional(),
+    zeffyFormUrl: optionalString,
 
     // Pricing — three tiers of complexity (mutually exclusive, pick one)
     fee: z.string().optional(), // simple: "Free / $25 adults"

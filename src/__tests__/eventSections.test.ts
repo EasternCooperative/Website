@@ -54,6 +54,24 @@ describe('registerMode', () => {
     expect(r.registerMode).toBe('cognito');
   });
 
+  it('is "zeffy" when zeffyFormUrl is set and no cognitoFormId', () => {
+    const r = computeEventSections(base({ zeffyFormUrl: '/embed/ticketing/example' }), NOW);
+    expect(r.registerMode).toBe('zeffy');
+  });
+
+  it('is "cognito" when both cognitoFormId and zeffyFormUrl are set (cognito wins)', () => {
+    const r = computeEventSections(base({ cognitoFormId: '42', zeffyFormUrl: '/embed/ticketing/example' }), NOW);
+    expect(r.registerMode).toBe('cognito');
+  });
+
+  it('is "zeffy" when both zeffyFormUrl and registrationUrl are set (zeffy wins)', () => {
+    const r = computeEventSections(
+      base({ zeffyFormUrl: '/embed/ticketing/example', registrationUrl: 'https://example.com/register' }),
+      NOW
+    );
+    expect(r.registerMode).toBe('zeffy');
+  });
+
   it('is "none" when neither is set', () => {
     const r = computeEventSections(base(), NOW);
     expect(r.registerMode).toBe('none');
@@ -129,6 +147,16 @@ describe('hasEmbeddedForm', () => {
 
   it('is false for a future event without cognitoFormId', () => {
     expect(computeEventSections(base(), NOW).hasEmbeddedForm).toBe(false);
+  });
+
+  it('is true for a future event with zeffyFormUrl', () => {
+    expect(computeEventSections(base({ zeffyFormUrl: '/embed/ticketing/example' }), NOW).hasEmbeddedForm).toBe(true);
+  });
+
+  it('is false for a past event with zeffyFormUrl', () => {
+    expect(
+      computeEventSections(base({ date: PAST, zeffyFormUrl: '/embed/ticketing/example' }), NOW).hasEmbeddedForm
+    ).toBe(false);
   });
 });
 

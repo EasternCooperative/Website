@@ -10,13 +10,14 @@ export type EventSectionsInput = {
   pricing?: PricingTier[];
   classes?: unknown[];
   cognitoFormId?: string;
+  zeffyFormUrl?: string;
   registrationUrl?: string;
   showCancellationPolicy?: boolean;
   cancellationCutoffDate?: Date;
 };
 
 export type JumpLink = { href: string; label: string };
-export type RegisterMode = 'cognito' | 'url' | 'none';
+export type RegisterMode = 'cognito' | 'zeffy' | 'url' | 'none';
 export type TuitionDisplay = 'card' | 'table' | 'none';
 
 export type EventSections = {
@@ -40,7 +41,7 @@ export function computeEventSections(data: EventSectionsInput, now = new Date())
 
   const hasCosts = !!(data.fee || data.tuition?.length || data.accommodations?.length || pricingRows.length);
   const hasClasses = !!data.classes?.length;
-  const hasEmbeddedForm = !isPast && !!data.cognitoFormId;
+  const hasEmbeddedForm = !isPast && !!(data.cognitoFormId || data.zeffyFormUrl);
 
   const jumpLinks: JumpLink[] = [
     hasCosts && { href: '#costs', label: 'Costs' },
@@ -53,6 +54,7 @@ export function computeEventSections(data: EventSectionsInput, now = new Date())
   let registerMode: RegisterMode = 'none';
   if (!isPast) {
     if (data.cognitoFormId) registerMode = 'cognito';
+    else if (data.zeffyFormUrl) registerMode = 'zeffy';
     else if (data.registrationUrl) registerMode = 'url';
   }
 

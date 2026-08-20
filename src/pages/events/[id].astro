@@ -4,6 +4,7 @@ import { getImage } from 'astro:assets';
 import Layout from '~/layouts/PageLayout.astro';
 import CallToAction from '~/components/widgets/CallToAction.astro';
 import CognitoForm from '~/components/widgets/CognitoForm.astro';
+import ZeffyForm from '~/components/widgets/ZeffyForm.astro';
 import Image from '~/components/common/Image.astro';
 import { findImage } from '~/utils/images';
 import { resolveVenue } from '~/utils/resolveEvent';
@@ -408,14 +409,14 @@ const breadcrumbJsonLd = {
       <!-- Action buttons -->
       <div class="flex flex-wrap gap-4 mb-10">
         {
-          !isPast && data.cognitoFormId && (
+          !isPast && (data.cognitoFormId || data.zeffyFormUrl) && (
             <a href="#registration" class="btn btn-primary">
               Register Now
             </a>
           )
         }
         {
-          !isPast && !data.cognitoFormId && data.registrationUrl && (
+          !isPast && !data.cognitoFormId && !data.zeffyFormUrl && data.registrationUrl && (
             <a href={data.registrationUrl} class="btn btn-primary" target="_blank" rel="noopener noreferrer">
               Register Now
             </a>
@@ -435,13 +436,14 @@ const breadcrumbJsonLd = {
         is:inline
         data-astro-rerun
         define:vars={{
-          isConversion: !isPast && !data.cognitoFormId && !data.registrationUrl,
+          isConversion: !isPast && !data.cognitoFormId && !data.zeffyFormUrl && !data.registrationUrl,
           eventId: event.id,
           eventTitle: data.title,
         }}
       >
-        // No signup path exists for this event (no Cognito form, no external
-        // registration link) — opening the page is the whole conversion.
+        // No signup path exists for this event (no Cognito form, no Zeffy
+        // form, no external registration link) — opening the page is the
+        // whole conversion.
         // Deduplicated per browser via localStorage: only counts once per
         // visitor per event, not once per page view/refresh/return visit —
         // only set the flag once tracking actually had somewhere to go
@@ -871,12 +873,16 @@ const breadcrumbJsonLd = {
        REGISTRATION FORM
        ============================================================ -->
   {
-    !isPast && data.cognitoFormId && (
+    !isPast && (data.cognitoFormId || data.zeffyFormUrl) && (
       <div id="registration" class="scroll-mt-24">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 pt-4 pb-2">
           <h2 class="font-heading text-2xl font-bold text-heading">Register</h2>
         </div>
-        <CognitoForm formId={data.cognitoFormId} formName="event" />
+        {data.cognitoFormId ? (
+          <CognitoForm formId={data.cognitoFormId} formName="event" />
+        ) : (
+          data.zeffyFormUrl && <ZeffyForm formUrl={data.zeffyFormUrl} formName="event" />
+        )}
       </div>
     )
   }
@@ -895,7 +901,7 @@ const breadcrumbJsonLd = {
                 { variant: 'primary', text: 'Register Now', href: data.registrationUrl, target: '_blank' },
                 { text: 'Contact Us', href: '/contact' },
               ]
-            : data.cognitoFormId
+            : data.cognitoFormId || data.zeffyFormUrl
               ? [
                   { variant: 'primary', text: 'Register Now', href: '#registration' },
                   { text: 'Contact Us', href: '/contact' },
