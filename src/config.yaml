@@ -35,8 +35,10 @@ analytics:
       id: 'G-TCB6NZEM0R' # GA4 — gated by geo-targeted consent banner (everywhere except US)
     cloudflareWebAnalytics:
       # Cloudflare Web Analytics (RUM): page views + Core Web Vitals, cookieless.
-      # Public beacon token (safe to commit). Site: website-alc.pages.dev → ecrs.org.
-      token: 'bc16aa201885457a92df26bf855df104'
+      # Retired 2026-08-20 — Cloudflare auto-injects a zone-wide beacon for ecrs.org
+      # now that the domain is proxied through Pages, covering ecrs.org and www.ecrs.org
+      # at the edge. Keeping this one too would double-count every real pageview.
+      token: ''
     metaPixel:
       # Meta Pixel — fill in the Pixel ID from Meta Business Suite > Events Manager.
       # Leave blank to disable. Consent-gated in CA/EU/UK (same banner as GA4).
