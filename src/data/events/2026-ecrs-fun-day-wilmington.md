@@ -14,6 +14,8 @@ description: |-
   Then you'll get a chance to learn a little about improvisational theater. No experience necessary, anyone can make things up...you do it every day already!
 
   You're always welcome to participate at your own level of interest, ability, and comfort. Register below to reserve your spot, then come as you are, meet some new friends, and play some games to start your Sunday.
+
+  This event is open to anyone age 10 or older.
 image: ~/assets/images/sites/mid-county-center.jpg
 phone: ''
 accessibilityNote: ''
@@ -27,6 +29,7 @@ fee: $15 suggested donation
 tuitionLabel: ''
 mealsIncluded: ''
 mealsNote: ''
+showCancellationPolicy: false
 cancellationCutoffDate: ''
 cancellationPolicy: ''
 showHealthPolicy: true
@@ -39,22 +42,36 @@ classes:
     period: 10:00 – 10:45 AM
     days: ''
     description: ''
-    callout: ''
+    callout: Open to children 10+ with a participating adult
   - name: Break/Snacks
     leader: ''
     ageRange: ''
     period: 10:45 – 10:55 AM
+    days: ''
+    description: ''
+    callout: ''
   - name: Improv
+    leader: ''
+    ageRange: ''
     period: 10:55 – 11:40 AM
+    days: ''
+    description: ''
+    callout: Open to children 10+ with a participating adult
     leaders:
       - name: Maria Paciona
       - id: heather-klemanski
         role: assistant
   - name: Closing Circle
     leaderId: heather-klemanski
+    leader: ''
+    ageRange: ''
     period: 11:40 AM – 12:00 PM
+    days: ''
+    description: ''
+    callout: ''
 newcomerNote: ''
 financialAidNote: ''
 tags:
   - one-day
+zeffyFormUrl: /embed/ticketing/ecrs-fun-day-in-wilmington
 ---
