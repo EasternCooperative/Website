@@ -193,7 +193,7 @@ describe('initEventPageInteractions — share button', () => {
 
     const { initEventPageInteractions } = await import('./eventPageInteractions');
     initEventPageInteractions();
-    btn.dispatchEvent(new MouseEvent('click'));
+    btn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await vi.waitFor(() => expect(shareMock).toHaveBeenCalledTimes(1));
 
     expect(shareMock).toHaveBeenCalledWith(
@@ -213,7 +213,7 @@ describe('initEventPageInteractions — share button', () => {
 
     const { initEventPageInteractions } = await import('./eventPageInteractions');
     initEventPageInteractions();
-    btn.dispatchEvent(new MouseEvent('click'));
+    btn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await vi.waitFor(() => expect(writeTextMock).toHaveBeenCalledTimes(1));
 
     expect(writeTextMock).toHaveBeenCalledWith(window.location.href);
@@ -221,6 +221,24 @@ describe('initEventPageInteractions — share button', () => {
 
     vi.advanceTimersByTime(2000);
     expect(btn.innerHTML).toBe(originalHTML);
+  });
+
+  it('still works after the button element is replaced (e.g. by an Astro view transition)', async () => {
+    makeShareButton().remove();
+    const shareMock = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'share', { value: shareMock, configurable: true });
+
+    const { initEventPageInteractions } = await import('./eventPageInteractions');
+    initEventPageInteractions();
+
+    // Simulate a client-side navigation swapping in a fresh #share-btn element
+    // after init already ran once.
+    const newBtn = makeShareButton();
+    newBtn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    await vi.waitFor(() => expect(shareMock).toHaveBeenCalledTimes(1));
+
+    // @ts-expect-error cleaning up a test-only stub
+    delete navigator.share;
   });
 });
 

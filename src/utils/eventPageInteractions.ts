@@ -46,9 +46,11 @@ function initLeaderPopovers() {
 }
 
 function initShareButton() {
-  const shareBtn = document.getElementById('share-btn') as HTMLButtonElement | null;
-  if (!shareBtn) return;
-  shareBtn.addEventListener('click', async () => {
+  // Delegated on document (not bound to the button directly) so it keeps working
+  // after Astro view-transition navigations swap in a fresh #share-btn element.
+  document.addEventListener('click', async (e) => {
+    const shareBtn = (e.target as Element).closest('#share-btn') as HTMLButtonElement | null;
+    if (!shareBtn) return;
     const { title, text } = shareBtn.dataset;
     const url = window.location.href;
     if (navigator.share) {
