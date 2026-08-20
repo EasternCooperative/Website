@@ -77,12 +77,7 @@ const { formUrl, formName, id } = Astro.props;
     background-color: var(--aw-color-bg-page);
   }
   .zeffy-container {
-    max-width: 56rem;
+    max-width: 48rem;
     margin: 0 auto;
-  }
-  /* zeffy-embed.js sets max-width: 600px as an inline style on this element
-     itself, so only !important can beat it. */
-  .zeffy-container [data-zeffy-embed] {
-    max-width: 100% !important;
   }
 </style>
