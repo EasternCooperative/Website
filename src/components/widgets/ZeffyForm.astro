@@ -1,0 +1,83 @@
+---
+interface Props {
+  formUrl: string;
+  formName?: string;
+  id?: string;
+}
+
+const { formUrl, formName, id } = Astro.props;
+---
+
+<section id={id} class="zeffy-section">
+  <div class="zeffy-container" data-zeffy-container data-zeffy-form-name={formName}>
+    <div data-zeffy-embed data-form-url={formUrl}></div>
+    <div data-zeffy-embed-fallback style="display:none;">
+      <div style="position:relative;overflow:hidden;height:450px;width:100%;padding-top:450px;">
+        <iframe
+          title="Form powered by Zeffy"
+          style="position: absolute; border: 0; top:0; left:0; bottom:0; right:0; width:100%; height:100%"
+          data-zeffy-embed-src={`https://www.zeffy.com${formUrl}`}
+          allowtransparency="true"
+          {...{ allowpaymentrequest: true }}></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script is:inline>
+  // zeffy-embed.js posts window messages tagged with the embed's data-zeffy-id
+  // as the visitor moves through the form; "thank-you-page-shown" fires once,
+  // right after a successful submission/payment. Attached once (not
+  // data-astro-rerun) and guarded so repeat navigations don't stack listeners
+  // — it re-queries the live DOM on every message, so it keeps working across
+  // client-side navigations without needing to re-attach.
+  if (!window.__ecrsZeffyTrackerAttached) {
+    window.__ecrsZeffyTrackerAttached = true;
+    window.addEventListener('message', function (e) {
+      if (e.origin !== 'https://www.zeffy.com') return;
+      const data = e.data;
+      if (!data || data.type !== 'zeffy-embed:thank-you-page-shown' || !data.embedId) return;
+      const embed = document.querySelector('[data-zeffy-id="' + CSS.escape(data.embedId) + '"]');
+      const container = embed && embed.closest('[data-zeffy-container]');
+      const name = container && container.dataset.zeffyFormName;
+      if (name && window.ecrsTrack) {
+        window.ecrsTrack('form_submit_' + name, { form_name: name });
+      }
+    });
+  }
+</script>
+
+<script is:inline data-astro-rerun>
+  (function () {
+    // zeffy-embed.js scans the DOM once on load for [data-zeffy-embed] nodes,
+    // so on a client-side (view transition) navigation back to a page with a
+    // form we need to re-inject a fresh script tag to get it to scan again.
+    document.querySelectorAll('[data-zeffy-container]').forEach(function (container) {
+      const embed = container.querySelector('[data-zeffy-embed]');
+      if (embed) embed.innerHTML = '';
+
+      const s = document.createElement('script');
+      s.src = 'https://www.zeffy.com/embed/v2/zeffy-embed.js';
+      s.onerror = function () {
+        container.querySelectorAll('[data-zeffy-embed-fallback]').forEach(function (el) {
+          el.style.display = 'block';
+          el.querySelectorAll('iframe[data-zeffy-embed-src]').forEach(function (f) {
+            f.src = f.getAttribute('data-zeffy-embed-src');
+          });
+        });
+      };
+      container.appendChild(s);
+    });
+  })();
+</script>
+
+<style>
+  .zeffy-section {
+    padding: 3rem 1rem;
+    background-color: var(--aw-color-bg-page);
+  }
+  .zeffy-container {
+    max-width: 48rem;
+    margin: 0 auto;
+  }
+</style>
