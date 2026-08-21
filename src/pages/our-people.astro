@@ -140,6 +140,18 @@ for (const leader of leaders) {
 // bios in the two-column grid, rather than stretching short cards to match tall ones.
 const balancedLeaders = balanceByWeight(displayLeaders, (l) => (l.bio ? stripMarkdown(l.bio).length : 0));
 
+// Quick-jump nav entries — one per section that will actually render below,
+// in the same order as the sections themselves.
+const jumpSections = [
+  ...(balancedLeaders.length > 0 ? [{ id: 'leaders-heading', label: 'Leaders' }] : []),
+  ...peoplePageData.categories
+    .filter((cat) => cat.people && cat.people.length > 0)
+    .map((cat) => ({
+      id: `section-${cat.label.toLowerCase().replace(/\s+/g, '-')}`,
+      label: cat.label,
+    })),
+];
+
 const metadata = {
   title: peoplePageData.title,
 };
@@ -188,6 +200,26 @@ const peopleJsonLd = {
     <h1 class="font-heading text-4xl md:text-5xl font-bold text-heading mb-8">
       {peoplePageData.title}
     </h1>
+
+    <!-- ── Quick jump nav ── -->
+    {
+      jumpSections.length > 1 && (
+        <nav aria-label="Jump to section" class="mb-8">
+          <ul class="flex flex-wrap gap-2 list-none p-0 m-0">
+            {jumpSections.map((section) => (
+              <li>
+                <a
+                  href={`#${section.id}`}
+                  class="inline-block text-sm font-semibold rounded-full px-4 py-2 border border-gray-200 dark:border-gray-700 text-default hover:border-primary/40 hover:text-primary transition-colors"
+                >
+                  {section.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )
+    }
 
     <!-- ── Sort + filter toolbar ── -->
     <div
@@ -261,7 +293,7 @@ const peopleJsonLd = {
         >
           <h2
             id="leaders-heading"
-            class="font-heading text-2xl font-bold text-heading mb-8 pb-2 border-b border-gray-200 dark:border-gray-700"
+            class="font-heading text-2xl font-bold text-heading mb-8 pb-2 border-b border-gray-200 dark:border-gray-700 scroll-mt-24"
           >
             Leaders
           </h2>
@@ -306,7 +338,7 @@ const peopleJsonLd = {
           >
             <h2
               id={`section-${cat.label.toLowerCase().replace(/\s+/g, '-')}`}
-              class="font-heading text-2xl font-bold text-heading mb-8 pb-2 border-b border-gray-200 dark:border-gray-700"
+              class="font-heading text-2xl font-bold text-heading mb-8 pb-2 border-b border-gray-200 dark:border-gray-700 scroll-mt-24"
             >
               {cat.label}
             </h2>
