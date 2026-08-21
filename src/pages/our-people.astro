@@ -11,6 +11,11 @@ import { balanceByWeight } from '~/utils/balanceGrid';
 interface PeoplePerson {
   name: string;
   title?: string | null;
+  // References a `leader` record (by its slug/id) to reuse that person's
+  // photo/bio instead of duplicating them here — this person's own `photo`/
+  // `bio` still win if set, so a section can deliberately use a different
+  // photo (e.g. a group shot) without losing the reference for bio reuse.
+  leaderId?: string | null;
   photo?: string | null;
   bio?: string | null;
 }
@@ -33,19 +38,62 @@ const hasProfile = (p: { photo?: string | null; bio?: string | null }) => Boolea
 const hiddenByDefault = (p: { photo?: string | null; bio?: string | null }) =>
   !includeNameOnlyByDefault && !hasProfile(p);
 
+let leaders = await getCollection('leader');
+leaders.sort((a, b) => a.data.name.localeCompare(b.data.name, undefined, { sensitivity: 'base' }));
+const leaderById = new Map(leaders.map((l) => [l.id, l]));
+
+// Resolve each category person's `leaderId` reference into an actual photo/bio
+// once, up front, so every consumer below (cards, row-balancing, JSON-LD) sees
+// the same reused-vs-duplicated data instead of resolving it independently.
+peoplePageData.categories = (peoplePageData.categories ?? []).map((cat) => ({
+  ...cat,
+  people: (cat.people ?? []).map((p) => {
+    const linked = p.leaderId ? leaderById.get(p.leaderId) : undefined;
+    return {
+      ...p,
+      photo: p.photo ?? linked?.data.photo ?? null,
+      bio: p.bio ?? linked?.data.bio ?? null,
+    };
+  }),
+}));
+
+// Second pass: someone who sits on multiple committees/rosters but has no
+// `leader` record (so the leaderId reference above can't help) still shouldn't
+// need their photo/bio re-entered on every listing — reuse whichever occurrence
+// already has one, matched by exact name. This only looks within these
+// editor-defined sections; it never reads from or adds anyone to the
+// auto-rendered Leaders section.
+const sharedProfileByName = new Map<string, { photo: string | null; bio: string | null }>();
+for (const cat of peoplePageData.categories) {
+  for (const p of cat.people) {
+    const known = sharedProfileByName.get(p.name);
+    if (!known?.photo && !known?.bio && (p.photo || p.bio)) {
+      sharedProfileByName.set(p.name, { photo: p.photo ?? null, bio: p.bio ?? null });
+    }
+  }
+}
+peoplePageData.categories = peoplePageData.categories.map((cat) => ({
+  ...cat,
+  people: cat.people.map((p) => {
+    const shared = sharedProfileByName.get(p.name);
+    return {
+      ...p,
+      photo: p.photo ?? shared?.photo ?? null,
+      bio: p.bio ?? shared?.bio ?? null,
+    };
+  }),
+}));
+
 // Same bio-length row-balancing as the Leaders grid below, applied per category.
 // This is the "Balanced" sort option's order — alphabetical is the sort tiebreak,
 // weight-descending is the primary key.
-peoplePageData.categories = (peoplePageData.categories ?? []).map((cat) => ({
+peoplePageData.categories = peoplePageData.categories.map((cat) => ({
   ...cat,
   people: balanceByWeight(
-    [...(cat.people ?? [])].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })),
+    [...cat.people].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })),
     (p) => (p.bio ? stripMarkdown(p.bio).length : 0)
   ),
 }));
-
-let leaders = await getCollection('leader');
-leaders.sort((a, b) => a.data.name.localeCompare(b.data.name, undefined, { sensitivity: 'base' }));
 
 // Leaders with a mutual `partnerId` (e.g. a couple who only ever co-teach and
 // share one bio/photo) are combined into a single card instead of rendering
@@ -60,7 +108,6 @@ interface DisplayLeader {
   photo?: string;
   bio?: string;
 }
-const leaderById = new Map(leaders.map((l) => [l.id, l]));
 const consumedLeaderIds = new Set<string>();
 const displayLeaders: DisplayLeader[] = [];
 for (const leader of leaders) {
