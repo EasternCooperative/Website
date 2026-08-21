@@ -27,6 +27,36 @@
           "title": "Board Member",
           "photo": "~/assets/images/Judi-Marko-2025-scaled.jpg",
           "bio": "Judi has been a member of the ECRS family for over 10 years. She has her blue belt in NIA and is a certified instructor for Moving to Heal. She loves teaching joy of movement — moving your body's way. Dancing is an experience that can be so uplifting and healing on many levels — in a group it's just infectious! She lives in the Adirondack Mountains where she enjoys her many outdoor passions from skiing to gardening. She is a licensed Adirondack guide in hiking, camping and whitewater. She is part of the local theater group of dancing witches. Hope you come join me and share some smiles!"
+        },
+        {
+          "name": "Toby Woods",
+          "title": "Board Member",
+          "photo": null,
+          "bio": null
+        },
+        {
+          "name": "Steve Fondiller",
+          "title": "Board Member",
+          "photo": "/images/headshots/steve-fondiller.jpg",
+          "bio": "Steve enjoys playing with ECRS folks and especially likes games and improv. He is a Qigong student, a Certified Laughter Yoga teacher, and a founding member of a men's group spanning four decades."
+        },
+        {
+          "name": "Joe Feigin",
+          "title": "Board Member",
+          "photo": null,
+          "bio": null
+        },
+        {
+          "name": "Marko Schmale",
+          "title": "Board Member",
+          "photo": null,
+          "bio": null
+        },
+        {
+          "name": "David Geron-Neubauer",
+          "title": "Board Member",
+          "photo": null,
+          "bio": null
         }
       ]
     },
@@ -36,14 +66,14 @@
         {
           "name": "Hugh Abrams-Helde",
           "title": null,
-          "photo": null,
-          "bio": null
+          "photo": "/images/headshots/hugh-abrams-helde.jpg",
+          "bio": "Hugh has been attending ECRS since attending a weekend in 1994 at the tender age of 15 months. He has served in several supporting roles since 2014, including Assistant Registrar, IT support, the Programming and Staffing committee, and Evening Program Co-coordinator."
         },
         {
           "name": "Gabby Frisone",
           "title": null,
           "photo": null,
-          "bio": null
+          "bio": "Gabby has been involved with ECRS since she started coming with her family as a teenager, and she's been hooked ever since. Gabby recently became involved in the planning of events and served on the Board. Outside of ECRS, Gabby works as an administrator in the Statistics Department at a university."
         },
         {
           "name": "Jack Marquess",
@@ -78,13 +108,13 @@
       ]
     },
     {
-      "label": "Leadership, Recruitment & Development Committee",
+      "label": "Leadership, Recruitment, Development & Mentoring Committee",
       "people": [
         {
           "name": "Helen Fox",
           "title": null,
-          "photo": null,
-          "bio": null
+          "photo": "/images/headshots/helen-fox.jpg",
+          "bio": "Helen's grandmother first took her to ECRS when she was 6 years old. After a hiatus in her 20s (when she was living in CA & HI), she returned when her firstborn was a toddler. She has served two terms on the Board and currently works as Conservation Science Director at the Coral Reef Alliance."
         },
         {
           "name": "Isaac Lebwohl-Steiner",
@@ -101,8 +131,8 @@
         {
           "name": "Camden Elliott-Williams",
           "title": null,
-          "photo": null,
-          "bio": null
+          "photo": "/images/headshots/camden-elliott-williams.jpg",
+          "bio": "Camden is an algorithmic data scientist who's passionate about discovering, refining, and integrating new solutions and perspectives through creativity, empathy, and tenacious deduction. He has acquired playful exploration techniques from decades of practice with the likes of a five-time International Jugglers Championships gold medalist, a three-time American Ninja Warrior contestant, a Hugo Award winner, and even venerated ECRS teachers from the Workshop era."
         },
         {
           "name": "Karen Wisnia",
