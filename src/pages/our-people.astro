@@ -11,6 +11,11 @@ import { balanceByWeight } from '~/utils/balanceGrid';
 interface PeoplePerson {
   name: string;
   title?: string | null;
+  // References a `leader` record (by its slug/id) to reuse that person's
+  // photo/bio instead of duplicating them here — this person's own `photo`/
+  // `bio` still win if set, so a section can deliberately use a different
+  // photo (e.g. a group shot) without losing the reference for bio reuse.
+  leaderId?: string | null;
   photo?: string | null;
   bio?: string | null;
 }
@@ -33,19 +38,62 @@ const hasProfile = (p: { photo?: string | null; bio?: string | null }) => Boolea
 const hiddenByDefault = (p: { photo?: string | null; bio?: string | null }) =>
   !includeNameOnlyByDefault && !hasProfile(p);
 
+let leaders = await getCollection('leader');
+leaders.sort((a, b) => a.data.name.localeCompare(b.data.name, undefined, { sensitivity: 'base' }));
+const leaderById = new Map(leaders.map((l) => [l.id, l]));
+
+// Resolve each category person's `leaderId` reference into an actual photo/bio
+// once, up front, so every consumer below (cards, row-balancing, JSON-LD) sees
+// the same reused-vs-duplicated data instead of resolving it independently.
+peoplePageData.categories = (peoplePageData.categories ?? []).map((cat) => ({
+  ...cat,
+  people: (cat.people ?? []).map((p) => {
+    const linked = p.leaderId ? leaderById.get(p.leaderId) : undefined;
+    return {
+      ...p,
+      photo: p.photo ?? linked?.data.photo ?? null,
+      bio: p.bio ?? linked?.data.bio ?? null,
+    };
+  }),
+}));
+
+// Second pass: someone who sits on multiple committees/rosters but has no
+// `leader` record (so the leaderId reference above can't help) still shouldn't
+// need their photo/bio re-entered on every listing — reuse whichever occurrence
+// already has one, matched by exact name. This only looks within these
+// editor-defined sections; it never reads from or adds anyone to the
+// auto-rendered Leaders section.
+const sharedProfileByName = new Map<string, { photo: string | null; bio: string | null }>();
+for (const cat of peoplePageData.categories) {
+  for (const p of cat.people) {
+    const known = sharedProfileByName.get(p.name);
+    if (!known?.photo && !known?.bio && (p.photo || p.bio)) {
+      sharedProfileByName.set(p.name, { photo: p.photo ?? null, bio: p.bio ?? null });
+    }
+  }
+}
+peoplePageData.categories = peoplePageData.categories.map((cat) => ({
+  ...cat,
+  people: cat.people.map((p) => {
+    const shared = sharedProfileByName.get(p.name);
+    return {
+      ...p,
+      photo: p.photo ?? shared?.photo ?? null,
+      bio: p.bio ?? shared?.bio ?? null,
+    };
+  }),
+}));
+
 // Same bio-length row-balancing as the Leaders grid below, applied per category.
 // This is the "Balanced" sort option's order — alphabetical is the sort tiebreak,
 // weight-descending is the primary key.
-peoplePageData.categories = (peoplePageData.categories ?? []).map((cat) => ({
+peoplePageData.categories = peoplePageData.categories.map((cat) => ({
   ...cat,
   people: balanceByWeight(
-    [...(cat.people ?? [])].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })),
+    [...cat.people].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })),
     (p) => (p.bio ? stripMarkdown(p.bio).length : 0)
   ),
 }));
-
-let leaders = await getCollection('leader');
-leaders.sort((a, b) => a.data.name.localeCompare(b.data.name, undefined, { sensitivity: 'base' }));
 
 // Leaders with a mutual `partnerId` (e.g. a couple who only ever co-teach and
 // share one bio/photo) are combined into a single card instead of rendering
@@ -60,7 +108,6 @@ interface DisplayLeader {
   photo?: string;
   bio?: string;
 }
-const leaderById = new Map(leaders.map((l) => [l.id, l]));
 const consumedLeaderIds = new Set<string>();
 const displayLeaders: DisplayLeader[] = [];
 for (const leader of leaders) {
@@ -92,6 +139,18 @@ for (const leader of leaders) {
 // Reorder (post name-sort, for a stable tiebreak) so long bios land next to long
 // bios in the two-column grid, rather than stretching short cards to match tall ones.
 const balancedLeaders = balanceByWeight(displayLeaders, (l) => (l.bio ? stripMarkdown(l.bio).length : 0));
+
+// Quick-jump nav entries — one per section that will actually render below,
+// in the same order as the sections themselves.
+const jumpSections = [
+  ...(balancedLeaders.length > 0 ? [{ id: 'leaders-heading', label: 'Leaders' }] : []),
+  ...peoplePageData.categories
+    .filter((cat) => cat.people && cat.people.length > 0)
+    .map((cat) => ({
+      id: `section-${cat.label.toLowerCase().replace(/\s+/g, '-')}`,
+      label: cat.label,
+    })),
+];
 
 const metadata = {
   title: peoplePageData.title,
@@ -141,6 +200,26 @@ const peopleJsonLd = {
     <h1 class="font-heading text-4xl md:text-5xl font-bold text-heading mb-8">
       {peoplePageData.title}
     </h1>
+
+    <!-- ── Quick jump nav ── -->
+    {
+      jumpSections.length > 1 && (
+        <nav aria-label="Jump to section" class="mb-8">
+          <ul class="flex flex-wrap gap-2 list-none p-0 m-0">
+            {jumpSections.map((section) => (
+              <li>
+                <a
+                  href={`#${section.id}`}
+                  class="inline-block text-sm font-semibold rounded-full px-4 py-2 border border-gray-200 dark:border-gray-700 text-default hover:border-primary/40 hover:text-primary transition-colors"
+                >
+                  {section.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )
+    }
 
     <!-- ── Sort + filter toolbar ── -->
     <div
@@ -214,7 +293,7 @@ const peopleJsonLd = {
         >
           <h2
             id="leaders-heading"
-            class="font-heading text-2xl font-bold text-heading mb-8 pb-2 border-b border-gray-200 dark:border-gray-700"
+            class="font-heading text-2xl font-bold text-heading mb-8 pb-2 border-b border-gray-200 dark:border-gray-700 scroll-mt-24"
           >
             Leaders
           </h2>
@@ -244,30 +323,28 @@ const peopleJsonLd = {
       )
     }
 
-    <!-- ── Editor-defined sections ── -->
+    <!-- ── Editor-defined sections (Board of Directors, committees) ──
+         These are official rosters, not a directory of profiles — everyone
+         on them stays visible regardless of the "Empty Profiles" filter,
+         so a name-only board or committee member never appears to be
+         missing from the page. -->
     {
       (peoplePageData.categories ?? []).map((cat) =>
         cat.people && cat.people.length > 0 ? (
           <section
-            class:list={['mb-16', cat.people.every(hiddenByDefault) && 'hidden']}
+            class="mb-16"
             aria-labelledby={`section-${cat.label.toLowerCase().replace(/\s+/g, '-')}`}
             data-people-section
           >
             <h2
               id={`section-${cat.label.toLowerCase().replace(/\s+/g, '-')}`}
-              class="font-heading text-2xl font-bold text-heading mb-8 pb-2 border-b border-gray-200 dark:border-gray-700"
+              class="font-heading text-2xl font-bold text-heading mb-8 pb-2 border-b border-gray-200 dark:border-gray-700 scroll-mt-24"
             >
               {cat.label}
             </h2>
             <ul class="grid sm:grid-cols-2 gap-8 list-none p-0 m-0" data-people-list>
               {cat.people.map((person) => (
-                <li
-                  class:list={[hiddenByDefault(person) && 'hidden']}
-                  data-scroll-reveal="up"
-                  data-person-card
-                  data-name={person.name}
-                  data-has-profile={String(hasProfile(person))}
-                >
+                <li data-scroll-reveal="up" data-person-card data-name={person.name} data-has-profile="true">
                   <PersonCard
                     name={person.name}
                     title={person.title ?? undefined}
@@ -281,11 +358,22 @@ const peopleJsonLd = {
         ) : null
       )
     }
+
+    <button
+      type="button"
+      data-back-to-top
+      aria-label="Back to top"
+      class="fixed bottom-6 right-6 z-40 rounded-full bg-primary text-white shadow-lg p-3 opacity-0 pointer-events-none cursor-pointer transition-opacity duration-200 hover:bg-primary/90"
+    >
+      <Icon name="tabler:arrow-up" class="w-5 h-5" aria-hidden="true" />
+    </button>
   </div>
 </Layout>
 
 <script>
   import { initPeopleFiltersPage } from '~/utils/peopleFilters';
+  import { initBackToTopPage } from '~/utils/backToTop';
 
   initPeopleFiltersPage();
+  initBackToTopPage();
 </script>
