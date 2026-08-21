@@ -104,6 +104,12 @@
           "title": null,
           "photo": null,
           "bio": null
+        },
+        {
+          "name": "Max Kaye",
+          "title": null,
+          "photo": null,
+          "bio": null
         }
       ]
     },
@@ -123,12 +129,6 @@
           "bio": null
         },
         {
-          "name": "David Geron-Neubauer",
-          "title": "Board Liaison",
-          "photo": null,
-          "bio": null
-        },
-        {
           "name": "Camden Elliott-Williams",
           "title": null,
           "photo": "/images/headshots/camden-elliott-williams.jpg",
@@ -137,6 +137,41 @@
         {
           "name": "Karen Wisnia",
           "title": "Programming Liaison",
+          "photo": null,
+          "bio": null
+        }
+      ]
+    },
+    {
+      "label": "One-Day Events Committee",
+      "people": [
+        {
+          "name": "David Geron-Neubauer",
+          "title": null,
+          "photo": null,
+          "bio": null
+        },
+        {
+          "name": "Gabby Frisone",
+          "title": null,
+          "photo": null,
+          "bio": null
+        },
+        {
+          "name": "Heather Klemanski",
+          "title": null,
+          "photo": null,
+          "bio": null
+        },
+        {
+          "name": "Karen Wisnia",
+          "title": null,
+          "photo": null,
+          "bio": null
+        },
+        {
+          "name": "Tim Siftar",
+          "title": null,
           "photo": null,
           "bio": null
         }
