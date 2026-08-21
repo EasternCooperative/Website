@@ -358,22 +358,11 @@ const peopleJsonLd = {
         ) : null
       )
     }
-
-    <button
-      type="button"
-      data-back-to-top
-      aria-label="Back to top"
-      class="fixed bottom-6 right-6 z-40 rounded-full bg-primary text-white shadow-lg p-3 opacity-0 pointer-events-none cursor-pointer transition-opacity duration-200 hover:bg-primary/90"
-    >
-      <Icon name="tabler:arrow-up" class="w-5 h-5" aria-hidden="true" />
-    </button>
   </div>
 </Layout>
 
 <script>
   import { initPeopleFiltersPage } from '~/utils/peopleFilters';
-  import { initBackToTopPage } from '~/utils/backToTop';
 
   initPeopleFiltersPage();
-  initBackToTopPage();
 </script>

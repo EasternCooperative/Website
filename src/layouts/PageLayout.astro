@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
+import { Icon } from 'astro-icon/components';
 import Layout from '~/layouts/Layout.astro';
 import Header from '~/components/widgets/Header.astro';
 import Footer from '~/components/widgets/Footer.astro';
@@ -56,4 +57,19 @@ if (!metadata.openGraph?.images?.length) {
   <slot name="footer">
     <Footer {...footerData} />
   </slot>
+
+  <button
+    type="button"
+    data-back-to-top
+    aria-label="Back to top"
+    class="fixed bottom-6 right-6 z-40 rounded-full bg-primary text-white shadow-lg p-3 opacity-0 pointer-events-none cursor-pointer transition-opacity duration-200 hover:bg-primary/90"
+  >
+    <Icon name="tabler:arrow-up" class="w-5 h-5" aria-hidden="true" />
+  </button>
 </Layout>
+
+<script>
+  import { initBackToTopPage } from '~/utils/backToTop';
+
+  initBackToTopPage();
+</script>
