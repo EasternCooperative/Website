@@ -24,7 +24,6 @@ registrationDeadline: ''
 earlyBirdDeadline: ''
 earlyBirdFeeNote: ''
 cognitoFormId: ''
-zeffyFormUrl: /embed/ticketing/ecrs-fun-day-in-wilmington
 fee: $15 suggested donation
 tuitionLabel: ''
 mealsIncluded: ''
@@ -43,7 +42,7 @@ classes:
     days: ''
     description: ''
     callout: Open to children 10+ with a participating adult
-  - name: Break/Snacks
+  - name: Break
     leader: ''
     ageRange: ''
     period: 10:45 – 10:55 AM
@@ -73,4 +72,5 @@ newcomerNote: ''
 financialAidNote: ''
 tags:
   - one-day
+zeffyFormUrl: /embed/ticketing/ecrs-fun-day-in-wilmington
 ---
