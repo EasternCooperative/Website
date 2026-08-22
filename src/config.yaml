@@ -42,7 +42,7 @@ analytics:
     metaPixel:
       # Meta Pixel — fill in the Pixel ID from Meta Business Suite > Events Manager.
       # Leave blank to disable. Consent-gated in CA/EU/UK (same banner as GA4).
-      id: ''
+      id: '1068546659061911'
 
 ui:
   theme: 'system' # Values: "system" | "light" | "dark" | "light:only" | "dark:only"
