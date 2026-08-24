@@ -28,6 +28,47 @@ changing CI, the CMS config, or anything touching `main`.
   consent region onto the HTML at the edge for GA4 gating. It deploys
   automatically because it lives in `functions/`.
 
+## Donation conversion tracking (Google Ads / GA4)
+
+`functions/api/track-purchase/{cognito,zeffy}.js` are Cloudflare Pages
+Functions that receive payment webhooks and forward them to GA4 Measurement
+Protocol as a `purchase` event, so the Google Ads "Donation Completed"
+conversion action (imported from GA4's `purchase` event on the `www.ecrs.org`
+property, measurement ID `G-TMYSFB9B9J`) gets real donation value instead of
+a generic form-submit signal. Shared MP-sending logic and the shared-secret
+auth check live in `functions/_lib/ga4.js`.
+
+**Required Cloudflare Pages environment variables** (Pages dashboard →
+project → Settings → Environment variables — set for both Production and
+Preview, never committed to the repo):
+
+| Variable             | Purpose                                                                                                                                                                                       |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GA4_MEASUREMENT_ID` | `G-TMYSFB9B9J` — same property as `analytics.vendors.googleAnalytics.id` in `src/config.yaml`                                                                                                 |
+| `GA4_API_SECRET`     | GA4 Measurement Protocol API secret, nicknamed "server-side-webhooks (Cognito, Zeffy)" in GA4 admin (Data Streams → www.ecrs.org → Measurement Protocol API secrets)                          |
+| `TRACK_PURCHASE_KEY` | Shared secret required as a `?key=` query param on both webhook URLs — without it, the endpoint is a public POST that can inject fake conversions into the Ads account's Primary bidding goal |
+
+**Webhook setup (external, done by whoever administers each platform):**
+
+- **Cognito Forms** — per form (Donate, Contact, future registration forms):
+  Settings → Webhooks & Notifications → "Post JSON Data to a Website" →
+  `https://ecrs.org/api/track-purchase/cognito?key=<TRACK_PURCHASE_KEY>`,
+  firing on entry submission/payment completion.
+- **Zeffy** — account → Settings → Integrations → Webhooks → subscribe to
+  `payment.completed` →
+  `https://ecrs.org/api/track-purchase/zeffy?key=<TRACK_PURCHASE_KEY>`.
+
+**Both field-name mappings are unverified against a live payload** — inspect
+a real webhook delivery (Cognito's webhook logs, or a Zeffy test payment)
+before trusting the numbers; see the comments at the top of each function
+file for what to check.
+
+**No per-campaign ad-click attribution:** every conversion is sent with a
+random GA4 client_id, so donations count toward the Ads "Donation Completed"
+goal but can't be traced back to a specific campaign/keyword. Attribution
+(gclid capture, etc.) is being handled separately, directly in Cognito, not
+in this site's code.
+
 ## CMS (Sveltia)
 
 - Editors use **Sveltia CMS** at `/admin`. Configuration lives in
