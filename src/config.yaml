@@ -32,7 +32,7 @@ i18n:
 analytics:
   vendors:
     googleAnalytics:
-      id: 'G-TCB6NZEM0R' # GA4 — gated by geo-targeted consent banner (everywhere except US)
+      id: 'G-TMYSFB9B9J' # GA4 — gated by geo-targeted consent banner (everywhere except US)
     cloudflareWebAnalytics:
       # Cloudflare Web Analytics (RUM): page views + Core Web Vitals, cookieless.
       # Retired 2026-08-20 — Cloudflare auto-injects a zone-wide beacon for ecrs.org
