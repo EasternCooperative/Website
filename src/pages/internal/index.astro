@@ -1,0 +1,49 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+
+// Not linked from public nav — landing page for staff/board tools.
+// `noIndex` keeps this and its children out of the on-site Pagefind index as
+// well as out of search engines — the `robots` metadata alone only does the latter.
+
+const metadata = {
+  title: 'Internal Tools',
+  description: 'Internal tools and resources for ECRS staff and board members.',
+  robots: { index: false, follow: false },
+};
+
+const tools = [
+  {
+    title: 'Schedule Generator',
+    description: 'Generate workshop schedules from a Cognito Forms Excel export.',
+    href: '/internal/schedule',
+  },
+  {
+    title: 'Member Map',
+    description: 'Internal planning view of member geographic distribution.',
+    href: '/internal/member-map',
+  },
+];
+---
+
+<Layout metadata={metadata} noIndex>
+  <section class="py-10 px-4 max-w-3xl mx-auto">
+    <h1 class="text-3xl font-bold text-default mb-1">Internal Tools</h1>
+    <p class="text-muted mb-8">Staff and board resources — not linked from the public site.</p>
+
+    <ul class="space-y-4">
+      {
+        tools.map((tool) => (
+          <li>
+            <a
+              href={tool.href}
+              class="block rounded-xl border border-gray-200 dark:border-gray-700 p-5 hover:border-primary transition-colors"
+            >
+              <h2 class="text-lg font-semibold text-default">{tool.title}</h2>
+              <p class="text-sm text-muted mt-1">{tool.description}</p>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</Layout>
