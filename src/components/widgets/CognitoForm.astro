@@ -19,6 +19,28 @@ const { formId, formName, id } = Astro.props;
     delete window.Vue;
     delete window.cfWebpackJsonp;
 
+    // data-astro-rerun means this whole IIFE re-runs on every client-side
+    // nav — clear any prefill poll from a previous run so it doesn't keep
+    // polling against a torn-down window.Cognito, or race a new one.
+    if (window.__ecrsCognitoPrefillTimer) {
+      clearInterval(window.__ecrsCognitoPrefillTimer);
+      window.__ecrsCognitoPrefillTimer = null;
+    }
+
+    // For Ads attribution: the GA4 _ga cookie's client_id already carries any
+    // gclid GA4's own gtag.js associated with this visitor, so passing it
+    // through the webhook (see functions/api/track-purchase/cognito.js) lets
+    // Google Ads attribute a donation back to the ad campaign that drove it.
+    // Requires a hidden "GAClientId" field on the Cognito form with a
+    // matching JSON name.
+    function getGaClientId() {
+      const m = document.cookie.match(/(?:^|;\s*)_ga=([^;]+)/);
+      if (!m) return '';
+      const parts = decodeURIComponent(m[1]).split('.');
+      return parts.length >= 4 ? parts[2] + '.' + parts[3] : '';
+    }
+    const gaClientId = getGaClientId();
+
     document.querySelectorAll('[data-cognito-form]').forEach(function (container) {
       container.innerHTML = '';
       const s = document.createElement('script');
@@ -26,6 +48,27 @@ const { formId, formName, id } = Astro.props;
       s.dataset.key = 'tdXs_w0YA0KlSRyaghpLKw';
       s.dataset.form = container.dataset.cognitoForm;
       container.appendChild(s);
+
+      if (gaClientId) {
+        let attempts = 0;
+        window.__ecrsCognitoPrefillTimer = setInterval(function () {
+          attempts++;
+          if (window.Cognito && typeof window.Cognito.prefill === 'function') {
+            clearInterval(window.__ecrsCognitoPrefillTimer);
+            window.__ecrsCognitoPrefillTimer = null;
+            try {
+              window.Cognito.prefill({ GAClientId: gaClientId });
+            } catch {
+              /* form may not have a matching hidden field defined */
+            }
+          } else if (attempts > 40) {
+            // ~4s: seamless.js likely failed to load, or Cognito.prefill
+            // isn't available for this embed — stop polling.
+            clearInterval(window.__ecrsCognitoPrefillTimer);
+            window.__ecrsCognitoPrefillTimer = null;
+          }
+        }, 100);
+      }
 
       const observer = new MutationObserver(function () {
         const form = container.querySelector('form.is-success');
