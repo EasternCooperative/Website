@@ -73,6 +73,7 @@ describe('headerData', () => {
     expect(dropdown?.links?.map((c) => c.href)).toEqual([
       '/about',
       '/our-people',
+      '/membership',
       '/connections',
       '/activities',
       '/gallery',
