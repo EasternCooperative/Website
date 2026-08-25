@@ -67,13 +67,15 @@ export default function ScheduleGenerator() {
                     ? 'bg-primary text-white'
                     : isClickable
                       ? 'cursor-pointer bg-primary/20 text-primary hover:bg-primary/30'
-                      : 'cursor-default bg-gray-100 text-muted'
+                      : 'cursor-default bg-gray-100 text-muted dark:bg-gray-800'
                 }`}
               >
                 {isDone ? '✓ ' : ''}
                 {label}
               </button>
-              {i < STEP_LABELS.length - 1 && <div className={`h-px w-8 ${isDone ? 'bg-primary/20' : 'bg-gray-200'}`} />}
+              {i < STEP_LABELS.length - 1 && (
+                <div className={`h-px w-8 ${isDone ? 'bg-primary/20' : 'bg-gray-200 dark:bg-gray-700'}`} />
+              )}
             </div>
           );
         })}

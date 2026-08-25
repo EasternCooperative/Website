@@ -71,7 +71,9 @@ export default function UploadStep({ onParsed }: Props) {
         onDrop={handleDrop}
         onClick={() => inputRef.current?.click()}
         className={`cursor-pointer rounded-xl border-2 border-dashed px-8 py-16 text-center transition-colors ${
-          dragging ? 'border-primary bg-primary/5' : 'border-gray-300 bg-gray-50 hover:border-primary/40'
+          dragging
+            ? 'border-primary bg-primary/5'
+            : 'border-gray-300 bg-gray-50 hover:border-primary/40 dark:border-gray-700 dark:bg-gray-900'
         }`}
       >
         <input ref={inputRef} type="file" accept=".xlsx" className="hidden" onChange={handleChange} />
@@ -80,7 +82,7 @@ export default function UploadStep({ onParsed }: Props) {
         ) : (
           <>
             <svg
-              className={`mx-auto mb-4 h-12 w-12 transition-colors ${dragging ? 'text-primary' : 'text-gray-300'}`}
+              className={`mx-auto mb-4 h-12 w-12 transition-colors ${dragging ? 'text-primary' : 'text-gray-300 dark:text-gray-700'}`}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -99,9 +101,9 @@ export default function UploadStep({ onParsed }: Props) {
       </div>
 
       {error && (
-        <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4">
-          <p className="font-medium text-red-700">{error.message}</p>
-          {error.details && <p className="mt-1 text-sm text-red-500">{error.details}</p>}
+        <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
+          <p className="font-medium text-red-700 dark:text-red-400">{error.message}</p>
+          {error.details && <p className="mt-1 text-sm text-red-500 dark:text-red-400">{error.details}</p>}
         </div>
       )}
     </div>
