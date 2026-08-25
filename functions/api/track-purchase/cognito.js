@@ -13,10 +13,15 @@
 // item_category detection (donation vs. event_registration) is UNVERIFIED —
 // see KNOWN_DONATION_FORMS below.
 //
-// Every conversion uses a random GA4 client_id (no per-campaign ad
-// attribution) — the conversion still counts toward the Ads goal. If
-// campaign-level attribution is added later (e.g. Cognito's own gclid/GA
-// tag), pass it through as `Client_Id` on the entry and read it here.
+// Ad-click attribution: CognitoForm.astro prefills a hidden "GAClientId"
+// field from the visitor's real GA4 _ga cookie before submission (that
+// cookie's client_id already carries any gclid GA4's own gtag.js associated
+// with the visit). If that field is present on the entry, its value is used
+// as the GA4 client_id here instead of a random one, so Ads can attribute
+// the donation to the ad campaign that drove it. Falls back to a random
+// client_id if the field is missing/empty (e.g. consent declined, ad
+// blocker, or a form that hasn't had the hidden field added yet) — the
+// conversion still counts, it just won't attribute.
 
 import { sendPurchaseEvent, randomClientId, isAuthorized } from '../../_lib/ga4.js';
 
@@ -50,6 +55,10 @@ const KNOWN_DONATION_FORMS = new Set(['TaxDeductibleDonationToECRS']);
 
 function extractItemCategory(entry) {
   return KNOWN_DONATION_FORMS.has(entry.Form?.InternalName) ? 'donation' : 'event_registration';
+}
+
+function extractClientId(entry) {
+  return typeof entry.GAClientId === 'string' && entry.GAClientId ? entry.GAClientId : null;
 }
 
 export const onRequestPost = async (context) => {
@@ -88,7 +97,7 @@ export const onRequestPost = async (context) => {
   }
 
   const purchaseResponse = await sendPurchaseEvent(env, {
-    clientId: randomClientId(),
+    clientId: extractClientId(entry) || randomClientId(),
     transactionId,
     value,
     currency: 'USD',
