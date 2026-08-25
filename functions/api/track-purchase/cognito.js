@@ -8,8 +8,10 @@
 // "Tax Deductible Donation to ECRS" form (PayPal). `Order.AmountPaid` and
 // `Order.PaymentStatus` are Cognito's system fields for any form with a
 // payment component (not custom field names), so this should generalize to
-// other Cognito payment forms — but confirm against a real submission before
-// trusting a newly added form.
+// other Cognito payment forms — but confirm against a real submission
+// before trusting a newly added form, same as this one was confirmed.
+// item_category detection (donation vs. event_registration) is UNVERIFIED —
+// see KNOWN_DONATION_FORMS below.
 //
 // Every conversion uses a random GA4 client_id (no per-campaign ad
 // attribution) — the conversion still counts toward the Ads goal. If
@@ -36,6 +38,18 @@ function isPaid(entry) {
   // catch that. A present-but-non-"Paid" status means payment hasn't
   // completed (pending, failed, refunded) — don't report those.
   return status == null || status === 'Paid';
+}
+
+// Cognito has no built-in "this form is a donation" signal (unlike Zeffy's
+// campaign_category) — forms are just forms. The only Cognito form wired to
+// this webhook as of 2026-08-25 is the donation form; every other form
+// added later is assumed to be an event/ticket registration per the
+// original tracking brief. Add a form's InternalName here if that
+// assumption stops holding.
+const KNOWN_DONATION_FORMS = new Set(['TaxDeductibleDonationToECRS']);
+
+function extractItemCategory(entry) {
+  return KNOWN_DONATION_FORMS.has(entry.Form?.InternalName) ? 'donation' : 'event_registration';
 }
 
 export const onRequestPost = async (context) => {
@@ -79,7 +93,7 @@ export const onRequestPost = async (context) => {
     value,
     currency: 'USD',
     itemName: entry.Form?.Name || 'Donation',
-    itemCategory: 'donation',
+    itemCategory: extractItemCategory(entry),
     itemVariant: 'cognito_forms',
   });
 
