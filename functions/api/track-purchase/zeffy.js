@@ -20,8 +20,54 @@
 // the GA4 _ga client_id here — every Zeffy purchase uses a random
 // client_id, so the conversion counts but never attributes to an ad
 // campaign.
+//
+// SIGNATURE VERIFICATION: Zeffy sends a `zeffy-signature: t=<unix seconds>,
+// v1=<hex hmac>` header, captured from a real delivery on 2026-08-25. That
+// `t=...,v1=...` shape is Stripe's webhook signature format exactly (not
+// Svix's, despite the shared `whsec_` secret prefix) — Zeffy likely
+// processes payments through Stripe and reused their convention. This
+// implements Stripe's documented algorithm (HMAC-SHA256 over
+// `{timestamp}.{raw body}`, keyed by the raw secret, constant-time compared
+// against v1, 5-minute replay tolerance), inferred from the header shape
+// rather than confirmed against Zeffy's own docs (which don't publish
+// this). Requires the `?key=` query param too — belt and suspenders.
 
 import { sendPurchaseEvent, randomClientId, isAuthorized } from '../../_lib/ga4.js';
+
+const SIGNATURE_TOLERANCE_SECONDS = 300;
+
+function timingSafeEqual(a, b) {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
+async function verifyZeffySignature(rawBody, header, secret) {
+  if (!header || !secret) return false;
+
+  const parts = Object.fromEntries(header.split(',').map((kv) => kv.split('=')));
+  const timestamp = parts.t;
+  const signature = parts.v1;
+  if (!timestamp || !signature) return false;
+
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  if (Math.abs(nowSeconds - Number(timestamp)) > SIGNATURE_TOLERANCE_SECONDS) return false;
+
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const mac = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(`${timestamp}.${rawBody}`));
+  const expected = [...new Uint8Array(mac)].map((b) => b.toString(16).padStart(2, '0')).join('');
+
+  return timingSafeEqual(expected, signature);
+}
 
 function extractAmount(payload) {
   const cents = payload.data?.amount;
@@ -56,9 +102,19 @@ export const onRequestPost = async (context) => {
     return new Response('Unauthorized', { status: 401 });
   }
 
+  const rawBody = await request.text();
+  const signatureValid = await verifyZeffySignature(
+    rawBody,
+    request.headers.get('zeffy-signature'),
+    env.ZEFFY_WEBHOOK_SECRET
+  );
+  if (!signatureValid) {
+    return new Response('Invalid signature', { status: 401 });
+  }
+
   let payload;
   try {
-    payload = await request.json();
+    payload = JSON.parse(rawBody);
   } catch {
     return new Response('Invalid JSON', { status: 400 });
   }

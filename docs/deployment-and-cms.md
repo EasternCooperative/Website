@@ -42,11 +42,12 @@ auth check live in `functions/_lib/ga4.js`.
 project → Settings → Environment variables — set for both Production and
 Preview, never committed to the repo):
 
-| Variable             | Purpose                                                                                                                                                                                       |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GA4_MEASUREMENT_ID` | `G-TMYSFB9B9J` — same property as `analytics.vendors.googleAnalytics.id` in `src/config.yaml`                                                                                                 |
-| `GA4_API_SECRET`     | GA4 Measurement Protocol API secret, nicknamed "server-side-webhooks (Cognito, Zeffy)" in GA4 admin (Data Streams → www.ecrs.org → Measurement Protocol API secrets)                          |
-| `TRACK_PURCHASE_KEY` | Shared secret required as a `?key=` query param on both webhook URLs — without it, the endpoint is a public POST that can inject fake conversions into the Ads account's Primary bidding goal |
+| Variable               | Purpose                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GA4_MEASUREMENT_ID`   | `G-TMYSFB9B9J` — same property as `analytics.vendors.googleAnalytics.id` in `src/config.yaml`                                                                                                                                                                                                                                                                                                                   |
+| `GA4_API_SECRET`       | GA4 Measurement Protocol API secret, nicknamed "server-side-webhooks (Cognito, Zeffy)" in GA4 admin (Data Streams → www.ecrs.org → Measurement Protocol API secrets)                                                                                                                                                                                                                                            |
+| `TRACK_PURCHASE_KEY`   | Shared secret required as a `?key=` query param on both webhook URLs — without it, the endpoint is a public POST that can inject fake conversions into the Ads account's Primary bidding goal                                                                                                                                                                                                                   |
+| `ZEFFY_WEBHOOK_SECRET` | Zeffy's webhook signing secret (`whsec_...`, from Zeffy account → Settings → Integrations → Webhooks). Used to verify the `zeffy-signature` header on every request — Zeffy's webhook is account-wide (not per-form), so this is the only source-authenticity check on that endpoint beyond the shared `?key=`. Cognito has no equivalent (it doesn't sign requests), so `TRACK_PURCHASE_KEY` is its only gate. |
 
 **Webhook setup (external, done by whoever administers each platform):**
 
@@ -54,14 +55,16 @@ Preview, never committed to the repo):
   Settings → Webhooks & Notifications → "Post JSON Data to a Website" →
   `https://ecrs.org/api/track-purchase/cognito?key=<TRACK_PURCHASE_KEY>`,
   firing on entry submission/payment completion.
-- **Zeffy** — account → Settings → Integrations → Webhooks → subscribe to
-  `payment.completed` →
+- **Zeffy** — account-wide, not per form: Settings → Integrations →
+  Webhooks → subscribe to `payment.completed` →
   `https://ecrs.org/api/track-purchase/zeffy?key=<TRACK_PURCHASE_KEY>`.
 
-**Both field-name mappings are unverified against a live payload** — inspect
-a real webhook delivery (Cognito's webhook logs, or a Zeffy test payment)
-before trusting the numbers; see the comments at the top of each function
-file for what to check.
+**Field-name mappings verified 2026-08-25** against real $1 test donations
+on both platforms — see the comments at the top of each function file for
+the confirmed payload shapes. Event-registration payloads are still
+unverified for both (only donation campaigns have been tested); re-check
+`item_category` detection once a real ticketed event goes through either
+platform.
 
 **No per-campaign ad-click attribution:** every conversion is sent with a
 random GA4 client_id, so donations count toward the Ads "Donation Completed"
