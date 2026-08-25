@@ -151,3 +151,18 @@ html.dark .cog-cognito .cog-helptext,
 html.dark .cog-cognito .cog-html {
   color: var(--aw-color-text-muted) !important;
 }
+
+/* Payment step — the card-entry fields are cross-origin Braintree/PayPal
+   iframes with fixed black text and no themable dark mode, so darkening
+   just their wrapper would make typed input unreadable. Keep the widget an
+   intentionally light card instead (same idea as the partner-logo tiles in
+   connections.astro), rather than a half-dark blend that looks broken. */
+html.dark .cog-cognito .cog-paypal-payment {
+  background-color: #fff !important;
+  border-radius: 0.75rem !important;
+  padding: 1rem !important;
+  box-shadow: 0 4px 20px rgb(0 0 0 / 35%) !important;
+}
+html.dark .cog-cognito .el-tabs__nav {
+  background-color: #fff !important;
+}
