@@ -4,13 +4,12 @@
 // submission and forwards it to GA4 Measurement Protocol as a `purchase`
 // event (see ../../_lib/ga4.js).
 //
-// UNVERIFIED FIELD MAPPING: this hasn't been checked against a live Cognito
-// webhook delivery. Cognito's webhook payload is the raw entry JSON, whose
-// field names follow each field's "JSON name" (editable per-field in
-// Developer Mode) rather than a fixed schema — the candidate keys below are
-// best-effort guesses. Before relying on this, trigger a real submission,
-// inspect the payload in Cognito Forms > form > Settings > Webhooks > Logs,
-// and adjust extractAmount/extractTransactionId to match.
+// Field mapping verified 2026-08-25 against a real $1 test submission on the
+// "Tax Deductible Donation to ECRS" form (PayPal). `Order.AmountPaid` and
+// `Order.PaymentStatus` are Cognito's system fields for any form with a
+// payment component (not custom field names), so this should generalize to
+// other Cognito payment forms — but confirm against a real submission before
+// trusting a newly added form.
 //
 // Every conversion uses a random GA4 client_id (no per-campaign ad
 // attribution) — the conversion still counts toward the Ads goal. If
@@ -20,14 +19,23 @@
 import { sendPurchaseEvent, randomClientId, isAuthorized } from '../../_lib/ga4.js';
 
 function extractAmount(entry) {
-  const candidates = [entry.PaymentTotal, entry.Total, entry.OrderTotal, entry.Payment_Amount, entry.Amount];
+  const candidates = [entry.Order?.AmountPaid, entry.Order?.SubTotal, entry.AmountToDonate];
   const found = candidates.find((v) => typeof v === 'number' && !Number.isNaN(v));
   return found ?? null;
 }
 
 function extractTransactionId(entry) {
-  const id = entry.EntryId ?? entry.Id ?? entry.Number;
+  const id = entry.Id ?? entry.Order?.OrderId;
   return id == null ? null : String(id);
+}
+
+function isPaid(entry) {
+  const status = entry.Order?.PaymentStatus;
+  // No PaymentStatus at all means this form has no payment component (or the
+  // webhook fired on a non-payment event) — let extractAmount's null case
+  // catch that. A present-but-non-"Paid" status means payment hasn't
+  // completed (pending, failed, refunded) — don't report those.
+  return status == null || status === 'Paid';
 }
 
 export const onRequestPost = async (context) => {
@@ -59,10 +67,10 @@ export const onRequestPost = async (context) => {
     // rather than that this entry has no charge.
     return new Response('Could not extract a payment amount from payload — check field mapping', { status: 422 });
   }
-  if (value === 0) {
-    // Genuinely free entry (e.g. a non-payment form, or webhook fired before
-    // payment completed) — nothing to report.
-    return new Response('No payment amount, skipped', { status: 200 });
+  if (value === 0 || !isPaid(entry)) {
+    // Genuinely free entry, or payment not yet completed (pending/failed) —
+    // nothing to report.
+    return new Response('No completed payment, skipped', { status: 200 });
   }
 
   const purchaseResponse = await sendPurchaseEvent(env, {
@@ -70,7 +78,7 @@ export const onRequestPost = async (context) => {
     transactionId,
     value,
     currency: 'USD',
-    itemName: entry.FormName || 'Donation',
+    itemName: entry.Form?.Name || 'Donation',
     itemCategory: 'donation',
     itemVariant: 'cognito_forms',
   });
