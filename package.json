@@ -34,8 +34,8 @@
     "process-members": "node scripts/process-member-locations.mjs"
   },
   "dependencies": {
-    "@astrojs/markdown-remark": "7.2.2",
-    "@astrojs/react": "^6.0.2",
+    "@astrojs/markdown-remark": "7.2.4",
+    "@astrojs/react": "^6.0.4",
     "@astrojs/sitemap": "^3.7.3",
     "@fontsource-variable/inter": "^5.2.8",
     "@fontsource/oswald": "^5.2.8",
