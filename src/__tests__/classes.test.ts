@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { groupClassesByPeriod } from '../utils/classes';
+import { groupClassesByPeriod, resolveClassLeaderNames } from '../utils/classes';
 
 describe('groupClassesByPeriod', () => {
   it('returns an empty map for empty input', () => {
@@ -76,5 +76,56 @@ describe('groupClassesByPeriod', () => {
     };
     const groups = groupClassesByPeriod([cls]);
     expect(groups.get('Morning')![0]).toEqual(cls);
+  });
+});
+
+describe('resolveClassLeaderNames', () => {
+  const leaderMap = new Map([
+    ['heather-klemanski', { name: 'Heather Klemanski' }],
+    ['judi-powers', { name: 'Judi Powers' }],
+  ]);
+
+  it('returns an empty array when the class has no leader data', () => {
+    expect(resolveClassLeaderNames({ name: 'Break' }, leaderMap)).toEqual([]);
+  });
+
+  it('resolves leaders[].id entries against the leader map', () => {
+    const cls = { name: 'Folk Dance', leaders: [{ id: 'heather-klemanski' }, { id: 'judi-powers' }] };
+    expect(resolveClassLeaderNames(cls, leaderMap)).toEqual(['Heather Klemanski', 'Judi Powers']);
+  });
+
+  it('falls back to leaders[].name when the id is unresolved', () => {
+    const cls = { name: 'Improv', leaders: [{ id: 'unknown-id', name: 'Maria Paciona' }] };
+    expect(resolveClassLeaderNames(cls, leaderMap)).toEqual(['Maria Paciona']);
+  });
+
+  it('uses leaders[].name directly when no id is present', () => {
+    const cls = { name: 'Improv', leaders: [{ name: 'Maria Paciona' }] };
+    expect(resolveClassLeaderNames(cls, leaderMap)).toEqual(['Maria Paciona']);
+  });
+
+  it('drops leaders[] entries that resolve to no name', () => {
+    const cls = { name: 'Improv', leaders: [{ id: 'unknown-id' }] };
+    expect(resolveClassLeaderNames(cls, leaderMap)).toEqual([]);
+  });
+
+  it('falls back to leaderId when leaders[] is absent', () => {
+    const cls = { name: 'Games', leaderId: 'heather-klemanski' };
+    expect(resolveClassLeaderNames(cls, leaderMap)).toEqual(['Heather Klemanski']);
+  });
+
+  it('falls back to the plain-text leader field when leaderId is unresolved', () => {
+    const cls = { name: 'Games', leaderId: 'unknown-id', leader: 'Guest Caller' };
+    expect(resolveClassLeaderNames(cls, leaderMap)).toEqual(['Guest Caller']);
+  });
+
+  it('uses the plain-text leader field when no leaderId is present', () => {
+    const cls = { name: 'Games', leader: 'Guest Caller' };
+    expect(resolveClassLeaderNames(cls, leaderMap)).toEqual(['Guest Caller']);
+  });
+
+  it('prefers leaders[] over the singular leaderId/leader fields when both are present', () => {
+    const cls = { name: 'Games', leaderId: 'judi-powers', leaders: [{ id: 'heather-klemanski' }] };
+    expect(resolveClassLeaderNames(cls, leaderMap)).toEqual(['Heather Klemanski']);
   });
 });
