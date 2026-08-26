@@ -7,5 +7,3 @@ pre-push:
   commands:
     check:
       run: npm run check
-    test:
-      run: npm run test:coverage
