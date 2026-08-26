@@ -52,6 +52,14 @@ export default defineConfig({
         'src/types.d.ts',
         'src/content.config.ts',
       ],
+      // Floors set just under the current baseline (see `npm run test:coverage`) —
+      // failing here on push is what should catch a drop before Codecov flags the PR.
+      thresholds: {
+        statements: 91,
+        branches: 80,
+        functions: 84,
+        lines: 91,
+      },
     },
   },
 });
