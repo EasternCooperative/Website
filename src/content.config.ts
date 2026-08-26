@@ -150,6 +150,11 @@ const eventCollection = defineCollection({
     earlyBirdFeeNote: z.string().optional(),
     cognitoFormId: z.string().optional(),
     zeffyFormUrl: optionalString,
+    // Set only for events that never require signup (free drop-in events). When no
+    // registration mechanism is set and this is false/unset, the page assumes
+    // registration is just not open yet and shows "coming soon" rather than implying
+    // no signup will ever be needed.
+    noRegistrationRequired: z.boolean().optional(),
 
     // Pricing — three tiers of complexity (mutually exclusive, pick one)
     fee: z.string().optional(), // simple: "Free / $25 adults"
