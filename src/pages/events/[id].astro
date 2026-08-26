@@ -894,32 +894,46 @@ const breadcrumbJsonLd = {
        BOTTOM CTA
        ============================================================ -->
   {
-    !isPast && (
-      <CallToAction
-        title={siteSettings.eventCtaTitle}
-        subtitle={renderInlineMarkdown(siteSettings.eventCtaSubtitle)}
-        actions={
-          data.registrationUrl
-            ? [
-                { variant: 'primary', text: 'Register Now', href: data.registrationUrl, target: '_blank' },
-                { text: 'Contact Us', href: '/contact' },
-              ]
-            : data.cognitoFormId || data.zeffyFormUrl
-              ? [
-                  { variant: 'primary', text: 'Register Now', href: '#registration' },
-                  { text: 'Contact Us', href: '/contact' },
-                ]
-              : [
-                  { variant: 'primary', text: 'Contact Us', href: '/contact' },
-                  { text: 'All Events', href: '/events' },
-                ]
-        }
-      >
-        <Fragment slot="bg">
-          <div class="absolute inset-0 bg-primary/5 dark:bg-transparent" />
-        </Fragment>
-      </CallToAction>
-    )
+    !isPast &&
+      (() => {
+        const hasRegistration = !!(data.registrationUrl || data.cognitoFormId || data.zeffyFormUrl);
+        const ctaTitle = hasRegistration
+          ? siteSettings.eventCtaTitle
+          : data.noRegistrationRequired
+            ? siteSettings.eventCtaTitleDropIn
+            : siteSettings.eventCtaTitleComingSoon;
+        const ctaSubtitle = hasRegistration
+          ? siteSettings.eventCtaSubtitle
+          : data.noRegistrationRequired
+            ? siteSettings.eventCtaSubtitleDropIn
+            : siteSettings.eventCtaSubtitleComingSoon;
+        return (
+          <CallToAction
+            title={ctaTitle}
+            subtitle={renderInlineMarkdown(ctaSubtitle)}
+            actions={
+              data.registrationUrl
+                ? [
+                    { variant: 'primary', text: 'Register Now', href: data.registrationUrl, target: '_blank' },
+                    { text: 'Contact Us', href: '/contact' },
+                  ]
+                : data.cognitoFormId || data.zeffyFormUrl
+                  ? [
+                      { variant: 'primary', text: 'Register Now', href: '#registration' },
+                      { text: 'Contact Us', href: '/contact' },
+                    ]
+                  : [
+                      { variant: 'primary', text: 'Contact Us', href: '/contact' },
+                      { text: 'All Events', href: '/events' },
+                    ]
+            }
+          >
+            <Fragment slot="bg">
+              <div class="absolute inset-0 bg-primary/5 dark:bg-transparent" />
+            </Fragment>
+          </CallToAction>
+        );
+      })()
   }
 
   <!-- ── Leader popovers ── -->
