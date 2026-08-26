@@ -6,11 +6,15 @@ import EventCard from '~/components/widgets/EventCard.astro';
 import eventsListSettings from '~/data/settings/events-list.json';
 import { formatEventDateRange } from '~/utils/dates';
 import { resolveVenue } from '~/utils/resolveEvent';
+import { computeEventSections } from '~/utils/eventSections';
+import { resolveClassLeaderNames } from '~/utils/classes';
 import { renderInlineMarkdown, stripMarkdown } from '~/utils/markdown';
 
 const allEvents = await getCollection('event', ({ data }) => !data.draft);
 const allSites = await getCollection('site');
 const siteMap = new Map(allSites.map((s) => [s.id, s.data]));
+const allLeaders = await getCollection('leader');
+const leaderMap = new Map(allLeaders.map((l) => [l.id, l.data]));
 // en-CA produces YYYY-MM-DD output (the only locale that does), which lets us
 // concatenate directly into a valid ISO string. The timezone is what matters here.
 const now = new Date(new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }) + 'T00:00:00Z');
@@ -42,7 +46,7 @@ const itemListJsonLd = {
       '@id': Astro.site ? new URL(`/events/${event.id}`, Astro.site).href : `https://ecrs.org/events/${event.id}`,
       name: event.data.title,
       startDate: event.data.date.toISOString(),
-      ...(event.data.endDate ? { endDate: event.data.endDate.toISOString() } : {}),
+      endDate: (event.data.endDate ?? event.data.date).toISOString(),
       eventStatus:
         (event.data.endDate ?? event.data.date) < now
           ? 'https://schema.org/EventPast'
@@ -57,8 +61,39 @@ const itemListJsonLd = {
         audienceType: 'All ages, intergenerational, families',
         suggestedMinAge: 0,
       },
+      ...(() => {
+        const performerNames = [
+          ...new Set((event.data.classes ?? []).flatMap((c) => resolveClassLeaderNames(c, leaderMap))),
+        ];
+        return performerNames.length > 0
+          ? { performer: performerNames.map((name) => ({ '@type': 'Person', name })) }
+          : {};
+      })(),
       ...(event.data.excerpt ? { description: event.data.excerpt } : {}),
+      image: [Astro.site ? new URL(`/og/${event.id}.jpg`, Astro.site).href : `https://ecrs.org/og/${event.id}.jpg`],
+      organizer: {
+        '@type': 'Organization',
+        name: 'ECRS',
+        url: Astro.site ? String(Astro.site) : 'https://ecrs.org',
+      },
       url: Astro.site ? new URL(`/events/${event.id}`, Astro.site).href : `https://ecrs.org/events/${event.id}`,
+      ...(() => {
+        const { pricingRows, isPast } = computeEventSections(event.data, now);
+        if (pricingRows.length === 0) return {};
+        const eventUrl = Astro.site
+          ? new URL(`/events/${event.id}`, Astro.site).href
+          : `https://ecrs.org/events/${event.id}`;
+        return {
+          offers: pricingRows.map((p) => ({
+            '@type': 'Offer',
+            name: p.ageRange,
+            price: p.fullWeekend === 'Free' ? '0' : (p.fullWeekend?.replace(/,/g, '').match(/\d+(\.\d+)?/)?.[0] ?? '0'),
+            priceCurrency: 'USD',
+            availability: isPast ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
+            url: event.data.registrationUrl || eventUrl,
+          })),
+        };
+      })(),
     },
   })),
 };

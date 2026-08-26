@@ -9,7 +9,7 @@ import Image from '~/components/common/Image.astro';
 import { findImage } from '~/utils/images';
 import { resolveVenue } from '~/utils/resolveEvent';
 import siteSettings from '~/data/settings/site.json';
-import { groupClassesByPeriod } from '~/utils/classes';
+import { groupClassesByPeriod, resolveClassLeaderNames } from '~/utils/classes';
 import { renderMarkdown, renderInlineMarkdown, stripMarkdown } from '~/utils/markdown';
 
 type ResolvedLeader = {
@@ -53,6 +53,8 @@ const linkedLeaderIds = [
     ...(data.classes ?? []).flatMap((c) => (c.leaders ?? []).map((l) => l.id).filter((id): id is string => !!id)),
   ]),
 ];
+
+const performerNames = [...new Set((data.classes ?? []).flatMap((c) => resolveClassLeaderNames(c, leaderMap)))];
 
 const UTC: Intl.DateTimeFormatOptions = { timeZone: 'UTC' };
 
@@ -137,6 +139,7 @@ const jsonLd = {
     audienceType: 'All ages, intergenerational, families',
     suggestedMinAge: 0,
   },
+  performer: performerNames.length > 0 ? performerNames.map((name) => ({ '@type': 'Person', name })) : undefined,
   offers:
     pricingRows.length > 0
       ? pricingRows.map((p) => ({
@@ -148,7 +151,7 @@ const jsonLd = {
           price: p.fullWeekend === 'Free' ? '0' : (p.fullWeekend?.replace(/,/g, '').match(/\d+(\.\d+)?/)?.[0] ?? '0'),
           priceCurrency: 'USD',
           availability: isPast ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
-          url: data.registrationUrl ?? String(Astro.url),
+          url: data.registrationUrl || String(Astro.url),
         }))
       : undefined,
 };
