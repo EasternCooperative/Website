@@ -18,6 +18,24 @@ export type EventClass = {
 };
 
 /**
+ * Resolves the leader name(s) for a single class, preferring the `leaders`
+ * array and falling back to the singular `leaderId`/`leader` fields — same
+ * precedence used to render leader chips on the event page. `leaderId`
+ * lookups that don't resolve fall back to the plain-text `leader`/`name`.
+ */
+export function resolveClassLeaderNames(cls: EventClass, leaderMap: Map<string, { name: string }>): string[] {
+  const entries = cls.leaders?.length
+    ? cls.leaders
+    : cls.leaderId || cls.leader
+      ? [{ id: cls.leaderId, name: cls.leader }]
+      : [];
+  const names = entries
+    .map((l) => (l.id ? (leaderMap.get(l.id)?.name ?? l.name) : l.name))
+    .filter((n): n is string => !!n);
+  return names;
+}
+
+/**
  * Groups classes by period in first-seen insertion order.
  * Classes with no period are grouped under the empty string key.
  */
