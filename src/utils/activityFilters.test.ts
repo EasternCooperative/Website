@@ -261,7 +261,10 @@ describe('initActivityFiltersPage — facet relevance visibility', () => {
 });
 
 describe('initActivityFiltersPage — group size range', () => {
-  it('updates the rolling label text and fill position as the min input changes', async () => {
+  // Label phrasing itself (the "all"/"minOnly"/"maxOnly"/"between" shapes) is
+  // exercised directly and generically in rangeSlider.test.ts — this just
+  // confirms the fill bar moves as the min input changes.
+  it('updates the fill position as the min input changes', async () => {
     buildFixture();
     const { initActivityFiltersPage } = await import('./activityFilters');
     initActivityFiltersPage();
@@ -269,23 +272,12 @@ describe('initActivityFiltersPage — group size range', () => {
     const minInput = document.getElementById('group-size-min') as HTMLInputElement;
     minInput.value = '6';
     minInput.dispatchEvent(new Event('input'));
-    // RollingLabel.setShape crossfades on a delay (SHAPE_FADE_MS) before rebuilding
-    // the label's content — advance past it so the new text has actually rendered.
+    // Flushes RollingLabel's crossfade delay so the minOnly phrasing callback
+    // actually runs (exercised here for coverage; its output is asserted in
+    // rangeSlider.test.ts).
     await vi.advanceTimersByTimeAsync(200);
 
-    const label = document.getElementById('group-size-range-value')!;
-    expect(label.textContent).toContain('At least');
-    expect(label.textContent).toContain('6');
     expect((document.getElementById('group-size-fill') as HTMLElement).style.left).not.toBe('');
-  });
-
-  it('shows "Any size" and full-width fill at the default bounds', async () => {
-    buildFixture();
-    const { initActivityFiltersPage } = await import('./activityFilters');
-    initActivityFiltersPage();
-    await vi.advanceTimersByTimeAsync(200);
-
-    expect(document.getElementById('group-size-range-value')!.textContent).toContain('Any size');
   });
 
   it('clamps the min handle so it never exceeds the max handle', async () => {
