@@ -142,12 +142,19 @@ const jsonLd = {
   startDate: buildISODateTime(data.date, data.startTime),
   endDate: data.endDate ? buildISODateTime(data.endDate, data.endTime) : buildISODateTime(data.date, data.endTime),
   eventStatus: isPast ? 'https://schema.org/EventPast' : 'https://schema.org/EventScheduled',
-  eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
-  location: {
-    '@type': 'Place',
-    name: venue.location,
-    address: venue.address ?? venue.location,
-  },
+  eventAttendanceMode: venue.address
+    ? 'https://schema.org/OfflineEventAttendanceMode'
+    : 'https://schema.org/OnlineEventAttendanceMode',
+  location: venue.address
+    ? {
+        '@type': 'Place',
+        name: venue.location,
+        address: venue.address,
+      }
+    : {
+        '@type': 'VirtualLocation',
+        url: String(Astro.url),
+      },
   description: data.excerpt ?? (data.description ? stripMarkdown(data.description) : undefined),
   image: socialImageUrl ? [socialImageUrl] : undefined,
   url: String(Astro.url),
