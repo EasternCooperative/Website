@@ -71,7 +71,10 @@ describe('getStaticPaths', () => {
     vi.mocked(getCollection)
       .mockResolvedValueOnce(fakeEvents as never)
       .mockResolvedValueOnce([] as never);
-    const paths = await getStaticPaths();
+    // getStaticPaths is typed as GetStaticPaths (which declares a required options
+    // param) even though this implementation ignores it, so the call site still
+    // needs an argument to satisfy the type checker.
+    const paths = await getStaticPaths({} as Parameters<typeof getStaticPaths>[0]);
     expect(paths).toEqual([
       { params: { id: 'event-a' }, props: { event: fakeEvents[0], siteData: undefined } },
       { params: { id: 'event-b' }, props: { event: fakeEvents[1], siteData: undefined } },
