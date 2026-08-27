@@ -4,5 +4,6 @@
   "heroSubtitle": "One-day gatherings, weekend retreats, and five-day adventures — open to all ages and all experience levels.",
   "upcomingHeading": "Upcoming Events",
   "pastHeading": "Past Events",
-  "emptyStateText": "No upcoming events are scheduled right now. Check back soon!"
+  "emptyStateText": "No upcoming events are scheduled right now. Check back soon!",
+  "pastEmptyStateText": "No past events match your filters."
 }
