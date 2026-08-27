@@ -200,6 +200,44 @@ describe('initPastEventsFiltersPage — year range', () => {
 
     expect(document.getElementById('past-year-range-value')!.textContent).toContain('All years');
   });
+
+  // Label phrasing itself (the "all"/"minOnly"/"maxOnly"/"between" shapes) is
+  // exercised directly and generically in rangeSlider.test.ts — these just
+  // confirm the max-only and both-handles cases filter the right cards and
+  // surface the inline Reset link.
+  it('narrowing only the max year excludes later cards', async () => {
+    buildFixture();
+    const { initPastEventsFiltersPage } = await import('./pastEventsFilters');
+    initPastEventsFiltersPage();
+
+    const maxInput = document.getElementById('past-year-max') as HTMLInputElement;
+    maxInput.value = '2021';
+    maxInput.dispatchEvent(new Event('input'));
+    // Flushes RollingLabel's crossfade delay so the maxOnly phrasing callback
+    // actually runs (exercised here for coverage; its output is asserted in
+    // rangeSlider.test.ts).
+    await vi.advanceTimersByTimeAsync(200);
+
+    expect(visibleYears()).toEqual(['2019', '2021']);
+    expect(document.getElementById('past-year-reset')!.classList.contains('hidden')).toBe(false);
+  });
+
+  it('narrowing both min and max filters to the overlapping cards', async () => {
+    buildFixture();
+    const { initPastEventsFiltersPage } = await import('./pastEventsFilters');
+    initPastEventsFiltersPage();
+
+    const minInput = document.getElementById('past-year-min') as HTMLInputElement;
+    const maxInput = document.getElementById('past-year-max') as HTMLInputElement;
+    minInput.value = '2020';
+    minInput.dispatchEvent(new Event('input'));
+    maxInput.value = '2022';
+    maxInput.dispatchEvent(new Event('input'));
+    // Flushes the crossfade delay so the between phrasing callback runs (see note above).
+    await vi.advanceTimersByTimeAsync(200);
+
+    expect(visibleYears()).toEqual(['2021']);
+  });
 });
 
 describe('initPastEventsFiltersPage — clear filters', () => {

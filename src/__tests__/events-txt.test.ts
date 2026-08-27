@@ -13,6 +13,8 @@ const makeEvent = (
     title: string;
     date: Date;
     endDate: Date | undefined;
+    startTime: string | undefined;
+    endTime: string | undefined;
     location: string | undefined;
     address: string | undefined;
     excerpt: string | undefined;
@@ -32,6 +34,8 @@ const makeEvent = (
     title: 'Annual Gala',
     date: new Date('2024-05-15'),
     endDate: undefined as Date | undefined,
+    startTime: undefined as string | undefined,
+    endTime: undefined as string | undefined,
     location: undefined as string | undefined,
     address: undefined as string | undefined,
     excerpt: undefined as string | undefined,
@@ -67,7 +71,7 @@ describe('getStaticPaths', () => {
     vi.mocked(getCollection)
       .mockResolvedValueOnce(fakeEvents as never)
       .mockResolvedValueOnce([] as never);
-    const paths = await getStaticPaths({} as never);
+    const paths = await getStaticPaths();
     expect(paths).toEqual([
       { params: { id: 'event-a' }, props: { event: fakeEvents[0], siteData: undefined } },
       { params: { id: 'event-b' }, props: { event: fakeEvents[1], siteData: undefined } },
@@ -92,6 +96,29 @@ describe('GET /events/[id].txt', () => {
     const text = await callGet(makeEvent({ title: 'Spring Concert', date: new Date('2024-05-15') }));
     expect(text).toContain('Spring Concert');
     expect(text).toContain('May 15, 2024');
+  });
+
+  it('includes start and end time when present', async () => {
+    const text = await callGet(makeEvent({ startTime: '10:00 AM', endTime: '4:00 PM' }));
+    expect(text).toContain('Starts 10:00 AM · Ends 4:00 PM');
+  });
+
+  it('includes only the start time when no end time is set', async () => {
+    const text = await callGet(makeEvent({ startTime: '10:00 AM' }));
+    expect(text).toContain('Starts 10:00 AM');
+    expect(text).not.toContain('Ends');
+  });
+
+  it('includes the excerpt under About when present', async () => {
+    const text = await callGet(makeEvent({ excerpt: 'A short **teaser**' }));
+    expect(text).toContain('ABOUT');
+    expect(text).toContain('A short teaser');
+  });
+
+  it('falls back to the description under About when no excerpt is set', async () => {
+    const text = await callGet(makeEvent({ description: 'The full **description**' }));
+    expect(text).toContain('ABOUT');
+    expect(text).toContain('The full description');
   });
 
   it('includes location and address when present', async () => {
