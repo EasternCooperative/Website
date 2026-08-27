@@ -136,24 +136,34 @@ test.describe('leader popover', () => {
   });
 
   test('leader name is a clickable button in the class listing', async ({ page }) => {
-    const trigger = page.getByRole('button', { name: 'Patricia Williams' }).first();
+    const trigger = page.getByRole('button', { name: 'Patricia Williams', exact: true }).first();
     await expect(trigger).toBeVisible();
   });
 
   test('clicking leader button opens the popover with name and profile link', async ({ page }) => {
-    const trigger = page.getByRole('button', { name: 'Patricia Williams' }).first();
+    const trigger = page.getByRole('button', { name: 'Patricia Williams', exact: true }).first();
     await trigger.scrollIntoViewIfNeeded();
+    // Give the scroll-reveal animation on nearby class rows a moment to settle —
+    // clicking immediately after scrollIntoViewIfNeeded can catch it mid-transition,
+    // shifting layout enough to fire a spurious mouseleave that closes the popover
+    // right after it opens.
+    await page.waitForTimeout(300);
     await trigger.click();
 
     const popover = page.locator('[id="leader-patricia-williams"]');
     await expect(popover).toBeVisible();
-    await expect(popover.getByText('Patricia Williams')).toBeVisible();
+    // Scoped to :visible — the popover also nests the profile photo's zoom
+    // lightbox <dialog>, whose closed-but-still-in-the-DOM caption also reads
+    // "Patricia Williams" and would otherwise make this locator ambiguous.
+    await expect(popover.locator('p:visible', { hasText: 'Patricia Williams' })).toBeVisible();
     await expect(popover.getByRole('link', { name: /view full profile/i })).toBeVisible();
   });
 
   test('hovering leader button opens the popover', async ({ page }) => {
-    const trigger = page.getByRole('button', { name: 'Patricia Williams' }).first();
+    const trigger = page.getByRole('button', { name: 'Patricia Williams', exact: true }).first();
     await trigger.scrollIntoViewIfNeeded();
+    // See the comment above on the click test — same settle is needed before hover.
+    await page.waitForTimeout(300);
     await trigger.hover();
 
     const popover = page.locator('[id="leader-patricia-williams"]');
@@ -161,8 +171,10 @@ test.describe('leader popover', () => {
   });
 
   test('popover closes after moving mouse away', async ({ page }) => {
-    const trigger = page.getByRole('button', { name: 'Patricia Williams' }).first();
+    const trigger = page.getByRole('button', { name: 'Patricia Williams', exact: true }).first();
     await trigger.scrollIntoViewIfNeeded();
+    // See the comment above on the click test — same settle is needed before hover.
+    await page.waitForTimeout(300);
     await trigger.hover();
 
     const popover = page.locator('[id="leader-patricia-williams"]');
@@ -174,8 +186,13 @@ test.describe('leader popover', () => {
   });
 
   test('popover profile link points to /our-people with correct anchor', async ({ page }) => {
-    const trigger = page.getByRole('button', { name: 'Patricia Williams' }).first();
+    const trigger = page.getByRole('button', { name: 'Patricia Williams', exact: true }).first();
     await trigger.scrollIntoViewIfNeeded();
+    // Give the scroll-reveal animation on nearby class rows a moment to settle —
+    // clicking immediately after scrollIntoViewIfNeeded can catch it mid-transition,
+    // shifting layout enough to fire a spurious mouseleave that closes the popover
+    // right after it opens.
+    await page.waitForTimeout(300);
     await trigger.click();
 
     const link = page.locator('[id="leader-patricia-williams"]').getByRole('link', { name: /view full profile/i });

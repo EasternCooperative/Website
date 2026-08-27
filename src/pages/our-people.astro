@@ -16,6 +16,9 @@ interface PeoplePerson {
   // `bio` still win if set, so a section can deliberately use a different
   // photo (e.g. a group shot) without losing the reference for bio reuse.
   leaderId?: string | null;
+  // Same idea as `leaderId`, but resolves against the `staff` collection
+  // instead (event logistics/coordination roles, not class leaders).
+  staffId?: string | null;
   photo?: string | null;
   bio?: string | null;
 }
@@ -42,13 +45,18 @@ let leaders = await getCollection('leader');
 leaders.sort((a, b) => a.data.name.localeCompare(b.data.name, undefined, { sensitivity: 'base' }));
 const leaderById = new Map(leaders.map((l) => [l.id, l]));
 
-// Resolve each category person's `leaderId` reference into an actual photo/bio
-// once, up front, so every consumer below (cards, row-balancing, JSON-LD) sees
-// the same reused-vs-duplicated data instead of resolving it independently.
+let staffMembers = await getCollection('staff');
+staffMembers.sort((a, b) => a.data.name.localeCompare(b.data.name, undefined, { sensitivity: 'base' }));
+const staffById = new Map(staffMembers.map((s) => [s.id, s]));
+
+// Resolve each category person's `leaderId`/`staffId` reference into an actual
+// photo/bio once, up front, so every consumer below (cards, row-balancing,
+// JSON-LD) sees the same reused-vs-duplicated data instead of resolving it
+// independently.
 peoplePageData.categories = (peoplePageData.categories ?? []).map((cat) => ({
   ...cat,
   people: (cat.people ?? []).map((p) => {
-    const linked = p.leaderId ? leaderById.get(p.leaderId) : undefined;
+    const linked = p.leaderId ? leaderById.get(p.leaderId) : p.staffId ? staffById.get(p.staffId) : undefined;
     return {
       ...p,
       photo: p.photo ?? linked?.data.photo ?? null,
@@ -140,10 +148,19 @@ for (const leader of leaders) {
 // bios in the two-column grid, rather than stretching short cards to match tall ones.
 const balancedLeaders = balanceByWeight(displayLeaders, (l) => (l.bio ? stripMarkdown(l.bio).length : 0));
 
+// Staff (logistics/coordination roles, not class leaders) — same balanced-row
+// treatment as Leaders, but no partner-combining since that's a class-leader
+// pattern (couples who co-teach) that doesn't apply here.
+const balancedStaff = balanceByWeight(
+  staffMembers.map((s) => ({ id: s.id, name: s.data.name, title: s.data.role, photo: s.data.photo, bio: s.data.bio })),
+  (s) => (s.bio ? stripMarkdown(s.bio).length : 0)
+);
+
 // Quick-jump nav entries — one per section that will actually render below,
 // in the same order as the sections themselves.
 const jumpSections = [
   ...(balancedLeaders.length > 0 ? [{ id: 'leaders-heading', label: 'Leaders' }] : []),
+  ...(balancedStaff.length > 0 ? [{ id: 'staff-heading', label: 'Staff' }] : []),
   ...peoplePageData.categories
     .filter((cat) => cat.people && cat.people.length > 0)
     .map((cat) => ({
@@ -176,6 +193,18 @@ const leaderPersons = leaders.map((l) => ({
   worksFor: ecrsOrg,
 }));
 
+const staffPersons = staffMembers.map((s) => ({
+  '@type': 'Person',
+  '@id': Astro.site
+    ? new URL(`/our-people#staff-${s.id}`, Astro.site).href
+    : `https://ecrs.org/our-people#staff-${s.id}`,
+  name: s.data.name,
+  ...(s.data.role ? { jobTitle: s.data.role } : {}),
+  ...(s.data.bio ? { description: stripMarkdown(s.data.bio) } : {}),
+  url: Astro.site ? new URL(`/our-people#staff-${s.id}`, Astro.site).href : `https://ecrs.org/our-people#staff-${s.id}`,
+  worksFor: ecrsOrg,
+}));
+
 const categoryPersons = (peoplePageData.categories ?? []).flatMap((cat) =>
   (cat.people ?? []).map((p) => ({
     '@type': 'Person',
@@ -188,7 +217,7 @@ const categoryPersons = (peoplePageData.categories ?? []).flatMap((cat) =>
 
 const peopleJsonLd = {
   '@context': 'https://schema.org',
-  '@graph': [...leaderPersons, ...categoryPersons],
+  '@graph': [...leaderPersons, ...staffPersons, ...categoryPersons],
 };
 ---
 
@@ -315,6 +344,43 @@ const peopleJsonLd = {
                   title={leader.title}
                   photo={leader.photo}
                   bio={leader.bio ? renderInlineMarkdown(leader.bio) : undefined}
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    <!-- ── Staff (auto from staff records) ── -->
+    {
+      balancedStaff.length > 0 && (
+        <section
+          class:list={['mb-16', balancedStaff.every(hiddenByDefault) && 'hidden']}
+          aria-labelledby="staff-heading"
+          data-people-section
+        >
+          <h2
+            id="staff-heading"
+            class="font-heading text-2xl font-bold text-heading mb-8 pb-2 border-b border-gray-200 dark:border-gray-700 scroll-mt-24"
+          >
+            Staff
+          </h2>
+          <ul class="grid sm:grid-cols-2 gap-8 list-none p-0 m-0" data-people-list>
+            {balancedStaff.map((staffMember) => (
+              <li
+                id={`staff-${staffMember.id}`}
+                class:list={['scroll-mt-24', hiddenByDefault(staffMember) && 'hidden']}
+                data-scroll-reveal="up"
+                data-person-card
+                data-name={staffMember.name}
+                data-has-profile={String(hasProfile(staffMember))}
+              >
+                <PersonCard
+                  name={staffMember.name}
+                  title={staffMember.title}
+                  photo={staffMember.photo}
+                  bio={staffMember.bio ? renderInlineMarkdown(staffMember.bio) : undefined}
                 />
               </li>
             ))}
