@@ -5,6 +5,7 @@ endDate: 2021-06-13
 startTime: '6:00 PM'
 endTime: '5:00 PM'
 location: 'Virtual (Zoom)'
+image: '~/assets/images/sites/virtual-event.jpeg'
 excerpt: 'Connect, create, and play with not-your-average classes — and a bit of ECRS magic — spread across a full weekend on Zoom.'
 description: |
   Each day included a range of classes to choose from — pick just one, or several, whatever suits your fancy. Most ran an hour and a half, with two deep dives (Small Scenes and The Write Stuff) running three hours across both Saturday and Sunday. The weekend opened with a Friday evening kickoff and closed with a Sunday evening event.
