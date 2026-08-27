@@ -104,10 +104,12 @@ describe('hasCosts', () => {
   });
 
   it('is true with accommodations entries', () => {
-    expect(computeEventSections(base({ accommodations: [{}] }), NOW).hasCosts).toBe(true);
+    expect(computeEventSections(base({ accommodations: [{ name: 'Main Lodge', tiers: [] }] }), NOW).hasCosts).toBe(
+      true
+    );
   });
 
-  it('is true with legacy pricing rows that have an ageRange', () => {
+  it('is true with simple pricing rows that have an ageRange', () => {
     expect(computeEventSections(base({ pricing: [{ ageRange: '18+', fullWeekend: '$110' }] }), NOW).hasCosts).toBe(
       true
     );

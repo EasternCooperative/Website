@@ -84,7 +84,10 @@ function formatDate(d: Date) {
 // en-CA produces YYYY-MM-DD output (the only locale that does), which lets us
 // concatenate directly into a valid ISO string. The timezone is what matters here.
 const nowET = new Date(new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' }) + 'T00:00:00Z');
-const { isPast, pricingRows, jumpLinks, showJumpNav, cancellationCutoff } = computeEventSections(data, nowET);
+const { isPast, pricingRows, offerRows, jumpLinks, showJumpNav, cancellationCutoff } = computeEventSections(
+  data,
+  nowET
+);
 
 type PricingTier = NonNullable<typeof data.pricing>[0];
 const pricingNotes: PricingTier[] = (data.pricing ?? []).filter((p) => p.note);
@@ -160,8 +163,8 @@ const jsonLd = {
   },
   performer: performerNames.length > 0 ? performerNames.map((name) => ({ '@type': 'Person', name })) : undefined,
   offers:
-    pricingRows.length > 0
-      ? pricingRows.map((p) => ({
+    offerRows.length > 0
+      ? offerRows.map((p) => ({
           '@type': 'Offer',
           name: p.ageRange,
           // For ranged prices (e.g. "$50–75"), use the first number as the starting price
@@ -628,7 +631,7 @@ const breadcrumbJsonLd = {
         )
       }
 
-      <!-- ── Legacy pricing table (back-compat) ── -->
+      <!-- ── Simple age-range pricing table (events without a tuition/accommodations breakdown) ── -->
       {
         pricingRows.length > 0 && (
           <div class="mt-10">

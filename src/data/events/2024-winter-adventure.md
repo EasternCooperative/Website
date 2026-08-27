@@ -3,8 +3,72 @@ title: 'Winter Adventure 2024'
 date: 2024-12-27
 endDate: 2025-01-01
 startTime: '4:00 PM'
-endTime: '12:00 PM'
+endTime: '10:30 AM'
 siteId: the-y-at-watson-woods
+excerpt: "ECRS Winter Adventure is a creative and joyous alternative holiday experience, filled with classes, evening programs, and New Year's Eve festivities the ECRS way."
+description: |
+  ECRS Winter Adventure is a creative and joyous alternative holiday experience. There's nothing tedious or tiresome here — young and old are thoroughly engaged in four days filled with a diverse array of classes, evening programs, and late-night activities.
+
+  The Y at Watson Woods (Watson Homestead) is a conference center on 600 beautiful acres near Corning, NY, wheelchair accessible and ideally situated for winter sports and local attractions including sledding, hiking, and the nearby Corning Museum of Glass.
+registrationDeadline: 2024-12-20
+earlyBirdDeadline: 2024-12-03
+earlyBirdFeeNote: 'Register by December 3 to avoid a late fee ($50 per adult, $25 per child).'
+tuitionLabel: Tuition
+tuition:
+  - label: 'Ages 18+'
+    amount: '$100'
+  - label: 'Ages 0-17'
+    amount: 'Free'
+  - label: 'Newcomers (first multi-day event)'
+    amount: 'Free'
+accommodations:
+  - name: Main Lodge
+    description: 'Dorm-style rooms with twin or bunk beds and shared bath; guests must bring sheets and towels.'
+    tiers:
+      - label: '2 per room (adult)'
+        amount: '$430'
+      - label: '2 per room (child 6-12)'
+        amount: '$375'
+      - label: '3 per room (adult)'
+        amount: '$380'
+      - label: '3 per room (child 6-12)'
+        amount: '$325'
+      - label: '4 per room (adult)'
+        amount: '$355'
+      - label: '4 per room (child 6-12)'
+        amount: '$305'
+  - name: Hillside
+    description: 'A short walk up a hill from Main Lodge; limited rooms with shared baths. Guests must bring sheets and towels.'
+    tiers:
+      - label: 'Single (adult)'
+        amount: '$575'
+  - name: West Wing
+    description: 'Attached to Main Lodge. Hotel-style rooms with two double beds, private bath, and carpeting; all linens supplied.'
+    tiers:
+      - label: 'Single (adult)'
+        amount: '$820'
+      - label: '2 per room (adult)'
+        amount: '$560'
+      - label: '2 per room (child 6-12)'
+        amount: '$495'
+      - label: '3 per room (adult)'
+        amount: '$470'
+      - label: '3 per room (child 6-12)'
+        amount: '$410'
+      - label: '4 per room (adult)'
+        amount: '$430'
+      - label: '4 per room (child 6-12)'
+        amount: '$370'
+mealsIncluded: 'Breakfast, lunch, and dinner daily, from dinner on December 27 through breakfast on January 1.'
+mealsNote: 'Served family-style; vegetarian and gluten-free options available.'
+showHealthPolicy: true
+healthPolicy: 'During the week before Winter Adventure, please mask in crowded indoor spaces and monitor your health. If you have any signs of illness, we ask you not to come, and will give you a full refund.'
+newcomerNote: 'Is this your first multi-day ECRS event? Newcomers get free tuition!'
+staff:
+  - id: tom-helde
+    role: 'Tech/AV Support'
+  - name: 'Frank Baskin'
+    role: 'Staff Coordinator'
 tags:
   - multi-day
   - new-year
