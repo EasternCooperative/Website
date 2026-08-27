@@ -119,6 +119,7 @@ interface DisplayLeader {
 const consumedLeaderIds = new Set<string>();
 const displayLeaders: DisplayLeader[] = [];
 for (const leader of leaders) {
+  if (leader.data.hideFromPeoplePage) continue;
   if (consumedLeaderIds.has(leader.id)) continue;
   const partner = leader.data.partnerId ? leaderById.get(leader.data.partnerId) : undefined;
   const isMutualPartner = partner && partner.data.partnerId === leader.id && !consumedLeaderIds.has(partner.id);
@@ -179,19 +180,21 @@ const ecrsOrg = {
   url: Astro.site ? String(Astro.site) : 'https://ecrs.org',
 };
 
-const leaderPersons = leaders.map((l) => ({
-  '@type': 'Person',
-  '@id': Astro.site
-    ? new URL(`/our-people#leader-${l.id}`, Astro.site).href
-    : `https://ecrs.org/our-people#leader-${l.id}`,
-  name: l.data.name,
-  ...(l.data.title ? { jobTitle: l.data.title } : {}),
-  ...(l.data.bio ? { description: stripMarkdown(l.data.bio) } : {}),
-  url: Astro.site
-    ? new URL(`/our-people#leader-${l.id}`, Astro.site).href
-    : `https://ecrs.org/our-people#leader-${l.id}`,
-  worksFor: ecrsOrg,
-}));
+const leaderPersons = leaders
+  .filter((l) => !l.data.hideFromPeoplePage)
+  .map((l) => ({
+    '@type': 'Person',
+    '@id': Astro.site
+      ? new URL(`/our-people#leader-${l.id}`, Astro.site).href
+      : `https://ecrs.org/our-people#leader-${l.id}`,
+    name: l.data.name,
+    ...(l.data.title ? { jobTitle: l.data.title } : {}),
+    ...(l.data.bio ? { description: stripMarkdown(l.data.bio) } : {}),
+    url: Astro.site
+      ? new URL(`/our-people#leader-${l.id}`, Astro.site).href
+      : `https://ecrs.org/our-people#leader-${l.id}`,
+    worksFor: ecrsOrg,
+  }));
 
 const staffPersons = staffMembers.map((s) => ({
   '@type': 'Person',
