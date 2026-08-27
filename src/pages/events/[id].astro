@@ -897,13 +897,16 @@ const breadcrumbJsonLd = {
     !isPast &&
       (() => {
         const hasRegistration = !!(data.registrationUrl || data.cognitoFormId || data.zeffyFormUrl);
+        const isMultiDay = !!data.endDate;
         const ctaTitle = hasRegistration
           ? siteSettings.eventCtaTitle
           : data.noRegistrationRequired
             ? siteSettings.eventCtaTitleDropIn
             : siteSettings.eventCtaTitleComingSoon;
         const ctaSubtitle = hasRegistration
-          ? siteSettings.eventCtaSubtitle
+          ? isMultiDay
+            ? siteSettings.eventCtaSubtitle
+            : siteSettings.eventCtaSubtitleOneDay
           : data.noRegistrationRequired
             ? siteSettings.eventCtaSubtitleDropIn
             : siteSettings.eventCtaSubtitleComingSoon;
@@ -918,10 +921,7 @@ const breadcrumbJsonLd = {
                     { text: 'Contact Us', href: '/contact' },
                   ]
                 : data.cognitoFormId || data.zeffyFormUrl
-                  ? [
-                      { variant: 'primary', text: 'Register Now', href: '#registration' },
-                      { text: 'Contact Us', href: '/contact' },
-                    ]
+                  ? [{ variant: 'primary', text: 'Contact Us', href: '/contact' }]
                   : [
                       { variant: 'primary', text: 'Contact Us', href: '/contact' },
                       { text: 'All Events', href: '/events' },
