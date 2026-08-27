@@ -318,32 +318,59 @@ const breadcrumbJsonLd = {
           </div>
         </a>
 
-        <a
-          href={`geo:0,0?q=${encodeURIComponent(mapQuery)}`}
-          data-maps-fallback={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`}
-          class="flex gap-3 items-start rounded-xl p-2 -m-2 hover:bg-primary/5 transition-colors group"
-        >
-          <span class="text-primary mt-0.5 flex-shrink-0" aria-hidden="true">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              ><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"
-              ></circle></svg
+        {
+          venue.address ? (
+            <a
+              href={`geo:0,0?q=${encodeURIComponent(mapQuery)}`}
+              data-maps-fallback={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`}
+              class="flex gap-3 items-start rounded-xl p-2 -m-2 hover:bg-primary/5 transition-colors group"
             >
-          </span>
-          <div>
-            <p class="text-xs font-bold uppercase tracking-widest text-muted">Location</p>
-            <p class="text-default font-semibold group-hover:underline">{venue.location}</p>
-            {venue.address && <p class="text-sm text-muted">{venue.address}</p>}
-            {venue.phone && <p class="text-sm text-muted">{venue.phone}</p>}
-          </div>
-        </a>
+              <span class="text-primary mt-0.5 flex-shrink-0" aria-hidden="true">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+              </span>
+              <div>
+                <p class="text-xs font-bold uppercase tracking-widest text-muted">Location</p>
+                <p class="text-default font-semibold group-hover:underline">{venue.location}</p>
+                <p class="text-sm text-muted">{venue.address}</p>
+                {venue.phone && <p class="text-sm text-muted">{venue.phone}</p>}
+              </div>
+            </a>
+          ) : (
+            <div class="flex gap-3 items-start p-2 -m-2">
+              <span class="text-primary mt-0.5 flex-shrink-0" aria-hidden="true">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+              </span>
+              <div>
+                <p class="text-xs font-bold uppercase tracking-widest text-muted">Location</p>
+                <p class="text-default font-semibold">{venue.location}</p>
+              </div>
+            </div>
+          )
+        }
 
         {
           data.earlyBirdDeadline && !isPast && (
