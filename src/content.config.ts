@@ -102,6 +102,11 @@ const leaderCollection = defineCollection({
     // on both sides of the pair. Used by our-people.astro to render one combined
     // card instead of two duplicate ones.
     partnerId: z.string().optional(),
+    // Excludes this person from the auto-rendered Leaders section on
+    // our-people.astro, while still resolving normally as a class leader on
+    // event/activity pages. For people who shouldn't have a public profile
+    // (e.g. no longer involved) but are still referenced by past class records.
+    hideFromPeoplePage: z.boolean().optional(),
   }),
 });
 

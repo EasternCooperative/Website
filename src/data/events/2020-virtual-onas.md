@@ -4,6 +4,7 @@ date: 2020-06-13
 startTime: '5:00 PM'
 endTime: '7:00 PM'
 location: 'Virtual (Zoom)'
+image: '~/assets/images/sites/virtual-event.jpeg'
 excerpt: 'To keep our members safe during COVID-19, the in-person Camp Onas weekend was cancelled — but the ECRS spirit lived on with a virtual extravaganza on Zoom.'
 description: |
   To make sure our members stay safe in the time of COVID-19, the in-person Camp Onas weekend was cancelled — but the ECRS spirit lives on! Following the success of ECRS's Virtual Play Party, this three-hour extravaganza featured three class periods (with bio breaks built in) followed by time to hang out and socialize.

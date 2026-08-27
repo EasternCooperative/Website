@@ -5,6 +5,7 @@ endDate: 2021-01-01
 startTime: '1:00 PM'
 endTime: '1:00 AM'
 location: 'Virtual (Zoom)'
+image: '~/assets/images/sites/virtual-event.jpeg'
 excerpt: "We can't be in person, but the spirit of Winter Adventure is alive and well with not-your-average Zoom classes leading up to a New Year's Eve extravaganza."
 description: |
   We can't be in person, but the spirit of Winter Adventure is alive and well with not-your-average Zoom classes the week leading up to New Year's Eve. Classes ran December 26–30, each day offering several options from 45 minutes up to three hours — pick just one, or come every day! The week culminated in a full New Year's Eve program with group activities, a candlelight ceremony, and ice cream and dancing into the night.
