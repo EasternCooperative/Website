@@ -44,7 +44,7 @@ moreEventsEyebrow: Join Us
 moreEventsHeading: More Upcoming Events
 moreEventsViewAllText: View all events
 ctaTitle: Ready to join the community?
-ctaSubtitle: All events are open to people of all ages and all levels of experience. Newcomers always receive 50% off their first event.
+ctaSubtitle: All events are open to people of all ages and all levels of experience. Newcomers receive free tuition at their first multi-day event.
 ctaPrimaryText: See Upcoming Events
 ctaPrimaryHref: /events
 ctaSecondaryText: Contact Us

@@ -6,6 +6,7 @@ import CallToAction from '~/components/widgets/CallToAction.astro';
 import CognitoForm from '~/components/widgets/CognitoForm.astro';
 import ZeffyForm from '~/components/widgets/ZeffyForm.astro';
 import Image from '~/components/common/Image.astro';
+import PersonPhoto from '~/components/ui/PersonPhoto.astro';
 import { findImage } from '~/utils/images';
 import { resolveVenue } from '~/utils/resolveEvent';
 import siteSettings from '~/data/settings/site.json';
@@ -46,6 +47,24 @@ const mapQuery =
 
 const allLeaders = await getCollection('leader');
 const leaderMap = new Map<string, CollectionEntry<'leader'>['data']>(allLeaders.map((l) => [l.id, l.data]));
+
+const allStaff = await getCollection('staff');
+const staffMap = new Map<string, CollectionEntry<'staff'>['data']>(allStaff.map((s) => [s.id, s.data]));
+const resolvedStaff = (data.staff ?? [])
+  .map((s) => {
+    const record = s.id ? staffMap.get(s.id) : undefined;
+    const name = s.name ?? record?.name;
+    if (!name) return null;
+    return {
+      id: s.id,
+      name,
+      role: s.role ?? record?.role,
+      photo: record?.photo,
+      bio: record?.bio,
+    };
+  })
+  .filter((s): s is NonNullable<typeof s> => s !== null);
+const linkedStaffIds = [...new Set(resolvedStaff.map((s) => s.id).filter((id): id is string => !!id))];
 
 const linkedLeaderIds = [
   ...new Set([
@@ -716,16 +735,7 @@ const breadcrumbJsonLd = {
                                   return (
                                     <span class="inline-flex items-center gap-1">
                                       {l.record?.photo && (
-                                        <Image
-                                          src={l.record.photo}
-                                          alt={l.name}
-                                          width={20}
-                                          height={20}
-                                          widths={[20, 40]}
-                                          sizes="20px"
-                                          layout="cover"
-                                          class="w-5 h-5 rounded-full object-cover"
-                                        />
+                                        <PersonPhoto name={l.name} photo={l.record.photo} size={20} />
                                       )}
                                       {l.record && hasBio ? (
                                         <button
@@ -857,6 +867,39 @@ const breadcrumbJsonLd = {
         )
       }
 
+      <!-- ── Event staff (logistics/coordination roles, not class leaders) ── -->
+      {
+        resolvedStaff.length > 0 && (
+          <div class="mt-10">
+            <h2 class="font-heading text-2xl font-bold text-heading mb-6">Event Staff</h2>
+            <ul class="grid sm:grid-cols-2 gap-x-8 gap-y-2 list-none p-0 m-0">
+              {resolvedStaff.map((s) => {
+                const hasBio = siteSettings.featureFlags.peopleWithoutPhotoOrBio || !!s.bio;
+                return (
+                  <li class="flex items-center gap-2 text-sm">
+                    {s.role && <span class="text-muted">{s.role}:</span>}
+                    {s.photo && <PersonPhoto name={s.name} photo={s.photo} size={20} />}
+                    {s.id && hasBio ? (
+                      <button
+                        type="button"
+                        data-popover-target={`staff-${s.id}`}
+                        aria-controls={`staff-${s.id}`}
+                        aria-expanded="false"
+                        class="font-semibold text-heading underline decoration-dotted underline-offset-2 cursor-pointer hover:text-primary transition-colors"
+                      >
+                        {s.name}
+                      </button>
+                    ) : (
+                      <span class="font-semibold text-heading">{s.name}</span>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )
+      }
+
       <!-- Tags -->
       {
         eventTags.length > 0 && (
@@ -950,18 +993,7 @@ const breadcrumbJsonLd = {
         >
           <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl p-4 w-64 max-w-[calc(100vw-2rem)]">
             <div class="flex items-center gap-3 mb-2">
-              {leader.photo && (
-                <Image
-                  src={leader.photo}
-                  alt={leader.name}
-                  width={48}
-                  height={48}
-                  widths={[48, 96]}
-                  sizes="48px"
-                  layout="cover"
-                  class="w-12 h-12 rounded-full object-cover flex-shrink-0"
-                />
-              )}
+              {leader.photo && <PersonPhoto name={leader.name} photo={leader.photo} size={48} class="flex-shrink-0" />}
               <div class="min-w-0">
                 <p class="font-semibold text-gray-900 dark:text-white leading-snug">{leader.name}</p>
                 {leader.title && <p class="text-xs text-gray-500 dark:text-gray-400 leading-snug">{leader.title}</p>}
@@ -981,10 +1013,51 @@ const breadcrumbJsonLd = {
       );
     })
   }
+
+  <!-- ── Staff popovers ── -->
+  {
+    linkedStaffIds.map((id) => {
+      const staffMember = staffMap.get(id);
+      if (!staffMember) return null;
+      if (!siteSettings.featureFlags.peopleWithoutPhotoOrBio && !staffMember.bio) return null;
+      return (
+        <div
+          id={`staff-${id}`}
+          popover="auto"
+          class="m-0 p-0 border-0 bg-transparent shadow-none [&::backdrop]:bg-black/20"
+        >
+          <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl p-4 w-64 max-w-[calc(100vw-2rem)]">
+            <div class="flex items-center gap-3 mb-2">
+              {staffMember.photo && (
+                <PersonPhoto name={staffMember.name} photo={staffMember.photo} size={48} class="flex-shrink-0" />
+              )}
+              <div class="min-w-0">
+                <p class="font-semibold text-gray-900 dark:text-white leading-snug">{staffMember.name}</p>
+                {staffMember.role && (
+                  <p class="text-xs text-gray-500 dark:text-gray-400 leading-snug">{staffMember.role}</p>
+                )}
+              </div>
+            </div>
+            {staffMember.bio && (
+              <p
+                class="text-sm text-gray-600 dark:text-gray-300 line-clamp-6 mb-3 md-links"
+                set:html={renderInlineMarkdown(staffMember.bio)}
+              />
+            )}
+            <a href={`/our-people#staff-${id}`} class="text-xs font-semibold text-primary hover:underline">
+              View full profile →
+            </a>
+          </div>
+        </div>
+      );
+    })
+  }
 </Layout>
 
 <script>
   import { initEventPageInteractions } from '~/utils/eventPageInteractions';
+  import { initPersonPhotoLightbox } from '~/utils/personPhotoLightbox';
 
   initEventPageInteractions();
+  initPersonPhotoLightbox();
 </script>

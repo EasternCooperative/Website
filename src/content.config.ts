@@ -105,6 +105,18 @@ const leaderCollection = defineCollection({
   }),
 });
 
+const staffCollection = defineCollection({
+  loader: glob({ pattern: '*.md', base: 'src/data/staff' }),
+  schema: z.object({
+    name: z.string(),
+    // Default/most-recent role — an event's `staff[]` entry can override this
+    // with its own `role` for that specific event.
+    role: z.string().optional(),
+    photo: z.string().optional(),
+    bio: z.string().optional(),
+  }),
+});
+
 const siteCollection = defineCollection({
   loader: glob({ pattern: '*.md', base: 'src/data/sites' }),
   schema: z.object({
@@ -196,6 +208,19 @@ const eventCollection = defineCollection({
           limitedCapacity: z.boolean().optional(),
           description: z.string().optional(),
           callout: z.string().optional(),
+        })
+      )
+      .optional(),
+
+    // Event staff — logistics/coordination roles (registrar, tech support, business
+    // manager, etc.) that aren't tied to teaching a class. Distinct from `classes[].leaderId`,
+    // which references the `leader` collection instead. References the `staff` collection.
+    staff: z
+      .array(
+        z.object({
+          id: z.string().optional(),
+          name: z.string().optional(),
+          role: z.string().optional(),
         })
       )
       .optional(),
@@ -305,6 +330,7 @@ const galleryPhotoCollection = defineCollection({
 export const collections = {
   event: eventCollection,
   leader: leaderCollection,
+  staff: staffCollection,
   site: siteCollection,
   testimonial: testimonialCollection,
   landingSettings: landingSettingsCollection,

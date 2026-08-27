@@ -68,14 +68,16 @@
         {
           "name": "Hugh Abrams-Helde",
           "title": null,
-          "photo": "/images/headshots/hugh-abrams-helde.jpg",
-          "bio": "Hugh has been attending ECRS since attending a weekend in 1994 at the tender age of 15 months. He has served in several supporting roles since 2014, including Assistant Registrar, IT support, the Programming and Staffing committee, and Evening Program Co-coordinator."
+          "staffId": "hugh-abrams-helde",
+          "photo": null,
+          "bio": null
         },
         {
           "name": "Gabby Frisone",
           "title": null,
+          "staffId": "gabriella-frisone",
           "photo": null,
-          "bio": "Gabby has been involved with ECRS since she started coming with her family as a teenager, and she's been hooked ever since. Gabby recently became involved in the planning of events and served on the Board. Outside of ECRS, Gabby works as an administrator in the Statistics Department at a university."
+          "bio": null
         },
         {
           "name": "Jack Marquess",
@@ -105,7 +107,7 @@
         {
           "name": "Karen Wisnia",
           "title": null,
-          "leaderId": "karen-wisnia",
+          "staffId": "karen-wisnia",
           "photo": null,
           "bio": null
         },
@@ -137,13 +139,14 @@
         {
           "name": "Camden Elliott-Williams",
           "title": null,
-          "photo": "/images/headshots/camden-elliott-williams.jpg",
-          "bio": "Camden is an algorithmic data scientist who's passionate about discovering, refining, and integrating new solutions and perspectives through creativity, empathy, and tenacious deduction. He has acquired playful exploration techniques from decades of practice with the likes of a five-time International Jugglers Championships gold medalist, a three-time American Ninja Warrior contestant, a Hugo Award winner, and even venerated ECRS teachers from the Workshop era."
+          "leaderId": "camden-elliott-williams",
+          "photo": null,
+          "bio": null
         },
         {
           "name": "Karen Wisnia",
           "title": "Programming Liaison",
-          "leaderId": "karen-wisnia",
+          "staffId": "karen-wisnia",
           "photo": null,
           "bio": null
         }
@@ -161,6 +164,7 @@
         {
           "name": "Gabby Frisone",
           "title": null,
+          "staffId": "gabriella-frisone",
           "photo": null,
           "bio": null
         },
