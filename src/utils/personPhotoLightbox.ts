@@ -48,8 +48,12 @@ export function initPersonPhotoLightbox() {
   };
 
   const showPreviewFor = (trigger: HTMLElement) => {
+    // Once we're past this guard, dialogId is a non-empty string for the rest
+    // of the function — there's no separate "found the trigger but it had no
+    // dialog id" case to handle below.
     const dialogId = trigger.dataset.dialogId;
-    const dialog = dialogId ? document.getElementById(dialogId) : null;
+    if (!dialogId) return;
+    const dialog = document.getElementById(dialogId);
     const sourceImg = dialog?.querySelector('img');
     if (!(sourceImg instanceof HTMLImageElement)) return;
 
@@ -57,7 +61,7 @@ export function initPersonPhotoLightbox() {
     const previewImg = preview.querySelector('img') as HTMLImageElement;
 
     if (previewImg.dataset.forId !== dialogId) {
-      previewImg.dataset.forId = dialogId ?? '';
+      previewImg.dataset.forId = dialogId;
       preview.classList.remove('is-loaded');
 
       const applySrc = () => {
