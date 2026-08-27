@@ -1,3 +1,4 @@
 ---
-name: Trevor
+name: Trevor the Games Man
+title: Games
 ---

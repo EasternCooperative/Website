@@ -173,7 +173,7 @@ const eventCollection = defineCollection({
     tuitionLabel: optionalString, // override heading; defaults to "Tuition"
     tuition: z.array(tuitionTierSchema).optional(), // mid/full: tuition rows
     accommodations: z.array(accommodationSchema).optional(), // full: residential room & board
-    pricing: z.array(pricingTierSchema).optional(), // legacy — kept for back-compat
+    pricing: z.array(pricingTierSchema).optional(), // simple: flat age-range price table
 
     // Logistics
     mealsIncluded: z.string().optional(),

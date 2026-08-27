@@ -5,6 +5,33 @@ endDate: 2024-06-09
 startTime: '5:00 PM'
 endTime: '3:00 PM'
 siteId: camp-onas
+excerpt: "Calling people of all ages and walks of life to share fun and fellowship at ECRS's most affordable weekend event."
+description: |
+  Newcomers and ECRS veterans alike enjoy the chance to focus on dancing, singing, informal dramatics, crafts, or games during daytime classes. Then, at Evening Program, everyone comes together as a community to dance, sing, play games, and socialize over snacks.
+
+  Camp Onas is a summer camp facility on 72 wooded acres, with platform tents offering cots and bunk beds (or bring your own tent), plus a limited number of dormitory-style rooms. There are shared wash & shower facilities with hot water.
+registrationDeadline: 2024-06-04
+earlyBirdDeadline: 2024-05-28
+earlyBirdFeeNote: 'Register by May 28 to avoid a $25 late fee.'
+pricing:
+  - ageRange: 'Under 2'
+    fullWeekend: 'Free'
+    note: 'No childcare provided'
+  - ageRange: '2-13'
+    fullWeekend: '$85'
+  - ageRange: '14+'
+    fullWeekend: '$195'
+    note: 'Member rate $170'
+  - note: 'Saturday evening-only option (dinner, Evening Program, Evening Sing): $30. Newcomers save 50% on already low prices.'
+mealsIncluded: 'Saturday dinner, plus snacks after evening programs.'
+mealsNote: 'Bring your own food for all other meals.'
+staff:
+  - id: zsuzsi-nagy
+    role: Registrar
+  - id: david-geron-neubauer
+    role: 'Weekend Coordinator'
+  - id: karen-wisnia
+    role: 'Weekend Coordinator'
 tags:
   - weekend
   - camping
