@@ -166,7 +166,12 @@ import { UI } from 'astrowind:config';
 
 <script>
   import { initScrollReveal } from '~/utils/scrollReveal';
+  import { initEventHero } from '~/utils/eventHero';
 
   initScrollReveal();
-  document.addEventListener('astro:after-swap', () => initScrollReveal());
+  initEventHero();
+  document.addEventListener('astro:after-swap', () => {
+    initScrollReveal();
+    initEventHero();
+  });
 </script>
