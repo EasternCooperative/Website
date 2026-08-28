@@ -67,6 +67,35 @@
   @apply btn border-none shadow-none text-muted hover:text-gray-900 dark:text-gray-400 dark:hover:text-white;
 }
 
+/* The sticky header's background layer. Two things below keep crossing the
+   scroll threshold (BasicScripts toggles `.scroll` at 60px) from flashing over
+   whatever sits flush under the header — most visibly the full-bleed hero image
+   on event detail pages.
+
+   1. `backdrop-filter` is declared unconditionally, with a `will-change` hint,
+      so the compositing layer is created once and merely re-parameterised on
+      scroll rather than torn down. Destroying a backdrop-filter layer on
+      scroll-up produced a one-frame paint artifact in Chrome on the strip of
+      image directly beneath the header. The idle blur is a hair above zero
+      rather than `blur(0)` because the CSS minifier collapses `blur(0)` to the
+      invalid `blur()`, which the browser then drops entirely.
+
+   2. Everything that changes at the threshold (bg colour, blur strength,
+      shadow) is transitioned, so a fast scroll-up eases back to rest instead
+      of snapping. */
+#header > div:first-child {
+  transition:
+    background-color 200ms ease-in-out,
+    backdrop-filter 200ms ease-in-out,
+    box-shadow 200ms ease-in-out;
+}
+@media (min-width: 768px) {
+  #header > div:first-child {
+    backdrop-filter: blur(0.5px);
+    will-change: backdrop-filter;
+  }
+}
+
 #header.scroll > div:first-child {
   @apply bg-page md:bg-gray-50/90 md:backdrop-blur-md;
   box-shadow: 0 0.375rem 1.5rem 0 rgb(140 152 164 / 13%);
