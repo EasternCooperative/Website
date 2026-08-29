@@ -328,8 +328,22 @@ function initFiltersCollapse() {
   // the opposite state (an infinite loop). Suppress scroll evaluation
   // briefly (covering the transition duration) after any programmatic change.
   const SCROLL_SUPPRESS_MS = 400;
+  // Collapsing responds to a small downward nudge (it never hides content the
+  // reader is looking at — it frees viewport). Expanding is disruptive: it
+  // pushes the whole grid down, so it demands a deliberate, sustained upward
+  // scroll. With a populated list the page is long enough that small
+  // corrective scroll-ups while reading a card are constant; a low expand
+  // threshold made the panel flap open on every one of them.
+  const COLLAPSE_DELTA = 8;
+  const EXPAND_DELTA = 72;
   let collapsed = false;
   let suppressScrollUntil = 0;
+  let lastScrollY = window.scrollY;
+  // Distance travelled since the last direction change; reset whenever the
+  // scroll direction flips so trackpad momentum (a hard scroll one way that
+  // rebounds slightly the other) can't accumulate into a spurious toggle.
+  let dirAccum = 0;
+  let accumDir = 0;
 
   function setCollapsed(next: boolean) {
     if (next === collapsed) return;
@@ -340,6 +354,8 @@ function initFiltersCollapse() {
     toggle!.setAttribute('aria-expanded', String(!collapsed));
     suppressScrollUntil = Date.now() + SCROLL_SUPPRESS_MS;
     lastScrollY = window.scrollY;
+    dirAccum = 0;
+    accumDir = 0;
   }
 
   function onToggleClick() {
@@ -347,13 +363,6 @@ function initFiltersCollapse() {
   }
   toggle.addEventListener('click', onToggleClick);
 
-  // Ignore tiny scroll deltas (sub-pixel jitter, a focus/click-induced
-  // scroll-into-view nudge) so they can't be mistaken for a deliberate
-  // scroll gesture and flip the collapse state unexpectedly. Genuine slow
-  // scrolling still accumulates against the stale lastScrollY reference
-  // until it crosses the threshold.
-  const SCROLL_NOISE_THRESHOLD = 15;
-  let lastScrollY = window.scrollY;
   function onScroll() {
     const y = window.scrollY;
     if (Date.now() < suppressScrollUntil) {
@@ -361,11 +370,23 @@ function initFiltersCollapse() {
       return;
     }
     const delta = y - lastScrollY;
-    if (Math.abs(delta) < SCROLL_NOISE_THRESHOLD) return;
-    const scrollingDown = delta > 0;
-    if (scrollingDown && y > COLLAPSE_SCROLL_THRESHOLD) setCollapsed(true);
-    else if (!scrollingDown) setCollapsed(false);
     lastScrollY = y;
+    if (delta === 0) return;
+
+    const dir = delta > 0 ? 1 : -1;
+    if (dir !== accumDir) {
+      accumDir = dir;
+      dirAccum = 0;
+    }
+    dirAccum += Math.abs(delta);
+
+    if (dir === 1) {
+      if (!collapsed && y > COLLAPSE_SCROLL_THRESHOLD && dirAccum >= COLLAPSE_DELTA) setCollapsed(true);
+    } else {
+      // Near the top the panel always belongs open; below that, only a
+      // sustained upward scroll brings it back.
+      if (collapsed && (y <= COLLAPSE_SCROLL_THRESHOLD || dirAccum >= EXPAND_DELTA)) setCollapsed(false);
+    }
   }
   window.addEventListener('scroll', onScroll, { passive: true });
 
