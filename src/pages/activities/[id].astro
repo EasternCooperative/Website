@@ -540,5 +540,11 @@ const breadcrumbJsonLd = {
 </Layout>
 
 <script>
-  document.getElementById('print-btn')?.addEventListener('click', () => window.print());
+  // Delegated so it keeps working after client-side (ClientRouter) navigation —
+  // a plain listener bound to #print-btn is lost when the page <script> is not
+  // re-run on view-transition navigations, whereas this one listener on
+  // `document` survives every DOM swap.
+  document.addEventListener('click', (event) => {
+    if ((event.target as Element).closest?.('#print-btn')) window.print();
+  });
 </script>
