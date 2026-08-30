@@ -11,7 +11,7 @@ import { findImage } from '~/utils/images';
 import { resolveVenue } from '~/utils/resolveEvent';
 import siteSettings from '~/data/settings/site.json';
 import { groupClassesByPeriod, resolveClassLeaderNames } from '~/utils/classes';
-import { renderMarkdown, renderInlineMarkdown, stripMarkdown } from '~/utils/markdown';
+import { renderProse, renderInlineMarkdown, stripMarkdown } from '~/utils/markdown';
 
 type ResolvedLeader = {
   name: string;
@@ -210,7 +210,7 @@ const breadcrumbJsonLd = {
   <!-- ============================================================
        EVENT HERO
        ============================================================ -->
-  <section class="relative not-prose" aria-label={data.title}>
+  <section class="relative" aria-label={data.title}>
     {
       venue.image && (
         <div
@@ -569,7 +569,7 @@ const breadcrumbJsonLd = {
       {
         data.description && (
           <div class="prose prose-lg dark:prose-invert max-w-none">
-            <Fragment set:html={renderMarkdown(data.description)} />
+            <Fragment set:html={renderProse(data.description)} />
           </div>
         )
       }
@@ -907,7 +907,7 @@ const breadcrumbJsonLd = {
                 )}
                 <div
                   class="text-sm text-muted prose prose-sm dark:prose-invert max-w-none"
-                  set:html={renderMarkdown(data.cancellationPolicy)}
+                  set:html={renderProse(data.cancellationPolicy)}
                 />
               </div>
             )}
@@ -917,7 +917,7 @@ const breadcrumbJsonLd = {
                 <h3 class="font-heading text-base font-bold text-heading mb-2">Health</h3>
                 <div
                   class="text-sm text-muted prose prose-sm dark:prose-invert max-w-none"
-                  set:html={renderMarkdown(data.healthPolicy)}
+                  set:html={renderProse(data.healthPolicy)}
                 />
               </div>
             )}
