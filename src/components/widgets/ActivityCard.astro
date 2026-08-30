@@ -55,30 +55,22 @@ const searchText = [title, excerpt, ...tags].filter(Boolean).join(' ').toLowerCa
   data-is-round={isRound ? 'true' : 'false'}
   data-beginner-adaptable={beginnerAdaptable ? 'true' : 'false'}
   data-search={searchText}
-  class="group flex flex-col h-full overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700 hover:shadow-lg hover:border-primary/40 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+  class="group flex flex-col h-full overflow-hidden rounded-2xl border border-gray-300 dark:border-gray-700 hover:shadow-lg hover:border-primary/40 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
 >
   {
-    cardStyle === 'rich' &&
-      (image ? (
-        <Image
-          src={image}
-          alt=""
-          width={600}
-          height={300}
-          widths={[400, 600, 800]}
-          sizes="(max-width: 768px) 100vw, 400px"
-          layout="cover"
-          class="w-full h-44 object-cover"
-          loading="lazy"
-        />
-      ) : (
-        <div
-          class="w-full h-44 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center"
-          aria-hidden="true"
-        >
-          <span class="font-heading text-4xl font-bold text-primary/40">ECRS</span>
-        </div>
-      ))
+    cardStyle === 'rich' && image && (
+      <Image
+        src={image}
+        alt=""
+        width={600}
+        height={300}
+        widths={[400, 600, 800]}
+        sizes="(max-width: 768px) 100vw, 400px"
+        layout="cover"
+        class="w-full h-44 object-cover"
+        loading="lazy"
+      />
+    )
   }
 
   <div class="flex flex-col flex-1 p-5">
@@ -129,6 +121,8 @@ const searchText = [title, excerpt, ...tags].filter(Boolean).join(' ').toLowerCa
       )
     }
 
-    <span class="mt-4 text-sm font-semibold text-primary group-hover:underline">See how to lead it →</span>
+    <span class="mt-4 text-sm font-semibold text-primary group-hover:underline"
+      >Lead this {typeLabel.toLowerCase()} →</span
+    >
   </div>
 </a>
