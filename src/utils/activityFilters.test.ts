@@ -550,6 +550,24 @@ describe('initFiltersCollapse', () => {
     expect(body.classList.contains('max-h-0')).toBe(true);
   });
 
+  it('collapses when the scroll threshold is crossed on a tiny delta amid direction jitter', async () => {
+    buildCollapseFixture();
+    const { initActivityFiltersPage } = await import('./activityFilters');
+    initActivityFiltersPage();
+
+    const body = document.getElementById('filters-body')!;
+    // Climb toward the fold with the direction flipping every step, so any
+    // accumulator keeps resetting. The threshold (150) is finally crossed by a
+    // 5px move — collapse must not be gated on accumulated distance, or a
+    // jittery first scroll down (trackpad momentum, mobile URL-bar resize)
+    // sails past the fold without ever collapsing.
+    scrollTo(148);
+    expect(body.classList.contains('max-h-0')).toBe(false);
+    scrollTo(146);
+    scrollTo(151);
+    expect(body.classList.contains('max-h-0')).toBe(true);
+  });
+
   it('tears down the previous scroll/click listeners on re-init so they do not double-fire', async () => {
     buildCollapseFixture();
     const { initActivityFiltersPage } = await import('./activityFilters');

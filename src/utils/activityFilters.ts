@@ -328,13 +328,19 @@ function initFiltersCollapse() {
   // the opposite state (an infinite loop). Suppress scroll evaluation
   // briefly (covering the transition duration) after any programmatic change.
   const SCROLL_SUPPRESS_MS = 400;
-  // Collapsing responds to a small downward nudge (it never hides content the
-  // reader is looking at — it frees viewport). Expanding is disruptive: it
-  // pushes the whole grid down, so it demands a deliberate, sustained upward
-  // scroll. With a populated list the page is long enough that small
-  // corrective scroll-ups while reading a card are constant; a low expand
+  // Collapsing is non-disruptive — it only frees viewport, it never hides
+  // content the reader is looking at — so any downward scroll past the
+  // threshold triggers it, like a hide-on-scroll header. Expanding is
+  // disruptive: it pushes the whole grid down, so it demands a deliberate,
+  // sustained upward scroll. With a populated list the page is long enough that
+  // small corrective scroll-ups while reading a card are constant; a low expand
   // threshold made the panel flap open on every one of them.
-  const COLLAPSE_DELTA = 8;
+  //
+  // Collapse used to sit behind its own accumulator gate mirroring this one,
+  // but trackpad/touch momentum (and the mobile URL-bar resize) flips scroll
+  // direction often enough near the top of the page — zeroing dirAccum on each
+  // flip — that the first scroll down could be starved past the threshold and
+  // never collapse until far down the page. The gate only ever guarded expand.
   const EXPAND_DELTA = 72;
   let collapsed = false;
   let suppressScrollUntil = 0;
@@ -381,7 +387,7 @@ function initFiltersCollapse() {
     dirAccum += Math.abs(delta);
 
     if (dir === 1) {
-      if (!collapsed && y > COLLAPSE_SCROLL_THRESHOLD && dirAccum >= COLLAPSE_DELTA) setCollapsed(true);
+      if (!collapsed && y > COLLAPSE_SCROLL_THRESHOLD) setCollapsed(true);
     } else {
       // Near the top the panel always belongs open; below that, only a
       // sustained upward scroll brings it back.
