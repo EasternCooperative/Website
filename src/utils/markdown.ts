@@ -20,6 +20,16 @@ export function renderMarkdown(str: string): string {
   return marked.parse(escaped, { breaks: true, async: false });
 }
 
+// Like renderMarkdown, but WITHOUT `breaks: true` — a hard-wrapped source line
+// stays part of its paragraph instead of becoming a <br>. Use this for prose
+// fields authored as wrapped paragraphs (activity instructions, leading tips,
+// adaptations) where forced line breaks mid-sentence read as broken formatting.
+// Blank lines still separate paragraphs.
+export function renderProse(str: string): string {
+  const escaped = str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return marked.parse(escaped, { breaks: false, async: false });
+}
+
 // Same escaping/markdown support as renderMarkdown, but for a string being
 // injected into an element that is already a block container the caller
 // doesn't control the tag of (a shared widget's `<p>`, a `<blockquote>`, text

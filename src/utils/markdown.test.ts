@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { escapeHtml, renderMarkdown, renderInlineMarkdown, stripMarkdown } from './markdown';
+import { escapeHtml, renderMarkdown, renderProse, renderInlineMarkdown, stripMarkdown } from './markdown';
 
 describe('escapeHtml', () => {
   it('escapes all special characters', () => {
@@ -29,6 +29,19 @@ describe('renderMarkdown', () => {
     const html = renderMarkdown('<script>alert(1)</script>');
     expect(html).not.toContain('<script>');
     expect(html).toContain('&lt;script&gt;');
+  });
+});
+
+describe('renderProse', () => {
+  it('keeps a hard-wrapped paragraph as one paragraph (no <br>)', () => {
+    const html = renderProse('line one\nline two');
+    expect(html).not.toContain('<br>');
+    expect(html).toContain('line one\nline two');
+  });
+
+  it('still separates blank-line-delimited paragraphs', () => {
+    const html = renderProse('para one\n\npara two');
+    expect(html.match(/<p>/g)?.length).toBe(2);
   });
 });
 

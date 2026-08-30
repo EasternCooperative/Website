@@ -5,7 +5,7 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 import Layout from '~/layouts/PageLayout.astro';
 import Image from '~/components/common/Image.astro';
 import { Icon } from 'astro-icon/components';
-import { renderMarkdown, stripMarkdown } from '~/utils/markdown';
+import { renderMarkdown, renderProse, stripMarkdown } from '~/utils/markdown';
 import siteSettings from '~/data/settings/site.json';
 import {
   activityLevelLabel,
@@ -123,7 +123,7 @@ const breadcrumbJsonLd = {
     {howToJsonLd && <script is:inline type="application/ld+json" set:html={JSON.stringify(howToJsonLd)} />}
   </Fragment>
 
-  <section class="relative not-prose" aria-label={data.title}>
+  <section class="relative" aria-label={data.title}>
     {
       data.image && (
         <div class="relative w-full h-[32vh] overflow-hidden print:hidden" aria-hidden="true">
@@ -242,7 +242,7 @@ const breadcrumbJsonLd = {
           <div class="mt-4">
             <h2 class="font-heading text-2xl font-bold text-heading mb-3">How to Lead It</h2>
             <div class="prose prose-lg dark:prose-invert max-w-none">
-              <Fragment set:html={renderMarkdown(data.instructions)} />
+              <Fragment set:html={renderProse(data.instructions)} />
             </div>
           </div>
         )
@@ -358,7 +358,7 @@ const breadcrumbJsonLd = {
           <div class="mt-8">
             <h2 class="font-heading text-lg font-bold text-heading mb-2">Variations</h2>
             <div class="prose prose-sm dark:prose-invert max-w-none">
-              <Fragment set:html={renderMarkdown(data.variations)} />
+              <Fragment set:html={renderProse(data.variations)} />
             </div>
           </div>
         )
@@ -370,7 +370,7 @@ const breadcrumbJsonLd = {
           <div class="mt-8">
             <h2 class="font-heading text-lg font-bold text-heading mb-2">Adaptations</h2>
             <div class="prose prose-sm dark:prose-invert max-w-none">
-              <Fragment set:html={renderMarkdown(data.adaptations)} />
+              <Fragment set:html={renderProse(data.adaptations)} />
             </div>
           </div>
         )
@@ -382,7 +382,7 @@ const breadcrumbJsonLd = {
           <div class="mt-8">
             <h2 class="font-heading text-lg font-bold text-heading mb-2">Adapting for Group Size</h2>
             <div class="prose prose-sm dark:prose-invert max-w-none">
-              <Fragment set:html={renderMarkdown(data.groupSizeAdaptationNotes)} />
+              <Fragment set:html={renderProse(data.groupSizeAdaptationNotes)} />
             </div>
           </div>
         )
@@ -394,7 +394,7 @@ const breadcrumbJsonLd = {
           <div class="mt-8 rounded-xl bg-accent/5 border border-accent/20 p-5">
             <h2 class="font-heading text-lg font-bold text-heading mb-2">Leading Tips</h2>
             <div class="prose prose-sm dark:prose-invert max-w-none text-default">
-              <Fragment set:html={renderMarkdown(data.leadingTips)} />
+              <Fragment set:html={renderProse(data.leadingTips)} />
             </div>
           </div>
         )
@@ -406,7 +406,7 @@ const breadcrumbJsonLd = {
           <div class="mt-8 rounded-xl bg-primary/5 border border-primary/20 p-5">
             <h2 class="font-heading text-lg font-bold text-heading mb-2">Accessibility</h2>
             <div class="prose prose-sm dark:prose-invert max-w-none text-default">
-              <Fragment set:html={renderMarkdown(data.accessibilityNotes)} />
+              <Fragment set:html={renderProse(data.accessibilityNotes)} />
             </div>
           </div>
         )
@@ -427,7 +427,7 @@ const breadcrumbJsonLd = {
             {data.safetyNotesOther && (
               <div
                 class="text-sm text-default prose prose-sm dark:prose-invert max-w-none"
-                set:html={renderMarkdown(data.safetyNotesOther)}
+                set:html={renderProse(data.safetyNotesOther)}
               />
             )}
           </div>
@@ -540,5 +540,11 @@ const breadcrumbJsonLd = {
 </Layout>
 
 <script>
-  document.getElementById('print-btn')?.addEventListener('click', () => window.print());
+  // Delegated so it keeps working after client-side (ClientRouter) navigation —
+  // a plain listener bound to #print-btn is lost when the page <script> is not
+  // re-run on view-transition navigations, whereas this one listener on
+  // `document` survives every DOM swap.
+  document.addEventListener('click', (event) => {
+    if ((event.target as Element).closest?.('#print-btn')) window.print();
+  });
 </script>
