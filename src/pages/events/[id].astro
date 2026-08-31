@@ -802,18 +802,12 @@ const breadcrumbJsonLd = {
           <div id="schedule" class="mt-10 scroll-mt-24">
             <h2 class="font-heading text-2xl font-bold text-heading mb-6">Schedule</h2>
             {masterSchedule.ok && (
-              <div class="mb-6 flex flex-wrap gap-x-4 gap-y-2 text-sm">
-                <a
-                  href={`/events/${event.id}/schedule`}
-                  class="text-primary underline decoration-dotted underline-offset-2 hover:text-secondary"
-                >
-                  View printable master schedule
+              <div class="mb-6 flex flex-wrap gap-3">
+                <a href={`/events/${event.id}/schedule`} class="btn btn-secondary">
+                  View schedule
                 </a>
                 {schedulePdfExists && (
-                  <a
-                    href={schedulePdfPath}
-                    class="text-primary underline decoration-dotted underline-offset-2 hover:text-secondary"
-                  >
+                  <a href={schedulePdfPath} class="btn btn-secondary">
                     Download PDF
                   </a>
                 )}
