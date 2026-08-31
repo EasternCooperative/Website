@@ -50,12 +50,12 @@ const leaders = resolveLeaders(cls);
 }
 {
   leaders.length > 0 && (
-    <span class="sched-leaders mt-0.5 block text-xs text-muted">
+    <span class="sched-leaders mt-0.5 block text-xs text-muted italic">
       {leaders.map((l, i) => (
         <Fragment>
-          {i > 0 ? <span class="sched-sep">, </span> : null}
+          {i > 0 ? ', ' : null}
           {l.photo ? (
-            <span class="sched-avatar mr-1 inline-block align-middle">
+            <span class="sched-avatar mr-1 inline-block align-middle not-italic">
               <PersonPhoto name={l.name} photo={l.photo} size={16} />
             </span>
           ) : null}
@@ -66,12 +66,12 @@ const leaders = resolveLeaders(cls);
               data-popover-target={`leader-${l.id}`}
               aria-controls={`leader-${l.id}`}
               aria-expanded="false"
-              class="sched-trigger cursor-pointer italic underline decoration-dotted underline-offset-2 transition-colors hover:text-primary"
+              class="sched-trigger cursor-pointer underline decoration-dotted underline-offset-2 transition-colors hover:text-primary"
             >
               {l.name}
             </span>
           ) : (
-            <span class="italic">{l.name}</span>
+            l.name
           )}
         </Fragment>
       ))}
