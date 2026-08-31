@@ -30,6 +30,12 @@ function resolveLeaders(c?: EventClass): ResolvedLeader[] {
 }
 
 const leaders = resolveLeaders(cls);
+
+// Allow the line to break after a slash (e.g. "Knitting/Macrame/Crochet") so a
+// slash-joined title doesn't force the whole column wider. Escaped so `set:html`
+// stays safe for CMS strings (which contain "&" etc.).
+const withSlashBreaks = (s: string) =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\//g, '/<wbr>');
 ---
 
 {
@@ -41,10 +47,10 @@ const leaders = resolveLeaders(cls);
       aria-controls={`sd-${item.classIndex}`}
       aria-expanded="false"
       class="sched-trigger cursor-pointer font-semibold text-heading underline decoration-dotted underline-offset-2 transition-colors hover:text-primary"
-      set:text={item.name}
+      set:html={withSlashBreaks(item.name)}
     />
   ) : (
-    <span class="font-semibold text-heading" set:text={item.name} />
+    <span class="font-semibold text-heading" set:html={withSlashBreaks(item.name)} />
   )
 }
 {
