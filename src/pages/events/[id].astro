@@ -10,7 +10,8 @@ import PersonPhoto from '~/components/ui/PersonPhoto.astro';
 import { findImage } from '~/utils/images';
 import { resolveVenue } from '~/utils/resolveEvent';
 import siteSettings from '~/data/settings/site.json';
-import { groupClassesByPeriod, resolveClassLeaderNames } from '~/utils/classes';
+import { groupClassesByPeriod, resolveClassLeaderNames, type EventClass } from '~/utils/classes';
+import { hasMasterSchedule, slugifyPeriod, formatScheduleHeading } from '~/utils/eventSchedule';
 import { renderProse, renderInlineMarkdown, stripMarkdown } from '~/utils/markdown';
 
 type ResolvedLeader = {
@@ -47,6 +48,58 @@ const mapQuery =
 
 const allLeaders = await getCollection('leader');
 const leaderMap = new Map<string, CollectionEntry<'leader'>['data']>(allLeaders.map((l) => [l.id, l.data]));
+
+const masterSchedule = hasMasterSchedule(data);
+if (import.meta.env.DEV && data.schedule?.timeslots?.length && !masterSchedule.ok) {
+  console.warn(
+    `[${event.id}] master schedule not offered — missing rooms: ${masterSchedule.missingRooms.join(', ') || 'none'}` +
+      (masterSchedule.unmatchedPeriods.length
+        ? `; unmatched periods: ${masterSchedule.unmatchedPeriods.join(', ')}`
+        : '')
+  );
+}
+
+// Schedule section grouping. When the event defines a `schedule.timeslots` block,
+// drive the section order and headings from it (label + time range); classes
+// whose period matches no timeslot fall into a trailing "Other" group. Otherwise
+// fall back to the original first-seen `period` grouping.
+const isMultiDay = !!data.endDate;
+const scheduleTimeslots = data.schedule?.timeslots ?? [];
+type ScheduleGroup = { heading: string; showHeading: boolean; classes: EventClass[] };
+let scheduleGroups: ScheduleGroup[] = [];
+if (data.classes && data.classes.length > 0) {
+  if (scheduleTimeslots.length > 0) {
+    const bySlug = new Map<string, EventClass[]>();
+    for (const cls of data.classes) {
+      const key = slugifyPeriod(cls.period ?? '');
+      if (!bySlug.has(key)) bySlug.set(key, []);
+      bySlug.get(key)!.push(cls);
+    }
+    const seen = new Set<string>();
+    for (const ts of scheduleTimeslots) {
+      if (ts.isBreak) continue;
+      const key = slugifyPeriod(ts.label);
+      seen.add(key);
+      const classes = bySlug.get(key);
+      if (!classes?.length) continue;
+      scheduleGroups.push({
+        heading: formatScheduleHeading(ts.label, ts, undefined, false),
+        showHeading: true,
+        classes,
+      });
+    }
+    const leftover = [...bySlug.entries()].filter(([k]) => !seen.has(k)).flatMap(([, v]) => v);
+    if (leftover.length > 0) scheduleGroups.push({ heading: 'Other', showHeading: true, classes: leftover });
+  } else {
+    const groups = groupClassesByPeriod(data.classes);
+    const isFlat = groups.size === 1 && groups.has('');
+    scheduleGroups = [...groups.entries()].map(([period, classes]) => ({
+      heading: period,
+      showHeading: !isFlat && !!period,
+      classes,
+    }));
+  }
+}
 
 const allStaff = await getCollection('staff');
 const staffMap = new Map<string, CollectionEntry<'staff'>['data']>(allStaff.map((s) => [s.id, s.data]));
@@ -740,130 +793,137 @@ const breadcrumbJsonLd = {
 
       <!-- ── Classes / program ── -->
       {
-        data.classes &&
-          data.classes.length > 0 &&
-          (() => {
-            const groups = groupClassesByPeriod(data.classes!);
-            const isFlat = groups.size === 1 && groups.has('');
-            const isMultiDay = !!data.endDate;
-            return (
-              <div id="schedule" class="mt-10 scroll-mt-24">
-                <h2 class="font-heading text-2xl font-bold text-heading mb-6">Schedule</h2>
-                <div class="space-y-8">
-                  {[...groups.entries()].map(([period, classes]) => (
-                    <div>
-                      {!isFlat && period && (
-                        <h3 class="font-heading text-base font-bold uppercase tracking-widest text-muted mb-3">
-                          {period}
-                        </h3>
-                      )}
-                      <ul class="space-y-3 list-none p-0 m-0">
-                        {classes.map((cls) => (
-                          <li
-                            class="rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3"
-                            data-scroll-reveal="up-light"
-                          >
-                            <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                              <span class="font-semibold text-heading">{cls.name}</span>
-                              {(() => {
-                                const resolved: ResolvedLeader[] = cls.leaders?.length
-                                  ? cls.leaders.flatMap((l): ResolvedLeader[] => {
-                                      const rec = l.id ? (leaderMap.get(l.id) ?? null) : null;
-                                      const nm = rec?.name ?? l.name;
-                                      if (!nm) return [];
-                                      return [{ name: nm, record: rec, id: l.id, role: l.role }];
-                                    })
-                                  : (() => {
-                                      const rec = cls.leaderId ? (leaderMap.get(cls.leaderId) ?? null) : null;
-                                      const nm = rec?.name ?? cls.leader;
-                                      if (!nm) return [];
-                                      return [{ name: nm, record: rec, id: cls.leaderId, role: undefined }];
-                                    })();
-
-                                if (!resolved.length) return null;
-
-                                const primary = resolved.filter((l) => l.role !== 'assistant');
-                                const assistants = resolved.filter((l) => l.role === 'assistant');
-
-                                const renderLeader = (l: (typeof resolved)[0]) => {
-                                  // Only leaders with a bio get the interactive popover — a photo
-                                  // alone is already visible as the inline avatar and doesn't add
-                                  // anything a click would reveal.
-                                  const hasBio = siteSettings.featureFlags.peopleWithoutPhotoOrBio || !!l.record?.bio;
-                                  return (
-                                    <span class="inline-flex items-center gap-1">
-                                      {l.record?.photo && (
-                                        <PersonPhoto name={l.name} photo={l.record.photo} size={20} />
-                                      )}
-                                      {l.record && hasBio ? (
-                                        <button
-                                          type="button"
-                                          data-popover-target={`leader-${l.id}`}
-                                          aria-controls={`leader-${l.id}`}
-                                          aria-expanded="false"
-                                          class="underline decoration-dotted underline-offset-2 cursor-pointer hover:text-primary transition-colors"
-                                        >
-                                          {l.name}
-                                        </button>
-                                      ) : (
-                                        <span>{l.name}</span>
-                                      )}
-                                    </span>
-                                  );
-                                };
-
-                                const renderGroup = (items: typeof resolved) =>
-                                  items.map((l, i) => {
-                                    const isLast = i === items.length - 1;
-                                    return (
-                                      <>
-                                        {renderLeader(l)}
-                                        {items.length >= 3 && !isLast && <span>,</span>}
-                                        {i === items.length - 2 && <span>and</span>}
-                                      </>
-                                    );
-                                  });
-
-                                return (
-                                  <span class="inline-flex items-center flex-wrap gap-1 text-sm text-muted">
-                                    —{renderGroup(primary)}
-                                    {assistants.length > 0 && (
-                                      <>
-                                        <span>assisted by</span>
-                                        {renderGroup(assistants)}
-                                      </>
-                                    )}
-                                  </span>
-                                );
-                              })()}
-                              {cls.ageRange && (
-                                <span class="text-xs font-semibold text-muted border border-muted/30 rounded-full px-2 py-0.5">
-                                  {cls.ageRange}
-                                </span>
-                              )}
-                              {isMultiDay && cls.days && <span class="text-xs text-muted">{cls.days}</span>}
-                              {cls.limitedCapacity && (
-                                <span class="text-xs font-semibold text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-600 rounded-full px-2 py-0.5">
-                                  Limited capacity
-                                </span>
-                              )}
-                            </div>
-                            {cls.description && (
-                              <p
-                                class="text-sm text-muted mt-1 md-links"
-                                set:html={renderInlineMarkdown(cls.description)}
-                              />
-                            )}
-                            {cls.callout && <p class="text-sm font-semibold text-primary mt-1">{cls.callout}</p>}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
+        scheduleGroups.length > 0 && (
+          <div id="schedule" class="mt-10 scroll-mt-24">
+            <h2 class="font-heading text-2xl font-bold text-heading mb-6">Schedule</h2>
+            {masterSchedule.ok && (
+              <div class="mb-6 flex flex-wrap gap-x-4 gap-y-2 text-sm">
+                <a
+                  href={`/events/${event.id}/schedule`}
+                  class="text-primary underline decoration-dotted underline-offset-2 hover:text-secondary"
+                >
+                  View printable master schedule
+                </a>
+                <a
+                  href={`/events/${event.id}/schedule.pdf`}
+                  class="text-primary underline decoration-dotted underline-offset-2 hover:text-secondary"
+                >
+                  Download PDF
+                </a>
               </div>
-            );
-          })()
+            )}
+            <div class="space-y-8">
+              {scheduleGroups.map((group) => (
+                <div>
+                  {group.showHeading && (
+                    <h3 class="font-heading text-base font-bold uppercase tracking-widest text-muted mb-3">
+                      {group.heading}
+                    </h3>
+                  )}
+                  <ul class="space-y-3 list-none p-0 m-0">
+                    {group.classes.map((cls) => (
+                      <li
+                        class="rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3"
+                        data-scroll-reveal="up-light"
+                      >
+                        <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                          <span class="font-semibold text-heading">{cls.name}</span>
+                          {(() => {
+                            const resolved: ResolvedLeader[] = cls.leaders?.length
+                              ? cls.leaders.flatMap((l): ResolvedLeader[] => {
+                                  const rec = l.id ? (leaderMap.get(l.id) ?? null) : null;
+                                  const nm = rec?.name ?? l.name;
+                                  if (!nm) return [];
+                                  return [{ name: nm, record: rec, id: l.id, role: l.role }];
+                                })
+                              : (() => {
+                                  const rec = cls.leaderId ? (leaderMap.get(cls.leaderId) ?? null) : null;
+                                  const nm = rec?.name ?? cls.leader;
+                                  if (!nm) return [];
+                                  return [{ name: nm, record: rec, id: cls.leaderId, role: undefined }];
+                                })();
+
+                            if (!resolved.length) return null;
+
+                            const primary = resolved.filter((l) => l.role !== 'assistant');
+                            const assistants = resolved.filter((l) => l.role === 'assistant');
+
+                            const renderLeader = (l: (typeof resolved)[0]) => {
+                              // Only leaders with a bio get the interactive popover — a photo
+                              // alone is already visible as the inline avatar and doesn't add
+                              // anything a click would reveal.
+                              const hasBio = siteSettings.featureFlags.peopleWithoutPhotoOrBio || !!l.record?.bio;
+                              return (
+                                <span class="inline-flex items-center gap-1">
+                                  {l.record?.photo && <PersonPhoto name={l.name} photo={l.record.photo} size={20} />}
+                                  {l.record && hasBio ? (
+                                    <button
+                                      type="button"
+                                      data-popover-target={`leader-${l.id}`}
+                                      aria-controls={`leader-${l.id}`}
+                                      aria-expanded="false"
+                                      class="underline decoration-dotted underline-offset-2 cursor-pointer hover:text-primary transition-colors"
+                                    >
+                                      {l.name}
+                                    </button>
+                                  ) : (
+                                    <span>{l.name}</span>
+                                  )}
+                                </span>
+                              );
+                            };
+
+                            const renderGroup = (items: typeof resolved) =>
+                              items.map((l, i) => {
+                                const isLast = i === items.length - 1;
+                                return (
+                                  <>
+                                    {renderLeader(l)}
+                                    {items.length >= 3 && !isLast && <span>,</span>}
+                                    {i === items.length - 2 && <span>and</span>}
+                                  </>
+                                );
+                              });
+
+                            return (
+                              <span class="inline-flex items-center flex-wrap gap-1 text-sm text-muted">
+                                —{renderGroup(primary)}
+                                {assistants.length > 0 && (
+                                  <>
+                                    <span>assisted by</span>
+                                    {renderGroup(assistants)}
+                                  </>
+                                )}
+                              </span>
+                            );
+                          })()}
+                          {cls.ageRange && (
+                            <span class="text-xs font-semibold text-muted border border-muted/30 rounded-full px-2 py-0.5">
+                              {cls.ageRange}
+                            </span>
+                          )}
+                          {isMultiDay && cls.days && <span class="text-xs text-muted">{cls.days}</span>}
+                          {cls.limitedCapacity && (
+                            <span class="text-xs font-semibold text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-600 rounded-full px-2 py-0.5">
+                              Limited capacity
+                            </span>
+                          )}
+                        </div>
+                        {cls.description && (
+                          <p
+                            class="text-sm text-muted mt-1 md-links"
+                            set:html={renderInlineMarkdown(cls.description)}
+                          />
+                        )}
+                        {cls.callout && <p class="text-sm font-semibold text-primary mt-1">{cls.callout}</p>}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
       }
 
       <!-- ── Newcomer / financial aid / leader profiles ── -->

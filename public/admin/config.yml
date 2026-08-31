@@ -603,6 +603,13 @@ collections:
               required: false,
               hint: 'Multi-day events only, e.g. "Days 1–2" or "All 4 days".',
             }
+          - {
+              label: 'Room / Location',
+              name: 'room',
+              widget: 'string',
+              required: false,
+              hint: 'Room for the printable master schedule grid, e.g. "Rec Hall". Every class in a period needs one or the schedule download stays hidden. Usually set from the Schedule Generator tool.',
+            }
           - { label: 'Limited Capacity', name: 'limitedCapacity', widget: 'boolean', required: false, default: false }
           - { label: 'Description', name: 'description', widget: 'markdown', required: false }
           - {
@@ -612,6 +619,35 @@ collections:
               required: false,
               hint: 'Emphasized note shown below the description, e.g. "Open to children 8+ with a participating adult."',
             }
+
+      # ── Master Schedule (time grid) ──────────────────────────────
+      - label: 'Master Schedule (time grid)'
+        name: 'schedule'
+        widget: 'object'
+        required: false
+        collapsed: true
+        hint: 'Time-slot rows for the printable master schedule. Row order here is the row order in the grid. Usually populated from the Schedule Generator tool.'
+        fields:
+          - label: 'Time Slots'
+            name: 'timeslots'
+            widget: 'list'
+            fields:
+              - {
+                  label: 'Label',
+                  name: 'label',
+                  widget: 'string',
+                  hint: 'For class periods this MUST exactly match the class "Period" text. For meals / free time, any label.',
+                }
+              - { label: 'Start (24h HH:MM)', name: 'start', widget: 'string', required: false, hint: 'e.g. 09:00' }
+              - { label: 'End (24h HH:MM)', name: 'end', widget: 'string', required: false, hint: 'e.g. 10:40' }
+              - {
+                  label: 'Break / meal row',
+                  name: 'isBreak',
+                  widget: 'boolean',
+                  required: false,
+                  default: false,
+                  hint: 'On = full-width band (meals, free time); never matched to classes.',
+                }
 
       # ── Additional Info ───────────────────────────────────────────
       - {

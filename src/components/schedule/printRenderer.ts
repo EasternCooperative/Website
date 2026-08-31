@@ -3,7 +3,10 @@ import pdfFonts from 'pdfmake/build/vfs_fonts';
 import { formatTimeRange } from './timeUtils';
 import type { TimeSlot } from './models';
 import type { MasterScheduleData, RosterEntry, IndividualSchedule } from './scheduleBuilder';
+import { buildScheduleGrid, buildMasterScheduleDocDefinition } from './scheduleGrid';
 import { compositeMap } from './mapCompositor';
+
+export { buildScheduleGrid, buildMasterScheduleDocDefinition } from './scheduleGrid';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (pdfMake as any).vfs = ((pdfFonts as any).pdfMake?.vfs ?? (pdfFonts as any).vfs) as Record<string, string>;
@@ -15,155 +18,22 @@ const MUTED_COLOR = '#aaaaaa';
 // ---------------------------------------------------------------------------
 // Master Schedule
 // ---------------------------------------------------------------------------
-
-const ACTIVITY_FILL = '#f0f0f0';
+//
+// The grid model and pdfmake document definition now live in `scheduleGrid.ts`
+// (pure, no pdfmake runtime) so the printable HTML page and this PDF share one
+// source of truth. This wrapper keeps the browser-download behaviour.
 
 export function downloadMasterSchedule(data: MasterScheduleData, eventName: string): void {
-  const { locations, timeslots, workshops } = data;
-  if (locations.length === 0) return;
+  if (data.locations.length === 0) return;
 
   const year = new Date().getFullYear();
-  const landscape = locations.length > 4;
-  const colCount = 2 + locations.length; // Time | Days | ...locations
-
-  const widths = ['auto', 'auto', ...locations.map(() => '*' as string)];
-
-  const headerRow: object[] = [
-    { text: 'Time', bold: true, fillColor: HEADER_FILL, alignment: 'center', fontSize: 11 },
-    { text: 'Days', bold: true, fillColor: HEADER_FILL, alignment: 'center', fontSize: 11 },
-    ...locations.map((loc) => ({ text: loc, bold: true, fillColor: HEADER_FILL, alignment: 'center', fontSize: 11 })),
-  ];
-
-  const bodyRows: object[][] = [];
-
-  for (const ts of timeslots) {
-    const timeStr = formatTimeRange(ts.startTime, ts.endTime);
-
-    if (ts.isCustom) {
-      const label = timeStr ? `${ts.displayName}  ${timeStr}` : ts.displayName;
-      bodyRows.push([
-        { text: label, colSpan: colCount, alignment: 'center', fillColor: ACTIVITY_FILL, bold: true, fontSize: 11 },
-        ...Array<object>(colCount - 1).fill({}),
-      ]);
-    } else {
-      const row12: object[] = [];
-      const row34: object[] = [];
-
-      // Time cell spans both day sub-rows — show time range if available, fall back to name
-      row12.push({
-        text: timeStr || ts.displayName,
-        bold: true,
-        fontSize: 11,
-        alignment: 'center',
-        verticalAlignment: 'center',
-        rowSpan: 2,
-      });
-      row34.push({});
-
-      row12.push({
-        text: 'Days\n1-2',
-        fontSize: 9,
-        alignment: 'center',
-        verticalAlignment: 'center',
-        color: META_COLOR,
-      });
-      row34.push({
-        text: 'Days\n3-4',
-        fontSize: 9,
-        alignment: 'center',
-        verticalAlignment: 'center',
-        color: META_COLOR,
-      });
-
-      const makeCell = (w: (typeof workshops)[0] | undefined): object =>
-        w
-          ? {
-              stack: [
-                { text: w.name, bold: true, fontSize: 11 },
-                ...(w.leader ? [{ text: w.leader, fontSize: 9, color: META_COLOR, italics: true }] : []),
-              ],
-              verticalAlignment: 'center',
-            }
-          : { text: '', verticalAlignment: 'center' };
-
-      for (const loc of locations) {
-        const fourDay = workshops.find(
-          (w) =>
-            w.period.sheetName === ts.periodKey &&
-            w.location === loc &&
-            w.duration.startDay === 1 &&
-            w.duration.endDay === 4
-        );
-        const half12 = workshops.find(
-          (w) =>
-            w.period.sheetName === ts.periodKey &&
-            w.location === loc &&
-            w.duration.startDay === 1 &&
-            w.duration.endDay === 2
-        );
-        const half34 = workshops.find(
-          (w) =>
-            w.period.sheetName === ts.periodKey &&
-            w.location === loc &&
-            w.duration.startDay === 3 &&
-            w.duration.endDay === 4
-        );
-
-        if (fourDay) {
-          row12.push({ ...makeCell(fourDay), rowSpan: 2 } as object);
-          row34.push({});
-        } else {
-          row12.push(makeCell(half12));
-          row34.push(makeCell(half34));
-        }
-      }
-
-      bodyRows.push(row12);
-      bodyRows.push(row34);
-    }
-  }
+  const docDefinition = buildMasterScheduleDocDefinition(buildScheduleGrid(data), {
+    title: 'Schedule',
+    subtitle: `${eventName} ${year}`,
+  });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const tableLayout: any = {
-    paddingLeft: () => 8,
-    paddingRight: () => 8,
-    paddingTop: () => 7,
-    paddingBottom: () => 7,
-    hLineWidth: (i: number, node: { table: { body: unknown[] } }) =>
-      i === 0 || i === node.table.body.length ? 1 : 0.5,
-    hLineColor: () => '#bbbbbb',
-    vLineWidth: () => 0.5,
-    vLineColor: () => '#cccccc',
-  };
-
-  pdfMake
-    .createPdf({
-      pageOrientation: landscape ? 'landscape' : 'portrait',
-      pageSize: 'LETTER',
-      pageMargins: [24, 32, 24, 24],
-      content: [
-        {
-          columns: [
-            { text: 'Schedule', fontSize: 22, bold: true },
-            {
-              text: `${eventName} ${year}`,
-              fontSize: 13,
-              bold: true,
-              alignment: 'right',
-              color: META_COLOR,
-              margin: [0, 6, 0, 0],
-            },
-          ],
-          marginBottom: 10,
-        },
-        {
-          table: { headerRows: 1, widths, body: [headerRow, ...bodyRows] },
-          layout: tableLayout,
-        },
-      ],
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any)
-    .download(`${eventName.replace(/\s+/g, '_')}_Schedule_${year}.pdf`);
+  pdfMake.createPdf(docDefinition as any).download(`${eventName.replace(/\s+/g, '_')}_Schedule_${year}.pdf`);
 }
 
 // ---------------------------------------------------------------------------

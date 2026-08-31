@@ -1,0 +1,164 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Layout from '~/layouts/PageLayout.astro';
+import { buildEventMasterSchedule, hasMasterSchedule } from '~/utils/eventSchedule';
+import { buildScheduleGrid } from '~/components/schedule/scheduleGrid';
+
+export async function getStaticPaths() {
+  const events = await getCollection('event');
+  return events
+    .filter((event) => hasMasterSchedule(event.data).ok)
+    .map((event) => ({ params: { id: event.id }, props: { event } }));
+}
+
+interface Props {
+  event: CollectionEntry<'event'>;
+}
+
+const { event } = Astro.props;
+const { data } = event;
+
+const leaders = await getCollection('leader');
+const leaderMap = new Map(leaders.map((l) => [l.id, l.data]));
+
+const grid = buildScheduleGrid(buildEventMasterSchedule(data, leaderMap));
+const year = data.date.getUTCFullYear();
+
+const metadata = {
+  title: `${data.title} — Master Schedule`,
+  description: `Printable class schedule for ${data.title}${year ? ` ${year}` : ''}.`,
+};
+
+const cellText = (item?: { name: string; leader: string }) => item;
+---
+
+<Layout metadata={metadata}>
+  <section class="mx-auto max-w-6xl px-4 py-10">
+    <div class="no-print mb-6 flex flex-wrap items-center gap-3">
+      <a
+        href={`/events/${event.id}`}
+        class="text-sm text-muted underline decoration-dotted underline-offset-2 hover:text-primary"
+      >
+        ← Back to event
+      </a>
+      <span class="flex-1"></span>
+      <button
+        type="button"
+        id="print-schedule"
+        class="cursor-pointer rounded-full border border-gray-300 px-4 py-1.5 text-sm text-default transition-colors hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-800"
+      >
+        Print
+      </button>
+      <a
+        href={`/events/${event.id}/schedule.pdf`}
+        class="rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-secondary"
+      >
+        Download PDF
+      </a>
+    </div>
+
+    <h1 class="font-heading mb-1 text-3xl font-bold text-heading">{data.title} — Master Schedule</h1>
+    <p class="mb-6 text-sm text-muted">Class times and rooms{year ? `, ${year}` : ''}.</p>
+
+    <div class="overflow-x-auto">
+      <table class="schedule-grid w-full border-collapse text-sm">
+        <thead>
+          <tr>
+            <th class="border px-3 py-2 text-left">Time</th>
+            <th class="border px-3 py-2 text-left">Days</th>
+            {grid.locations.map((loc) => <th class="border px-3 py-2 text-left">{loc}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {
+            grid.rows.map((row) =>
+              row.kind === 'break' ? (
+                <tr class="schedule-break">
+                  <td class="border px-3 py-2 text-center font-semibold" colspan={2 + grid.locations.length}>
+                    {row.timeText ? `${row.label} · ${row.timeText}` : row.label}
+                  </td>
+                </tr>
+              ) : (
+                <>
+                  <tr>
+                    <td class="border px-3 py-2 align-middle font-semibold" rowspan={2}>
+                      {row.timeText || row.displayName}
+                    </td>
+                    <td class="border px-3 py-2 text-xs text-muted">Days 1–2</td>
+                    {row.cells.map((cell) =>
+                      cell.fourDay ? (
+                        <td class="border px-3 py-2 align-middle" rowspan={2}>
+                          <span class="font-semibold text-heading">{cell.fourDay.name}</span>
+                          {cell.fourDay.leader && (
+                            <span class="block text-xs text-muted italic">{cell.fourDay.leader}</span>
+                          )}
+                        </td>
+                      ) : cellText(cell.half12) ? (
+                        <td class="border px-3 py-2">
+                          <span class="font-semibold text-heading">{cell.half12!.name}</span>
+                          {cell.half12!.leader && (
+                            <span class="block text-xs text-muted italic">{cell.half12!.leader}</span>
+                          )}
+                        </td>
+                      ) : (
+                        <td class="border px-3 py-2">&nbsp;</td>
+                      )
+                    )}
+                  </tr>
+                  <tr>
+                    <td class="border px-3 py-2 text-xs text-muted">Days 3–4</td>
+                    {row.cells.map((cell) =>
+                      cell.fourDay ? null : cellText(cell.half34) ? (
+                        <td class="border px-3 py-2">
+                          <span class="font-semibold text-heading">{cell.half34!.name}</span>
+                          {cell.half34!.leader && (
+                            <span class="block text-xs text-muted italic">{cell.half34!.leader}</span>
+                          )}
+                        </td>
+                      ) : (
+                        <td class="border px-3 py-2">&nbsp;</td>
+                      )
+                    )}
+                  </tr>
+                </>
+              )
+            )
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  document.getElementById('print-schedule')?.addEventListener('click', () => window.print());
+</script>
+
+{grid.landscape && <style is:inline set:html="@media print { @page { size: landscape; } }" />}
+
+<style>
+  .schedule-grid th,
+  .schedule-grid td {
+    border-color: #d1d5db;
+  }
+  .schedule-grid thead th {
+    background: #f3f4f6;
+  }
+  .schedule-break td {
+    background: #f3f4f6;
+  }
+  .schedule-grid tr {
+    page-break-inside: avoid;
+  }
+
+  @media print {
+    :global(header),
+    :global(footer),
+    .no-print {
+      display: none !important;
+    }
+    :global(main) {
+      padding: 0 !important;
+    }
+  }
+</style>
