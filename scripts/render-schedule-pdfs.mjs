@@ -71,20 +71,20 @@ await indexDir(DIST);
 
 // Minimal static file server over the pre-built route map.
 const server = createServer(async (req, res) => {
-  const key = decodeURIComponent((req.url ?? '/').split('?')[0]);
-  const file = routes.get(key) ?? routes.get(key.replace(/\/$/, '')) ?? routes.get(`${key}/`);
-  if (!file) {
-    res.writeHead(404);
-    res.end('not found');
-    return;
-  }
   try {
+    const key = decodeURIComponent((req.url ?? '/').split('?')[0]);
+    const file = routes.get(key) ?? routes.get(key.replace(/\/$/, '')) ?? routes.get(`${key}/`);
+    if (!file) {
+      res.writeHead(404);
+      res.end('not found');
+      return;
+    }
     const body = await readFile(file);
     res.writeHead(200, { 'Content-Type': MIME[extname(file)] ?? 'application/octet-stream' });
     res.end(body);
   } catch {
-    res.writeHead(500);
-    res.end('read error');
+    res.writeHead(404);
+    res.end('not found');
   }
 });
 await new Promise((resolve) => server.listen(PORT, resolve));

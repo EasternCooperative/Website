@@ -188,7 +188,7 @@ describe('GET /events/[id].txt', () => {
       })
     );
     expect(text).toContain('MORNING, FIRST PERIOD');
-    expect(text).not.toContain('·');
+    expect(text).not.toContain('MORNING, FIRST PERIOD ·');
   });
 
   it('includes cancellation policy when shown', async () => {

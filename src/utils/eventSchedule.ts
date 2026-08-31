@@ -82,9 +82,9 @@ export function frontmatterToTimeslots(timeslots: FrontmatterTimeslot[]): TimeSl
   );
 }
 
-function nonBreakLabels(data: EventScheduleData): Map<string, FrontmatterTimeslot> {
+function nonBreakLabels(timeslots: FrontmatterTimeslot[]): Map<string, FrontmatterTimeslot> {
   const map = new Map<string, FrontmatterTimeslot>();
-  for (const ts of data.schedule?.timeslots ?? []) {
+  for (const ts of timeslots) {
     if (!ts.isBreak) map.set(slugifyPeriod(ts.label), ts);
   }
   return map;
@@ -122,7 +122,7 @@ export function hasMasterSchedule(data: EventScheduleData): {
   const timeslots = data.schedule?.timeslots ?? [];
   if (timeslots.length === 0) return { ok: false, missingRooms: [], unmatchedPeriods: [] };
 
-  const labels = nonBreakLabels(data);
+  const labels = nonBreakLabels(timeslots);
   const missingRooms: string[] = [];
   const unmatchedPeriods = new Set<string>();
 
