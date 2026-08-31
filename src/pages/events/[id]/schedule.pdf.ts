@@ -1,9 +1,15 @@
 import type { APIRoute } from 'astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 // pdfmake's isomorphic Node entry — reads Roboto TTFs straight off disk.
 import pdfMake from 'pdfmake/js/index.js';
-import { buildEventMasterSchedule, hasMasterSchedule } from '~/utils/eventSchedule';
+import {
+  buildEventMasterSchedule,
+  hasMasterSchedule,
+  baseEventTitle,
+  venueScheduleMapPath,
+} from '~/utils/eventSchedule';
 import { buildScheduleGrid, buildMasterScheduleDocDefinition } from '~/components/schedule/scheduleGrid';
 
 const ROOT = process.cwd();
@@ -20,6 +26,13 @@ pdfMake.setFonts({
 pdfMake.setLocalAccessPolicy?.(() => true);
 pdfMake.setUrlAccessPolicy?.(() => false);
 
+function mapDataUri(siteId: string | undefined): string | undefined {
+  const path = venueScheduleMapPath(siteId);
+  if (!path) return undefined;
+  const buf = readFileSync(resolve(ROOT, 'public', path.replace(/^\//, '')));
+  return `data:image/png;base64,${buf.toString('base64')}`;
+}
+
 export async function getStaticPaths() {
   const events = await getCollection('event');
   return events
@@ -35,12 +48,12 @@ export const GET: APIRoute = async ({ props }) => {
   const leaderMap = new Map(leaders.map((l) => [l.id, l.data]));
 
   const grid = buildScheduleGrid(buildEventMasterSchedule(data, leaderMap));
-  // Titles are inconsistent across years ("Winter Adventure 2025" vs "Winter Adventure"),
-  // so derive the year from the event date.
-  const baseTitle = data.title.replace(/\s+\d{4}\s*$/, '');
   const docDefinition = buildMasterScheduleDocDefinition(grid, {
-    title: 'Master Schedule',
-    subtitle: `${baseTitle} ${data.date.getUTCFullYear()}`,
+    // Titles vary across years ("Winter Adventure 2025" vs "Winter Adventure"),
+    // so derive the year from the event date.
+    title: `${baseEventTitle(data.title)} ${data.date.getUTCFullYear()}`,
+    subtitle: 'Master Schedule',
+    mapDataUri: mapDataUri(data.siteId),
   });
 
   const buffer: Buffer = await pdfMake.createPdf(docDefinition).getBuffer();

@@ -23,17 +23,25 @@ const MUTED_COLOR = '#aaaaaa';
 // (pure, no pdfmake runtime) so the printable HTML page and this PDF share one
 // source of truth. This wrapper keeps the browser-download behaviour.
 
-export function downloadMasterSchedule(data: MasterScheduleData, eventName: string): void {
+export async function downloadMasterSchedule(
+  data: MasterScheduleData,
+  eventName: string,
+  opts: { year?: number; withMap?: boolean } = {}
+): Promise<void> {
   if (data.locations.length === 0) return;
 
-  const year = new Date().getFullYear();
+  const year = opts.year ?? new Date().getFullYear();
+  const mapDataUri = opts.withMap ? await compositeMap([]) : undefined;
+
   const docDefinition = buildMasterScheduleDocDefinition(buildScheduleGrid(data), {
-    title: 'Schedule',
-    subtitle: `${eventName} ${year}`,
+    title: `${eventName} ${year}`,
+    subtitle: 'Master Schedule',
+    mapDataUri,
   });
 
+  const safeName = `${eventName} ${year}`.replace(/[^\w]+/g, '_').replace(/^_+|_+$/g, '');
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  pdfMake.createPdf(docDefinition as any).download(`${eventName.replace(/\s+/g, '_')}_Schedule_${year}.pdf`);
+  pdfMake.createPdf(docDefinition as any).download(`${safeName}_Master_Schedule.pdf`);
 }
 
 // ---------------------------------------------------------------------------

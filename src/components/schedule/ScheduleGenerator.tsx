@@ -3,7 +3,13 @@ import type { Workshop, TimeSlot } from './models';
 import type { AttachResult } from './excelParser';
 import { getUniquePeriods } from './scheduleBuilder';
 import { buildTimeslotsFromDefaults } from './winterAdventureDefaults';
-import { slugifyPeriod, parseDays, frontmatterToTimeslots, type FrontmatterTimeslot } from '~/utils/eventSchedule';
+import {
+  slugifyPeriod,
+  parseDays,
+  frontmatterToTimeslots,
+  baseEventTitle,
+  type FrontmatterTimeslot,
+} from '~/utils/eventSchedule';
 
 // Lazy-loaded so each step's heavy dependencies (xlsx, pdfmake) only load
 // when that step is reached, instead of bundling ~2MB into the initial chunk.
@@ -22,6 +28,8 @@ export interface ClassesSource {
   timeslots: FrontmatterTimeslot[] | null;
   /** normalized class name -> room */
   rooms: Record<string, string>;
+  /** whether this event's venue has a floor-plan map to embed in the PDF */
+  hasVenueMap: boolean;
 }
 
 interface Props {
@@ -54,8 +62,8 @@ export default function ScheduleGenerator({ classesSource }: Props) {
   const [step, setStep] = useState<Step>(sourced ? 'edit' : 'upload');
   const [unmatched, setUnmatched] = useState<string[]>([]);
 
-  const baseTitle = (classesSource?.title ?? 'Winter Adventure').replace(/\s+\d{4}\s*$/, '');
-  const eventName = classesSource ? `${baseTitle} ${classesSource.year}` : 'Winter Adventure';
+  const eventName = baseEventTitle(classesSource?.title ?? 'Winter Adventure');
+  const eventYear = classesSource?.year ?? new Date().getFullYear();
 
   const stepLabels: { id: Step; label: string }[] = [
     { id: 'upload', label: sourced ? '1. Registrations' : '1. Upload' },
@@ -93,7 +101,7 @@ export default function ScheduleGenerator({ classesSource }: Props) {
       <div className="mb-8">
         <h1 className="font-heading text-3xl font-bold text-default">Schedule Generator</h1>
         <p className="mt-1 text-sm text-muted">
-          {eventName}
+          {eventName} {eventYear}
           {sourced && ' · classes loaded from the event page'}
         </p>
       </div>
@@ -168,7 +176,9 @@ export default function ScheduleGenerator({ classesSource }: Props) {
             workshops={workshops}
             timeslots={timeslots}
             eventName={eventName}
+            eventYear={eventYear}
             eventId={classesSource?.eventId}
+            hasVenueMap={classesSource?.hasVenueMap ?? false}
             onBack={() => setStep('edit')}
             onReset={handleReset}
           />

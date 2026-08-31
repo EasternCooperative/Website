@@ -19,6 +19,16 @@ export interface EventScheduleData {
   schedule?: { timeslots: FrontmatterTimeslot[] };
 }
 
+/** Public path to a venue floor-plan image for the schedule, or null if none. */
+export function venueScheduleMapPath(siteId: string | undefined): string | null {
+  return siteId === 'the-y-at-watson-woods' ? '/maps/watson_layout.png' : null;
+}
+
+/** Strip a trailing year from an event title (titles vary: "Winter Adventure" vs "… 2026"). */
+export function baseEventTitle(title: string): string {
+  return title.replace(/\s+\d{4}\s*$/, '');
+}
+
 /**
  * Normalise a period / timeslot label to a stable key. Both a class's `period`
  * string and a timeslot's `label` run through this, so "Morning, first period"

@@ -75,7 +75,7 @@ export function buildScheduleGrid(data: MasterScheduleData): ScheduleGridModel {
 
 export function buildMasterScheduleDocDefinition(
   grid: ScheduleGridModel,
-  opts: { title: string; subtitle: string }
+  opts: { title: string; subtitle: string; mapDataUri?: string }
 ): TDocumentDefinitions {
   const { locations, landscape, rows } = grid;
   const colCount = 2 + locations.length; // Time | Days | ...locations
@@ -176,6 +176,9 @@ export function buildMasterScheduleDocDefinition(
         table: { headerRows: 1, widths, body: [headerRow, ...bodyRows] },
         layout: tableLayout,
       },
+      ...(opts.mapDataUri
+        ? [{ image: opts.mapDataUri, width: landscape ? 520 : 400, alignment: 'center', margin: [0, 16, 0, 0] }]
+        : []),
     ],
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any;

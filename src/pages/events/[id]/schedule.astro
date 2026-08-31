@@ -1,7 +1,7 @@
 ---
 import { getCollection, type CollectionEntry } from 'astro:content';
 import Layout from '~/layouts/PageLayout.astro';
-import { buildEventMasterSchedule, hasMasterSchedule } from '~/utils/eventSchedule';
+import { buildEventMasterSchedule, hasMasterSchedule, baseEventTitle, venueScheduleMapPath } from '~/utils/eventSchedule';
 import { buildScheduleGrid } from '~/components/schedule/scheduleGrid';
 
 export async function getStaticPaths() {
@@ -23,10 +23,12 @@ const leaderMap = new Map(leaders.map((l) => [l.id, l.data]));
 
 const grid = buildScheduleGrid(buildEventMasterSchedule(data, leaderMap));
 const year = data.date.getUTCFullYear();
+const eventLabel = `${baseEventTitle(data.title)} ${year}`;
+const mapPath = venueScheduleMapPath(data.siteId);
 
 const metadata = {
-  title: `${data.title} — Master Schedule`,
-  description: `Printable class schedule for ${data.title}${year ? ` ${year}` : ''}.`,
+  title: `${eventLabel} — Master Schedule`,
+  description: `Printable class schedule for ${eventLabel}.`,
 };
 
 const cellText = (item?: { name: string; leader: string }) => item;
@@ -57,8 +59,8 @@ const cellText = (item?: { name: string; leader: string }) => item;
       </a>
     </div>
 
-    <h1 class="font-heading mb-1 text-3xl font-bold text-heading">{data.title} — Master Schedule</h1>
-    <p class="mb-6 text-sm text-muted">Class times and rooms{year ? `, ${year}` : ''}.</p>
+    <h1 class="font-heading mb-1 text-3xl font-bold text-heading">{eventLabel} — Master Schedule</h1>
+    <p class="mb-6 text-sm text-muted">Class times and rooms.</p>
 
     <div class="overflow-x-auto">
       <table class="schedule-grid w-full border-collapse text-sm">
@@ -127,6 +129,15 @@ const cellText = (item?: { name: string; leader: string }) => item;
         </tbody>
       </table>
     </div>
+
+    {
+      mapPath && (
+        <figure class="mt-8">
+          <img src={mapPath} alt={`${eventLabel} venue floor plan`} class="mx-auto w-full max-w-[565px] rounded-lg border" />
+          <figcaption class="mt-2 text-center text-xs text-muted">Venue floor plan</figcaption>
+        </figure>
+      )
+    }
   </section>
 </Layout>
 
@@ -140,6 +151,7 @@ const cellText = (item?: { name: string; leader: string }) => item;
   .schedule-grid th,
   .schedule-grid td {
     border-color: #d1d5db;
+    vertical-align: middle;
   }
   .schedule-grid thead th {
     background: #f3f4f6;

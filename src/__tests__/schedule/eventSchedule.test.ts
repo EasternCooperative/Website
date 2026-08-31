@@ -5,6 +5,8 @@ import {
   formatScheduleHeading,
   hasMasterSchedule,
   buildEventMasterSchedule,
+  baseEventTitle,
+  venueScheduleMapPath,
   type EventScheduleData,
 } from '~/utils/eventSchedule';
 
@@ -32,6 +34,22 @@ function makeEvent(overrides: Partial<EventScheduleData> = {}): EventScheduleDat
     ...overrides,
   };
 }
+
+describe('baseEventTitle', () => {
+  it('strips a trailing year but leaves other text alone', () => {
+    expect(baseEventTitle('Winter Adventure 2026')).toBe('Winter Adventure');
+    expect(baseEventTitle('Winter Adventure')).toBe('Winter Adventure');
+    expect(baseEventTitle('ECRS Fun Day in Wilmington')).toBe('ECRS Fun Day in Wilmington');
+  });
+});
+
+describe('venueScheduleMapPath', () => {
+  it('returns the Watson floor plan only for that site', () => {
+    expect(venueScheduleMapPath('the-y-at-watson-woods')).toBe('/maps/watson_layout.png');
+    expect(venueScheduleMapPath('mid-county-center')).toBeNull();
+    expect(venueScheduleMapPath(undefined)).toBeNull();
+  });
+});
 
 describe('slugifyPeriod', () => {
   it('collapses case, punctuation and whitespace to a stable key', () => {
