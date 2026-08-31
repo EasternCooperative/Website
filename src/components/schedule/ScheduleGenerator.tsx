@@ -174,7 +174,6 @@ export default function ScheduleGenerator({ classesSource }: Props) {
             workshops={workshops}
             timeslots={timeslots}
             eventName={eventName}
-            eventYear={eventYear}
             eventId={classesSource?.eventId}
             onBack={() => setStep('edit')}
             onReset={handleReset}

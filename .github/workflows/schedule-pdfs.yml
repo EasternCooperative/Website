@@ -1,0 +1,60 @@
+name: Schedule PDFs
+
+# Renders /events/<id>/schedule pages to static PDFs (public/schedules/<id>.pdf)
+# with headless Chrome and commits any changes back to main. Cloudflare Pages
+# then serves the PDFs as plain static files — no headless browser in the
+# Pages build.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/data/events/**'
+      - 'src/data/leaders/**'
+      - 'src/pages/events/[id]/schedule.astro'
+      - 'src/components/schedule/scheduleGrid.ts'
+      - 'src/utils/eventSchedule.ts'
+      - 'scripts/render-schedule-pdfs.mjs'
+      - '.github/workflows/schedule-pdfs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: schedule-pdfs
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Use Node.js 22
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Get Playwright version
+        id: playwright-version
+        run: echo "version=$(node -e "console.log(require('@playwright/test/package.json').version)")" >> "$GITHUB_OUTPUT"
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
+      - run: npx playwright install chromium --with-deps
+      - run: node scripts/render-schedule-pdfs.mjs
+      - name: Commit updated PDFs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/schedules
+          if git diff --staged --quiet; then
+            echo "No schedule PDF changes."
+          else
+            git commit -m "chore(schedule): regenerate master-schedule PDFs"
+            git push
+          fi

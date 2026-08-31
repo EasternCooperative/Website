@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildScheduleGrid, buildMasterScheduleDocDefinition } from '~/components/schedule/scheduleGrid';
+import { buildScheduleGrid } from '~/components/schedule/scheduleGrid';
 import type { MasterScheduleData } from '~/components/schedule/scheduleBuilder';
 import type { Workshop, TimeSlot } from '~/components/schedule/models';
 
@@ -49,39 +49,5 @@ describe('buildScheduleGrid', () => {
     const base: MasterScheduleData = { locations: ['a', 'b', 'c', 'd'], timeslots: [], workshops: [] };
     expect(buildScheduleGrid(base).landscape).toBe(false);
     expect(buildScheduleGrid({ ...base, locations: ['a', 'b', 'c', 'd', 'e'] }).landscape).toBe(true);
-  });
-});
-
-describe('buildMasterScheduleDocDefinition', () => {
-  const grid = buildScheduleGrid({
-    locations: ['Hall'],
-    timeslots,
-    workshops: [ws('Yoga', 'Hall', 'am1', 1, 4)],
-  });
-
-  it('uses the caller-supplied subtitle verbatim (no appended year)', () => {
-    const doc = buildMasterScheduleDocDefinition(grid, { title: 'Master Schedule', subtitle: 'Winter Adventure 2026' });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const header = (doc.content as any[])[0];
-    expect(header.columns[0].text).toBe('Master Schedule');
-    expect(header.columns[1].text).toBe('Winter Adventure 2026');
-  });
-
-  it('emits header + one row per break and two per period', () => {
-    const doc = buildMasterScheduleDocDefinition(grid, { title: 'x', subtitle: 'y' });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const body = (doc.content as any[])[1].table.body as unknown[][];
-    // header + break(1) + period(2)
-    expect(body.length).toBe(4);
-  });
-
-  it('goes landscape when the grid is landscape', () => {
-    const wide = buildScheduleGrid({
-      locations: ['a', 'b', 'c', 'd', 'e'],
-      timeslots: [timeslots[1]],
-      workshops: [],
-    });
-    const doc = buildMasterScheduleDocDefinition(wide, { title: 'x', subtitle: 'y' });
-    expect(doc.pageOrientation).toBe('landscape');
   });
 });

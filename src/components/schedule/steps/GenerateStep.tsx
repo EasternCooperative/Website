@@ -1,20 +1,19 @@
 import { useMemo, useState } from 'react';
 import type { Workshop, TimeSlot } from '../models';
-import { buildMasterSchedule, buildRosters, buildIndividualSchedules } from '../scheduleBuilder';
-import { downloadMasterSchedule, downloadRosters, downloadIndividualSchedules } from '../printRenderer';
+import { buildRosters, buildIndividualSchedules } from '../scheduleBuilder';
+import { downloadRosters, downloadIndividualSchedules } from '../printRenderer';
 import { buildScheduleFrontmatter } from '../frontmatterExport';
 
 interface Props {
   workshops: Workshop[];
   timeslots: TimeSlot[];
   eventName: string;
-  eventYear: number;
   eventId?: string;
   onBack: () => void;
   onReset: () => void;
 }
 
-export default function GenerateStep({ workshops, timeslots, eventName, eventYear, eventId, onBack, onReset }: Props) {
+export default function GenerateStep({ workshops, timeslots, eventName, eventId, onBack, onReset }: Props) {
   const [generatingIndividual, setGeneratingIndividual] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -28,10 +27,6 @@ export default function GenerateStep({ workshops, timeslots, eventName, eventYea
       },
       () => setCopied(null)
     );
-  }
-
-  function handleMasterSchedule() {
-    downloadMasterSchedule(buildMasterSchedule(workshops, timeslots), eventName, eventYear);
   }
 
   function handleRosters() {
@@ -61,20 +56,25 @@ export default function GenerateStep({ workshops, timeslots, eventName, eventYea
           {timeslots.length !== 1 ? 's' : ''}
         </p>
         <p className="mt-2 text-sm text-muted">
-          Click a button below to download the PDF.{' '}
-          <kbd className="rounded bg-gray-200 px-1 font-mono text-xs dark:bg-gray-700 dark:text-gray-200">Ctrl+P</kbd> /{' '}
-          <kbd className="rounded bg-gray-200 px-1 font-mono text-xs dark:bg-gray-700 dark:text-gray-200">⌘P</kbd> to
-          print from the browser.
+          Roster and individual-schedule PDFs download from the buttons below.{' '}
+          {eventId && (
+            <>
+              The master schedule lives on the{' '}
+              <a
+                href={`/events/${eventId}/schedule`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-primary hover:underline"
+              >
+                event page
+              </a>{' '}
+              once the rooms and times below are published.
+            </>
+          )}
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <PrintCard
-          title="Master Schedule"
-          description="Full grid showing all workshops by location and period. Auto-selects landscape when there are more than 5 locations."
-          icon="🗓"
-          onClick={handleMasterSchedule}
-        />
+      <div className="grid gap-4 sm:grid-cols-2">
         <PrintCard
           title="Workshop Rosters"
           description="One page per workshop listing all registered attendees, sorted by last name."

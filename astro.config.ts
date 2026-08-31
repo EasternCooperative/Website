@@ -67,9 +67,6 @@ export default defineConfig({
       filter: (page) =>
         !page.includes('/events/e2e-') &&
         !page.includes('/internal/') &&
-        // The printable master-schedule PDF is a download, not a page to index.
-        // The HTML /events/<id>/schedule view stays listed.
-        !/\/events\/[^/]+\/schedule\.pdf\/?$/.test(page) &&
         (siteSettings.featureFlags.connectionsPage || !/\/connections\/?$/.test(page)) &&
         (siteSettings.featureFlags.activitiesLibrary || !/\/activities(?:\/|$)/.test(page)) &&
         !isDraftPage(page, '/events/', draftEventSlugs) &&

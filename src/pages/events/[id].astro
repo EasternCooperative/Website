@@ -1,4 +1,5 @@
 ---
+import { existsSync } from 'node:fs';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { getImage } from 'astro:assets';
 import Layout from '~/layouts/PageLayout.astro';
@@ -50,6 +51,10 @@ const allLeaders = await getCollection('leader');
 const leaderMap = new Map<string, CollectionEntry<'leader'>['data']>(allLeaders.map((l) => [l.id, l.data]));
 
 const masterSchedule = hasMasterSchedule(data);
+// The static PDF is rendered from the schedule page in CI and committed to
+// public/schedules/. Show the download link only once it exists.
+const schedulePdfPath = `/schedules/${event.id}.pdf`;
+const schedulePdfExists = existsSync(`public${schedulePdfPath}`);
 if (import.meta.env.DEV && data.schedule?.timeslots?.length && !masterSchedule.ok) {
   console.warn(
     `[${event.id}] master schedule not offered — missing rooms: ${masterSchedule.missingRooms.join(', ') || 'none'}` +
@@ -804,12 +809,14 @@ const breadcrumbJsonLd = {
                 >
                   View printable master schedule
                 </a>
-                <a
-                  href={`/events/${event.id}/schedule.pdf`}
-                  class="text-primary underline decoration-dotted underline-offset-2 hover:text-secondary"
-                >
-                  Download PDF
-                </a>
+                {schedulePdfExists && (
+                  <a
+                    href={schedulePdfPath}
+                    class="text-primary underline decoration-dotted underline-offset-2 hover:text-secondary"
+                  >
+                    Download PDF
+                  </a>
+                )}
               </div>
             )}
             <div class="space-y-8">

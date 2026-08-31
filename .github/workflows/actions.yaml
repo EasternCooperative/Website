@@ -35,6 +35,7 @@ jobs:
             content-only:
               - 'src/data/**'
               - 'public/images/**'
+              - 'public/schedules/**'
 
   # Always runs: astro check + eslint + prettier.
   check:

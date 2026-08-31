@@ -2,11 +2,8 @@ import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 import { formatTimeRange } from './timeUtils';
 import type { TimeSlot } from './models';
-import type { MasterScheduleData, RosterEntry, IndividualSchedule } from './scheduleBuilder';
-import { buildScheduleGrid, buildMasterScheduleDocDefinition } from './scheduleGrid';
+import type { RosterEntry, IndividualSchedule } from './scheduleBuilder';
 import { compositeMap } from './mapCompositor';
-
-export { buildScheduleGrid, buildMasterScheduleDocDefinition } from './scheduleGrid';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (pdfMake as any).vfs = ((pdfFonts as any).pdfMake?.vfs ?? (pdfFonts as any).vfs) as Record<string, string>;
@@ -15,30 +12,9 @@ const HEADER_FILL = '#e0e0e0';
 const META_COLOR = '#555555';
 const MUTED_COLOR = '#aaaaaa';
 
-// ---------------------------------------------------------------------------
-// Master Schedule
-// ---------------------------------------------------------------------------
-//
-// The grid model and pdfmake document definition now live in `scheduleGrid.ts`
-// (pure, no pdfmake runtime) so the printable HTML page and this PDF share one
-// source of truth. This wrapper keeps the browser-download behaviour.
-
-export function downloadMasterSchedule(
-  data: MasterScheduleData,
-  eventName: string,
-  year: number = new Date().getFullYear()
-): void {
-  if (data.locations.length === 0) return;
-
-  const docDefinition = buildMasterScheduleDocDefinition(buildScheduleGrid(data), {
-    title: `${eventName} ${year}`,
-    subtitle: 'Master Schedule',
-  });
-
-  const safeName = `${eventName} ${year}`.replace(/[^\w]+/g, '_').replace(/^_+|_+$/g, '');
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  pdfMake.createPdf(docDefinition as any).download(`${safeName}_Master_Schedule.pdf`);
-}
+// The master schedule is no longer generated here — it is the printable HTML page
+// at /events/<id>/schedule, rendered to a static PDF in CI (scripts/render-schedule-pdfs.mjs).
+// This module keeps the attendee-specific outputs, which need pdfmake's per-page layout.
 
 // ---------------------------------------------------------------------------
 // Workshop Rosters
