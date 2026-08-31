@@ -226,6 +226,23 @@ const leaderPopoverIds = [
 
 {grid.landscape && <style is:inline set:html="@media print { @page { size: landscape; } }" />}
 
+<!-- Print rules that target ScheduleCellItem's markup (a child component, so
+     they can't be scoped): flatten the leader chips to plain inline text,
+     drop the avatars (and their reserved space), strip link styling. -->
+<style is:global>
+  @media print {
+    /* Drop the avatars (and the space they'd reserve) and the link styling;
+       names flow as plain inline text. */
+    .schedule-grid .sched-avatar {
+      display: none !important;
+    }
+    .schedule-grid .sched-trigger {
+      text-decoration: none !important;
+      cursor: default !important;
+    }
+  }
+</style>
+
 <style>
   .schedule-grid th,
   .schedule-grid td {
@@ -269,19 +286,6 @@ const leaderPopoverIds = [
     }
     section > p {
       display: none !important;
-    }
-    /* Print the grid as plain text: no avatars, no interactive-link styling. */
-    .schedule-grid :global(img),
-    .schedule-grid :global([data-photo-trigger]) {
-      display: none !important;
-    }
-    .schedule-grid :global(.sched-trigger) {
-      text-decoration: none !important;
-      cursor: default !important;
-      border: 0 !important;
-      background: none !important;
-      padding: 0 !important;
-      color: inherit !important;
     }
     /* With border-collapse, the shared line between two adjacent filled break
        rows (Lunch / Free Time) gets painted over by the cell backgrounds in

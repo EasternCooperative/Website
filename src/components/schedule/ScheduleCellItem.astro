@@ -34,40 +34,46 @@ const leaders = resolveLeaders(cls);
 
 {
   hasPopover ? (
-    <button
-      type="button"
+    <span
+      role="button"
+      tabindex="0"
       data-popover-target={`sd-${item.classIndex}`}
       aria-controls={`sd-${item.classIndex}`}
       aria-expanded="false"
-      class="sched-trigger cursor-pointer text-left font-semibold text-heading underline decoration-dotted underline-offset-2 transition-colors hover:text-primary"
+      class="sched-trigger cursor-pointer font-semibold text-heading underline decoration-dotted underline-offset-2 transition-colors hover:text-primary"
     >
       {item.name}
-    </button>
+    </span>
   ) : (
     <span class="font-semibold text-heading">{item.name}</span>
   )
 }
 {
   leaders.length > 0 && (
-    <span class="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-muted italic">
+    <span class="sched-leaders mt-0.5 block text-xs text-muted">
       {leaders.map((l, i) => (
-        <span class="not-italic inline-flex items-center gap-1">
-          {l.photo && <PersonPhoto name={l.name} photo={l.photo} size={16} />}
+        <Fragment>
+          {i > 0 ? <span class="sched-sep">, </span> : null}
+          {l.photo ? (
+            <span class="sched-avatar mr-1 inline-block align-middle">
+              <PersonPhoto name={l.name} photo={l.photo} size={16} />
+            </span>
+          ) : null}
           {l.id && l.hasBio ? (
-            <button
-              type="button"
+            <span
+              role="button"
+              tabindex="0"
               data-popover-target={`leader-${l.id}`}
               aria-controls={`leader-${l.id}`}
               aria-expanded="false"
               class="sched-trigger cursor-pointer italic underline decoration-dotted underline-offset-2 transition-colors hover:text-primary"
             >
               {l.name}
-            </button>
+            </span>
           ) : (
             <span class="italic">{l.name}</span>
           )}
-          {i < leaders.length - 1 && <span class="not-italic">,</span>}
-        </span>
+        </Fragment>
       ))}
     </span>
   )

@@ -40,6 +40,13 @@ export function initLeaderPopovers() {
     btn.addEventListener('mouseleave', hide);
     // Click always shows; outside-click auto-dismisses via popover="auto"
     btn.addEventListener('click', () => show());
+    // Keyboard activation for non-<button> triggers (e.g. inline <span role="button">).
+    btn.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        show();
+      }
+    });
     pop.addEventListener('mouseenter', () => clearTimeout(hideTimer));
     pop.addEventListener('mouseleave', hide);
   });
