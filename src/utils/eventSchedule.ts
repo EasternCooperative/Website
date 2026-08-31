@@ -77,13 +77,6 @@ export function frontmatterToTimeslots(timeslots: FrontmatterTimeslot[]): TimeSl
   );
 }
 
-/** Inclusive day count between `date` and `endDate` (defaults to 1). */
-function eventDayCount(data: EventScheduleData): number {
-  if (!data.endDate) return 1;
-  const ms = data.endDate.getTime() - data.date.getTime();
-  return Math.max(1, Math.round(ms / 86_400_000) + 1);
-}
-
 function nonBreakLabels(data: EventScheduleData): Map<string, FrontmatterTimeslot> {
   const map = new Map<string, FrontmatterTimeslot>();
   for (const ts of data.schedule?.timeslots ?? []) {
@@ -171,10 +164,6 @@ export function buildEventMasterSchedule(
       selections: [],
     };
   });
-
-  if (data.endDate && eventDayCount(data) !== 4) {
-    console.warn(`[eventSchedule] event spans ${eventDayCount(data)} days — the master-schedule grid assumes 4`);
-  }
 
   return buildMasterSchedule(workshops, timeslots);
 }
