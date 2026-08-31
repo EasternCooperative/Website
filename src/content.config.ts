@@ -210,11 +210,33 @@ const eventCollection = defineCollection({
           ageRange: z.string().optional(),
           period: z.string().optional(),
           days: z.string().optional(),
+          // Room for the printable master schedule grid, e.g. "Rec Hall". Free text
+          // (venue-agnostic). When every class in a period has one, the event page
+          // offers the master-schedule download.
+          room: z.string().optional(),
           limitedCapacity: z.boolean().optional(),
           description: z.string().optional(),
           callout: z.string().optional(),
         })
       )
+      .optional(),
+
+    // Master Schedule time grid. Array order of `timeslots` is the row order in the
+    // generated grid (both the printable page and the PDF). `start`/`end` are 24-hour
+    // "HH:MM" strings; omit them and the row falls back to its label. A non-break
+    // timeslot's `label` must exactly match the `period` string of the classes that
+    // belong in it. Usually populated from the /internal/schedule tool.
+    schedule: z
+      .object({
+        timeslots: z.array(
+          z.object({
+            label: z.string(),
+            start: optionalString,
+            end: optionalString,
+            isBreak: z.boolean().optional(), // meals / free time — full-width band, never matched to classes
+          })
+        ),
+      })
       .optional(),
 
     // Event staff — logistics/coordination roles (registrar, tech support, business

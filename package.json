@@ -31,7 +31,8 @@
     "fix:eslint": "eslint --fix .",
     "fix:prettier": "prettier -w .",
     "prebuild": "node scripts/copy-sveltia-cms.mjs && node scripts/copy-public-images.mjs && node scripts/process-member-locations.mjs",
-    "process-members": "node scripts/process-member-locations.mjs"
+    "process-members": "node scripts/process-member-locations.mjs",
+    "render:schedules": "node scripts/render-schedule-pdfs.mjs"
   },
   "dependencies": {
     "@astrojs/markdown-remark": "7.2.4",

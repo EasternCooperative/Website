@@ -1,7 +1,37 @@
 ---
 export const prerender = true;
 import Layout from '~/layouts/PageLayout.astro';
-import ScheduleGenerator from '~/components/schedule/ScheduleGenerator';
+import { getCollection } from 'astro:content';
+import ScheduleGenerator, { type ClassesSource } from '~/components/schedule/ScheduleGenerator';
+import { resolveClassLeaderNames } from '~/utils/classes';
+
+// Load the class list from the current (or most recent) Winter Adventure event so
+// the tool becomes a room/time editor over real classes, not a spreadsheet parser.
+const events = await getCollection('event');
+const wa = events
+  .filter((e) => e.id.endsWith('-winter-adventure'))
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+const now = Date.now();
+const current = wa.find((e) => (e.data.endDate ?? e.data.date).getTime() >= now) ?? wa[0];
+
+let classesSource: ClassesSource | null = null;
+if (current?.data.classes?.length) {
+  const leaders = await getCollection('leader');
+  const leaderMap = new Map(leaders.map((l) => [l.id, l.data]));
+  classesSource = {
+    eventId: current.id,
+    title: current.data.title,
+    year: current.data.date.getUTCFullYear(),
+    classes: current.data.classes.map((c) => ({
+      name: c.name,
+      leader: resolveClassLeaderNames(c, leaderMap).join(', '),
+      period: c.period ?? '',
+      days: c.days ?? '',
+    })),
+    timeslots: current.data.schedule?.timeslots ?? null,
+    rooms: Object.fromEntries(current.data.classes.map((c) => [c.name.trim().toLowerCase(), c.room ?? ''])),
+  };
+}
 ---
 
 <!-- Staff tool. `noIndex` also excludes it from the on-site Pagefind index; it
@@ -9,10 +39,10 @@ import ScheduleGenerator from '~/components/schedule/ScheduleGenerator';
 <Layout
   metadata={{
     title: 'Schedule Generator',
-    description: 'Generate workshop schedules from a Cognito Forms Excel export.',
+    description: 'Assign rooms and times to Winter Adventure classes and generate schedules.',
     robots: { index: false, follow: false },
   }}
   noIndex
 >
-  <ScheduleGenerator client:only="react" />
+  <ScheduleGenerator client:only="react" classesSource={classesSource} />
 </Layout>

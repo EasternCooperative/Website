@@ -42,9 +42,11 @@ const draftEventSlugs = draftSlugs(path.join(__dirname, 'src/data/events'));
 const draftActivitySlugs = draftSlugs(path.join(__dirname, 'src/data/activities'));
 
 // Matches the slug as a full path segment (not a substring) so a draft like
-// "foo" doesn't also exclude an unrelated live page like "foo-extended".
+// "foo" doesn't also exclude an unrelated live page like "foo-extended". Also
+// matches one nested segment (e.g. /events/foo/schedule) so a draft event's
+// sub-pages are excluded alongside its detail page.
 function isDraftPage(page: string, sectionPrefix: string, slugs: string[]): boolean {
-  const match = page.match(new RegExp(`${sectionPrefix}([^/]+)/?$`));
+  const match = page.match(new RegExp(`${sectionPrefix}([^/]+)(?:/[^/]+)?/?$`));
   return !!match && slugs.includes(match[1]);
 }
 

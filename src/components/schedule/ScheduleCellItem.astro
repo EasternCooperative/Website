@@ -1,0 +1,84 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import PersonPhoto from '~/components/ui/PersonPhoto.astro';
+import type { GridCellItem } from './scheduleGrid';
+import type { EventClass } from '~/utils/classes';
+
+interface Props {
+  item: GridCellItem;
+  classes: EventClass[];
+  leaderMap: Map<string, CollectionEntry<'leader'>['data']>;
+  peopleFlag: boolean;
+}
+
+const { item, classes, leaderMap, peopleFlag } = Astro.props;
+
+const cls = item.classIndex != null ? classes[item.classIndex] : undefined;
+const hasPopover = !!(cls && (cls.description || cls.callout));
+
+type ResolvedLeader = { id?: string; name: string; photo?: string; hasBio: boolean };
+
+function resolveLeaders(c?: EventClass): ResolvedLeader[] {
+  if (!c) return [];
+  const entries = c.leaders?.length ? c.leaders : c.leaderId || c.leader ? [{ id: c.leaderId, name: c.leader }] : [];
+  return entries.flatMap((e): ResolvedLeader[] => {
+    const rec = e.id ? leaderMap.get(e.id) : undefined;
+    const name = rec?.name ?? e.name;
+    if (!name) return [];
+    return [{ id: e.id, name, photo: rec?.photo, hasBio: peopleFlag || !!rec?.bio }];
+  });
+}
+
+const leaders = resolveLeaders(cls);
+
+// Allow the line to break after a slash (e.g. "Knitting/Macrame/Crochet") so a
+// slash-joined title doesn't force the whole column wider. Escaped so `set:html`
+// stays safe for CMS strings (which contain "&" etc.).
+const withSlashBreaks = (s: string) =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\//g, '/<wbr>');
+---
+
+{
+  hasPopover ? (
+    <span
+      role="button"
+      tabindex="0"
+      data-popover-target={`sd-${item.classIndex}`}
+      aria-controls={`sd-${item.classIndex}`}
+      aria-expanded="false"
+      class="sched-trigger cursor-pointer font-semibold text-heading underline decoration-dotted underline-offset-2 transition-colors hover:text-primary"
+      set:html={withSlashBreaks(item.name)}
+    />
+  ) : (
+    <span class="font-semibold text-heading" set:html={withSlashBreaks(item.name)} />
+  )
+}
+{
+  leaders.length > 0 && (
+    <span class="sched-leaders mt-0.5 block text-xs text-muted italic">
+      {leaders.map((l, i) => (
+        <Fragment>
+          {i > 0 ? ', ' : null}
+          {l.photo ? (
+            <span class="sched-avatar mr-1 inline-block align-middle not-italic">
+              <PersonPhoto name={l.name} photo={l.photo} size={16} />
+            </span>
+          ) : null}
+          {l.id && l.hasBio ? (
+            <span
+              role="button"
+              tabindex="0"
+              data-popover-target={`leader-${l.id}`}
+              aria-controls={`leader-${l.id}`}
+              aria-expanded="false"
+              class="sched-trigger cursor-pointer underline decoration-dotted underline-offset-2 transition-colors hover:text-primary"
+              set:text={l.name}
+            />
+          ) : (
+            <span set:text={l.name} />
+          )}
+        </Fragment>
+      ))}
+    </span>
+  )
+}

@@ -1,12 +1,17 @@
 import { useState, useRef, useCallback } from 'react';
 import type { Workshop } from '../models';
-import { parseExcel, ExcelParseError } from '../excelParser';
+import { parseExcel, attachRegistrations, ExcelParseError, type AttachResult } from '../excelParser';
 
 interface Props {
+  /** When present, the upload overlays registrations onto these workshops instead of creating them. */
+  attachTo?: Workshop[];
   onParsed: (workshops: Workshop[]) => void;
+  onAttached: (result: AttachResult) => void;
+  /** When present, an optional-step "continue without registrations" affordance is shown. */
+  onSkip?: () => void;
 }
 
-export default function UploadStep({ onParsed }: Props) {
+export default function UploadStep({ attachTo, onParsed, onAttached, onSkip }: Props) {
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<{ message: string; details?: string } | null>(null);
   const [loading, setLoading] = useState(false);
@@ -22,8 +27,11 @@ export default function UploadStep({ onParsed }: Props) {
       setError(null);
       try {
         const buffer = await file.arrayBuffer();
-        const workshops = parseExcel(buffer);
-        onParsed(workshops);
+        if (attachTo) {
+          onAttached(attachRegistrations(buffer, attachTo));
+        } else {
+          onParsed(parseExcel(buffer));
+        }
       } catch (err) {
         if (err instanceof ExcelParseError) {
           setError({ message: err.message, details: err.details });
@@ -34,7 +42,7 @@ export default function UploadStep({ onParsed }: Props) {
         setLoading(false);
       }
     },
-    [onParsed]
+    [attachTo, onParsed, onAttached]
   );
 
   const handleDrop = useCallback(
@@ -57,9 +65,13 @@ export default function UploadStep({ onParsed }: Props) {
 
   return (
     <div className="mx-auto max-w-xl py-12">
-      <h2 className="font-heading mb-2 text-2xl font-bold text-default">Upload Registration Export</h2>
+      <h2 className="font-heading mb-2 text-2xl font-bold text-default">
+        {attachTo ? 'Add Registrations (optional)' : 'Upload Registration Export'}
+      </h2>
       <p className="mb-6 text-sm text-muted">
-        Export the Winter Adventure registration from Cognito Forms as an Excel file and upload it here.
+        {attachTo
+          ? 'Only needed for workshop rosters and individual schedules. Upload the Cognito Forms Excel export to match sign-ups to the classes already loaded from the event page.'
+          : 'Export the Winter Adventure registration from Cognito Forms as an Excel file and upload it here.'}
       </p>
 
       <div
@@ -105,6 +117,15 @@ export default function UploadStep({ onParsed }: Props) {
           <p className="font-medium text-red-700 dark:text-red-400">{error.message}</p>
           {error.details && <p className="mt-1 text-sm text-red-500 dark:text-red-400">{error.details}</p>}
         </div>
+      )}
+
+      {onSkip && (
+        <button
+          onClick={onSkip}
+          className="mt-6 text-sm font-medium text-primary transition-colors hover:text-secondary hover:underline"
+        >
+          Continue without registrations →
+        </button>
       )}
     </div>
   );

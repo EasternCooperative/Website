@@ -302,6 +302,114 @@ function collectWorkshops(
   return Array.from(workshops.values());
 }
 
+export interface AttachResult {
+  workshops: Workshop[];
+  unmatched: string[];
+}
+
+/**
+ * Overlay a Cognito registration export onto a workshop list that already came
+ * from the event's frontmatter classes. Matches by workshop name (case-insensitive)
+ * and never creates workshops — names with no match are returned in `unmatched`.
+ */
+export function attachRegistrations(file: ArrayBuffer, existingWorkshops: Workshop[]): AttachResult {
+  let workbook: XLSX.WorkBook;
+  try {
+    workbook = XLSX.read(file, { type: 'array' });
+  } catch {
+    throw new ExcelParseError('Could not read file. Make sure it is a valid .xlsx file.');
+  }
+
+  const schema = WINTER_ADVENTURE_SCHEMA;
+  const attendees = loadAttendees(workbook, schema);
+
+  // Fresh copies so the caller's props stay untouched.
+  const workshops = existingWorkshops.map((w) => ({ ...w, selections: [...w.selections] }));
+  const byName = new Map<string, Workshop>();
+  for (const w of workshops) {
+    const key = w.name.trim().toLowerCase();
+    if (!byName.has(key)) byName.set(key, w);
+  }
+
+  const unmatched = new Set<string>();
+
+  for (const periodConfig of schema.periodSheets) {
+    const sheet = workbook.Sheets[periodConfig.sheetName];
+    if (!sheet) continue;
+
+    const rows = sheetToRows(sheet);
+    if (rows.length < 2) continue;
+
+    const headers = buildHeaderMap(rows[0]);
+    const cols = periodConfig.columns;
+    const selIdCol = getColumnKey(headers, cols.selectionId);
+    const firstCol = getColumnKey(headers, cols.firstName);
+    const lastCol = getColumnKey(headers, cols.lastName);
+    const choiceCol = getColumnKey(headers, cols.choiceNumber);
+
+    const workshopColIndices = periodConfig.workshopColumns.map((wc) => ({
+      config: wc,
+      colIndex: (() => {
+        const key = findColumn(headers, wc.columnName);
+        return key !== null ? XLSX.utils.decode_col(key) : -1;
+      })(),
+    }));
+
+    const ci = (col: string | null) => (col !== null ? XLSX.utils.decode_col(col) : -1);
+
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+
+      const selectionId = selIdCol !== null ? (row[ci(selIdCol)] ?? '') : '';
+      const choiceStr = choiceCol !== null ? (row[ci(choiceCol)] ?? '') : '';
+      const choiceNumber = parseInt(choiceStr, 10) || 1;
+
+      let attendee: Attendee | undefined = attendees.get(selectionId);
+      if (!attendee) {
+        const firstName = firstCol !== null ? (row[ci(firstCol)] ?? '') : '';
+        const lastName = lastCol !== null ? (row[ci(lastCol)] ?? '') : '';
+        if (!firstName && !lastName) continue;
+        attendee = {
+          classSelectionId: selectionId || `${firstName}${lastName}`,
+          firstName,
+          lastName,
+          email: '',
+          age: '',
+          fullName: `${firstName} ${lastName}`.trim(),
+        };
+      }
+
+      for (const { config: wc, colIndex } of workshopColIndices) {
+        if (colIndex < 0) continue;
+        const cellValue = row[colIndex] ?? '';
+        if (!cellValue.trim()) continue;
+
+        const { name: workshopName } = parseWorkshopCell(cellValue);
+        if (!workshopName) continue;
+
+        const target = byName.get(workshopName.trim().toLowerCase());
+        if (!target) {
+          unmatched.add(workshopName);
+          continue;
+        }
+
+        target.selections.push({
+          classSelectionId: attendee.classSelectionId,
+          workshopName: target.name,
+          fullName: attendee.fullName,
+          firstName: attendee.firstName,
+          lastName: attendee.lastName,
+          choiceNumber,
+          duration: { startDay: wc.startDay, endDay: wc.endDay },
+          registrationId: 0,
+        });
+      }
+    }
+  }
+
+  return { workshops, unmatched: [...unmatched] };
+}
+
 export function parseExcel(file: ArrayBuffer): Workshop[] {
   let workbook: XLSX.WorkBook;
   try {

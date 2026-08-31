@@ -3,6 +3,7 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 import { resolveVenue } from '~/utils/resolveEvent';
 import { computeEventSections } from '~/utils/eventSections';
 import { groupClassesByPeriod, resolveClassLeaderNames } from '~/utils/classes';
+import { slugifyPeriod, formatScheduleHeading } from '~/utils/eventSchedule';
 import { formatEventDateRange } from '~/utils/dates';
 import { stripMarkdown } from '~/utils/markdown';
 
@@ -106,9 +107,17 @@ export const GET: APIRoute = async ({ props }) => {
 
   if (data.classes && data.classes.length > 0) {
     heading('Schedule');
+    const slotByPeriod = new Map(
+      (data.schedule?.timeslots ?? []).filter((ts) => !ts.isBreak).map((ts) => [slugifyPeriod(ts.label), ts])
+    );
     const groups = groupClassesByPeriod(data.classes);
     for (const [period, classes] of groups) {
-      if (period) lines.push('', period.toUpperCase());
+      if (period) {
+        lines.push(
+          '',
+          formatScheduleHeading(period, slotByPeriod.get(slugifyPeriod(period)), undefined, false).toUpperCase()
+        );
+      }
       for (const cls of classes) {
         const leaderNames = resolveClassLeaderNames(cls, leaderMap);
         const parts = [cls.name];

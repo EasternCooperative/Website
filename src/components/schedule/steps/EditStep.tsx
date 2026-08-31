@@ -8,6 +8,8 @@ import { KNOWN_LOCATIONS } from '../winterAdventureDefaults';
 interface Props {
   workshops: Workshop[];
   timeslots: TimeSlot[];
+  /** Class name + leader come from the event page and can't be edited here. */
+  readOnlyClasses?: boolean;
   onWorkshopsChange: (workshops: Workshop[]) => void;
   onTimeslotsChange: (timeslots: TimeSlot[]) => void;
   onBack: () => void;
@@ -17,6 +19,7 @@ interface Props {
 export default function EditStep({
   workshops,
   timeslots,
+  readOnlyClasses = false,
   onWorkshopsChange,
   onTimeslotsChange,
   onBack,
@@ -87,7 +90,9 @@ export default function EditStep({
       <section className="mb-10">
         <h2 className="font-heading mb-1 text-2xl font-bold text-default">Workshops</h2>
         <p className="mb-4 text-sm text-muted">
-          Review and edit workshop names, leaders, and locations. Location changes are saved automatically.
+          {readOnlyClasses
+            ? 'Class names and leaders come from the event page. Assign a room to each — changes are saved automatically.'
+            : 'Review and edit workshop names, leaders, and locations. Location changes are saved automatically.'}
         </p>
 
         {periods.map((period) => {
@@ -114,20 +119,28 @@ export default function EditStep({
                   {periodWorkshops.map(({ w, i }) => (
                     <tr key={i}>
                       <td className="px-3 py-1.5">
-                        <input
-                          type="text"
-                          value={w.name}
-                          onChange={(e) => updateWorkshop(i, 'name', e.target.value)}
-                          className="w-full rounded border border-gray-200 px-2 py-1 text-sm text-default focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900"
-                        />
+                        {readOnlyClasses ? (
+                          <span className="block px-2 py-1 text-sm text-default">{w.name}</span>
+                        ) : (
+                          <input
+                            type="text"
+                            value={w.name}
+                            onChange={(e) => updateWorkshop(i, 'name', e.target.value)}
+                            className="w-full rounded border border-gray-200 px-2 py-1 text-sm text-default focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900"
+                          />
+                        )}
                       </td>
                       <td className="px-3 py-1.5">
-                        <input
-                          type="text"
-                          value={w.leader}
-                          onChange={(e) => updateWorkshop(i, 'leader', e.target.value)}
-                          className="w-full rounded border border-gray-200 px-2 py-1 text-sm text-default focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900"
-                        />
+                        {readOnlyClasses ? (
+                          <span className="block px-2 py-1 text-sm text-muted">{w.leader || '—'}</span>
+                        ) : (
+                          <input
+                            type="text"
+                            value={w.leader}
+                            onChange={(e) => updateWorkshop(i, 'leader', e.target.value)}
+                            className="w-full rounded border border-gray-200 px-2 py-1 text-sm text-default focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 dark:border-gray-700 dark:bg-gray-900"
+                          />
+                        )}
                       </td>
                       <td className="px-3 py-1.5">
                         <input

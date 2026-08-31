@@ -1,0 +1,309 @@
+---
+import { existsSync } from 'node:fs';
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Layout from '~/layouts/PageLayout.astro';
+import PersonPhoto from '~/components/ui/PersonPhoto.astro';
+import ScheduleCellItem from '~/components/schedule/ScheduleCellItem.astro';
+import { buildEventMasterSchedule, hasMasterSchedule, baseEventTitle } from '~/utils/eventSchedule';
+import { buildScheduleGrid } from '~/components/schedule/scheduleGrid';
+import { renderInlineMarkdown } from '~/utils/markdown';
+import siteSettings from '~/data/settings/site.json';
+
+export async function getStaticPaths() {
+  const events = await getCollection('event');
+  return events
+    .filter((event) => hasMasterSchedule(event.data).ok)
+    .map((event) => ({ params: { id: event.id }, props: { event } }));
+}
+
+interface Props {
+  event: CollectionEntry<'event'>;
+}
+
+const { event } = Astro.props;
+const { data } = event;
+const classes = data.classes ?? [];
+
+const leaders = await getCollection('leader');
+const leaderMap = new Map(leaders.map((l) => [l.id, l.data]));
+const peopleFlag = siteSettings.featureFlags.peopleWithoutPhotoOrBio;
+
+const grid = buildScheduleGrid(buildEventMasterSchedule(data, leaderMap));
+const year = data.date.getUTCFullYear();
+const eventLabel = `${baseEventTitle(data.title)} ${year}`;
+
+const metadata = {
+  title: `${eventLabel} — Master Schedule`,
+  description: `Printable class schedule for ${eventLabel}.`,
+};
+
+// Static PDF rendered from this page in CI (scripts/render-schedule-pdfs.mjs).
+const schedulePdfPath = `/schedules/${event.id}.pdf`;
+const schedulePdfExists = existsSync(`public${schedulePdfPath}`);
+
+// Popover cards, rendered once at the bottom and targeted from the grid buttons.
+const descriptionPopovers = classes.map((c, i) => ({ i, c })).filter(({ c }) => c.description || c.callout);
+
+const leaderPopoverIds = [
+  ...new Set(
+    classes.flatMap((c) => [
+      ...(c.leaderId ? [c.leaderId] : []),
+      ...(c.leaders ?? []).map((l) => l.id).filter((id): id is string => !!id),
+    ])
+  ),
+].filter((id) => {
+  const rec = leaderMap.get(id);
+  return rec && (peopleFlag || !!rec.bio);
+});
+---
+
+<Layout metadata={metadata}>
+  <section class="mx-auto max-w-6xl px-4 py-10">
+    <div class="no-print mb-6 flex flex-wrap items-center gap-3">
+      <a
+        href={`/events/${event.id}`}
+        class="text-sm text-muted underline decoration-dotted underline-offset-2 hover:text-primary"
+      >
+        ← Back to event
+      </a>
+      <span class="flex-1"></span>
+      {
+        schedulePdfExists && (
+          <a
+            href={schedulePdfPath}
+            target="_blank"
+            rel="noopener"
+            class="rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-secondary"
+          >
+            Download PDF
+          </a>
+        )
+      }
+    </div>
+
+    <h1 class="font-heading mb-1 text-3xl font-bold text-heading">{eventLabel} — Master Schedule</h1>
+    <p class="mb-6 text-sm text-muted">Class times and rooms. Tap a class or leader for details.</p>
+
+    <div class="overflow-x-auto">
+      <table class="schedule-grid w-full border-collapse text-sm">
+        <thead>
+          <tr>
+            <th class="border px-3 py-2 text-left">Time</th>
+            <th class="border px-3 py-2 text-left">Days</th>
+            {grid.locations.map((loc) => <th class="border px-3 py-2 text-left">{loc}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {
+            grid.rows.map((row) =>
+              row.kind === 'break' ? (
+                <tr class="schedule-break">
+                  <td class="border px-3 py-2 text-center font-semibold" colspan={2 + grid.locations.length}>
+                    {row.timeText ? `${row.label} · ${row.timeText}` : row.label}
+                  </td>
+                </tr>
+              ) : (
+                <>
+                  <tr>
+                    <td class="border px-3 py-2 align-middle font-semibold" rowspan={2}>
+                      {row.timeText || row.displayName}
+                    </td>
+                    <td class="border px-3 py-2 text-xs text-muted whitespace-nowrap">
+                      Days
+                      <br />
+                      1–2
+                    </td>
+                    {row.cells.map((cell) =>
+                      cell.fourDay ? (
+                        <td class="border px-3 py-2 align-middle" rowspan={2}>
+                          <ScheduleCellItem
+                            item={cell.fourDay}
+                            classes={classes}
+                            leaderMap={leaderMap}
+                            peopleFlag={peopleFlag}
+                          />
+                        </td>
+                      ) : cell.half12 ? (
+                        <td class="border px-3 py-2">
+                          <ScheduleCellItem
+                            item={cell.half12}
+                            classes={classes}
+                            leaderMap={leaderMap}
+                            peopleFlag={peopleFlag}
+                          />
+                        </td>
+                      ) : (
+                        <td class="border px-3 py-2">&nbsp;</td>
+                      )
+                    )}
+                  </tr>
+                  <tr>
+                    <td class="border px-3 py-2 text-xs text-muted whitespace-nowrap">
+                      Days
+                      <br />
+                      3–4
+                    </td>
+                    {row.cells.map((cell) =>
+                      cell.fourDay ? null : cell.half34 ? (
+                        <td class="border px-3 py-2">
+                          <ScheduleCellItem
+                            item={cell.half34}
+                            classes={classes}
+                            leaderMap={leaderMap}
+                            peopleFlag={peopleFlag}
+                          />
+                        </td>
+                      ) : (
+                        <td class="border px-3 py-2">&nbsp;</td>
+                      )
+                    )}
+                  </tr>
+                </>
+              )
+            )
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="schedule-popovers no-print">
+    {
+      descriptionPopovers.map(({ i, c }) => (
+        <div
+          id={`sd-${i}`}
+          popover="auto"
+          class="m-0 border-0 bg-transparent p-0 shadow-none [&::backdrop]:bg-black/20"
+        >
+          <div class="w-72 max-w-[calc(100vw-2rem)] rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-xl dark:border-gray-700 dark:bg-gray-900">
+            <p class="mb-1 font-semibold text-heading">{c.name}</p>
+            {c.description && <p class="md-links text-sm text-muted" set:html={renderInlineMarkdown(c.description)} />}
+            {c.callout && <p class="mt-2 text-sm font-semibold text-primary">{c.callout}</p>}
+          </div>
+        </div>
+      ))
+    }
+    {
+      leaderPopoverIds.map((id) => {
+        const l = leaderMap.get(id)!;
+        return (
+          <div
+            id={`leader-${id}`}
+            popover="auto"
+            class="m-0 border-0 bg-transparent p-0 shadow-none [&::backdrop]:bg-black/20"
+          >
+            <div class="w-64 max-w-[calc(100vw-2rem)] rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-xl dark:border-gray-700 dark:bg-gray-900">
+              <div class="mb-2 flex items-center gap-3">
+                {l.photo && <PersonPhoto name={l.name} photo={l.photo} size={48} class="flex-shrink-0" />}
+                <div class="min-w-0">
+                  <p class="font-semibold leading-snug text-heading">{l.name}</p>
+                  {l.title && <p class="text-xs leading-snug text-muted">{l.title}</p>}
+                </div>
+              </div>
+              {l.bio && (
+                <p class="md-links mb-3 line-clamp-6 text-sm text-muted" set:html={renderInlineMarkdown(l.bio)} />
+              )}
+              <a href={`/our-people#leader-${id}`} class="text-xs font-semibold text-primary hover:underline">
+                View full profile →
+              </a>
+            </div>
+          </div>
+        );
+      })
+    }
+  </div>
+</Layout>
+
+<script>
+  import { initLeaderPopovers } from '~/utils/eventPageInteractions';
+  import { initPersonPhotoLightbox } from '~/utils/personPhotoLightbox';
+
+  function init() {
+    initLeaderPopovers();
+    initPersonPhotoLightbox();
+  }
+  init();
+  document.addEventListener('astro:page-load', init);
+</script>
+
+{grid.landscape && <style is:inline set:html="@media print { @page { size: landscape; } }" />}
+
+<!-- Print rules that target ScheduleCellItem's markup (a child component, so
+     they can't be scoped): flatten the leader chips to plain inline text,
+     drop the avatars (and their reserved space), strip link styling. -->
+<style is:global>
+  @media print {
+    /* Drop the avatars (and the space they'd reserve) and the link styling;
+       names flow as plain inline text. */
+    .schedule-grid .sched-avatar {
+      display: none !important;
+    }
+    .schedule-grid .sched-trigger {
+      text-decoration: none !important;
+      cursor: default !important;
+    }
+  }
+</style>
+
+<style>
+  .schedule-grid th,
+  .schedule-grid td {
+    border-color: #d1d5db;
+    vertical-align: middle;
+  }
+  .schedule-grid thead th,
+  .schedule-break td {
+    background: #f3f4f6;
+    /* Keep the fills when printing, without relying on the browser's
+       "Background graphics" checkbox. */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .schedule-grid tr {
+    page-break-inside: avoid;
+  }
+
+  @media print {
+    :global(header),
+    :global(footer),
+    :global(#consent-banner),
+    .no-print {
+      display: none !important;
+    }
+    :global(main) {
+      padding: 0 !important;
+    }
+    /* Trim the page furniture above the table so the grid fits one page.
+       The table itself keeps its on-screen size. */
+    @page {
+      margin: 0.4in;
+    }
+    section {
+      max-width: none !important;
+      padding: 0 !important;
+    }
+    h1 {
+      margin-bottom: 0.6rem !important;
+      font-size: 1.4rem !important;
+    }
+    section > p {
+      display: none !important;
+    }
+    /* With border-collapse, the shared line between two adjacent filled break
+       rows (Lunch / Free Time) gets painted over by the cell backgrounds in
+       some print engines. Switch to separate borders for print — never covered
+       by a background. The outer frame lives on the <table> itself (a cell's
+       right/bottom edge can get clipped at the printable area); cells draw the
+       internal right + bottom lines. */
+    .schedule-grid {
+      border-collapse: separate;
+      border-spacing: 0;
+      border: 1px solid #9ca3af;
+    }
+    .schedule-grid th,
+    .schedule-grid td {
+      border-width: 0 1px 1px 0 !important;
+      border-color: #9ca3af !important;
+    }
+  }
+</style>

@@ -12,6 +12,7 @@ export type EventClass = {
   ageRange?: string;
   period?: string;
   days?: string;
+  room?: string;
   limitedCapacity?: boolean;
   description?: string;
   callout?: string;

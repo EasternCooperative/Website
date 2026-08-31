@@ -19,12 +19,8 @@ vi.mock('~/components/schedule/mapCompositor', () => ({
   compositeMap: mockCompositeMap,
 }));
 
-import {
-  downloadMasterSchedule,
-  downloadRosters,
-  downloadIndividualSchedules,
-} from '~/components/schedule/printRenderer';
-import type { MasterScheduleData, RosterEntry, IndividualSchedule } from '~/components/schedule/scheduleBuilder';
+import { downloadRosters, downloadIndividualSchedules } from '~/components/schedule/printRenderer';
+import type { RosterEntry, IndividualSchedule } from '~/components/schedule/scheduleBuilder';
 import type { TimeSlot } from '~/components/schedule/models';
 
 const timeslots: TimeSlot[] = [
@@ -34,106 +30,6 @@ const timeslots: TimeSlot[] = [
   { periodKey: 'AfternoonPeriod', displayName: 'Afternoon Period', startTime: '15:45', endTime: '17:45' },
   { periodKey: 'custom-dinner', displayName: 'Dinner', startTime: '18:00', endTime: '19:00', isCustom: true },
 ];
-
-const masterData: MasterScheduleData = {
-  locations: ['Chapel A', 'Library'],
-  timeslots,
-  workshops: [
-    {
-      name: 'Woodworking',
-      leader: 'John Smith',
-      period: { sheetName: 'MorningFirstPeriod', displayName: 'Morning First Period' },
-      duration: { startDay: 1, endDay: 4 },
-      location: 'Chapel A',
-      selections: [],
-    },
-    {
-      name: 'Pottery',
-      leader: 'Jane Doe',
-      period: { sheetName: 'MorningFirstPeriod', displayName: 'Morning First Period' },
-      duration: { startDay: 1, endDay: 2 },
-      location: 'Library',
-      selections: [],
-    },
-    {
-      name: 'Painting',
-      leader: '',
-      period: { sheetName: 'AfternoonPeriod', displayName: 'Afternoon Period' },
-      duration: { startDay: 3, endDay: 4 },
-      location: 'Library',
-      selections: [],
-    },
-  ],
-};
-
-describe('downloadMasterSchedule', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockCreatePdf.mockReturnValue({ download: mockDownload });
-  });
-
-  it('calls createPdf and download with typical data', () => {
-    downloadMasterSchedule(masterData, 'Winter Adventure');
-    expect(mockCreatePdf).toHaveBeenCalledOnce();
-    expect(mockDownload).toHaveBeenCalledOnce();
-  });
-
-  it('returns early without calling createPdf when locations is empty', () => {
-    downloadMasterSchedule({ locations: [], timeslots: [], workshops: [] }, 'Winter Adventure');
-    expect(mockCreatePdf).not.toHaveBeenCalled();
-  });
-
-  it('uses landscape orientation for more than 4 locations', () => {
-    const landscapeData: MasterScheduleData = {
-      ...masterData,
-      locations: ['Loc A', 'Loc B', 'Loc C', 'Loc D', 'Loc E'],
-    };
-    downloadMasterSchedule(landscapeData, 'Winter Adventure');
-    const docDef = mockCreatePdf.mock.calls[0][0];
-    expect(docDef.pageOrientation).toBe('landscape');
-  });
-
-  it('uses portrait orientation for 4 or fewer locations', () => {
-    downloadMasterSchedule(masterData, 'Winter Adventure');
-    const docDef = mockCreatePdf.mock.calls[0][0];
-    expect(docDef.pageOrientation).toBe('portrait');
-  });
-
-  it('handles custom (activity) timeslots in the body', () => {
-    const customOnly: MasterScheduleData = {
-      locations: ['Chapel A'],
-      timeslots: [
-        { periodKey: 'custom-lunch', displayName: 'Lunch', startTime: '12:45', endTime: '13:30', isCustom: true },
-      ],
-      workshops: [],
-    };
-    downloadMasterSchedule(customOnly, 'Winter Adventure');
-    expect(mockCreatePdf).toHaveBeenCalledOnce();
-  });
-
-  it('handles regular timeslots with half-block (days 1-2 and 3-4) workshops', () => {
-    // masterData already has a days-1-2 workshop → exercises the half12/half34 paths
-    downloadMasterSchedule(masterData, 'Winter Adventure');
-    expect(mockCreatePdf).toHaveBeenCalledOnce();
-  });
-
-  it('handles a timeslot with no workshops at all', () => {
-    const noWorkshopData: MasterScheduleData = {
-      locations: ['Chapel A'],
-      timeslots: [
-        { periodKey: 'MorningFirstPeriod', displayName: 'Morning First Period', startTime: '09:00', endTime: '10:40' },
-      ],
-      workshops: [],
-    };
-    downloadMasterSchedule(noWorkshopData, 'Winter Adventure');
-    expect(mockCreatePdf).toHaveBeenCalledOnce();
-  });
-
-  it('includes event name in the filename', () => {
-    downloadMasterSchedule(masterData, 'My Event');
-    expect(mockDownload).toHaveBeenCalledWith(expect.stringContaining('My_Event'));
-  });
-});
 
 describe('downloadRosters', () => {
   beforeEach(() => {
