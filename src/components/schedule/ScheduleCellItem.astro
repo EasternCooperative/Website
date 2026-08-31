@@ -41,11 +41,10 @@ const leaders = resolveLeaders(cls);
       aria-controls={`sd-${item.classIndex}`}
       aria-expanded="false"
       class="sched-trigger cursor-pointer font-semibold text-heading underline decoration-dotted underline-offset-2 transition-colors hover:text-primary"
-    >
-      {item.name}
-    </span>
+      set:text={item.name}
+    />
   ) : (
-    <span class="font-semibold text-heading">{item.name}</span>
+    <span class="font-semibold text-heading" set:text={item.name} />
   )
 }
 {
@@ -67,11 +66,10 @@ const leaders = resolveLeaders(cls);
               aria-controls={`leader-${l.id}`}
               aria-expanded="false"
               class="sched-trigger cursor-pointer underline decoration-dotted underline-offset-2 transition-colors hover:text-primary"
-            >
-              {l.name}
-            </span>
+              set:text={l.name}
+            />
           ) : (
-            l.name
+            <span set:text={l.name} />
           )}
         </Fragment>
       ))}
