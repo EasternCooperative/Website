@@ -52,19 +52,12 @@ const cellText = (item?: { name: string; leader: string }) => item;
         schedulePdfExists && (
           <a
             href={schedulePdfPath}
-            class="rounded-full border border-gray-300 px-4 py-1.5 text-sm text-default transition-colors hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-800"
+            class="rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-secondary"
           >
             Download PDF
           </a>
         )
       }
-      <button
-        type="button"
-        id="print-schedule"
-        class="cursor-pointer rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-secondary"
-      >
-        Print
-      </button>
     </div>
 
     <h1 class="font-heading mb-1 text-3xl font-bold text-heading">{eventLabel} — Master Schedule</h1>
@@ -147,10 +140,6 @@ const cellText = (item?: { name: string; leader: string }) => item;
     </div>
   </section>
 </Layout>
-
-<script>
-  document.getElementById('print-schedule')?.addEventListener('click', () => window.print());
-</script>
 
 {grid.landscape && <style is:inline set:html="@media print { @page { size: landscape; } }" />}
 
