@@ -35,6 +35,9 @@ export interface Workshop {
   duration: WorkshopDuration;
   location: string;
   selections: WorkshopSelection[];
+  /** Index into the source event's `classes[]` — set only on the frontmatter path,
+   *  used by the printable schedule page to reach the class description / leader bios. */
+  classIndex?: number;
 }
 
 export interface TimeSlot {

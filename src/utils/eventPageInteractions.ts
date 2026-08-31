@@ -1,4 +1,4 @@
-function initLeaderPopovers() {
+export function initLeaderPopovers() {
   document.querySelectorAll<HTMLButtonElement>('[data-popover-target]').forEach((btn) => {
     const pop = document.getElementById(btn.dataset.popoverTarget!);
     if (!pop) return;

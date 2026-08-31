@@ -7,6 +7,8 @@ import type { MasterScheduleData } from './scheduleBuilder';
 export interface GridCellItem {
   name: string;
   leader: string;
+  /** Index into the source event's `classes[]` (frontmatter path only). */
+  classIndex?: number;
 }
 
 export interface GridPeriodCell {
@@ -47,7 +49,7 @@ export function buildScheduleGrid(data: MasterScheduleData): ScheduleGridModel {
             w.duration.endDay === endDay
         );
       const toItem = (w: ReturnType<typeof match>): GridCellItem | undefined =>
-        w ? { name: w.name, leader: w.leader } : undefined;
+        w ? { name: w.name, leader: w.leader, classIndex: w.classIndex } : undefined;
 
       return {
         location: loc,

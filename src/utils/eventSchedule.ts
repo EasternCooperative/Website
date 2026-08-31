@@ -155,7 +155,7 @@ export function buildEventMasterSchedule(
 
   const timeslotKeys = new Set(timeslots.filter((t) => !t.isCustom).map((t) => t.periodKey));
 
-  const workshops: Workshop[] = (data.classes ?? []).map((cls) => {
+  const workshops: Workshop[] = (data.classes ?? []).map((cls, classIndex) => {
     const sheetName = slugifyPeriod(cls.period ?? '');
     if (cls.period && !timeslotKeys.has(sheetName)) {
       console.warn(`[eventSchedule] class "${cls.name}" period "${cls.period}" matches no timeslot label`);
@@ -167,6 +167,7 @@ export function buildEventMasterSchedule(
       duration: parseDays(cls.days),
       location: cls.room ?? '',
       selections: [],
+      classIndex,
     };
   });
 
