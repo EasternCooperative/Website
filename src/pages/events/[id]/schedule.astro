@@ -189,5 +189,11 @@ const cellText = (item?: { name: string; leader: string }) => item;
     section > p {
       display: none !important;
     }
+    /* gray-300 prints too faint to separate two adjacent filled break rows
+       (e.g. Lunch / Free Time) — darken every gridline for print. */
+    .schedule-grid th,
+    .schedule-grid td {
+      border-color: #9ca3af !important;
+    }
   }
 </style>
