@@ -75,7 +75,7 @@ export function buildScheduleGrid(data: MasterScheduleData): ScheduleGridModel {
 
 export function buildMasterScheduleDocDefinition(
   grid: ScheduleGridModel,
-  opts: { title: string; subtitle: string; mapDataUri?: string }
+  opts: { title: string; subtitle: string }
 ): TDocumentDefinitions {
   const { locations, landscape, rows } = grid;
   const colCount = 2 + locations.length; // Time | Days | ...locations
@@ -87,16 +87,19 @@ export function buildMasterScheduleDocDefinition(
     ...locations.map((loc) => ({ text: loc, bold: true, fillColor: HEADER_FILL, alignment: 'center', fontSize: 11 })),
   ];
 
-  const makeCell = (item: GridCellItem | undefined): object =>
+  // pdfmake has no vertical cell alignment. For the rowSpan-2 cells (Time and
+  // 4-day classes) a small top margin nudges the content toward the middle of the
+  // two day sub-rows it spans.
+  const makeCell = (item: GridCellItem | undefined, spanning = false): object =>
     item
       ? {
           stack: [
             { text: item.name, bold: true, fontSize: 11 },
             ...(item.leader ? [{ text: item.leader, fontSize: 9, color: META_COLOR, italics: true }] : []),
           ],
-          verticalAlignment: 'center',
+          ...(spanning ? { margin: [0, 4, 0, 0] } : {}),
         }
-      : { text: '', verticalAlignment: 'center' };
+      : { text: '' };
 
   const bodyRows: object[][] = [];
 
@@ -118,17 +121,17 @@ export function buildMasterScheduleDocDefinition(
       bold: true,
       fontSize: 11,
       alignment: 'center',
-      verticalAlignment: 'center',
+      margin: [0, 8, 0, 0],
       rowSpan: 2,
     });
     row34.push({});
 
-    row12.push({ text: 'Days\n1-2', fontSize: 9, alignment: 'center', verticalAlignment: 'center', color: META_COLOR });
-    row34.push({ text: 'Days\n3-4', fontSize: 9, alignment: 'center', verticalAlignment: 'center', color: META_COLOR });
+    row12.push({ text: 'Days\n1-2', fontSize: 9, alignment: 'center', color: META_COLOR });
+    row34.push({ text: 'Days\n3-4', fontSize: 9, alignment: 'center', color: META_COLOR });
 
     for (const cell of row.cells) {
       if (cell.fourDay) {
-        row12.push({ ...makeCell(cell.fourDay), rowSpan: 2 });
+        row12.push({ ...makeCell(cell.fourDay, true), rowSpan: 2 });
         row34.push({});
       } else {
         row12.push(makeCell(cell.half12));
@@ -176,9 +179,6 @@ export function buildMasterScheduleDocDefinition(
         table: { headerRows: 1, widths, body: [headerRow, ...bodyRows] },
         layout: tableLayout,
       },
-      ...(opts.mapDataUri
-        ? [{ image: opts.mapDataUri, width: landscape ? 520 : 400, alignment: 'center', margin: [0, 16, 0, 0] }]
-        : []),
     ],
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any;

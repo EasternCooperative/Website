@@ -6,7 +6,6 @@ import {
   hasMasterSchedule,
   buildEventMasterSchedule,
   baseEventTitle,
-  venueScheduleMapPath,
   type EventScheduleData,
 } from '~/utils/eventSchedule';
 
@@ -40,14 +39,6 @@ describe('baseEventTitle', () => {
     expect(baseEventTitle('Winter Adventure 2026')).toBe('Winter Adventure');
     expect(baseEventTitle('Winter Adventure')).toBe('Winter Adventure');
     expect(baseEventTitle('ECRS Fun Day in Wilmington')).toBe('ECRS Fun Day in Wilmington');
-  });
-});
-
-describe('venueScheduleMapPath', () => {
-  it('returns the Watson floor plan only for that site', () => {
-    expect(venueScheduleMapPath('the-y-at-watson-woods')).toBe('/maps/watson_layout.png');
-    expect(venueScheduleMapPath('mid-county-center')).toBeNull();
-    expect(venueScheduleMapPath(undefined)).toBeNull();
   });
 });
 

@@ -28,8 +28,6 @@ export interface ClassesSource {
   timeslots: FrontmatterTimeslot[] | null;
   /** normalized class name -> room */
   rooms: Record<string, string>;
-  /** whether this event's venue has a floor-plan map to embed in the PDF */
-  hasVenueMap: boolean;
 }
 
 interface Props {
@@ -178,7 +176,6 @@ export default function ScheduleGenerator({ classesSource }: Props) {
             eventName={eventName}
             eventYear={eventYear}
             eventId={classesSource?.eventId}
-            hasVenueMap={classesSource?.hasVenueMap ?? false}
             onBack={() => setStep('edit')}
             onReset={handleReset}
           />

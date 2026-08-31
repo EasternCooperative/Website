@@ -1,7 +1,7 @@
 ---
 import { getCollection, type CollectionEntry } from 'astro:content';
 import Layout from '~/layouts/PageLayout.astro';
-import { buildEventMasterSchedule, hasMasterSchedule, baseEventTitle, venueScheduleMapPath } from '~/utils/eventSchedule';
+import { buildEventMasterSchedule, hasMasterSchedule, baseEventTitle } from '~/utils/eventSchedule';
 import { buildScheduleGrid } from '~/components/schedule/scheduleGrid';
 
 export async function getStaticPaths() {
@@ -24,7 +24,6 @@ const leaderMap = new Map(leaders.map((l) => [l.id, l.data]));
 const grid = buildScheduleGrid(buildEventMasterSchedule(data, leaderMap));
 const year = data.date.getUTCFullYear();
 const eventLabel = `${baseEventTitle(data.title)} ${year}`;
-const mapPath = venueScheduleMapPath(data.siteId);
 
 const metadata = {
   title: `${eventLabel} — Master Schedule`,
@@ -129,15 +128,6 @@ const cellText = (item?: { name: string; leader: string }) => item;
         </tbody>
       </table>
     </div>
-
-    {
-      mapPath && (
-        <figure class="mt-8">
-          <img src={mapPath} alt={`${eventLabel} venue floor plan`} class="mx-auto w-full max-w-[565px] rounded-lg border" />
-          <figcaption class="mt-2 text-center text-xs text-muted">Venue floor plan</figcaption>
-        </figure>
-      )
-    }
   </section>
 </Layout>
 

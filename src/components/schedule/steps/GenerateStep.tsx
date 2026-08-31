@@ -10,23 +10,12 @@ interface Props {
   eventName: string;
   eventYear: number;
   eventId?: string;
-  hasVenueMap: boolean;
   onBack: () => void;
   onReset: () => void;
 }
 
-export default function GenerateStep({
-  workshops,
-  timeslots,
-  eventName,
-  eventYear,
-  eventId,
-  hasVenueMap,
-  onBack,
-  onReset,
-}: Props) {
+export default function GenerateStep({ workshops, timeslots, eventName, eventYear, eventId, onBack, onReset }: Props) {
   const [generatingIndividual, setGeneratingIndividual] = useState(false);
-  const [generatingMaster, setGeneratingMaster] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
   const { yaml, roomRows } = useMemo(() => buildScheduleFrontmatter(workshops, timeslots), [workshops, timeslots]);
@@ -41,16 +30,8 @@ export default function GenerateStep({
     );
   }
 
-  async function handleMasterSchedule() {
-    setGeneratingMaster(true);
-    try {
-      await downloadMasterSchedule(buildMasterSchedule(workshops, timeslots), eventName, {
-        year: eventYear,
-        withMap: hasVenueMap,
-      });
-    } finally {
-      setGeneratingMaster(false);
-    }
+  function handleMasterSchedule() {
+    downloadMasterSchedule(buildMasterSchedule(workshops, timeslots), eventName, eventYear);
   }
 
   function handleRosters() {
@@ -93,7 +74,6 @@ export default function GenerateStep({
           description="Full grid showing all workshops by location and period. Auto-selects landscape when there are more than 5 locations."
           icon="🗓"
           onClick={handleMasterSchedule}
-          loading={generatingMaster}
         />
         <PrintCard
           title="Workshop Rosters"

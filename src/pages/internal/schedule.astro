@@ -4,7 +4,6 @@ import Layout from '~/layouts/PageLayout.astro';
 import { getCollection } from 'astro:content';
 import ScheduleGenerator, { type ClassesSource } from '~/components/schedule/ScheduleGenerator';
 import { resolveClassLeaderNames } from '~/utils/classes';
-import { venueScheduleMapPath } from '~/utils/eventSchedule';
 
 // Load the class list from the current (or most recent) Winter Adventure event so
 // the tool becomes a room/time editor over real classes, not a spreadsheet parser.
@@ -31,7 +30,6 @@ if (current?.data.classes?.length) {
     })),
     timeslots: current.data.schedule?.timeslots ?? null,
     rooms: Object.fromEntries(current.data.classes.map((c) => [c.name.trim().toLowerCase(), c.room ?? ''])),
-    hasVenueMap: venueScheduleMapPath(current.data.siteId) !== null,
   };
 }
 ---

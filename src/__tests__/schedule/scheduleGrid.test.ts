@@ -75,21 +75,6 @@ describe('buildMasterScheduleDocDefinition', () => {
     expect(body.length).toBe(4);
   });
 
-  it('appends a trailing map image only when mapDataUri is given', () => {
-    const withMap = buildMasterScheduleDocDefinition(grid, {
-      title: 'x',
-      subtitle: 'y',
-      mapDataUri: 'data:image/png;base64,ABC',
-    });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const content = withMap.content as any[];
-    expect(content[content.length - 1].image).toBe('data:image/png;base64,ABC');
-
-    const noMap = buildMasterScheduleDocDefinition(grid, { title: 'x', subtitle: 'y' });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((noMap.content as any[]).some((n) => 'image' in n)).toBe(false);
-  });
-
   it('goes landscape when the grid is landscape', () => {
     const wide = buildScheduleGrid({
       locations: ['a', 'b', 'c', 'd', 'e'],
