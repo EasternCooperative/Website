@@ -126,8 +126,8 @@ export function buildMasterScheduleDocDefinition(
     });
     row34.push({});
 
-    row12.push({ text: 'Days\n1-2', fontSize: 9, alignment: 'center', color: META_COLOR });
-    row34.push({ text: 'Days\n3-4', fontSize: 9, alignment: 'center', color: META_COLOR });
+    row12.push({ text: 'Days\n1–2', fontSize: 9, alignment: 'center', color: META_COLOR });
+    row34.push({ text: 'Days\n3–4', fontSize: 9, alignment: 'center', color: META_COLOR });
 
     for (const cell of row.cells) {
       if (cell.fourDay) {

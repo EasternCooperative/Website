@@ -85,7 +85,11 @@ const cellText = (item?: { name: string; leader: string }) => item;
                     <td class="border px-3 py-2 align-middle font-semibold" rowspan={2}>
                       {row.timeText || row.displayName}
                     </td>
-                    <td class="border px-3 py-2 text-xs text-muted">Days 1–2</td>
+                    <td class="border px-3 py-2 text-xs text-muted whitespace-nowrap">
+                      Days
+                      <br />
+                      1–2
+                    </td>
                     {row.cells.map((cell) =>
                       cell.fourDay ? (
                         <td class="border px-3 py-2 align-middle" rowspan={2}>
@@ -107,7 +111,11 @@ const cellText = (item?: { name: string; leader: string }) => item;
                     )}
                   </tr>
                   <tr>
-                    <td class="border px-3 py-2 text-xs text-muted">Days 3–4</td>
+                    <td class="border px-3 py-2 text-xs text-muted whitespace-nowrap">
+                      Days
+                      <br />
+                      3–4
+                    </td>
                     {row.cells.map((cell) =>
                       cell.fourDay ? null : cellText(cell.half34) ? (
                         <td class="border px-3 py-2">
