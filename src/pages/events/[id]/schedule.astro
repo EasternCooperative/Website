@@ -151,11 +151,13 @@ const cellText = (item?: { name: string; leader: string }) => item;
     border-color: #d1d5db;
     vertical-align: middle;
   }
-  .schedule-grid thead th {
-    background: #f3f4f6;
-  }
+  .schedule-grid thead th,
   .schedule-break td {
     background: #f3f4f6;
+    /* Keep the fills when printing, without relying on the browser's
+       "Background graphics" checkbox. */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
   .schedule-grid tr {
     page-break-inside: avoid;
