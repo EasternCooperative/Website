@@ -53,9 +53,18 @@ describe('slugifyPeriod', () => {
 describe('parseDays', () => {
   it('maps known values onto the three day-buckets', () => {
     expect(parseDays(undefined)).toEqual({ startDay: 1, endDay: 4 });
+    expect(parseDays('   ')).toEqual({ startDay: 1, endDay: 4 }); // whitespace-only
     expect(parseDays('All 4 days')).toEqual({ startDay: 1, endDay: 4 });
     expect(parseDays('Days 1–2')).toEqual({ startDay: 1, endDay: 2 }); // en-dash
     expect(parseDays('Days 3-4')).toEqual({ startDay: 3, endDay: 4 });
+    expect(parseDays('Days 1-4')).toEqual({ startDay: 1, endDay: 4 }); // explicit full span
+  });
+
+  it('warns and falls back to full span for a numeric range with no bucket', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(parseDays('Days 3-5')).toEqual({ startDay: 1, endDay: 4 });
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
   });
 
   it('warns and falls back to full span for anything else', () => {
@@ -80,6 +89,12 @@ describe('formatScheduleHeading', () => {
   it('adds days only for multi-day events when provided', () => {
     expect(formatScheduleHeading('Games', undefined, 'Days 1–2', true)).toBe('Games · Days 1–2');
     expect(formatScheduleHeading('Games', undefined, 'Days 1–2', false)).toBe('Games');
+  });
+
+  it('is the bare period when the matched timeslot carries no times', () => {
+    expect(formatScheduleHeading('Morning, first period', { label: 'x' }, undefined, true)).toBe(
+      'Morning, first period'
+    );
   });
 });
 
@@ -107,6 +122,24 @@ describe('hasMasterSchedule', () => {
     expect(res.ok).toBe(true);
     expect(res.unmatchedPeriods).toContain('Midnight');
   });
+
+  it('does not report a periodless, unmatched class as an unmatched period', () => {
+    const ev = makeEvent();
+    ev.classes!.push({ name: 'Open Time', days: '', room: '' });
+    const res = hasMasterSchedule(ev);
+    expect(res.ok).toBe(true);
+    expect(res.unmatchedPeriods).toEqual([]);
+  });
+
+  it('treats a whitespace-only room as missing', () => {
+    const ev = makeEvent();
+    ev.classes![0].room = '   ';
+    expect(hasMasterSchedule(ev).missingRooms).toContain('Folk Dance');
+  });
+
+  it('is true with a timeslot block and no classes at all', () => {
+    expect(hasMasterSchedule(makeEvent({ classes: undefined })).ok).toBe(true);
+  });
 });
 
 describe('buildEventMasterSchedule', () => {
@@ -130,6 +163,21 @@ describe('buildEventMasterSchedule', () => {
     ev.classes!.push({ name: 'Late Night', period: 'Midnight', days: '', room: 'Rec Hall' });
     buildEventMasterSchedule(ev, leaderMap);
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('Midnight'));
+    warn.mockRestore();
+  });
+
+  it('handles an event with no schedule block and no classes', () => {
+    const data = buildEventMasterSchedule(makeEvent({ schedule: undefined, classes: undefined }), leaderMap);
+    expect(data.timeslots).toEqual([]);
+    expect(data.workshops).toEqual([]);
+  });
+
+  it('maps a class that has no period without warning', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const data = buildEventMasterSchedule(makeEvent({ classes: [{ name: 'Open Time', room: 'Rec Hall' }] }), leaderMap);
+    expect(warn).not.toHaveBeenCalled();
+    expect(data.workshops[0].period.sheetName).toBe('');
+    expect(data.workshops[0].duration).toEqual({ startDay: 1, endDay: 4 });
     warn.mockRestore();
   });
 });

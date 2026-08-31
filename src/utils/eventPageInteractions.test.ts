@@ -129,6 +129,42 @@ describe('initEventPageInteractions — leader popovers', () => {
     expect(pop.showPopover).toHaveBeenCalledTimes(1);
   });
 
+  it('opens the popover on Enter / Space and blocks the key default', async () => {
+    const btn = document.createElement('span');
+    btn.setAttribute('role', 'button');
+    btn.dataset.popoverTarget = 'pop-1';
+    const pop = makePopover('pop-1');
+    document.body.append(btn, pop);
+
+    const { initEventPageInteractions } = await import('./eventPageInteractions');
+    initEventPageInteractions();
+
+    const enter = new KeyboardEvent('keydown', { key: 'Enter', cancelable: true });
+    btn.dispatchEvent(enter);
+    expect(enter.defaultPrevented).toBe(true);
+    expect(pop.showPopover).toHaveBeenCalledTimes(1);
+
+    pop.dispatchEvent(new MouseEvent('mouseenter')); // keep it open
+    const space = new KeyboardEvent('keydown', { key: ' ', cancelable: true });
+    btn.dispatchEvent(space);
+    expect(space.defaultPrevented).toBe(true);
+  });
+
+  it('ignores other keys on a popover trigger', async () => {
+    const btn = document.createElement('span');
+    btn.dataset.popoverTarget = 'pop-1';
+    const pop = makePopover('pop-1');
+    document.body.append(btn, pop);
+
+    const { initEventPageInteractions } = await import('./eventPageInteractions');
+    initEventPageInteractions();
+
+    const evt = new KeyboardEvent('keydown', { key: 'Tab', cancelable: true });
+    btn.dispatchEvent(evt);
+    expect(evt.defaultPrevented).toBe(false);
+    expect(pop.showPopover).not.toHaveBeenCalled();
+  });
+
   it('does not call showPopover again if already open', async () => {
     const btn = document.createElement('button');
     btn.dataset.popoverTarget = 'pop-1';

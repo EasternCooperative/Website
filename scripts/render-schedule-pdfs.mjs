@@ -11,8 +11,8 @@
 import { chromium } from '@playwright/test';
 import { createServer } from 'node:http';
 import { readFile, readdir, mkdir, writeFile } from 'node:fs/promises';
-import { existsSync, statSync } from 'node:fs';
-import { join, extname } from 'node:path';
+import { existsSync } from 'node:fs';
+import { join, extname, relative, sep } from 'node:path';
 
 const DIST = 'dist';
 const OUT_DIR = 'public/schedules';
@@ -44,20 +44,47 @@ if (!existsSync(DIST)) {
   process.exit(1);
 }
 
-// Minimal static file server over dist/.
+// Walk dist/ once and map every servable URL path to its on-disk file. The
+// request handler then only ever does `routes.get(...)`, so the path handed to
+// `readFile` originates from this filesystem walk, never from the request —
+// there is no request-controlled path expression to traverse out of dist/.
+const routes = new Map();
+async function indexDir(dir) {
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    const abs = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      await indexDir(abs);
+      continue;
+    }
+    const url = '/' + relative(DIST, abs).split(sep).join('/');
+    routes.set(url, abs);
+    if (url.endsWith('/index.html')) {
+      const base = url.slice(0, -'index.html'.length); // ".../"
+      routes.set(base, abs);
+      routes.set(base.slice(0, -1), abs); // ".../" without the trailing slash
+    } else if (url.endsWith('.html')) {
+      routes.set(url.slice(0, -'.html'.length), abs); // extensionless
+    }
+  }
+}
+await indexDir(DIST);
+
+// Minimal static file server over the pre-built route map.
 const server = createServer(async (req, res) => {
+  const key = decodeURIComponent((req.url ?? '/').split('?')[0]);
+  const file = routes.get(key) ?? routes.get(key.replace(/\/$/, '')) ?? routes.get(`${key}/`);
+  if (!file) {
+    res.writeHead(404);
+    res.end('not found');
+    return;
+  }
   try {
-    let path = decodeURIComponent((req.url ?? '/').split('?')[0]);
-    if (path.endsWith('/')) path += 'index.html';
-    let file = join(DIST, path);
-    if (!existsSync(file) && existsSync(`${file}.html`)) file = `${file}.html`;
-    if (existsSync(file) && statSync(file).isDirectory()) file = join(file, 'index.html');
     const body = await readFile(file);
     res.writeHead(200, { 'Content-Type': MIME[extname(file)] ?? 'application/octet-stream' });
     res.end(body);
   } catch {
-    res.writeHead(404);
-    res.end('not found');
+    res.writeHead(500);
+    res.end('read error');
   }
 });
 await new Promise((resolve) => server.listen(PORT, resolve));

@@ -34,6 +34,17 @@ describe('buildScheduleFrontmatter', () => {
     expect(yaml).not.toMatch(/Morning, first period'\n {6}start: '09:00'\n {6}end: '10:40'\n {6}isBreak/);
   });
 
+  it('omits start/end lines for a timeslot with no times', () => {
+    const timesless: TimeSlot[] = [
+      { periodKey: 'custom-free', displayName: 'Free time', startTime: '', endTime: '', isCustom: true },
+    ];
+    const { yaml } = buildScheduleFrontmatter(workshops, timesless);
+    expect(yaml).toContain("    - label: 'Free time'");
+    expect(yaml).not.toContain('start:');
+    expect(yaml).not.toContain('end:');
+    expect(yaml).toContain('      isBreak: true');
+  });
+
   it('lists only workshops that have a room, sorted by name', () => {
     const { roomRows } = buildScheduleFrontmatter(workshops, timeslots);
     expect(roomRows).toEqual([

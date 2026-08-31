@@ -23,6 +23,7 @@ const makeEvent = (
     tuition: { label?: string; amount: string; note?: string }[] | undefined;
     pricing: { ageRange?: string; fullWeekend?: string; note?: string }[] | undefined;
     classes: unknown[] | undefined;
+    schedule: { timeslots: { label: string; start?: string; end?: string; isBreak?: boolean }[] } | undefined;
     showCancellationPolicy: boolean | undefined;
     cancellationPolicy: string | undefined;
     registrationUrl: string | undefined;
@@ -44,6 +45,8 @@ const makeEvent = (
     tuition: undefined as { label?: string; amount: string; note?: string }[] | undefined,
     pricing: undefined as { ageRange?: string; fullWeekend?: string; note?: string }[] | undefined,
     classes: undefined as unknown[] | undefined,
+    schedule: undefined as
+      { timeslots: { label: string; start?: string; end?: string; isBreak?: boolean }[] } | undefined,
     showCancellationPolicy: undefined as boolean | undefined,
     cancellationPolicy: undefined as string | undefined,
     registrationUrl: undefined as string | undefined,
@@ -165,6 +168,27 @@ describe('GET /events/[id].txt', () => {
     expect(text).toContain('SCHEDULE');
     expect(text).toContain('Beginner Contra');
     expect(text).toContain('A fun intro class');
+  });
+
+  it('composes schedule headings from a matched timeslot', async () => {
+    const text = await callGet(
+      makeEvent({
+        classes: [{ name: 'Folk Dance', period: 'Morning, first period', description: 'Trad steps' }],
+        schedule: { timeslots: [{ label: 'Morning, first period', start: '09:00', end: '10:40' }] },
+      })
+    );
+    expect(text).toContain('MORNING, FIRST PERIOD · 9:00 AM - 10:40 AM');
+    expect(text).toContain('Folk Dance');
+  });
+
+  it('falls back to the bare period heading with no schedule block', async () => {
+    const text = await callGet(
+      makeEvent({
+        classes: [{ name: 'Folk Dance', period: 'Morning, first period' }],
+      })
+    );
+    expect(text).toContain('MORNING, FIRST PERIOD');
+    expect(text).not.toContain('·');
   });
 
   it('includes cancellation policy when shown', async () => {
