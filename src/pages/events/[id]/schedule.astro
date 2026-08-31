@@ -156,11 +156,39 @@ const cellText = (item?: { name: string; leader: string }) => item;
   @media print {
     :global(header),
     :global(footer),
+    :global(#consent-banner),
     .no-print {
       display: none !important;
     }
     :global(main) {
       padding: 0 !important;
+    }
+
+    /* Compress everything so the grid lands on one page. */
+    @page {
+      margin: 0.35in;
+    }
+    section {
+      max-width: none !important;
+      padding: 0 !important;
+    }
+    h1 {
+      margin-bottom: 0.1rem !important;
+      font-size: 1.05rem !important;
+    }
+    section > p {
+      display: none !important;
+    }
+    .schedule-grid {
+      font-size: 8.5px;
+    }
+    .schedule-grid th,
+    .schedule-grid td {
+      padding: 2px 5px !important;
+      line-height: 1.2 !important;
+    }
+    .schedule-grid .text-xs {
+      font-size: 7.5px;
     }
   }
 </style>
