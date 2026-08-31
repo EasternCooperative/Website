@@ -190,14 +190,13 @@ const cellText = (item?: { name: string; leader: string }) => item;
     /* With border-collapse, the shared line between two adjacent filled break
        rows (Lunch / Free Time) gets painted over by the cell backgrounds in
        some print engines. Switch to separate borders for print — never covered
-       by a background. The top/left edges come from the table so every cell
-       carries only right + bottom borders (no doubled line anywhere, including
-       next to the rowspanned Time cell). */
+       by a background. The outer frame lives on the <table> itself (a cell's
+       right/bottom edge can get clipped at the printable area); cells draw the
+       internal right + bottom lines. */
     .schedule-grid {
       border-collapse: separate;
       border-spacing: 0;
-      border-top: 1px solid #9ca3af;
-      border-left: 1px solid #9ca3af;
+      border: 1px solid #9ca3af;
     }
     .schedule-grid th,
     .schedule-grid td {
