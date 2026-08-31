@@ -65,13 +65,7 @@ describe('buildScheduleFrontmatter', () => {
     expect(grid.locations).toEqual(['Elm Room', 'Rec Hall']);
     const periodRow = grid.rows.find((r) => r.kind === 'period');
     if (periodRow?.kind !== 'period') throw new Error('expected a period row');
-    expect(periodRow.cells.find((c) => c.location === 'Rec Hall')!.entries[0]).toMatchObject({
-      name: 'Folk Dance',
-      dayLabel: null,
-    });
-    expect(periodRow.cells.find((c) => c.location === 'Elm Room')!.entries[0]).toMatchObject({
-      name: 'Chair Yoga',
-      dayLabel: 'Days 1–2',
-    });
+    expect(periodRow.cells.find((c) => c.location === 'Rec Hall')!.fourDay?.name).toBe('Folk Dance');
+    expect(periodRow.cells.find((c) => c.location === 'Elm Room')!.half12?.name).toBe('Chair Yoga');
   });
 });

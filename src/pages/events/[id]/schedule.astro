@@ -29,6 +29,8 @@ const metadata = {
   title: `${eventLabel} — Master Schedule`,
   description: `Printable class schedule for ${eventLabel}.`,
 };
+
+const cellText = (item?: { name: string; leader: string }) => item;
 ---
 
 <Layout metadata={metadata}>
@@ -64,6 +66,7 @@ const metadata = {
         <thead>
           <tr>
             <th class="border px-3 py-2 text-left">Time</th>
+            <th class="border px-3 py-2 text-left">Days</th>
             {grid.locations.map((loc) => <th class="border px-3 py-2 text-left">{loc}</th>)}
           </tr>
         </thead>
@@ -72,29 +75,53 @@ const metadata = {
             grid.rows.map((row) =>
               row.kind === 'break' ? (
                 <tr class="schedule-break">
-                  <td class="border px-3 py-2 text-center font-semibold" colspan={1 + grid.locations.length}>
+                  <td class="border px-3 py-2 text-center font-semibold" colspan={2 + grid.locations.length}>
                     {row.timeText ? `${row.label} · ${row.timeText}` : row.label}
                   </td>
                 </tr>
               ) : (
-                <tr>
-                  <td class="border px-3 py-2 font-semibold whitespace-nowrap">{row.timeText || row.displayName}</td>
-                  {row.cells.map((cell) => (
-                    <td class="border px-3 py-2">
-                      {cell.entries.length === 0 ? (
-                        <span>&nbsp;</span>
-                      ) : (
-                        cell.entries.map((e, i) => (
-                          <div class={i > 0 ? 'mt-2' : ''}>
-                            {e.dayLabel && <span class="text-xs text-muted">{e.dayLabel} </span>}
-                            <span class="font-semibold text-heading">{e.name}</span>
-                            {e.leader && <span class="block text-xs text-muted italic">{e.leader}</span>}
-                          </div>
-                        ))
-                      )}
+                <>
+                  <tr>
+                    <td class="border px-3 py-2 align-middle font-semibold" rowspan={2}>
+                      {row.timeText || row.displayName}
                     </td>
-                  ))}
-                </tr>
+                    <td class="border px-3 py-2 text-xs text-muted">Days 1–2</td>
+                    {row.cells.map((cell) =>
+                      cell.fourDay ? (
+                        <td class="border px-3 py-2 align-middle" rowspan={2}>
+                          <span class="font-semibold text-heading">{cell.fourDay.name}</span>
+                          {cell.fourDay.leader && (
+                            <span class="block text-xs text-muted italic">{cell.fourDay.leader}</span>
+                          )}
+                        </td>
+                      ) : cellText(cell.half12) ? (
+                        <td class="border px-3 py-2">
+                          <span class="font-semibold text-heading">{cell.half12!.name}</span>
+                          {cell.half12!.leader && (
+                            <span class="block text-xs text-muted italic">{cell.half12!.leader}</span>
+                          )}
+                        </td>
+                      ) : (
+                        <td class="border px-3 py-2">&nbsp;</td>
+                      )
+                    )}
+                  </tr>
+                  <tr>
+                    <td class="border px-3 py-2 text-xs text-muted">Days 3–4</td>
+                    {row.cells.map((cell) =>
+                      cell.fourDay ? null : cellText(cell.half34) ? (
+                        <td class="border px-3 py-2">
+                          <span class="font-semibold text-heading">{cell.half34!.name}</span>
+                          {cell.half34!.leader && (
+                            <span class="block text-xs text-muted italic">{cell.half34!.leader}</span>
+                          )}
+                        </td>
+                      ) : (
+                        <td class="border px-3 py-2">&nbsp;</td>
+                      )
+                    )}
+                  </tr>
+                </>
               )
             )
           }
@@ -136,6 +163,8 @@ const metadata = {
     :global(main) {
       padding: 0 !important;
     }
+    /* Trim the page furniture above the table so the grid fits one page.
+       The table itself keeps its on-screen size. */
     @page {
       margin: 0.4in;
     }
@@ -144,8 +173,11 @@ const metadata = {
       padding: 0 !important;
     }
     h1 {
-      margin-bottom: 0.15rem !important;
-      font-size: 1.3rem !important;
+      margin-bottom: 0.1rem !important;
+      font-size: 1.4rem !important;
+    }
+    section > p {
+      display: none !important;
     }
   }
 </style>

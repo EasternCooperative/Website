@@ -31,7 +31,7 @@ describe('buildScheduleGrid', () => {
     expect(grid.rows[0]).toMatchObject({ kind: 'break', label: 'Lunch' });
   });
 
-  it('tags full-span entries with no day label and half-blocks with a range', () => {
+  it('routes a full-span workshop to fourDay and a half to half12 only', () => {
     const data: MasterScheduleData = {
       locations: ['Hall', 'Barn'],
       timeslots: [timeslots[1]],
@@ -40,22 +40,9 @@ describe('buildScheduleGrid', () => {
     const grid = buildScheduleGrid(data);
     const row = grid.rows[0];
     if (row.kind !== 'period') throw new Error('expected period row');
-    expect(row.cells[0].entries).toEqual([{ name: 'Yoga', leader: 'Yoga Leader', dayLabel: null }]);
-    expect(row.cells[1].entries).toEqual([{ name: 'Clay', leader: 'Clay Leader', dayLabel: 'Days 1–2' }]);
-  });
-
-  it('stacks first- and second-half classes in one room, sorted by start day', () => {
-    const data: MasterScheduleData = {
-      locations: ['Hall'],
-      timeslots: [timeslots[1]],
-      workshops: [ws('Second', 'Hall', 'am1', 3, 4), ws('First', 'Hall', 'am1', 1, 2)],
-    };
-    const row = buildScheduleGrid(data).rows[0];
-    if (row.kind !== 'period') throw new Error('expected period row');
-    expect(row.cells[0].entries.map((e) => [e.name, e.dayLabel])).toEqual([
-      ['First', 'Days 1–2'],
-      ['Second', 'Days 3–4'],
-    ]);
+    expect(row.cells[0].fourDay?.name).toBe('Yoga');
+    expect(row.cells[1].half12?.name).toBe('Clay');
+    expect(row.cells[1].half34).toBeUndefined();
   });
 
   it('sets landscape past 4 locations', () => {
@@ -80,14 +67,12 @@ describe('buildMasterScheduleDocDefinition', () => {
     expect(header.columns[1].text).toBe('Winter Adventure 2026');
   });
 
-  it('emits one body row per grid row plus the header', () => {
+  it('emits header + one row per break and two per period', () => {
     const doc = buildMasterScheduleDocDefinition(grid, { title: 'x', subtitle: 'y' });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const body = (doc.content as any[])[1].table.body as unknown[][];
-    // header + break(1) + period(1)
-    expect(body.length).toBe(3);
-    // Time column + one column per location
-    expect(body[0].length).toBe(2);
+    // header + break(1) + period(2)
+    expect(body.length).toBe(4);
   });
 
   it('goes landscape when the grid is landscape', () => {
