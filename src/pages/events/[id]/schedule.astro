@@ -189,11 +189,25 @@ const cellText = (item?: { name: string; leader: string }) => item;
     section > p {
       display: none !important;
     }
-    /* gray-300 prints too faint to separate two adjacent filled break rows
-       (e.g. Lunch / Free Time) — darken every gridline for print. */
+    /* With border-collapse, the shared line between two adjacent filled break
+       rows (Lunch / Free Time) gets painted over by the cell backgrounds in
+       some print engines. Switch to separate borders for print — never covered
+       by a background — and darken them so they render on paper. */
+    .schedule-grid {
+      border-collapse: separate;
+      border-spacing: 0;
+    }
     .schedule-grid th,
     .schedule-grid td {
+      border-width: 0 1px 1px 0 !important;
       border-color: #9ca3af !important;
+    }
+    .schedule-grid th:first-child,
+    .schedule-grid td:first-child {
+      border-left-width: 1px !important;
+    }
+    .schedule-grid thead th {
+      border-top-width: 1px !important;
     }
   }
 </style>
