@@ -61,23 +61,20 @@ describe('headerData', () => {
     expect(hrefs).toEqual(expect.arrayContaining(['/', '/events', '/about', '/our-people', '/contact', '/donate']));
   });
 
-  it('keeps the flagged links inside the dropdown rather than at the top level', async () => {
+  it('keeps the flagged links inside the Get Involved dropdown rather than at the top level', async () => {
     mockFlags(allOn);
     const { headerData } = await import('./navigation');
     const topLevel = (headerData.links as HeaderLink[]).map((l) => l.href);
     expect(topLevel).not.toContain('/activities');
     expect(topLevel).not.toContain('/connections');
 
-    const dropdown = (headerData.links as HeaderLink[]).find((l) => l.links);
-    expect(dropdown?.href).toBeUndefined();
-    expect(dropdown?.links?.map((c) => c.href)).toEqual([
-      '/about',
-      '/our-people',
-      '/membership',
-      '/connections',
-      '/activities',
-      '/gallery',
-    ]);
+    const about = (headerData.links as HeaderLink[]).find((l) => l.text === 'About');
+    expect(about?.href).toBeUndefined();
+    expect(about?.links?.map((c) => c.href)).toEqual(['/about', '/our-people', '/gallery']);
+
+    const getInvolved = (headerData.links as HeaderLink[]).find((l) => l.text === 'Get Involved');
+    expect(getInvolved?.href).toBeUndefined();
+    expect(getInvolved?.links?.map((c) => c.href)).toEqual(['/membership', '/activities', '/connections']);
   });
 
   // The real menu always keeps About/Our People/Gallery, so only a synthetic nav

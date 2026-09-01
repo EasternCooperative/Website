@@ -7,10 +7,15 @@
       "links": [
         { "text": "Who is ECRS?", "href": "/about" },
         { "text": "Our People", "href": "/our-people" },
-        { "text": "Membership", "href": "/membership" },
-        { "text": "Connections", "href": "/connections" },
-        { "text": "Activities", "href": "/activities" },
         { "text": "Gallery", "href": "/gallery" }
+      ]
+    },
+    {
+      "text": "Get Involved",
+      "links": [
+        { "text": "Membership", "href": "/membership" },
+        { "text": "Activities", "href": "/activities" },
+        { "text": "Connections", "href": "/connections" }
       ]
     },
     { "text": "Contact Us", "href": "/contact" },
