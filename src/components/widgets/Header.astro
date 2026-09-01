@@ -120,7 +120,7 @@ const currentPath = `/${trimSlash(new URL(Astro.url).pathname)}`;
                   <button
                     type="button"
                     class:list={[
-                      'hover:text-link dark:hover:text-white px-4 py-3 flex items-center whitespace-nowrap',
+                      'hover:text-link dark:hover:text-white px-4 py-3 flex items-center whitespace-nowrap cursor-pointer',
                       // Keep the active underline visible on the parent while the
                       // current page is one of its children, which a flat link got
                       // for free before the submenu existed.
