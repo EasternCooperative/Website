@@ -2,14 +2,21 @@
 interface Props {
   formUrl: string;
   formName?: string;
+  eventId?: string;
   id?: string;
 }
 
-const { formUrl, formName, id } = Astro.props;
+const { formUrl, formName, eventId, id } = Astro.props;
 ---
 
 <section id={id} class="zeffy-section">
-  <div class="zeffy-container" data-zeffy-container data-zeffy-form-name={formName}>
+  <div
+    class="zeffy-container"
+    data-zeffy-container
+    data-zeffy-form-name={formName}
+    data-zeffy-form-url={formUrl}
+    data-zeffy-event-id={eventId}
+  >
     <div data-zeffy-embed data-form-url={formUrl}></div>
     <div data-zeffy-embed-fallback style="display:none;">
       <div style="position:relative;overflow:hidden;height:450px;width:100%;padding-top:450px;">
@@ -68,6 +75,120 @@ const { formUrl, formName, id } = Astro.props;
       };
       container.appendChild(s);
     });
+  })();
+</script>
+
+<script is:inline data-astro-rerun>
+  (function () {
+    // Mid-funnel signal for Ads: fire `form_view_event` (→ Meta ViewContent,
+    // GA form_view) once the embedded Zeffy form has actually been on screen.
+    // Deduplicated per visitor per event so it counts an intent signal, not a
+    // scroll count.
+    //
+    // Observe the CONTAINER, not the iframe: on the primary path
+    // zeffy-embed.js injects the iframe asynchronously (it doesn't exist when
+    // this runs), and on the fallback path the iframe starts inside a
+    // display:none wrapper and would never intersect.
+    //
+    // data-astro-rerun: this IIFE re-runs after every view-transition nav, and
+    // a fresh container exists by then — tear down the previous observer and
+    // dwell timer first (mirrors the __ecrsCognitoPrefillTimer cleanup in
+    // CognitoForm.astro).
+    if (window.__ecrsZeffyViewObserver) {
+      window.__ecrsZeffyViewObserver.disconnect();
+      window.__ecrsZeffyViewObserver = null;
+    }
+    if (window.__ecrsZeffyViewTimer) {
+      clearTimeout(window.__ecrsZeffyViewTimer);
+      window.__ecrsZeffyViewTimer = null;
+    }
+
+    const DWELL_MS = 1000;
+
+    function alreadySent(key) {
+      try {
+        return localStorage.getItem(key) === '1';
+      } catch {
+        return false;
+      }
+    }
+    function markSent(key) {
+      try {
+        localStorage.setItem(key, '1');
+      } catch {
+        /* private mode — best effort */
+      }
+    }
+
+    function send(container) {
+      const key = 'ecrs-zeffy-view-' + (container.dataset.zeffyFormUrl || '');
+      if (alreadySent(key)) return true;
+
+      const name = container.dataset.zeffyFormName || 'event';
+      const params = {
+        form_name: name,
+        form_url: container.dataset.zeffyFormUrl || '',
+        event_id: container.dataset.zeffyEventId || '',
+      };
+
+      if (window.gtag || window.fbq) {
+        if (window.ecrsTrack) window.ecrsTrack('form_view_event', params);
+        markSent(key);
+        return true;
+      }
+
+      // Observer fired before the visitor answered the consent banner, so no
+      // destination is loaded yet and ecrsTrack would no-op silently. Stash the
+      // event and flush it once consent is granted. setTimeout(…, 0) lets
+      // MetaPixel's own consent listener define window.fbq first.
+      window.__ecrsZeffyViewPending = params;
+      window.addEventListener(
+        'ecrs:consent-granted',
+        function () {
+          setTimeout(function () {
+            const p = window.__ecrsZeffyViewPending;
+            if (!p) return;
+            if (alreadySent(key)) {
+              window.__ecrsZeffyViewPending = null;
+              return;
+            }
+            if (window.ecrsTrack) window.ecrsTrack('form_view_event', p);
+            markSent(key);
+            window.__ecrsZeffyViewPending = null;
+          }, 0);
+        },
+        { once: true }
+      );
+      return false;
+    }
+
+    const container = document.querySelector('[data-zeffy-container]');
+    if (!container || !('IntersectionObserver' in window)) return;
+
+    if (alreadySent('ecrs-zeffy-view-' + (container.dataset.zeffyFormUrl || ''))) return;
+
+    const observer = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            // Only count a real form view: require the embed (or fallback)
+            // iframe to actually be in the container, not an empty box.
+            if (!entry.target.querySelector('iframe')) return;
+            if (window.__ecrsZeffyViewTimer) return;
+            window.__ecrsZeffyViewTimer = setTimeout(function () {
+              window.__ecrsZeffyViewTimer = null;
+              if (send(entry.target)) observer.disconnect();
+            }, DWELL_MS);
+          } else if (window.__ecrsZeffyViewTimer) {
+            clearTimeout(window.__ecrsZeffyViewTimer);
+            window.__ecrsZeffyViewTimer = null;
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+    observer.observe(container);
+    window.__ecrsZeffyViewObserver = observer;
   })();
 </script>
 
