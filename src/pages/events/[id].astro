@@ -1046,7 +1046,7 @@ const breadcrumbJsonLd = {
         {data.cognitoFormId ? (
           <CognitoForm formId={data.cognitoFormId} formName="event" />
         ) : (
-          data.zeffyFormUrl && <ZeffyForm formUrl={data.zeffyFormUrl} formName="event" />
+          data.zeffyFormUrl && <ZeffyForm formUrl={data.zeffyFormUrl} formName="event" eventId={event.id} />
         )}
       </div>
     )
