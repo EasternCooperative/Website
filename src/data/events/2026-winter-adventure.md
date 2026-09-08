@@ -78,6 +78,7 @@ classes:
       - id: toby-woods
     period: '2nd Period (10:50 AM–12:30 PM)'
     days: 'Days 1–2'
+    description: 'Mafia, the Dictionary Game, Thumper, Up Jenkins, Catch Phrase! These are the ECRS favorites, and free periods never seem long enough to get to them all. This class is where you finally do.'
   - name: 'Sing and Play Music'
     leaderId: bonnie-ostrofsky
     period: '2nd Period (10:50 AM–12:30 PM)'
@@ -92,6 +93,7 @@ classes:
       - id: joe-feigin
     period: '2nd Period (10:50 AM–12:30 PM)'
     days: 'Days 3–4'
+    description: "Are you ready? No? Perfect! Come make it up as you go. We'll learn a little, play a lot, and laugh too much. No experience needed."
   - name: "Children's Program"
     leaderId: lisa-natale
     period: '2nd Period (10:50 AM–12:30 PM)'
@@ -110,6 +112,7 @@ classes:
     leaderId: isaac-lebwohl-steiner
     period: '3rd Period (3:45–5:45 PM)'
     days: 'Days 1–2'
+    description: "The year is 1933 and you've got a job to do. A stranger has called you and several others together to secure an object they need, no questions answered and cash on delivery. They're not saying much more. You'll each play a character making their way through the story with the rest of this unlikely crew, and I'll bring the world and whatever is waiting in it. Ever heard of Dungeons and Dragons and wanted to see what it's like? This is a no-experience-necessary way to do just that!"
   - name: 'Knitting/Macrame/Crochet & Storytelling'
     leaders:
       - id: toby-woods
