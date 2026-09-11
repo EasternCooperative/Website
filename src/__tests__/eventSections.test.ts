@@ -109,13 +109,11 @@ describe('hasCosts', () => {
     );
   });
 
-  it('is true with simple pricing rows that have an ageRange', () => {
-    expect(computeEventSections(base({ pricing: [{ ageRange: '18+', fullWeekend: '$110' }] }), NOW).hasCosts).toBe(
-      true
-    );
+  it('is true with simple pricing rows that have a label', () => {
+    expect(computeEventSections(base({ pricing: [{ label: '18+', fullWeekend: '$110' }] }), NOW).hasCosts).toBe(true);
   });
 
-  it('is false when pricing rows have no ageRange (note-only rows)', () => {
+  it('is false when pricing rows have no label (note-only rows)', () => {
     expect(computeEventSections(base({ pricing: [{ note: 'See website' }] }), NOW).hasCosts).toBe(false);
   });
 });
@@ -281,14 +279,14 @@ describe('cancellationCutoff', () => {
 // ─── pricingRows ─────────────────────────────────────────────────────────────
 
 describe('pricingRows', () => {
-  it('filters out pricing entries that have no ageRange', () => {
+  it('filters out pricing entries that have no label', () => {
     const r = computeEventSections(
       base({
-        pricing: [{ ageRange: '18+', fullWeekend: '$110' }, { note: 'All prices include meals' }],
+        pricing: [{ label: '18+', fullWeekend: '$110' }, { note: 'All prices include meals' }],
       }),
       NOW
     );
     expect(r.pricingRows).toHaveLength(1);
-    expect(r.pricingRows[0].ageRange).toBe('18+');
+    expect(r.pricingRows[0].label).toBe('18+');
   });
 });

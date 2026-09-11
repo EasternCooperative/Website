@@ -21,7 +21,7 @@ const makeEvent = (
     description: string | undefined;
     fee: string | undefined;
     tuition: { label?: string; amount: string; note?: string }[] | undefined;
-    pricing: { ageRange?: string; fullWeekend?: string; note?: string }[] | undefined;
+    pricing: { label?: string; fullWeekend?: string; note?: string }[] | undefined;
     classes: unknown[] | undefined;
     schedule: { timeslots: { label: string; start?: string; end?: string; isBreak?: boolean }[] } | undefined;
     showCancellationPolicy: boolean | undefined;
@@ -43,7 +43,7 @@ const makeEvent = (
     description: undefined as string | undefined,
     fee: undefined as string | undefined,
     tuition: undefined as { label?: string; amount: string; note?: string }[] | undefined,
-    pricing: undefined as { ageRange?: string; fullWeekend?: string; note?: string }[] | undefined,
+    pricing: undefined as { label?: string; fullWeekend?: string; note?: string }[] | undefined,
     classes: undefined as unknown[] | undefined,
     schedule: undefined as
       { timeslots: { label: string; start?: string; end?: string; isBreak?: boolean }[] } | undefined,
@@ -153,16 +153,21 @@ describe('GET /events/[id].txt', () => {
     expect(text).toContain('Child: $30');
   });
 
-  it('includes simple age-range pricing rows when present', async () => {
-    const text = await callGet(makeEvent({ pricing: [{ ageRange: '0-5', fullWeekend: 'Free' }] }));
+  it('includes simple pricing rows when present', async () => {
+    const text = await callGet(makeEvent({ pricing: [{ label: '0-5', fullWeekend: 'Free' }] }));
     expect(text).toContain('PRICING');
     expect(text).toContain('0-5: Free');
+  });
+
+  it('falls back to an em dash for a pricing row with no fullWeekend amount', async () => {
+    const text = await callGet(makeEvent({ pricing: [{ label: 'See note below' }] }));
+    expect(text).toContain('See note below: —');
   });
 
   it('includes classes/schedule when present', async () => {
     const text = await callGet(
       makeEvent({
-        classes: [{ name: 'Beginner Contra', ageRange: 'All ages', description: 'A fun **intro** class' }],
+        classes: [{ name: 'Beginner Contra', restriction: 'All ages', description: 'A fun **intro** class' }],
       })
     );
     expect(text).toContain('SCHEDULE');
@@ -277,7 +282,7 @@ describe('GET /events/[id].txt', () => {
     const text = await callGet(
       makeEvent({
         tuition: [{ amount: '$50', note: 'Includes materials' }],
-        pricing: [{ ageRange: '0-5', fullWeekend: 'Free', note: 'Must be accompanied by an adult' }],
+        pricing: [{ label: '0-5', fullWeekend: 'Free', note: 'Must be accompanied by an adult' }],
       })
     );
     expect(text).toContain('Includes materials');

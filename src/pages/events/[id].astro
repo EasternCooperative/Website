@@ -194,7 +194,7 @@ const jsonLd = {
     offerRows.length > 0
       ? offerRows.map((p) => ({
           '@type': 'Offer',
-          name: p.ageRange,
+          name: p.label,
           // For ranged prices (e.g. "$50–75"), use the first number as the starting price
           // rather than concatenating all digits into a nonsensical value. Thousands
           // separators are stripped first so "$1,200" still parses as 1200, not 1.
@@ -707,7 +707,7 @@ const breadcrumbJsonLd = {
         )
       }
 
-      <!-- ── Simple age-range pricing table (events without a tuition/accommodations breakdown) ── -->
+      <!-- ── Simple pricing table (events without a tuition/accommodations breakdown) ── -->
       {
         pricingRows.length > 0 && (
           <div class="mt-10">
@@ -717,7 +717,7 @@ const breadcrumbJsonLd = {
                 <thead>
                   <tr class="bg-gray-50 dark:bg-gray-800">
                     <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
-                      Age Range
+                      Category
                     </th>
                     <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
                       Full Weekend
@@ -732,7 +732,7 @@ const breadcrumbJsonLd = {
                         { 'bg-gray-50 dark:bg-gray-900': i % 2 === 0 },
                       ]}
                     >
-                      <td class="px-4 py-3">{tier.ageRange}</td>
+                      <td class="px-4 py-3">{tier.label}</td>
                       <td class="px-4 py-3 font-semibold">{tier.fullWeekend ?? '—'}</td>
                     </tr>
                   ))}
@@ -864,9 +864,9 @@ const breadcrumbJsonLd = {
                                 </span>
                               );
                             })()}
-                            {cls.ageRange && (
+                            {cls.restriction && (
                               <span class="text-xs font-semibold text-muted border border-muted/30 rounded-full px-2 py-0.5">
-                                {cls.ageRange}
+                                {cls.restriction}
                               </span>
                             )}
                             {isMultiDay && cls.days && <span class="text-xs text-muted">{cls.days}</span>}

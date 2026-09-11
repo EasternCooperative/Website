@@ -9,7 +9,7 @@ export type EventClass = {
   leaders?: LeaderEntry[];
   leaderId?: string;
   leader?: string;
-  ageRange?: string;
+  restriction?: string;
   period?: string;
   days?: string;
   room?: string;

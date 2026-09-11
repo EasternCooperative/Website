@@ -99,7 +99,7 @@ const itemListJsonLd = {
         return {
           offers: pricingRows.map((p) => ({
             '@type': 'Offer',
-            name: p.ageRange,
+            name: p.label,
             price: p.fullWeekend === 'Free' ? '0' : (p.fullWeekend?.replace(/,/g, '').match(/\d+(\.\d+)?/)?.[0] ?? '0'),
             priceCurrency: 'USD',
             availability: isPast ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',

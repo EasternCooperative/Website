@@ -57,7 +57,7 @@ describe('groupClassesByPeriod', () => {
     const cls = {
       name: 'Yoga',
       leader: 'Jane',
-      ageRange: '12+',
+      restriction: 'Ages 12+',
       period: 'Morning',
       days: 'Days 1–2',
       limitedCapacity: true,
