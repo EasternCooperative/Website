@@ -8,6 +8,15 @@
   --aw-color-secondary: rgb(148 84 5); /* Carrot Orange 700 — 5.1:1 on warm-white */
   --aw-color-accent: rgb(0 112 153); /* Fresh Sky 700 — 4.6:1 on warm-white */
 
+  /* "Strong" variants for filled controls that carry fixed white text (the
+     Cognito submit button, btn-primary in dark mode). The dark-mode primary/
+     secondary tokens below are calibrated as *foreground* colors on a dark
+     page — lightened so text stays readable — which makes them too pale to
+     use as a *fill* behind white label text. These stay constant across
+     themes on purpose: they're always the saturated, light-mode values. */
+  --aw-color-primary-strong: rgb(189 15 93);
+  --aw-color-secondary-strong: rgb(148 84 5);
+
   /* ECRS supplemental tokens */
   --ecrs-color-green: rgb(41 112 47); /* Medium Jungle 700 */
   --ecrs-color-grey: rgb(54 48 49); /* Shadow Grey 800 */
@@ -72,18 +81,21 @@
   font-size: 1rem !important;
 }
 
-/* Submit button — pill shape + ECRS pink, matching site's btn-primary */
+/* Submit button — pill shape + ECRS pink, matching site's btn-primary.
+   Uses the "-strong" tokens (see :root) since this fill carries fixed white
+   text in both themes — the theme-aware --aw-color-primary/secondary would
+   go too pale in dark mode for that to stay readable. */
 .cog-cognito .cog-button--submit {
   border-radius: 9999px !important;
   font-weight: 600 !important;
   padding: 0.875rem 1.5rem !important;
-  background-color: rgb(189 15 93) !important;
-  border-color: rgb(189 15 93) !important;
+  background-color: var(--aw-color-primary-strong) !important;
+  border-color: var(--aw-color-primary-strong) !important;
   color: #fff !important;
 }
 .cog-cognito .cog-button--submit:hover {
-  background-color: rgb(148 84 5) !important;
-  border-color: rgb(148 84 5) !important;
+  background-color: var(--aw-color-secondary-strong) !important;
+  border-color: var(--aw-color-secondary-strong) !important;
 }
 
 /* Radio buttons — larger touch target, vertically centered label */
@@ -99,11 +111,6 @@
   width: 1.25rem !important;
   height: 1.25rem !important;
 }
-.cog-cognito .el-radio__inner::after {
-  width: 0.5rem !important;
-  height: 0.5rem !important;
-  background-color: #fff !important;
-}
 .cog-cognito .el-radio__label {
   line-height: 1.25rem !important;
   padding-left: 0 !important;
@@ -112,18 +119,94 @@
   cursor: text !important;
 }
 .cog-cognito .el-radio.is-checked .el-radio__inner {
-  border-color: rgb(189 15 93) !important;
-  background-color: rgb(189 15 93) !important;
+  border-color: var(--aw-color-primary) !important;
+  background-color: var(--aw-color-primary) !important;
 }
+/* A checked radio is a solid disc, not a dot-in-ring — hide Element UI's
+   inner ::after dot rather than color it. */
 .cog-cognito .el-radio__inner::after {
   display: none !important;
 }
 
+/* Checkboxes — same size and brand pink as radios above. Element UI themes
+   these independently of radios, so without this they stay its default blue
+   (#409EFF) next to pink radios. */
+.cog-cognito .el-checkbox__inner {
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+}
+.cog-cognito .el-checkbox.is-checked .el-checkbox__inner {
+  border-color: var(--aw-color-primary) !important;
+  background-color: var(--aw-color-primary) !important;
+}
+
+/* Choice controls should read as clickable — Element UI ships them with the
+   default arrow cursor. Radios and checkboxes behave identically here. */
+.cog-cognito .el-radio,
+.cog-cognito .el-radio__input,
+.cog-cognito .el-radio__inner,
+.cog-cognito .el-radio__label,
+.cog-cognito .el-checkbox,
+.cog-cognito .el-checkbox__input,
+.cog-cognito .el-checkbox__inner,
+.cog-cognito .el-checkbox__label {
+  cursor: pointer !important;
+}
+.cog-cognito .el-radio.is-disabled,
+.cog-cognito .el-radio.is-disabled *,
+.cog-cognito .el-checkbox.is-disabled,
+.cog-cognito .el-checkbox.is-disabled * {
+  cursor: not-allowed !important;
+}
+
+/* Selecting a choice with the mouse shouldn't leave a ring around the control.
+   Element UI adds .is-focus (mouse + keyboard alike) and paints a blue
+   box-shadow on the __inner box. Drop it, then restore a brand-pink ring for
+   keyboard users only via :focus-visible on the underlying input. */
+.cog-cognito .el-radio.is-focus .el-radio__inner,
+.cog-cognito .el-radio__input.is-focus .el-radio__inner,
+.cog-cognito .el-checkbox.is-focus .el-checkbox__inner,
+.cog-cognito .el-checkbox__input.is-focus .el-checkbox__inner {
+  box-shadow: none !important;
+}
+.cog-cognito .el-radio:has(.el-radio__original:focus-visible) .el-radio__inner,
+.cog-cognito .el-checkbox:has(.el-checkbox__original:focus-visible) .el-checkbox__inner {
+  /* Relative color syntax so this tracks --aw-color-primary (and its
+     dark-mode remap) instead of hardcoding the light-mode value at a fixed
+     alpha; unsupported browsers just drop the declaration (no ring, not a
+     broken one). */
+  box-shadow: 0 0 0 2px rgb(from var(--aw-color-primary) r g b / 40%) !important;
+}
+
+/* Dropdowns (Element UI el-select) are click-to-open, so the whole control and
+   its options should show the pointer cursor a native <select> would. Plain
+   text inputs — which share the .el-input__inner class — are left untouched.
+   Element UI teleports the popper to <body>, outside any .cog-cognito
+   ancestor, but stamps `cog-cognito` on the popper root itself — so these
+   selectors must be compound (.cog-cognito.el-select-dropdown), not
+   descendant, or they silently never match. */
+.cog-cognito .el-select,
+.cog-cognito .el-select .el-input,
+.cog-cognito .el-select .el-input__inner,
+.cog-cognito .el-select .el-input__suffix,
+.cog-cognito .el-select .el-input__suffix-inner,
+.cog-cognito .el-select__caret,
+.cog-cognito.el-select-dropdown .el-select-dropdown__item {
+  cursor: pointer !important;
+}
+.cog-cognito.el-select-dropdown .el-select-dropdown__item.selected {
+  color: var(--aw-color-primary) !important;
+}
+
 /* Focus ring */
+.cog-cognito .el-input__inner,
+.cog-cognito .el-textarea__inner {
+  border-radius: 0.375rem !important;
+}
 .cog-cognito .el-input__inner:focus,
 .cog-cognito .el-textarea__inner:focus {
-  border-color: rgb(189 15 93) !important;
-  box-shadow: 0 0 0 2px rgb(189 15 93 / 25%) !important;
+  border-color: var(--aw-color-primary) !important;
+  box-shadow: 0 0 0 2px rgb(from var(--aw-color-primary) r g b / 25%) !important;
 }
 
 /* Dark mode */
@@ -153,12 +236,52 @@ html.dark .cog-cognito .cog-html,
 html.dark .cog-cognito .help-text {
   color: var(--aw-color-text-muted) !important;
 }
+/* An invalid field gets a ::before highlight meant to read as "barely-there
+   white" on Cognito's white default page: an 80%-opaque white fill *plus* a
+   separate 9px white `outline` (not border — easy to miss, since it isn't
+   covered by a background-color reset) framing the field. Both are
+   invisible-on-white by design. On our dark page the fill washed the field
+   light (fixed already) and the outline alone still read as a pale pink-gray
+   frame around it. Drop both, leaving only the accompanying ::after — a
+   10%-opacity red fill plus matching 9px outline, the same red as the error
+   banner — as the field's one, cohesive error tint instead of three
+   different reds stacked on top of each other. */
+html.dark .cog-cognito .cog-field.is-error::before {
+  background-color: transparent !important;
+  outline: none !important;
+}
 html.dark .cog-cognito .cog-input.is-read-only {
   color: var(--aw-color-text-default) !important;
 }
 html.dark .cog-cognito .cog-payment__order-details td,
 html.dark .cog-cognito .cog-order-details__total {
   color: var(--aw-color-text-default) !important;
+}
+/* Select dropdown popper — teleported to <body> (see the cursor rule above),
+   so its own html.dark ancestor is <html>, not `.cog-cognito`; it still
+   carries the `cog-cognito` class itself, hence the compound selector. Left
+   un-themed, this rendered as a default light popup over the dark page.
+   Element UI paints the popper with a `background-image` of two stacked,
+   fully-opaque white linear-gradient layers (its own light-theme "solid
+   color" trick) — background-image layers paint above background-color, so
+   a background-color-only override sits invisibly underneath them. The
+   `background` shorthand resets background-image to `none` along with
+   setting the color, which a `background-color`-only declaration can't do. */
+html.dark .cog-cognito.el-select-dropdown {
+  background: rgb(40 36 37) !important;
+  border-color: rgb(80 72 74) !important;
+}
+html.dark .cog-cognito.el-select-dropdown .el-select-dropdown__item {
+  color: var(--aw-color-text-default) !important;
+}
+html.dark .cog-cognito.el-select-dropdown .el-select-dropdown__item.hover {
+  background-color: rgb(80 72 74) !important;
+}
+/* Validation error banners already carry their own bg/text pair (white on
+   red) that reads fine unmodified in both themes — just round the corners to
+   match the rest of the site instead of Element UI's square default. */
+.cog-cognito .cog-error-message {
+  border-radius: 0.375rem !important;
 }
 
 /* Payment step — the card-entry fields are cross-origin Braintree/PayPal

@@ -13,15 +13,15 @@ whatToExpectItems:
   - title: Daytime Classes
     description: 'An ever-changing menu of optional workshops: dance, drama, crafts, music, and personal growth. Participate at your own level of interest, ability, and comfort.'
     icon: tabler:palette
-    iconColor: bg-[#01aced]
+    iconColor: bg-accent
   - title: Shared Meals & Downtime
     description: Meals are family-style and built for connection. Between sessions there's space to relax, wander, or start a spontaneous game.
     icon: tabler:friends
-    iconColor: bg-[#41b03b]
+    iconColor: bg-ecrs-green
   - title: Evening Merriment
     description: Nights come alive with folk dancing, singing, informal dramatics, and cooperative games. No experience required. Just show up and play.
     icon: tabler:moon-stars
-    iconColor: bg-[#f48612]
+    iconColor: bg-secondary
 whyTitle: Why ECRS?
 whySubtitle: For over 85 years, ECRS has brought people of all ages together through creative, joyful community experiences.
 pillars:
@@ -29,17 +29,17 @@ pillars:
     description: Fun activities, both active and relaxing, including cooperative games and personal development.
     icon: tabler:confetti
     classes:
-      icon: bg-[#f48612]
+      icon: bg-secondary
   - title: Build Community
     description: Fun-filled events that build lasting community across generations, backgrounds, and geographies. Welcoming people of all ages for more than 85 years.
     icon: tabler:heart-handshake
     classes:
-      icon: bg-[#01aced]
+      icon: bg-accent
   - title: Creative Arts
     description: Singing, dancing, dramatics, improv theater, and crafts that emphasize enjoyment, creativity, and personal growth.
     icon: tabler:music
     classes:
-      icon: bg-[#41b03b]
+      icon: bg-ecrs-green
 moreEventsEyebrow: Join Us
 moreEventsHeading: More Upcoming Events
 moreEventsViewAllText: View all events

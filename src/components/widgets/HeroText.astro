@@ -37,7 +37,7 @@ const {
         {
           tagline && (
             <p
-              class="text-base text-secondary dark:text-blue-200 font-bold tracking-wide uppercase"
+              class="text-base text-secondary font-bold tracking-wide uppercase"
               data-scroll-reveal="up"
               set:html={tagline}
             />
@@ -53,11 +53,7 @@ const {
           )
         }
         <div class="max-w-3xl mx-auto">
-          {
-            subtitle && (
-              <p class="text-xl text-muted mb-6 dark:text-slate-300" data-scroll-reveal="up" set:html={subtitle} />
-            )
-          }
+          {subtitle && <p class="text-xl text-muted mb-6" data-scroll-reveal="up" set:html={subtitle} />}
           <div
             class="max-w-xs sm:max-w-md m-auto flex flex-nowrap flex-col sm:flex-row sm:justify-center gap-4"
             data-scroll-reveal="up"

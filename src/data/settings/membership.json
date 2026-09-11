@@ -6,32 +6,38 @@
     {
       "title": "Members-only discounts at events",
       "description": "Save on registration fees at ECRS events throughout the year.",
-      "icon": "tabler:ticket"
+      "icon": "tabler:ticket",
+      "classes": { "icon": "text-accent" }
     },
     {
       "title": "Steer the direction of ECRS",
       "description": "Vote on Board members and issues, and/or become a Board member yourself.",
-      "icon": "tabler:users"
+      "icon": "tabler:users",
+      "classes": { "icon": "text-ecrs-green" }
     },
     {
       "title": "Free subscription to ECHOES",
       "description": "Receive our newsletter and stay connected with the ECRS community.",
-      "icon": "tabler:mail"
+      "icon": "tabler:mail",
+      "classes": { "icon": "text-secondary" }
     },
     {
       "title": "Recreation and leadership training",
       "description": "Access workshops and resources to grow your skills and confidence.",
-      "icon": "tabler:school"
+      "icon": "tabler:school",
+      "classes": { "icon": "text-accent" }
     },
     {
       "title": "Share in the ECRS magic and fun!",
       "description": "Be part of a warm, welcoming community built on creativity and cooperation.",
-      "icon": "tabler:sparkles"
+      "icon": "tabler:sparkles",
+      "classes": { "icon": "text-ecrs-green" }
     },
     {
       "title": "Support the organization you love",
       "description": "Your membership directly sustains ECRS and makes everything possible.",
-      "icon": "tabler:heart"
+      "icon": "tabler:heart",
+      "classes": { "icon": "text-secondary" }
     }
   ],
   "pricingTitle": "Annual Membership",

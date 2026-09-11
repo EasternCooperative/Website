@@ -9,9 +9,9 @@ interface Props {
 const { formUrl, formName, eventId, id } = Astro.props;
 ---
 
-<section id={id} class="zeffy-section">
+<section id={id} class="embed-form-section">
   <div
-    class="zeffy-container"
+    class="embed-form-container"
     data-zeffy-container
     data-zeffy-form-name={formName}
     data-zeffy-form-url={formUrl}
@@ -19,7 +19,7 @@ const { formUrl, formName, eventId, id } = Astro.props;
   >
     <div data-zeffy-embed data-form-url={formUrl}></div>
     <div data-zeffy-embed-fallback style="display:none;">
-      <div style="position:relative;overflow:hidden;height:450px;width:100%;padding-top:450px;">
+      <div style="position:relative;overflow:hidden;height:450px;width:100%;">
         <iframe
           title="Form powered by Zeffy"
           style="position: absolute; border: 0; top:0; left:0; bottom:0; right:0; width:100%; height:100%"
@@ -191,14 +191,3 @@ const { formUrl, formName, eventId, id } = Astro.props;
     window.__ecrsZeffyViewObserver = observer;
   })();
 </script>
-
-<style>
-  .zeffy-section {
-    padding: 3rem 1rem;
-    background-color: var(--aw-color-bg-page);
-  }
-  .zeffy-container {
-    max-width: 48rem;
-    margin: 0 auto;
-  }
-</style>

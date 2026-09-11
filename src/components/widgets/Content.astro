@@ -47,13 +47,13 @@ const columnsClass =
     classes={{
       container: 'max-w-xl sm:mx-auto lg:max-w-2xl',
       title: 'text-4xl md:text-5xl font-bold tracking-tighter mb-4 font-heading',
-      subtitle: 'max-w-3xl mx-auto sm:text-center text-xl text-muted dark:text-slate-400',
+      subtitle: 'max-w-3xl mx-auto sm:text-center text-xl text-muted',
     }}
   />
   <div class="mx-auto max-w-7xl p-4 md:px-8">
     <div class={`md:flex ${isReversed ? 'md:flex-row-reverse' : ''} md:gap-16`}>
       <div class="md:basis-1/2 self-center" data-scroll-reveal={isReversed ? 'right' : 'left'}>
-        {content && <div class="mb-12 text-lg dark:text-slate-400" set:html={content} />}
+        {content && <div class="mb-12 text-lg text-default" set:html={content} />}
 
         {
           callToAction && (
@@ -72,7 +72,7 @@ const columnsClass =
                     <div class="flex justify-center">
                       <Icon
                         name={icon || 'tabler:check'}
-                        class="flex h-7 w-7 items-center justify-center rounded-full bg-green-600 dark:bg-green-700 text-gray-50 p-1 mr-2 rtl:mr-0 rtl:ml-2"
+                        class="flex h-7 w-7 items-center justify-center rounded-full bg-ecrs-green text-gray-50 p-1 mr-2 rtl:mr-0 rtl:ml-2"
                       />
                     </div>
                     <div class="mt-0.5">

@@ -4,6 +4,7 @@ import Features2 from '~/components/widgets/Features2.astro';
 import CallToAction from '~/components/widgets/CallToAction.astro';
 import HeroText from '~/components/widgets/HeroText.astro';
 import MemberHeatmap from '~/components/widgets/MemberHeatmap';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
 import Layout from '~/layouts/PageLayout.astro';
 import aboutSettings from '~/data/settings/about.json';
 import siteSettings from '~/data/settings/site.json';
@@ -43,9 +44,9 @@ const pillars = aboutSettings.pillars.map((pillar) => ({
           subtitle="Our members come from all over North America. Wherever you live, you belong here."
         />
 
-        <section class="py-8 px-4 max-w-4xl mx-auto" data-scroll-reveal="up">
+        <WidgetWrapper containerClass="py-8 max-w-4xl">
           <MemberHeatmap cities={memberLocations.cities} maskSmallCounts client:visible />
-        </section>
+        </WidgetWrapper>
       </>
     )
   }
