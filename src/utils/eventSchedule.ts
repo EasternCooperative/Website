@@ -1,7 +1,7 @@
 import type { Workshop, TimeSlot } from '~/components/schedule/models';
 import { buildMasterSchedule, type MasterScheduleData } from '~/components/schedule/scheduleBuilder';
 import { formatTimeRange } from '~/components/schedule/timeUtils';
-import { resolveClassLeaderNames, type EventClass } from '~/utils/classes';
+import { resolveClassLeaderNames, groupClassesByPeriod, type EventClass } from '~/utils/classes';
 
 /** Timeslot as authored in event frontmatter (`schedule.timeslots[]`). */
 export interface FrontmatterTimeslot {
@@ -107,6 +107,66 @@ export function formatScheduleHeading(
   if (range) parts.push(range);
   if (isMultiDay && days) parts.push(days);
   return parts.join(' · ');
+}
+
+/** One section of the event page's `#schedule` list: either a named block of
+ * classes, or a bare break/free-time heading with nothing under it. */
+export type ScheduleGroup =
+  | { kind: 'classes'; heading: string; showHeading: boolean; classes: EventClass[] }
+  | { kind: 'break'; heading: string };
+
+/**
+ * Build the event page's `#schedule` section groups. When the event defines a
+ * `schedule.timeslots` block, section order + headings come from it (label +
+ * time range); a `isBreak` timeslot becomes a heading-only break group (no
+ * classes required — meals, free time, etc.), and classes whose period
+ * matches no timeslot fall into a trailing "Other" group. Without a
+ * `schedule` block, falls back to the original first-seen `period` grouping,
+ * which has no break concept.
+ */
+export function buildScheduleGroups(data: EventScheduleData, isMultiDay: boolean): ScheduleGroup[] {
+  const classes = data.classes ?? [];
+  const timeslots = data.schedule?.timeslots ?? [];
+  if (classes.length === 0 && timeslots.length === 0) return [];
+
+  if (timeslots.length > 0) {
+    const bySlug = new Map<string, EventClass[]>();
+    for (const cls of classes) {
+      const key = slugifyPeriod(cls.period ?? '');
+      if (!bySlug.has(key)) bySlug.set(key, []);
+      bySlug.get(key)!.push(cls);
+    }
+    const seen = new Set<string>();
+    const groups: ScheduleGroup[] = [];
+    for (const ts of timeslots) {
+      if (ts.isBreak) {
+        groups.push({ kind: 'break', heading: formatScheduleHeading(ts.label, ts, undefined, isMultiDay) });
+        continue;
+      }
+      const key = slugifyPeriod(ts.label);
+      seen.add(key);
+      const tsClasses = bySlug.get(key);
+      if (!tsClasses?.length) continue;
+      groups.push({
+        kind: 'classes',
+        heading: formatScheduleHeading(ts.label, ts, undefined, isMultiDay),
+        showHeading: true,
+        classes: tsClasses,
+      });
+    }
+    const leftover = [...bySlug.entries()].filter(([k]) => !seen.has(k)).flatMap(([, v]) => v);
+    if (leftover.length > 0) groups.push({ kind: 'classes', heading: 'Other', showHeading: true, classes: leftover });
+    return groups;
+  }
+
+  const groupedByPeriod = groupClassesByPeriod(classes);
+  const isFlat = groupedByPeriod.size === 1 && groupedByPeriod.has('');
+  return [...groupedByPeriod.entries()].map(([period, periodClasses]) => ({
+    kind: 'classes',
+    heading: period,
+    showHeading: !isFlat && !!period,
+    classes: periodClasses,
+  }));
 }
 
 /**
