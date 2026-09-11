@@ -11,6 +11,7 @@ import Content from '~/components/widgets/Content.astro';
 import Stats from '~/components/widgets/Stats.astro';
 import EventCard from '~/components/widgets/EventCard.astro';
 import CallToAction from '~/components/widgets/CallToAction.astro';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
 import { formatEventDateRange } from '~/utils/dates';
 import { renderMarkdown, renderInlineMarkdown, stripMarkdown } from '~/utils/markdown';
 
@@ -123,7 +124,7 @@ const metadata = {
     }))}
   >
     <Fragment slot="bg">
-      <div class="absolute inset-0 bg-gray-50 dark:bg-transparent"></div>
+      <div class="absolute inset-0 bg-primary/5 dark:bg-transparent"></div>
     </Fragment>
   </Features>
 
@@ -156,7 +157,7 @@ const metadata = {
       )}
     />
     <Fragment slot="bg">
-      <div class="absolute inset-0 bg-gray-50 dark:bg-transparent"></div>
+      <div class="absolute inset-0 bg-primary/5 dark:bg-transparent"></div>
     </Fragment>
   </Content>
 
@@ -197,7 +198,7 @@ const metadata = {
     landing?.stats && landing.stats.length > 0 && (
       <Stats stats={landing.stats}>
         <Fragment slot="bg">
-          <div class="absolute inset-0 bg-pink-50 dark:bg-transparent" />
+          <div class="absolute inset-0 bg-primary/5 dark:bg-transparent" />
         </Fragment>
       </Stats>
     )
@@ -208,7 +209,7 @@ const metadata = {
        ============================================================ -->
   {
     upcomingEvents.length > 0 && (
-      <div id="more-events" class="py-16 md:py-20 px-4 max-w-7xl mx-auto">
+      <WidgetWrapper id="more-events" containerClass="py-16 md:py-20">
         <div class="text-center mb-12">
           <p class="text-base font-bold uppercase tracking-widest text-primary mb-2">
             {landing?.moreEventsEyebrow ?? 'Join Us'}
@@ -241,7 +242,7 @@ const metadata = {
             {landing?.moreEventsViewAllText ?? 'View all events'}
           </a>
         </div>
-      </div>
+      </WidgetWrapper>
     )
   }
 

@@ -8,8 +8,8 @@ interface Props {
 const { formId, formName, id } = Astro.props;
 ---
 
-<section id={id} class="cognito-section">
-  <div class="cognito-container" data-cognito-form={formId} data-cognito-form-name={formName}></div>
+<section id={id} class="embed-form-section">
+  <div class="embed-form-container" data-cognito-form={formId} data-cognito-form-name={formName}></div>
 </section>
 
 <script is:inline data-astro-rerun>
@@ -18,14 +18,6 @@ const { formId, formName, id } = Astro.props;
     delete window.Cognito;
     delete window.Vue;
     delete window.cfWebpackJsonp;
-
-    // data-astro-rerun means this whole IIFE re-runs on every client-side
-    // nav — clear any prefill poll from a previous run so it doesn't keep
-    // polling against a torn-down window.Cognito, or race a new one.
-    if (window.__ecrsCognitoPrefillTimer) {
-      clearInterval(window.__ecrsCognitoPrefillTimer);
-      window.__ecrsCognitoPrefillTimer = null;
-    }
 
     // For Ads attribution: the GA4 _ga cookie's client_id already carries any
     // gclid GA4's own gtag.js associated with this visitor, so passing it
@@ -42,6 +34,21 @@ const { formId, formName, id } = Astro.props;
     const gaClientId = getGaClientId();
 
     document.querySelectorAll('[data-cognito-form]').forEach(function (container) {
+      // data-astro-rerun means this whole IIFE re-runs on every client-side
+      // nav. Each container tracks its own prefill timer and success
+      // observer directly on the DOM node — not a shared window global —
+      // so a page with more than one Cognito form doesn't have the second
+      // form's handle clobber the first's, and a rerun tears down exactly
+      // the handles it's about to replace rather than leaking them.
+      if (container.__ecrsPrefillTimer) {
+        clearInterval(container.__ecrsPrefillTimer);
+        container.__ecrsPrefillTimer = null;
+      }
+      if (container.__ecrsSuccessObserver) {
+        container.__ecrsSuccessObserver.disconnect();
+        container.__ecrsSuccessObserver = null;
+      }
+
       container.innerHTML = '';
       const s = document.createElement('script');
       s.src = 'https://www.cognitoforms.com/f/seamless.js';
@@ -51,11 +58,11 @@ const { formId, formName, id } = Astro.props;
 
       if (gaClientId) {
         let attempts = 0;
-        window.__ecrsCognitoPrefillTimer = setInterval(function () {
+        container.__ecrsPrefillTimer = setInterval(function () {
           attempts++;
           if (window.Cognito && typeof window.Cognito.prefill === 'function') {
-            clearInterval(window.__ecrsCognitoPrefillTimer);
-            window.__ecrsCognitoPrefillTimer = null;
+            clearInterval(container.__ecrsPrefillTimer);
+            container.__ecrsPrefillTimer = null;
             try {
               window.Cognito.prefill({ GAClientId: gaClientId });
             } catch {
@@ -64,8 +71,8 @@ const { formId, formName, id } = Astro.props;
           } else if (attempts > 40) {
             // ~4s: seamless.js likely failed to load, or Cognito.prefill
             // isn't available for this embed — stop polling.
-            clearInterval(window.__ecrsCognitoPrefillTimer);
-            window.__ecrsCognitoPrefillTimer = null;
+            clearInterval(container.__ecrsPrefillTimer);
+            container.__ecrsPrefillTimer = null;
           }
         }, 100);
       }
@@ -74,6 +81,7 @@ const { formId, formName, id } = Astro.props;
         const form = container.querySelector('form.is-success');
         if (form) {
           observer.disconnect();
+          container.__ecrsSuccessObserver = null;
           const name = container.dataset.cognitoFormName;
           if (name && window.ecrsTrack) {
             window.ecrsTrack('form_submit_' + name, { form_name: name, form_id: container.dataset.cognitoForm });
@@ -81,17 +89,7 @@ const { formId, formName, id } = Astro.props;
         }
       });
       observer.observe(container, { subtree: true, attributes: true, attributeFilter: ['class'] });
+      container.__ecrsSuccessObserver = observer;
     });
   })();
 </script>
-
-<style>
-  .cognito-section {
-    padding: 3rem 1rem;
-    background-color: var(--aw-color-bg-page);
-  }
-  .cognito-container {
-    max-width: 48rem;
-    margin: 0 auto;
-  }
-</style>

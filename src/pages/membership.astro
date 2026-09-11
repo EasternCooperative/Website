@@ -2,6 +2,8 @@
 import CognitoForm from '~/components/widgets/CognitoForm.astro';
 import Features2 from '~/components/widgets/Features2.astro';
 import HeroText from '~/components/widgets/HeroText.astro';
+import Headline from '~/components/ui/Headline.astro';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
 import Layout from '~/layouts/PageLayout.astro';
 import membershipSettings from '~/data/settings/membership.json';
 import { renderInlineMarkdown } from '~/utils/markdown';
@@ -18,18 +20,14 @@ const metadata = {
 <Layout metadata={metadata}>
   <HeroText tagline={membershipSettings.heroTagline} title={membershipSettings.heroTitle} />
 
-  <Features2 title={membershipSettings.benefitsTitle} columns={2} items={benefits}>
-    <Fragment slot="bg">
-      <div class="absolute inset-0 bg-orange-100 dark:bg-transparent"></div>
-    </Fragment>
-  </Features2>
+  <Features2 title={membershipSettings.benefitsTitle} columns={2} items={benefits} />
 
   <!-- Pricing -->
-  <section id="pricing" class="py-12 px-4 max-w-4xl mx-auto">
-    <h2 class="text-3xl font-bold text-center mb-4 text-default">{membershipSettings.pricingTitle}</h2>
-    <p
-      class="text-center text-muted mb-10 max-w-2xl mx-auto"
-      set:html={renderInlineMarkdown(membershipSettings.pricingIntro)}
+  <WidgetWrapper id="pricing" containerClass="max-w-4xl">
+    <Headline
+      title={membershipSettings.pricingTitle}
+      subtitle={renderInlineMarkdown(membershipSettings.pricingIntro)}
+      classes={{ subtitle: 'text-base' }}
     />
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
       {
@@ -38,26 +36,27 @@ const metadata = {
             class:list={[
               'rounded-xl p-6',
               tier.featured
-                ? 'border-2 border-primary bg-orange-100 dark:bg-slate-700'
-                : 'border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-slate-800',
+                ? 'border-2 border-accent bg-accent/5'
+                : 'border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900',
             ]}
-            data-scroll-reveal="up"
           >
-            <h3 class="font-semibold text-lg mb-1 text-default">{tier.title}</h3>
+            <h3 class="font-bold text-lg mb-1 text-heading">{tier.title}</h3>
             <p class="text-muted text-sm mb-4">{tier.subtitle}</p>
-            <p class="text-4xl font-bold text-primary">{tier.price}</p>
+            <p class="font-heading text-4xl font-bold text-primary">{tier.price}</p>
           </div>
         ))
       }
     </div>
-  </section>
+  </WidgetWrapper>
 
   <!-- Cognito Forms embed -->
   <section id="membership-form" class="py-8 px-4 max-w-3xl mx-auto">
-    <h2 class="text-2xl font-bold text-center mb-6 text-default">{membershipSettings.formHeading}</h2>
+    <h2 class="font-heading text-2xl font-bold text-center mb-6 text-heading">{membershipSettings.formHeading}</h2>
     <p class="text-center text-muted mb-4">
       <Fragment set:html={renderInlineMarkdown(membershipSettings.formNote)} />{' '}
-      <a href={`mailto:${membershipSettings.formNoteEmail}`} class="text-link">{membershipSettings.formNoteEmail}</a>
+      <a href={`mailto:${membershipSettings.formNoteEmail}`} class="text-link underline">
+        {membershipSettings.formNoteEmail}
+      </a>
     </p>
   </section>
   <CognitoForm formId={membershipSettings.cognitoFormId} formName="membership" id="join" />

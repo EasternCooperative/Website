@@ -8,9 +8,9 @@ import notFoundData from '~/data/settings/not-found.json';
   <section class="p-16">
     <div class="container flex flex-col items-center px-5 mx-auto my-8">
       <div class="w-full max-w-xl text-center">
-        <p class="mb-2 text-sm font-semibold uppercase tracking-widest text-muted dark:text-slate-400">404</p>
-        <h1 class="mb-3 text-5xl font-bold">{notFoundData.title}</h1>
-        <p class="mb-8 text-lg text-muted dark:text-slate-400">{notFoundData.subtitle}</p>
+        <p class="mb-2 text-sm font-semibold uppercase tracking-widest text-muted">404</p>
+        <h1 class="mb-3 font-heading text-heading text-5xl font-bold">{notFoundData.title}</h1>
+        <p class="mb-8 text-lg text-muted">{notFoundData.subtitle}</p>
         <pagefind-input></pagefind-input>
         <div class="mt-4">
           <pagefind-results></pagefind-results>
@@ -18,7 +18,7 @@ import notFoundData from '~/data/settings/not-found.json';
         <a
           rel="noopener noreferrer"
           href={getHomePermalink()}
-          class="inline-block mt-8 text-sm text-muted dark:text-slate-400 hover:text-primary dark:hover:text-primary transition"
+          class="inline-block mt-8 text-sm text-muted hover:text-primary transition"
         >
           ← {notFoundData.backLinkText}
         </a>
