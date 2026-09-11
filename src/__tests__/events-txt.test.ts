@@ -159,6 +159,11 @@ describe('GET /events/[id].txt', () => {
     expect(text).toContain('0-5: Free');
   });
 
+  it('falls back to an em dash for a pricing row with no fullWeekend amount', async () => {
+    const text = await callGet(makeEvent({ pricing: [{ label: 'See note below' }] }));
+    expect(text).toContain('See note below: —');
+  });
+
   it('includes classes/schedule when present', async () => {
     const text = await callGet(
       makeEvent({
