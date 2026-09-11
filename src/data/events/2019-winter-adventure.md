@@ -58,7 +58,7 @@ classes:
   - name: "Children's Program"
     leaderId: tim-siftar
     period: 'Morning, first period'
-    ageRange: 'Ages 5-11'
+    restriction: 'Ages 5-11'
   - name: 'Conscious Communication'
     leaderId: howard-moody
     period: 'Morning, first period'
@@ -133,7 +133,7 @@ classes:
   - name: "Children's Program"
     leaderId: tim-siftar
     period: 'Afternoon'
-    ageRange: 'Ages 5-11'
+    restriction: 'Ages 5-11'
 staff:
   - id: donna-miller-small
 ---

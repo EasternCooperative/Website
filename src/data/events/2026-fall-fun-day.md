@@ -33,7 +33,7 @@ classes:
       - id: kim-neubauer
   - name: Children's Program
     period: Afternoon Workshops
-    ageRange: 3-9
+    restriction: Ages 3-9
   - name: Crafts
     period: Evening Workshops
     leaderId: heather-klemanski
@@ -43,7 +43,7 @@ classes:
     callout: Live music by Bill Quern & Sarah Gowan
   - name: Children's Program
     period: Evening Workshops
-    ageRange: 3-9
+    restriction: Ages 3-9
   - name: Dinner Setup (5:45 – 6:15 PM)
     period: Dinner
   - name: Dinner (6:15 – 7:00 PM)

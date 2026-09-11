@@ -94,7 +94,7 @@ export const GET: APIRoute = async ({ props }) => {
   if (pricingRows.length > 0) {
     heading('Pricing');
     for (const tier of pricingRows) {
-      lines.push(`${tier.ageRange}: ${tier.fullWeekend ?? '—'}`);
+      lines.push(`${tier.label}: ${tier.fullWeekend ?? '—'}`);
       if (tier.note) lines.push(`  ${tier.note}`);
     }
   }
@@ -122,7 +122,7 @@ export const GET: APIRoute = async ({ props }) => {
         const leaderNames = resolveClassLeaderNames(cls, leaderMap);
         const parts = [cls.name];
         if (leaderNames.length > 0) parts.push(`— ${leaderNames.join(', ')}`);
-        if (cls.ageRange) parts.push(`(${cls.ageRange})`);
+        if (cls.restriction) parts.push(`(${cls.restriction})`);
         if (cls.days) parts.push(cls.days);
         if (cls.limitedCapacity) parts.push('[Limited capacity]');
         lines.push(parts.join(' '));

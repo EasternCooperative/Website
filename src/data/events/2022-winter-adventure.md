@@ -134,7 +134,7 @@ classes:
     days: 'Days 3-4'
     description: 'Create simplified Adinkra stamps for printing on paper, reflecting on the deeper meaning of the symbols, inspired by a trip to Ghana with the Witness Tree Institute.'
   - name: "Children's Program"
-    ageRange: 'Ages 5-11'
+    restriction: 'Ages 5-11'
     days: 'Days 1-2 and Days 3-4'
     description: 'A completely integrated program mirroring the cooperative play ECRS is built on, cooperative-led during the remaining class period.'
 ---

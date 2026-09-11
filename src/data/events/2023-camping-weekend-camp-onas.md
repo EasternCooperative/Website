@@ -14,13 +14,13 @@ registrationDeadline: 2023-06-04
 earlyBirdDeadline: 2023-05-26
 earlyBirdFeeNote: 'Register by May 26 to avoid a $25 late fee.'
 pricing:
-  - ageRange: 'Adult (18+)'
+  - label: 'Adult (18+)'
     fullWeekend: '$165'
     note: 'Saturday-only option $125. Member rate $25 less.'
-  - ageRange: 'Children (14-17)'
+  - label: 'Children (14-17)'
     fullWeekend: '$70'
     note: 'Saturday-only option $50'
-  - ageRange: 'Under 14'
+  - label: 'Under 14'
     fullWeekend: 'Free'
   - note: 'Dormitory rooms available for an additional cost (Dellview $55/Texas $30). Newcomers save 50% on already low prices.'
 mealsIncluded: 'Saturday dinner, plus snacks after evening programs.'

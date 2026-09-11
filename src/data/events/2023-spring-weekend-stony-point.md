@@ -12,14 +12,14 @@ description: |
   Stony Point Center is a 32-acre conference site in the scenic and historic Hudson River Valley, 35 miles northwest of NYC. Accommodations are comfortable 2-bedded rooms, each with a sink; bedding, linens, and a towel are provided.
 registrationDeadline: 2023-03-19
 pricing:
-  - ageRange: 'Full weekend (member)'
+  - label: 'Full weekend (member)'
     fullWeekend: '$370'
-  - ageRange: 'Full weekend (non-member)'
+  - label: 'Full weekend (non-member)'
     fullWeekend: '$395'
-  - ageRange: 'Weekend commuter'
+  - label: 'Weekend commuter'
     fullWeekend: '$185'
     note: 'Includes all programs plus Saturday lunch and dinner'
-  - ageRange: 'Newcomer (full weekend)'
+  - label: 'Newcomer (full weekend)'
     fullWeekend: '$200'
   - note: 'Adult members save $25 on the full event. Late fee of $20 applies to cancellations after March 8.'
 mealsIncluded: 'Six buffet meals: Friday dinner; Saturday breakfast, lunch, and dinner; Sunday breakfast and lunch.'

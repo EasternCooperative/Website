@@ -14,7 +14,7 @@ classes:
   - name: Folk Dance
     leaders:
       - id: isaac-lebwohl-steiner
-    ageRange: All ages
+    restriction: All ages
     period: Morning
     days: All 3 days
     description: Intro to international folk dance. No experience needed.
@@ -33,7 +33,7 @@ classes:
     days: All 3 days
   - name: Yoga
     leader: Jane Doe
-    ageRange: 12+
+    restriction: 12+
     period: Afternoon
     days: Day 1
 tags:

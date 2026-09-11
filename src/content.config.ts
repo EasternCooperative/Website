@@ -59,7 +59,7 @@ const landingSettingsCollection = defineCollection({
 });
 
 const pricingTierSchema = z.object({
-  ageRange: z.string().optional(),
+  label: z.string().optional(),
   fullWeekend: z.string().optional(),
   note: z.string().optional(),
 });
@@ -207,7 +207,10 @@ const eventCollection = defineCollection({
             .optional(),
           leaderId: z.string().optional(),
           leader: z.string().optional(),
-          ageRange: z.string().optional(),
+          // Free text eligibility note shown as a badge, e.g. "Ages 3-9" or
+          // "Advanced dancers only". Include the word "Ages" explicitly when this
+          // is an age range — the field isn't limited to ages.
+          restriction: z.string().optional(),
           period: z.string().optional(),
           days: z.string().optional(),
           // Room for the printable master schedule grid, e.g. "Rec Hall". Free text

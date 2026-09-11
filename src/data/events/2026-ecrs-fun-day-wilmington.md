@@ -37,21 +37,21 @@ classes:
   - name: Games
     leaderId: heather-klemanski
     leader: ''
-    ageRange: ''
+    restriction: ''
     period: 10:00 – 10:45 AM
     days: ''
     description: ''
     callout: Open to children 10+ with a participating adult
   - name: Break
     leader: ''
-    ageRange: ''
+    restriction: ''
     period: 10:45 – 10:55 AM
     days: ''
     description: ''
     callout: ''
   - name: Improv
     leader: ''
-    ageRange: ''
+    restriction: ''
     period: 10:55 – 11:40 AM
     days: ''
     description: ''
@@ -63,7 +63,7 @@ classes:
   - name: Closing Circle
     leaderId: heather-klemanski
     leader: ''
-    ageRange: ''
+    restriction: ''
     period: 11:40 AM – 12:00 PM
     days: ''
     description: ''

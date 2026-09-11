@@ -122,7 +122,7 @@ classes:
     days: 'Days 3-4'
     description: 'Interactive, active, sedate, dramatic, quiet, raucous, and silly games, revisiting old favorites and discovering new ones. (Age 16+)'
   - name: "Children's Program"
-    ageRange: 'Elementary ages'
+    restriction: 'Elementary ages'
     days: 'All 4 days'
     description: 'A completely integrated program for children ages 5-11 during two class periods, cooperative-led for the remaining period.'
 ---

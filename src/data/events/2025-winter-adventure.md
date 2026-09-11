@@ -99,13 +99,13 @@ classes:
   - name: 'International Folk Dance'
     leaderId: patricia-williams
     period: 'Morning, first period'
-    ageRange: 'Age 12+'
+    restriction: 'Ages 12+'
     description: 'Come connect with cultures from around the world through dance. Whether fast or slow, in circles or in lines, serene, joyful, or anything in between, every dance can move us in body, mind, and spirit. Great music, great exercise, great fun, great community! No partner necessary, and absolutely no need to do them "right"!'
     days: 'All 4 days'
   - name: 'Leadership Playground'
     leaderId: kim-neubauer
     period: 'Morning, first period'
-    ageRange: 'Age 15+'
+    restriction: 'Ages 15+'
     limitedCapacity: true
     description: "Welcome experienced and aspiring leaders! We'll unpack ECRS's magic and emerge with insights, ideas, sharpened skills, and greater self-awareness. You are encouraged to propose — in advance — an activity (game, dance, song, craft, or discussion) you'd like to lead. Come to play, lead, reflect, learn, and to become an integral part of ECRS's future."
     callout: 'Class size is limited. Please register in advance. We will keep a wait list once we have reached capacity.'
@@ -113,14 +113,14 @@ classes:
   - name: 'Chair Yoga'
     leaderId: judi-powers
     period: 'Morning, first period'
-    ageRange: 'Age 12+'
+    restriction: 'Ages 12+'
     description: 'Stretch your body, relax and feel renewed with Chair Yoga. Yoga poses and exercises done in a chair or standing next to a chair. Wear comfortable clothes and bring a water bottle.'
     days: 'Days 1–2'
   - name: 'Breathe and Be'
     leaders:
       - id: heather-klemanski
     period: 'Morning, first period'
-    ageRange: 'Age 12+'
+    restriction: 'Ages 12+'
     description: "A gentle introduction to mindfulness through breath, easy movement, and self-compassion. You'll explore simple practices to slow down, reconnect, and manage stress. The final session closes with a calming sound bath. No experience is needed — come as you are."
     days: 'Days 3–4'
   - name: "Children's Program/Preschool"
@@ -137,13 +137,13 @@ classes:
   - name: 'Sketch 101: From Blank Page to Big Laughs'
     leaderId: allie-cliffe
     period: 'Morning, second period'
-    ageRange: 'Age 12+'
+    restriction: 'Ages 12+'
     description: "Turn your everyday observations into laugh-out-loud sketches! Learn the fundamentals of sketch comedy writing through a proven step-by-step process. We'll work in small groups to craft original three-minute scenes from the funny moments hiding in your daily life. No experience required — just bring your sense of humor and willingness to play."
     days: 'All 4 days'
   - name: 'Sacred Circle Dances'
     leaderId: sharon-underberg
     period: 'Morning, second period'
-    ageRange: 'Age 12+'
+    restriction: 'Ages 12+'
     description: 'Circle Dancing is a folk art danced together around a central focus point. These tend to be simpler dances held for a longer period of time, encouraging each of us to sink into the rhythmic movement. Open to all levels of experience and fitness.'
     days: 'Days 1–2'
   - name: 'Games!'
@@ -152,13 +152,13 @@ classes:
       - id: heather-klemanski
         role: assistant
     period: 'Morning, second period'
-    ageRange: 'Age 12+'
+    restriction: 'Ages 12+'
     description: 'Lots of games! Some new, some old, some active, some quiet, lots of laughter, ALL FUN! For all ages and abilities, with leadership strategies to bring the ECRS spirit into your everyday groups.'
     days: 'Days 1–2'
   - name: 'Crafts: Deck the Halls'
     leaderId: kay-gering
     period: 'Morning, second period'
-    ageRange: 'Age 12+'
+    restriction: 'Ages 12+'
     limitedCapacity: true
     description: "Join the merriment as we create décor for our New Year's Eve celebration. Follow preplanned designs or bring your festive imagination to make a winter wonderland for a peace- and wonder-full New Year."
     callout: 'Class size is limited. Please register in advance. We will keep a wait list once we have reached capacity.'
@@ -167,7 +167,7 @@ classes:
     leaders:
       - id: rob-eames
     period: 'Morning, second period'
-    ageRange: 'Age 12+'
+    restriction: 'Ages 12+'
     description: "In this interactive workshop, we'll use empathy games to explore interpersonal connection and support. Each activity builds toward deeper connection and a shared understanding of the meaning of interdependence. Come curious, leave connected."
     days: 'Days 3–4'
   - name: 'Joy of Movement: Moving to Heal'
@@ -183,13 +183,13 @@ classes:
     leaders:
       - id: bonnie-ostrofsky
     period: 'Afternoon'
-    ageRange: 'Age 12+'
+    restriction: 'Ages 12+'
     description: 'Enjoy relaxing with friends over new or old games. Play an old favorite, or learn a new game. Bring your own to share!'
     days: 'Days 1–2'
   - name: 'Small Scenes'
     leaderId: isaac-lebwohl-steiner
     period: 'Afternoon'
-    ageRange: 'Age 12+'
+    restriction: 'Ages 12+'
     limitedCapacity: true
     description: "Using scripts (no memorizing required!) we'll rehearse, perform, and discuss a collection of scenes. Comedy, drama, we have it all. Explore, discover, and create!"
     callout: 'Class size is limited. Please register in advance. We will keep a wait list once we have reached capacity.'
@@ -199,7 +199,7 @@ classes:
       - id: josh-silverbauer
       - id: rachael-silverbauer
     period: 'Afternoon'
-    ageRange: 'Age 12+'
+    restriction: 'Ages 12+'
     limitedCapacity: true
     description: 'Equal parts ice-breaker, improv lab, and rapid-fire creativity workshop. Every participant writes a brief activity prompt and drops it into a hat — then we bring them to life.'
     callout: 'Class size is limited. Please register in advance. We will keep a wait list once we have reached capacity.'
@@ -207,14 +207,14 @@ classes:
   - name: 'Improv Games'
     leaderId: isaac-lebwohl-steiner
     period: 'Afternoon'
-    ageRange: 'Age 12+'
+    restriction: 'Ages 12+'
     description: "Are you ready? No? Perfect! Come make it up as you go. We'll learn a little, play a lot, and laugh too much. No experience needed."
     days: 'Days 3–4'
   - name: 'Explore Your Encore'
     leaders:
       - id: reed-dewey
     period: 'Afternoon'
-    ageRange: 'Age 50+'
+    restriction: 'Ages 50+'
     description: 'Explore your post-career ideas for life with others. Geared to anyone age 50 and older. Leave with new ideas, insights, and an action plan.'
     days: 'Days 3–4'
   - name: 'Rock Opera Build'
@@ -222,7 +222,7 @@ classes:
       - id: josh-silverbauer
       - id: rachael-silverbauer
     period: 'Afternoon'
-    ageRange: 'Age 12+'
+    restriction: 'Ages 12+'
     limitedCapacity: true
     description: 'A mini-lab guiding participants through the creative arc of producing an original rock opera — from seed idea to song building. No prior music theory required.'
     callout: 'Class size is limited. Please register in advance. We will keep a wait list once we have reached capacity.'

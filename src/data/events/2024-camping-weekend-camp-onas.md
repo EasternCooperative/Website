@@ -14,12 +14,12 @@ registrationDeadline: 2024-06-04
 earlyBirdDeadline: 2024-05-28
 earlyBirdFeeNote: 'Register by May 28 to avoid a $25 late fee.'
 pricing:
-  - ageRange: 'Under 2'
+  - label: 'Under 2'
     fullWeekend: 'Free'
     note: 'No childcare provided'
-  - ageRange: '2-13'
+  - label: '2-13'
     fullWeekend: '$85'
-  - ageRange: '14+'
+  - label: '14+'
     fullWeekend: '$195'
     note: 'Member rate $170'
   - note: 'Saturday evening-only option (dinner, Evening Program, Evening Sing): $30. Newcomers save 50% on already low prices.'

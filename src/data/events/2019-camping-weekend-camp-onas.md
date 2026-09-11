@@ -11,15 +11,15 @@ description: |
 
   Camp Onas is a summer camp facility on 72 wooded acres, with platform tents offering cots and bunk beds (or bring your own tent), plus a limited number of dormitory-style rooms. There are shared wash & shower facilities with hot water.
 pricing:
-  - ageRange: 'Child (under 14)'
+  - label: 'Child (under 14)'
     fullWeekend: '$45'
-  - ageRange: 'Youth (14-18)'
+  - label: 'Youth (14-18)'
     fullWeekend: '$60'
-  - ageRange: 'Reduced (first-time ECRS)'
+  - label: 'Reduced (first-time ECRS)'
     fullWeekend: '$85'
-  - ageRange: Full
+  - label: Full
     fullWeekend: '$105'
-  - ageRange: Plus
+  - label: Plus
     fullWeekend: '$125'
     note: 'For those who can afford to pay more, to help others attend.'
   - note: 'Additional housing: Texas House +$50, Dellview +$75.'
@@ -61,5 +61,5 @@ classes:
     description: 'An ECRS Camp Onas tradition, handed to a young leader this year.'
   - name: "Children's Program"
     leaderId: tim-siftar
-    ageRange: 'Ages 5-11'
+    restriction: 'Ages 5-11'
 ---

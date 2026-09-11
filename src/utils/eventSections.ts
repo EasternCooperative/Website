@@ -1,5 +1,5 @@
 export type TuitionTier = { label?: string; amount: string; note?: string };
-export type PricingTier = { ageRange?: string; fullWeekend?: string; note?: string };
+export type PricingTier = { label?: string; fullWeekend?: string; note?: string };
 export type Accommodation = { name: string; description?: string; tiers: { label: string; amount: string }[] };
 
 export type EventSectionsInput = {
@@ -39,7 +39,7 @@ export type EventSections = {
 export function computeEventSections(data: EventSectionsInput, now = new Date()): EventSections {
   const isPast = (data.endDate ?? data.date) < now;
 
-  const pricingRows = (data.pricing ?? []).filter((p) => p.ageRange);
+  const pricingRows = (data.pricing ?? []).filter((p) => p.label);
   // JSON-LD Offers need a flat list of priced tiers. Events with a simple age-based
   // price table use `pricing` directly. Events priced by tuition and/or a residential
   // accommodations breakdown don't need a second, redundant `pricing` array just to
@@ -49,9 +49,9 @@ export function computeEventSections(data: EventSectionsInput, now = new Date())
     pricingRows.length > 0
       ? pricingRows
       : data.tuition?.length
-        ? data.tuition.map((t) => ({ ageRange: t.label ?? 'Tuition', fullWeekend: t.amount, note: t.note }))
+        ? data.tuition.map((t) => ({ label: t.label ?? 'Tuition', fullWeekend: t.amount, note: t.note }))
         : (data.accommodations ?? []).flatMap((a) =>
-            a.tiers.map((t) => ({ ageRange: `${a.name} — ${t.label}`, fullWeekend: t.amount }))
+            a.tiers.map((t) => ({ label: `${a.name} — ${t.label}`, fullWeekend: t.amount }))
           );
 
   const hasCosts = !!(data.fee || data.tuition?.length || data.accommodations?.length || pricingRows.length);
