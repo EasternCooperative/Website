@@ -215,6 +215,14 @@ describe('buildScheduleGroups', () => {
     }
   });
 
+  it('groups a periodless class (with a schedule block) into the trailing "Other" group', () => {
+    const ev = makeEvent();
+    ev.classes!.push({ name: 'Open Time', days: '', room: '' });
+    const other = buildScheduleGroups(ev, true).at(-1);
+    expect(other?.kind).toBe('classes');
+    if (other?.kind === 'classes') expect(other.classes.map((c) => c.name)).toContain('Open Time');
+  });
+
   it('still renders an all-break schedule with zero classes', () => {
     const groups = buildScheduleGroups(makeEvent({ classes: undefined }), true);
     expect(groups).toEqual([{ kind: 'break', heading: 'Breakfast · 8:00 AM - 9:00 AM' }]);
@@ -223,6 +231,14 @@ describe('buildScheduleGroups', () => {
   it('falls back to legacy period grouping (no break concept) without a schedule block', () => {
     const groups = buildScheduleGroups(makeEvent({ schedule: undefined }), true);
     expect(groups.every((g) => g.kind === 'classes')).toBe(true);
+  });
+
+  it('hides the heading for a flat, periodless legacy schedule', () => {
+    const groups = buildScheduleGroups(
+      makeEvent({ schedule: undefined, classes: [{ name: 'Games', days: '', room: '' }] }),
+      true
+    );
+    expect(groups).toEqual([{ kind: 'classes', heading: '', showHeading: false, classes: [expect.anything()] }]);
   });
 
   it('is empty for an event with neither classes nor a schedule block', () => {
