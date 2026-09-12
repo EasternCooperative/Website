@@ -788,7 +788,11 @@ const breadcrumbJsonLd = {
                           {startTime}
                         </span>
                       )}
-                      {endTime && <span class="text-xs text-muted tabular-nums whitespace-nowrap">{endTime}</span>}
+                      {endTime && (
+                        <span class="font-heading font-bold text-sm sm:text-base text-muted tabular-nums whitespace-nowrap">
+                          – {endTime}
+                        </span>
+                      )}
                     </div>
                     <div class="relative flex flex-col items-center shrink-0 w-3">
                       <span
