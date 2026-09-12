@@ -19,14 +19,17 @@ cognitoFormId: ''
 fee: ''
 tuitionLabel: ''
 showHealthPolicy: true
-healthPolicy: ECRS events are fragrance-, drug-, and alcohol-free.
+healthPolicy: |
+  ECRS events are fragrance-, drug-, and alcohol-free.
+
+  During the week before the event, please mask in crowded indoor spaces and monitor your health. If you are sick, we ask you not to come.
 classes:
-  - name: Community Sing
+  - name: Community Songs
     period: Afternoon Workshops
     leaders:
       - name: Chloe Mohr
       - name: Evan Mohr
-  - name: Folk & Line Dance
+  - name: Folk & Line Dances
     period: Afternoon Workshops
     leaders:
       - id: debbie-karl
@@ -34,22 +37,16 @@ classes:
   - name: Children's Program
     period: Afternoon Workshops
     restriction: Ages 3-9
-  - name: Crafts
+  - name: Joy Collage (Craft)
     period: Evening Workshops
     leaderId: heather-klemanski
-  - name: Contras and Community Dance
+  - name: Contras and Community Dances
     period: Evening Workshops
-    leader: Donna Hunt
+    leader: Donna Hunt (Caller)
     callout: Live music by Bill Quern & Sarah Gowan
   - name: Children's Program
     period: Evening Workshops
     restriction: Ages 3-9
-  - name: Dinner Setup (5:45 – 6:15 PM)
-    period: Dinner
-  - name: Dinner (6:15 – 7:00 PM)
-    period: Dinner
-  - name: Dinner Clean Up (7:00 – 7:30 PM)
-    period: Dinner
 schedule:
   timeslots:
     - label: Program for All
@@ -62,10 +59,11 @@ schedule:
     - label: Evening Workshops
       start: '16:30'
       end: '17:45'
-    - label: Dinner
-      start: '17:45'
+    - label: Potluck Dinner
+      start: '18:15'
       end: '19:30'
-    - label: Evening Program for All
+      isBreak: true
+    - label: Program for All & Group Sing
       start: '19:30'
       end: '21:00'
       isBreak: true
