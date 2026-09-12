@@ -246,4 +246,26 @@ describe('buildScheduleGroups', () => {
   it('is empty for an event with neither classes nor a schedule block', () => {
     expect(buildScheduleGroups(makeEvent({ classes: undefined, schedule: undefined }))).toEqual([]);
   });
+
+  it('treats a time-range-shaped legacy period as the timeRange, not a heading', () => {
+    const groups = buildScheduleGroups(
+      makeEvent({
+        schedule: undefined,
+        classes: [
+          { name: 'Games', period: '10:00 – 10:45 AM', days: '', room: '' },
+          { name: 'Closing Circle', period: '11:40 AM – 12:00 PM', days: '', room: '' },
+        ],
+      })
+    );
+    expect(groups).toEqual([
+      { kind: 'classes', label: '', timeRange: '10:00 – 10:45 AM', showHeading: false, classes: [expect.anything()] },
+      {
+        kind: 'classes',
+        label: '',
+        timeRange: '11:40 AM – 12:00 PM',
+        showHeading: false,
+        classes: [expect.anything()],
+      },
+    ]);
+  });
 });

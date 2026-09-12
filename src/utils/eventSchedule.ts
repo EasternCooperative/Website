@@ -82,6 +82,20 @@ export function frontmatterToTimeslots(timeslots: FrontmatterTimeslot[]): TimeSl
   );
 }
 
+/**
+ * Some older events have no `schedule.timeslots` block and instead put the
+ * literal time range straight in each class's free-text `period` (e.g.
+ * "10:00 – 10:45 AM"), rather than a named section like "Morning Workshops".
+ * When that's what we're looking at, treat it as a timeRange rather than a
+ * heading, so the timeline still gets a time column instead of leaving one
+ * blank next to a heading that's just re-stating the time.
+ */
+const TIME_RANGE_PERIOD = /^\d{1,2}(?::\d{2})?\s*(?:AM|PM)?\s*[-–]\s*\d{1,2}(?::\d{2})?\s*(?:AM|PM)$/i;
+
+export function looksLikeTimeRange(period: string): boolean {
+  return TIME_RANGE_PERIOD.test(period.trim());
+}
+
 function nonBreakLabels(timeslots: FrontmatterTimeslot[]): Map<string, FrontmatterTimeslot> {
   const map = new Map<string, FrontmatterTimeslot>();
   for (const ts of timeslots) {
@@ -166,13 +180,18 @@ export function buildScheduleGroups(data: EventScheduleData): ScheduleGroup[] {
 
   const groupedByPeriod = groupClassesByPeriod(classes);
   const isFlat = groupedByPeriod.size === 1 && groupedByPeriod.has('');
-  return [...groupedByPeriod.entries()].map(([period, periodClasses]) => ({
-    kind: 'classes',
-    label: period,
-    timeRange: '',
-    showHeading: !isFlat && !!period,
-    classes: periodClasses,
-  }));
+  return [...groupedByPeriod.entries()].map(([period, periodClasses]) => {
+    if (looksLikeTimeRange(period)) {
+      return { kind: 'classes', label: '', timeRange: period, showHeading: false, classes: periodClasses };
+    }
+    return {
+      kind: 'classes',
+      label: period,
+      timeRange: '',
+      showHeading: !isFlat && !!period,
+      classes: periodClasses,
+    };
+  });
 }
 
 /**
