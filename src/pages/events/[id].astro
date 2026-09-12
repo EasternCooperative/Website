@@ -818,7 +818,13 @@ const breadcrumbJsonLd = {
                     </div>
                     <div class="min-w-0 pb-8">
                       {group.kind === 'classes' && (
-                        <div class="mt-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-800/40 p-5">
+                        <div
+                          class:list={[
+                            'mt-3',
+                            group.classes.length > 1 &&
+                              'rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-800/40 p-5',
+                          ]}
+                        >
                           <ul class="space-y-3 list-none p-0 m-0">
                             {group.classes.map((cls) => (
                               <li
