@@ -7,6 +7,7 @@ import {
   buildEventMasterSchedule,
   buildScheduleGroups,
   baseEventTitle,
+  looksLikeTimeRange,
   type EventScheduleData,
 } from '~/utils/eventSchedule';
 
@@ -183,11 +184,34 @@ describe('buildEventMasterSchedule', () => {
   });
 });
 
+describe('looksLikeTimeRange', () => {
+  it('matches a range with AM/PM on both ends', () => {
+    expect(looksLikeTimeRange('9:00 AM - 10:00 AM')).toBe(true);
+  });
+
+  it('matches a range with AM/PM on only the end', () => {
+    expect(looksLikeTimeRange('10:00 – 10:45 AM')).toBe(true);
+  });
+
+  it('does not match a named heading', () => {
+    expect(looksLikeTimeRange('Morning, first period')).toBe(false);
+  });
+});
+
 describe('buildScheduleGroups', () => {
   it('renders a break timeslot as a heading-only group, in authored order, with no classes required', () => {
     const groups = buildScheduleGroups(makeEvent());
     expect(groups[0]).toEqual({ kind: 'break', label: 'Breakfast', timeRange: '8:00 AM - 9:00 AM' });
     expect(groups.slice(1).every((g) => g.kind === 'classes')).toBe(true);
+  });
+
+  it('renders an empty timeRange for a timeslot with no start/end', () => {
+    const ev = makeEvent({
+      schedule: { timeslots: [{ label: 'Free Time', isBreak: true }] },
+      classes: undefined,
+    });
+    const groups = buildScheduleGroups(ev);
+    expect(groups).toEqual([{ kind: 'break', label: 'Free Time', timeRange: '' }]);
   });
 
   it('groups classes under their matched timeslot heading, unchanged from before', () => {
