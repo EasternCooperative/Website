@@ -41,6 +41,12 @@ test.describe('past event', () => {
     expect(response.headers()['content-type']).toContain('text/calendar');
   });
 
+  test('has a working OG image', async ({ page }) => {
+    const response = await page.request.get('/og/e2e-past-event.jpg');
+    expect(response.status()).toBe(200);
+    expect(response.headers()['content-type']).toContain('image/');
+  });
+
   test('"← All Events" back link is present', async ({ page }) => {
     await expect(page.getByRole('link', { name: '← All Events' })).toBeVisible();
   });

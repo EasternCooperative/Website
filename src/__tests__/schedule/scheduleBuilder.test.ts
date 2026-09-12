@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { buildMasterSchedule, buildRosters, buildIndividualSchedules } from '~/components/schedule/scheduleBuilder';
+import {
+  buildMasterSchedule,
+  buildRosters,
+  buildIndividualSchedules,
+  getUniquePeriods,
+} from '~/components/schedule/scheduleBuilder';
 import type { Workshop, WorkshopSelection, TimeSlot } from '~/components/schedule/models';
 
 function makeWorkshop(
@@ -134,6 +139,38 @@ describe('buildRosters', () => {
     ]);
     const rosters = buildRosters([workshop]);
     expect(rosters[0].attendees).toHaveLength(0);
+  });
+
+  it('sorts by period, then breaks ties by workshop name', () => {
+    const pottery = makeWorkshop('Pottery', 'J', 'Art Studio', 'MorningFirstPeriod', 'Morning First Period');
+    const dance = makeWorkshop('Dance', 'K', 'Rec Hall', 'MorningFirstPeriod', 'Morning First Period');
+    const yoga = makeWorkshop('Yoga', 'L', 'Elm Room', 'AfternoonFirstPeriod', 'Afternoon First Period');
+    const rosters = buildRosters([pottery, yoga, dance]);
+    // "Afternoon First Period" sorts before "Morning First Period"; within the
+    // tied "Morning First Period" pair, workshopName breaks the tie.
+    expect(rosters.map((r) => r.workshopName)).toEqual(['Yoga', 'Dance', 'Pottery']);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getUniquePeriods
+// ---------------------------------------------------------------------------
+
+describe('getUniquePeriods', () => {
+  it('dedupes workshops sharing the same sheetName, keeping first-seen order', () => {
+    const workshops = [
+      makeWorkshop('Pottery', 'J', 'Art Studio', 'MorningFirstPeriod', 'Morning First Period'),
+      makeWorkshop('Dance', 'K', 'Rec Hall', 'MorningFirstPeriod', 'Morning First Period'),
+      makeWorkshop('Yoga', 'L', 'Elm Room', 'AfternoonFirstPeriod', 'Afternoon First Period'),
+    ];
+    expect(getUniquePeriods(workshops)).toEqual([
+      { sheetName: 'MorningFirstPeriod', displayName: 'Morning First Period' },
+      { sheetName: 'AfternoonFirstPeriod', displayName: 'Afternoon First Period' },
+    ]);
+  });
+
+  it('returns an empty array for no workshops', () => {
+    expect(getUniquePeriods([])).toEqual([]);
   });
 });
 
