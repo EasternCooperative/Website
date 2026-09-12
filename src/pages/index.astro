@@ -61,6 +61,7 @@ const upcomingAll = allEvents
   .sort((a, b) => a.data.date.getTime() - b.data.date.getTime());
 
 const featuredEvent = upcomingAll[0];
+const secondEvent = upcomingAll[1];
 const upcomingEvents = upcomingAll.slice(1, 4);
 const featuredVenue = featuredEvent
   ? resolveVenue(featuredEvent.data, featuredEvent.data.siteId ? siteMap.get(featuredEvent.data.siteId) : undefined)
@@ -104,27 +105,16 @@ const metadata = {
         }
       : undefined}
     eventHref={featuredEvent ? `/events/${featuredEvent.id}` : undefined}
+    secondaryEvent={secondEvent
+      ? {
+          title: secondEvent.data.title,
+          href: `/events/${secondEvent.id}`,
+          date: formatEventDateRange(secondEvent.data.date, secondEvent.data.endDate),
+        }
+      : undefined}
     primaryCta={featuredEvent ? undefined : { text: 'See Upcoming Events', href: '/events' }}
     secondaryCta={featuredEvent ? { text: 'All Events', href: '/events' } : { text: 'Who We Are', href: '#who-we-are' }}
   />
-
-  <!-- ============================================================
-       NEXT-NEXT EVENT TEASER — a low-key signal that more than one
-       event is coming up, for visitors who don't scroll all the way
-       to "More Upcoming Events" below.
-       ============================================================ -->
-  {
-    upcomingAll[1] && (
-      <div class="bg-primary/5 dark:bg-transparent border-b border-gray-200 dark:border-gray-800">
-        <div class="max-w-6xl mx-auto px-6 py-4 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center">
-          <span class="text-sm text-muted">Also coming up:</span>
-          <a href={`/events/${upcomingAll[1].id}`} class="text-sm font-bold text-primary hover:underline">
-            {upcomingAll[1].data.title} · {formatEventDateRange(upcomingAll[1].data.date, upcomingAll[1].data.endDate)}
-          </a>
-        </div>
-      </div>
-    )
-  }
 
   <!-- ============================================================
        WHAT TO EXPECT
