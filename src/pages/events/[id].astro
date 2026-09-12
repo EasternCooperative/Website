@@ -776,12 +776,18 @@ const breadcrumbJsonLd = {
                 )}
               </div>
             )}
-            <div class="space-y-8">
+            <div class="space-y-6">
               {scheduleGroups.map((group) =>
                 group.kind === 'break' ? (
-                  <h3 class="font-heading text-base font-bold uppercase tracking-widest text-muted">{group.heading}</h3>
+                  <div class="flex items-center gap-4 py-1" role="separator">
+                    <span class="h-px flex-1 bg-gray-200 dark:bg-gray-700" aria-hidden="true" />
+                    <h3 class="font-heading text-sm font-bold uppercase tracking-widest text-primary whitespace-nowrap">
+                      {group.heading}
+                    </h3>
+                    <span class="h-px flex-1 bg-gray-200 dark:bg-gray-700" aria-hidden="true" />
+                  </div>
                 ) : (
-                  <div>
+                  <div class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-800/40 p-5">
                     {group.showHeading && (
                       <h3 class="font-heading text-base font-bold uppercase tracking-widest text-muted mb-3">
                         {group.heading}
