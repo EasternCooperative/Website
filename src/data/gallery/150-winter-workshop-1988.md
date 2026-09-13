@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/150-winter-workshop-1988.jpg'
-alt: 'Winter Workshop 1988'
+alt: 'Three women dancing with arms raised on a checkered dance floor at night (Marty, Betsy and Harriet)'
 caption: 'Marty, Betsy and Harriet on New Year’s Eve – ECRS Winter Workshop 12/31/88-1/1/89.'
 year: 1988
 date: '1988-12-31'

@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/174-winter-workshop-2012.jpg'
-alt: 'Winter Workshop 2012'
+alt: 'A woman and an older man in a striped shirt smiling together on a dance floor (Linda and Alex)'
 caption: 'Linda and Alex – ECRS Winter Workshop – New Year’s Eve 12/31/10 – 1/1/11.'
 year: 2010
 date: '2010-12-31'

@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/177-winter-workshop-2012.jpg'
-alt: 'Winter Workshop 2012'
+alt: 'A person in a patterned skirt dances and smiles amid a crowded dance floor (Rain Woods)'
 caption: 'Catherine dancing at the Eastern Cooperative Recreation School –ECRS Winter Workshop, New Year’s Eve 12/31/12.'
 year: 2012
 date: '2012-12-31'

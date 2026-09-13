@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/199-winter-workshop-2014.jpg'
-alt: 'Winter Workshop 2014'
+alt: 'Two smiling women hold poles supporting a puppet with golden hands and a purple and black robe (Kay and Jane Gering)'
 caption: 'Kay and Jane in ECRS Winter Workshop ‘s New Year’s Eve puppet procession, 12/31/14.'
 year: 2014
 date: '2014-12-31'

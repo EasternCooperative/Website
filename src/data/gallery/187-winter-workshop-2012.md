@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/187-winter-workshop-2012.jpg'
-alt: 'Winter Workshop 2012'
+alt: 'An older woman speaks into a microphone beside an elderly man seated in a wheelchair (Ruth and Alex Sherman)'
 caption: 'Ruth and Alex are honored by the ECRS family at ECRS Winter Workshop, New Year’s Eve – 12/31/12.'
 year: 2012
 date: '2012-12-31'

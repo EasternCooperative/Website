@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/126-winter-workshop-12-27-07-1-1-08.jpg'
-alt: 'Winter Workshop, 12/27/07-1/1/08.'
+alt: 'A woman in a wheelchair wearing a pink knit scarf poses indoors (Cindy Green)'
 caption: 'Cindy, ECRS Winter Workshop, 12/27/07-1/1/08.'
 year: 2007
 date: '2007-12-27'

@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/116-ecrs-winter-workshop-12-27-04.jpg'
-alt: 'ECRS Winter Workshop, 12/27/04.'
+alt: 'A young woman with her arm around an older woman, both smiling for the camera indoors (Ruby, left and Evelyn, right)'
 caption: 'Ruby and Evelyn, ECRS Winter Workshop, 12/27/04.'
 year: 2004
 date: '2004-12-27'

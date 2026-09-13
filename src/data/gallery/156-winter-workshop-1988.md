@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/156-winter-workshop-1988.jpg'
-alt: 'Winter Workshop 1988'
+alt: 'A boy smiling amid a large cluster of balloons, another child partly hidden beside him (Jesse Steiner)'
 caption: 'Jesse — growing up at ECRS (future Board member), New Year’s Day – ECRS Winter Workshop 1/1/89.'
 year: 1989
 date: '1989-01-01'

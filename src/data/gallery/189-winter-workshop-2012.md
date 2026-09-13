@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/189-winter-workshop-2012.jpg'
-alt: 'Winter Workshop 2012'
+alt: 'People hold lit candles in a darkened hall, an elderly man in a wheelchair in front (From left to right in foreground: Jesse, Ruth, Alex, and David Sherman, Fiona)'
 caption: 'Make a wish — ushering in the new year with the candlelight circle at ECRS Winter Workshop, New Year’s Eve – 12/31/12. Close to camera L to R: Jesse Ruth, Alex, David and Fiona.'
 year: 2012
 date: '2012-12-31'

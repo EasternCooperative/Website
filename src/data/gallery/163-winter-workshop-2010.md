@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/163-winter-workshop-2010.jpg'
-alt: 'Winter Workshop 2010'
+alt: 'Children and adults seated in a row balancing spoons on their noses, laughing (Jesse, front)'
 caption: 'Jesse playing spoons, ECRS 70th Anniversary Winter Workshop, New Year’s Eve 12/31/10.'
 year: 2010
 date: '2010-12-31'

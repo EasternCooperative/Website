@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/173-winter-workshop-2010.jpg'
-alt: 'Winter Workshop 2010'
+alt: 'A girl and a woman with their heads together, both smiling, hugging indoors (Fiona and Deb)'
 caption: 'Fiona and Deb – Eastern Cooperative Recreation School 70th Anniversary – ECRS Winter Workshop, New Year’s Eve 12/31/10.'
 year: 2010
 date: '2010-12-31'

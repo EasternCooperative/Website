@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/180-winter-workshop-2012.jpg'
-alt: 'Winter Workshop 2012'
+alt: 'A group of children and teens sing and play ukuleles, guitar and a drum while seated in a row (From left to right: Jesse, Fiona, Crow, Momo, Unknown, Emily, Scout, and Max)'
 caption: 'L to R – Jesse, Fiona, Crow, MoMo, ___, Emily, Scout, and Max – Minstrals at the Eastern Cooperative Recreation School –ECRS Winter Workshop, New Year’s Eve 12/31/12.'
 year: 2012
 date: '2012-12-31'

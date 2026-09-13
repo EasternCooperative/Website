@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/128-ecrs-60th-anniversary-weekend-group-photo.jpg'
-alt: 'ECRS 60th Anniversary weekend group photo'
+alt: 'Large group of several dozen people posing together outdoors on a lawn near a tree'
 caption: 'The Eastern Cooperative Recreation School family — ECRS 60th Anniversary weekend group photo, Jemlock Farm 11/4/00.'
 year: 2000
 date: '2000-11-04'

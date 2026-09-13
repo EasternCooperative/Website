@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/142-winter-workshop-1987.jpg'
-alt: 'Winter Workshop 1987'
+alt: 'Black and white photo of three women seated together in conversation (From left to right: Dotty, Helen and Unknown)'
 caption: 'Dotty, Helen and ____ on New Year’s Eve – ECRS Winter Workshop 12/31/87-1/1/88.'
 year: 1987
 date: '1987-12-31'

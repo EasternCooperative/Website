@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/118-winter-workshop-12-27-04-1-1-05.jpg'
-alt: 'Winter Workshop, 12/27/04 - 1/1/05.'
+alt: 'A man teaches a song to a seated audience in a large wood-beamed hall (Henry)'
 caption: 'Henry leads singing — ECRS Winter Workshop, 12/27/04 – 1/1/05.'
 year: 2004
 date: '2004-12-27'

@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/119-winter-workshop-12-27-04-1-1-05.jpg'
-alt: 'Winter Workshop, 12/27/04 - 1/1/05.'
+alt: 'A toddler in a straw cowboy hat drinking milk from a bottle (Jesse)'
 caption: 'Jesse at ECRS Winter Workshop, 12/27/04 – 1/1/05.'
 year: 2004
 date: '2004-12-27'

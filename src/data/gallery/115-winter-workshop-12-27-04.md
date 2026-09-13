@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/115-winter-workshop-12-27-04.jpg'
-alt: 'Winter Workshop, 12/27/04.'
+alt: 'Close-up portrait of a smiling older man in a maroon shirt (Alex Sherman)'
 caption: 'Alex, ECRS Winter Workshop, 12/27/04.'
 year: 2004
 date: '2004-12-27'
