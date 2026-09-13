@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/76-winter-workshop-new-year-s-day-morning-1974.jpg'
-alt: "Winter Workshop New Year's Day morning 1974"
+alt: 'Man in a winter coat scraping snow and ice off a van windshield while another man stands nearby (Frank A)'
 caption: 'Frank A. preparing to drive home after the ECRS Winter Workshop, New Years’ day morning, Jan 1, 1974.'
 year: 1974
 date: '1974-01-01'

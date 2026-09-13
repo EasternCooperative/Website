@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/73-winter-workshop-new-years-day-1974.jpg'
-alt: "Winter Workshop New Years' Day 1974"
+alt: 'Three young adults posing together on a carpeted floor indoors, one lying down wearing a Moody Blues t-shirt (David, Lisa and Steve)'
 caption: 'David, Lisa and Steve (yours truly), ECRS Winter Workshop, not yet dawn on New Years’ day, Jan 1, 1974.'
 year: 1974
 date: '1974-01-01'

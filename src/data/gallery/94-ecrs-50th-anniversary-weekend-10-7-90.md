@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/94-ecrs-50th-anniversary-weekend-10-7-90.jpg'
-alt: 'ECRS 50th anniversary weekend, 10/7/90.'
+alt: 'A woman kicking up her leg while dancing energetically in a crowded hall, other dancers around her (Julie)'
 caption: 'Julie leads the pack (with Tim on left, Arnie on right) – ECRS 50th anniversary weekend, 10/7/90.'
 year: 1990
 date: '1990-10-07'

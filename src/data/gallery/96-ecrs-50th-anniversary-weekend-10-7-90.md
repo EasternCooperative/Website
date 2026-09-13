@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/96-ecrs-50th-anniversary-weekend-10-7-90.jpg'
-alt: 'ECRS 50th anniversary weekend, 10/7/90.'
+alt: 'Five women laughing and posing together with arms outstretched on a dance floor (Deb, Teri, Julie, and Kirsten)'
 caption: 'L to R – Deb, ___, Teri, Julie and Kirsten — ECRS 50th anniversary weekend, 10/7/90.'
 year: 1990
 date: '1990-10-07'

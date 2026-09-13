@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/79-winter-workshop-new-year-s-day-morning-1974.jpg'
-alt: "Winter Workshop New Year's Day morning 1974"
+alt: 'Group of people piled together in a cuddle-puddle/puppy-pile laughing on a stack of folded blankets indoors near a ladder'
 caption: 'Returning our blankets and linens after the ECRS Winter Workshop, New Years’ day morning, Jan 1, 1974. Pile-up includes Jonathon, Henry, Dan, Sioux, David, Beth and others.'
 year: 1974
 date: '1974-01-01'
