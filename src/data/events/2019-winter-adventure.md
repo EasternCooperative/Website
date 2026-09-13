@@ -109,7 +109,7 @@ classes:
     period: 'Afternoon'
     description: 'Embrace improv, games, and story building as a team, with a dash of mindfulness for good measure.'
   - name: 'Art and Mindfulness'
-    leaderId: catherine-woods
+    leaderId: rain-woods
     period: 'Afternoon'
     description: 'Experience creativity in a quiet, introspective environment, exploring new mediums and our own thoughts about the creative process. (Age 12+)'
   - name: 'Food, Glorious Food!'

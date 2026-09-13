@@ -114,7 +114,7 @@ classes:
     days: 'Days 1-2'
     description: 'Interactive, active, sedate, dramatic, quiet, raucous, and silly games, revisiting old favorites and discovering new ones. (Age 16+)'
   - name: 'Late Night Dances'
-    leaderId: catherine-woods
+    leaderId: rain-woods
     days: 'Days 1-2'
     description: "Learn the steps to the dances everyone else seems to know at New Year's Eve. All ages and energy levels welcome."
   - name: 'Active Games and More'

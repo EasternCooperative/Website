@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/88-ecrs-50th-anniversary-weekend-10-7-90.jpg'
-alt: 'A group of adults holding up a laughing boy and a woman with legs raised in a playful pose (Josh, Henry, Jesse Karen, Deb, Marco, Julie)'
+alt: 'A group of adults holding up a laughing boy and a woman with legs raised in a playful pose (Josh, Henry, Jesse, Karen, Deb, Marco, Julie)'
 caption: 'L to R – Josh, Henry, Jesse (below), ____ (above), Karen, Deb, Marco, Julie and _____, ECRS 50th anniversary weekend, 10/7/90.'
 year: 1990
 date: '1990-10-07'

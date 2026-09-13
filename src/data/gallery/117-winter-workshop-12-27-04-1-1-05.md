@@ -1,7 +1,7 @@
 ---
 image: '/images/gallery/117-winter-workshop-12-27-04-1-1-05.jpg'
 alt: 'Children performing a song in front of a decorated stone fireplace with a wreath (From left to right: Henry, Momo, Fiona, Crow, Scout)'
-caption: 'Henry, Sonia (now MoM0o, Fiona, Rebecca (now Crow), ___, and Rachel (now Scout) — ECRS Winter Workshop, 12/27/04 – 1/1/05.'
+caption: 'Henry, Sonia (now Momo), Fiona, Rebecca (now Crow), ___, and Rachel (now Scout) — ECRS Winter Workshop, 12/27/04 – 1/1/05.'
 year: 2004
 date: '2004-12-27'
 photographer: 'Steve J. Sherman'
