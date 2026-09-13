@@ -36,12 +36,26 @@ const resolveLink = (link: NavLink) => {
   return { text: link.text, href: getPermalink(link.href) };
 };
 
+// The header CTA's available width is capped by the header's own layout (see
+// the equal-width side columns in Header.astro) and doesn't grow past a fixed
+// point no matter how wide the viewport gets, so a single label can't fit
+// well everywhere. These three tiers were measured against the live rendered
+// button, not estimated: "Join Our List" wraps below nav-md (1230px), and the
+// full label wraps below xl (1280px). Below `nav` (1110px) the button instead
+// renders in the full-width mobile menu, which is why the largest label is
+// also the default (mobile-first) span.
+const ctaText = [
+  `<span class="inline nav:hidden xl:inline">${navData.cta.text}</span>`,
+  `<span class="hidden nav-md:inline xl:hidden">${navData.cta.textMedium}</span>`,
+  `<span class="hidden nav:inline nav-md:hidden">${navData.cta.textSmall}</span>`,
+].join('');
+
 export const headerData = {
   links: (navData.links as NavLink[])
     .filter(isVisible)
     .map(resolveLink)
     .filter((link): link is NonNullable<typeof link> => link !== null),
-  actions: [{ text: navData.cta.text, href: getPermalink(navData.cta.href), variant: 'primary' as const }],
+  actions: [{ text: ctaText, href: getPermalink(navData.cta.href), variant: 'primary' as const }],
 };
 
 export const footerData_ = {
