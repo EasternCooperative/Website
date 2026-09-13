@@ -22,9 +22,7 @@
     { "text": "Donate", "href": "/donate" }
   ],
   "cta": {
-    "text": "Join Mailing List",
-    "textMedium": "Join Our List",
-    "textSmall": "Join",
-    "href": "/join-email-list"
+    "text": "See Events",
+    "href": "/events"
   }
 }

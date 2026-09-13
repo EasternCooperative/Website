@@ -30,9 +30,6 @@
   --font-hero: 'Rusty Hooks', var(--aw-font-heading, ui-sans-serif), ui-sans-serif, system-ui, sans-serif;
 
   --breakpoint-nav: 1110px;
-  /* Header CTA text tier: "Join Our List" fits above this, wraps below
-     (measured against the rendered button, not estimated). */
-  --breakpoint-nav-md: 1230px;
 }
 
 @utility bg-page {

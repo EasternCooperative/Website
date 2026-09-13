@@ -50,13 +50,6 @@
   --aw-color-text-muted: rgb(229 226 227 / 66%);
   --aw-color-bg-page: rgb(27 24 25);
 
-  /* Elevated surface for native inputs on a dark page (form fields, toggles).
-     Warm-neutral like --aw-color-bg-page, unlike Tailwind's gray/slate
-     scales, which read as blue by contrast against this warm a background —
-     lifted from Cognito's own dark-mode input color on /contact. */
-  --aw-color-bg-surface-dark: rgb(40 36 37);
-  --aw-color-border-surface-dark: rgb(80 72 74);
-
   ::selection {
     background-color: rgb(94 8 46);
     color: rgb(253 208 227);
