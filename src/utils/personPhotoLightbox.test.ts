@@ -440,4 +440,31 @@ describe('initPersonPhotoLightbox — hover preview', () => {
 
     expect(document.querySelector('.person-photo-preview')).toBeNull();
   });
+
+  it('recreates the preview if it was detached from the document (e.g. an Astro view-transition swap)', async () => {
+    const { trigger } = makeTriggerAndDialog();
+    const { initPersonPhotoLightbox } = await import('./personPhotoLightbox');
+    initPersonPhotoLightbox();
+
+    trigger.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, clientX: 10, clientY: 10 }));
+    const firstPreview = document.querySelector('.person-photo-preview') as HTMLElement;
+    expect(firstPreview).not.toBeNull();
+
+    // Simulate a view-transition body swap removing the dynamically-injected
+    // preview without the module's cached reference knowing about it.
+    firstPreview.remove();
+    expect(firstPreview.isConnected).toBe(false);
+
+    const { trigger: trigger2 } = makeTriggerAndDialog({ withImg: true });
+    trigger2.dataset.dialogId = 'dlg-1';
+    expect(() =>
+      trigger2.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, clientX: 20, clientY: 20 }))
+    ).not.toThrow();
+
+    const secondPreview = document.querySelector('.person-photo-preview') as HTMLElement;
+    expect(secondPreview).not.toBeNull();
+    expect(secondPreview).not.toBe(firstPreview);
+    expect(secondPreview.isConnected).toBe(true);
+    expect(secondPreview.classList.contains('is-visible')).toBe(true);
+  });
 });

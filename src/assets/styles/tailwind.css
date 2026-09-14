@@ -20,7 +20,9 @@
   --color-accent: var(--aw-color-accent);
   --color-default: var(--aw-color-text-default);
   --color-muted: var(--aw-color-text-muted);
+  --color-heading: var(--aw-color-text-heading);
   --color-ecrs-green: var(--ecrs-color-green);
+  --color-pink-light: var(--ecrs-color-pink-light);
 
   --font-sans:
     var(--aw-font-sans, ui-sans-serif), ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
