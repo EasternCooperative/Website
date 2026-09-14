@@ -2,6 +2,17 @@
   window.ecrsTrack = function (eventName, params) {
     if (window.gtag) {
       window.gtag('event', eventName, params);
+      // Google Ads only counts a conversion when it receives this dedicated
+      // send_to tag — the generic event above lands in GA4 but Ads doesn't
+      // treat it as a conversion on its own. Map event names to Ads
+      // conversion labels (Google Ads > Goals > Conversions) here.
+      const adsConversionMap = {
+        form_submit_event: 'AW-964636937/yRj5CMSu0PccEIni_MsD',
+      };
+      const adsLabel = adsConversionMap[eventName];
+      if (adsLabel) {
+        window.gtag('event', 'conversion', { send_to: adsLabel, value: 1.0, currency: 'USD' });
+      }
     }
     if (window.fbq) {
       const metaMap = {
