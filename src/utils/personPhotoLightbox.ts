@@ -17,7 +17,12 @@ export function initPersonPhotoLightbox() {
   let previewEl: HTMLDivElement | null = null;
 
   const ensurePreview = (): HTMLDivElement => {
-    if (previewEl) return previewEl;
+    // Astro view-transition navigation swaps the page's <body> content, which
+    // removes this element (it isn't part of the astro-managed page tree) —
+    // but doesn't reset this closure's reference to it. Reusing a detached
+    // element throws "Invalid on disconnected popover elements" on the next
+    // showPopover() call, so check isConnected rather than just truthiness.
+    if (previewEl?.isConnected) return previewEl;
     previewEl = document.createElement('div');
     previewEl.className = 'person-photo-preview';
     previewEl.setAttribute('aria-hidden', 'true');
