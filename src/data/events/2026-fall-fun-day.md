@@ -61,7 +61,7 @@ schedule:
       end: '17:45'
     - label: Potluck Dinner
       start: '18:15'
-      end: '19:30'
+      end: '19:00'
       isBreak: true
     - label: Program for All & Group Sing
       start: '19:30'
