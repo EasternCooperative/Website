@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/200-winter-workshop-2014.jpg'
-alt: 'Winter Workshop 2014'
+alt: 'An elderly woman in an embroidered blouse laughs beside a young girl with painted face (Helen Hardin)'
 caption: 'ECRS Winter Workshop – New Year’s Eve puppet procession, 12/31/14. Helen Hardin, center.'
 year: 2014
 date: '2014-12-31'

@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/74-winter-workshop-new-year-s-day-morning-1974.jpg'
-alt: "Winter Workshop New Year's Day morning 1974"
+alt: 'Four young adults clowning around indoors with a metal garbage can, one of the people is seated partially inside the garbage can (David, Lisa, Frank and Steve)'
 caption: 'David, Lisa, Frank and Steve (yours truly, in garbage), ECRS Winter Workshop, early morning on New Years’ day, Jan 1, 1974.'
 year: 1974
 date: '1974-01-01'

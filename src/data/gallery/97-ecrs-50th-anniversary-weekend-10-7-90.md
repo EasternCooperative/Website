@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/97-ecrs-50th-anniversary-weekend-10-7-90.jpg'
-alt: 'ECRS 50th anniversary weekend, 10/7/90.'
+alt: 'An older woman with white hair smiling, wearing a floral jacket, seated indoors (Woody Corfman)'
 caption: 'Woody Corfman, ECRS 50th anniversary weekend, 10/7/90.'
 year: 1990
 date: '1990-10-07'

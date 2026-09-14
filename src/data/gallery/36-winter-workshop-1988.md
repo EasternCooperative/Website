@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/36-winter-workshop-1988.jpg'
-alt: 'Winter Workshop 1988'
+alt: 'Group of adults embracing and dancing together indoors under a wood beam ceiling (From left to right: Arnie, Ruth, Alison, and Bob)'
 caption: 'L to R (facing camera) – Arnie, Ruth, Alison, and Bob (?)- ECRS Winter Workshop 12/27/87-1/1/88'
 year: 1987
 date: '1987-12-27'

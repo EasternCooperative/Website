@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/84-ecrs-50th-anniversary-weekend-10-7-90.jpg'
-alt: 'ECRS 50th anniversary weekend, 10/7/90'
+alt: 'Large group of people holding hands in a circle dance indoors, decorated with hanging paper garlands'
 caption: 'ECRS 50th anniversary weekend, 10/7/90.'
 year: 1990
 date: '1990-10-07'

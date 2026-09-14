@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/166-winter-workshop-2010.jpg'
-alt: 'Winter Workshop 2010'
+alt: 'A girl holding a lit candle among older adults also holding candles in a dim hall (Fiona)'
 caption: 'Fiona helping to ring in the New Year – Eastern Cooperative Recreation School 70th Anniversary – ECRS Winter Workshop, New Year’s Eve 12/31/10.'
 year: 2010
 date: '2010-12-31'

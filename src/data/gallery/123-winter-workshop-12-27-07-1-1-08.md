@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/123-winter-workshop-12-27-07-1-1-08.jpg'
-alt: 'Winter Workshop, 12/27/07-1/1/08.'
+alt: 'An older woman (Jane) wearing silly glasses and a comedic bikini costume over her clothes poses with a group of laughing children'
 caption: 'Jane showing off her dress to the kids, ECRS Winter Workshop, 12/27/07-1/1/08.'
 year: 2007
 date: '2007-12-27'

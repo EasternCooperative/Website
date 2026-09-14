@@ -1,7 +1,7 @@
 ---
 image: '/images/gallery/201-winter-workshop-2014.jpg'
-alt: 'Winter Workshop 2014'
-caption: 'ECRS Winter Workshop – New Year’s Eve puppet procession, 12/31/14. Puppet Master Miceky Reed is crouching, front center.'
+alt: "Group posing indoors with tall handmade puppet figures at a New Year's Eve puppet procession"
+caption: 'ECRS Winter Workshop – New Year’s Eve puppet procession, 12/31/14. Puppet Master Mickey Reed is crouching, front center.'
 year: 2014
 date: '2014-12-31'
 photographer: 'Steve J. Sherman'

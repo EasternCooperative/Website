@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/149-winter-workshop-1988.jpg'
-alt: 'Winter Workshop 1988'
+alt: 'A circle of adults creating a tableau scene with arms extended on a checkered floor, two people on the floor (From left to right: Carolyn, Harry, Lilah)'
 caption: 'Tableau on New Year’s Eve – L to R: Carolyn, Harry, Lilah, _____, ______ (and on the floor, unidentified) — ECRS Winter Workshop 12/31/88-1/1/89.'
 year: 1988
 date: '1988-12-31'

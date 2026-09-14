@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/87-ecrs-50th-anniversary-weekend-10-7-90.jpg'
-alt: 'ECRS 50th anniversary weekend, 10/7/90.'
+alt: 'A man and three laughing women embracing together on a dance floor decorated with paper banners (From left to right: Charlie, Jane, Kay, and Unknown)'
 caption: 'Charlie, Jane. Kay and _____, ECRS 50th anniversary weekend, 10/7/90.'
 year: 1990
 date: '1990-10-07'

@@ -16,6 +16,13 @@ import AxeBuilder from '@axe-core/playwright';
  *   /our-people    — leader cards, category sections
  *   /contact       — contact page
  *   /connections   — link lists + venue cards (feature-flagged, still built)
+ *   /about         — org history/mission content
+ *   /donate        — embedded CognitoForm
+ *   /membership    — embedded CognitoForm
+ *   /gallery       — interactive photo browser widget
+ *   /activities              — activities library listing
+ *   /activities/<fixture>    — activity detail page
+ *   /events/<fix>/schedule   — public master-schedule grid (reusable schedule components)
  */
 
 type AxeViolation = {
@@ -103,4 +110,32 @@ test('contact page has no critical a11y violations', async ({ page }, testInfo) 
 
 test('connections page has no critical a11y violations', async ({ page }, testInfo) => {
   await audit(page, testInfo, '/connections');
+});
+
+test('about page has no critical a11y violations', async ({ page }, testInfo) => {
+  await audit(page, testInfo, '/about');
+});
+
+test('donate page has no critical a11y violations', async ({ page }, testInfo) => {
+  await audit(page, testInfo, '/donate');
+});
+
+test('membership page has no critical a11y violations', async ({ page }, testInfo) => {
+  await audit(page, testInfo, '/membership');
+});
+
+test('gallery page has no critical a11y violations', async ({ page }, testInfo) => {
+  await audit(page, testInfo, '/gallery');
+});
+
+test('activities listing has no critical a11y violations', async ({ page }, testInfo) => {
+  await audit(page, testInfo, '/activities');
+});
+
+test('activity detail page has no critical a11y violations', async ({ page }, testInfo) => {
+  await audit(page, testInfo, '/activities/zip-zap-zop');
+});
+
+test('event master schedule page has no critical a11y violations', async ({ page }, testInfo) => {
+  await audit(page, testInfo, '/events/e2e-popover-fixture/schedule');
 });

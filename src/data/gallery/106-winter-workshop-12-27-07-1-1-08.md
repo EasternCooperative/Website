@@ -1,7 +1,7 @@
 ---
 image: '/images/gallery/106-winter-workshop-12-27-07-1-1-08.jpg'
-alt: 'Winter Workshop, 12/27/07-1/1/08'
-caption: 'Charlie, Steve, Helen and Jane drumming, ECRS Winter Workshop, 12/27/07-1/1/08.'
+alt: 'Four seated adults playing hand drums together indoors, one wearing a straw sombrero (From left to right: Charlie Karl, Steve Woods, Helen Hardin and Jane Gering on drums, David Shen and Camden Elliott-Williams in the background)'
+caption: 'Charlie Karl, Steve Woods, Helen Hardin and Jane Gering drumming, ECRS Winter Workshop, 12/27/07-1/1/08.'
 year: 2007
 date: '2007-12-27'
 photographer: 'Steve J. Sherman'

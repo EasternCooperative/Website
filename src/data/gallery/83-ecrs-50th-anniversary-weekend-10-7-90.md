@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/83-ecrs-50th-anniversary-weekend-10-7-90.jpg'
-alt: 'ECRS 50th anniversary weekend, 10/7/90.'
+alt: 'Woman in an embroidered folk vest and skirt smiling near sound equipment at an indoor event (Ruth Sherman)'
 caption: 'Ruth Sherman, ECRS 50th anniversary weekend, 10/7/90.'
 year: 1990
 date: '1990-10-07'

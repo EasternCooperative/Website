@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/82-winter-workshop-new-year-s-day-morning-1974.jpg'
-alt: "Winter Workshop New Year's Day morning 1974"
+alt: 'Three young women smiling together outside a building, with snow-covered cars parked behind them (Beth, Sue, Barb)'
 caption: 'The 3 older Siftar sisters – Beth, Sue and Barb, preparing to leave after the ECRS Winter Workshop, New Years’ day morning, Jan 1, 1974.'
 year: 1974
 date: '1974-01-01'

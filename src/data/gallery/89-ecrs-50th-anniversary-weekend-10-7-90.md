@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/89-ecrs-50th-anniversary-weekend-10-7-90.jpg'
-alt: 'ECRS 50th anniversary weekend, 10/7/90.'
+alt: 'A line of six adults raising joined hands together under a banner reading 50th anniversary (From left to right: Leslie, Frank, Marione, Kay, and Shelly)'
 caption: 'L to R – Leslie, Frank, Marione, Kay, Shelly, ____ and _____, ECRS 50th anniversary weekend, 10/7/90.'
 year: 1990
 date: '1990-10-07'

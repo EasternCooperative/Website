@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/77-winter-workshop-new-year-s-day-1974.jpg'
-alt: "Winter Workshop New Year's Day 1974"
+alt: 'Two young women with arms around each other posing beside a snow-covered car in a winter parking lot'
 caption: '___ and ___ preparing to drive home after the ECRS Winter Workshop, New Years’ day morning, Jan 1, 1974.'
 year: 1974
 date: '1974-01-01'

@@ -7,6 +7,7 @@ import {
   buildEventMasterSchedule,
   buildScheduleGroups,
   baseEventTitle,
+  looksLikeTimeRange,
   type EventScheduleData,
 } from '~/utils/eventSchedule';
 
@@ -183,19 +184,43 @@ describe('buildEventMasterSchedule', () => {
   });
 });
 
+describe('looksLikeTimeRange', () => {
+  it('matches a range with AM/PM on both ends', () => {
+    expect(looksLikeTimeRange('9:00 AM - 10:00 AM')).toBe(true);
+  });
+
+  it('matches a range with AM/PM on only the end', () => {
+    expect(looksLikeTimeRange('10:00 – 10:45 AM')).toBe(true);
+  });
+
+  it('does not match a named heading', () => {
+    expect(looksLikeTimeRange('Morning, first period')).toBe(false);
+  });
+});
+
 describe('buildScheduleGroups', () => {
   it('renders a break timeslot as a heading-only group, in authored order, with no classes required', () => {
-    const groups = buildScheduleGroups(makeEvent(), true);
-    expect(groups[0]).toEqual({ kind: 'break', heading: 'Breakfast · 8:00 AM - 9:00 AM' });
+    const groups = buildScheduleGroups(makeEvent());
+    expect(groups[0]).toEqual({ kind: 'break', label: 'Breakfast', timeRange: '8:00 AM - 9:00 AM' });
     expect(groups.slice(1).every((g) => g.kind === 'classes')).toBe(true);
   });
 
+  it('renders an empty timeRange for a timeslot with no start/end', () => {
+    const ev = makeEvent({
+      schedule: { timeslots: [{ label: 'Free Time', isBreak: true }] },
+      classes: undefined,
+    });
+    const groups = buildScheduleGroups(ev);
+    expect(groups).toEqual([{ kind: 'break', label: 'Free Time', timeRange: '' }]);
+  });
+
   it('groups classes under their matched timeslot heading, unchanged from before', () => {
-    const groups = buildScheduleGroups(makeEvent(), true);
-    const morning = groups.find((g) => g.kind === 'classes' && g.heading.startsWith('Morning'));
+    const groups = buildScheduleGroups(makeEvent());
+    const morning = groups.find((g) => g.kind === 'classes' && g.label.startsWith('Morning'));
     expect(morning).toMatchObject({
       kind: 'classes',
-      heading: 'Morning, first period · 9:00 AM - 10:40 AM',
+      label: 'Morning, first period',
+      timeRange: '9:00 AM - 10:40 AM',
       showHeading: true,
     });
     if (morning?.kind === 'classes') {
@@ -206,11 +231,11 @@ describe('buildScheduleGroups', () => {
   it('puts classes whose period matches no timeslot into a trailing "Other" group', () => {
     const ev = makeEvent();
     ev.classes!.push({ name: 'Late Night', period: 'Midnight', days: '', room: '' });
-    const groups = buildScheduleGroups(ev, true);
+    const groups = buildScheduleGroups(ev);
     const other = groups.at(-1);
     expect(other?.kind).toBe('classes');
     if (other?.kind === 'classes') {
-      expect(other.heading).toBe('Other');
+      expect(other.label).toBe('Other');
       expect(other.classes.map((c) => c.name)).toEqual(['Late Night']);
     }
   });
@@ -218,30 +243,53 @@ describe('buildScheduleGroups', () => {
   it('groups a periodless class (with a schedule block) into the trailing "Other" group', () => {
     const ev = makeEvent();
     ev.classes!.push({ name: 'Open Time', days: '', room: '' });
-    const other = buildScheduleGroups(ev, true).at(-1);
+    const other = buildScheduleGroups(ev).at(-1);
     expect(other?.kind).toBe('classes');
     if (other?.kind === 'classes') expect(other.classes.map((c) => c.name)).toContain('Open Time');
   });
 
   it('still renders an all-break schedule with zero classes', () => {
-    const groups = buildScheduleGroups(makeEvent({ classes: undefined }), true);
-    expect(groups).toEqual([{ kind: 'break', heading: 'Breakfast · 8:00 AM - 9:00 AM' }]);
+    const groups = buildScheduleGroups(makeEvent({ classes: undefined }));
+    expect(groups).toEqual([{ kind: 'break', label: 'Breakfast', timeRange: '8:00 AM - 9:00 AM' }]);
   });
 
   it('falls back to legacy period grouping (no break concept) without a schedule block', () => {
-    const groups = buildScheduleGroups(makeEvent({ schedule: undefined }), true);
+    const groups = buildScheduleGroups(makeEvent({ schedule: undefined }));
     expect(groups.every((g) => g.kind === 'classes')).toBe(true);
   });
 
   it('hides the heading for a flat, periodless legacy schedule', () => {
     const groups = buildScheduleGroups(
-      makeEvent({ schedule: undefined, classes: [{ name: 'Games', days: '', room: '' }] }),
-      true
+      makeEvent({ schedule: undefined, classes: [{ name: 'Games', days: '', room: '' }] })
     );
-    expect(groups).toEqual([{ kind: 'classes', heading: '', showHeading: false, classes: [expect.anything()] }]);
+    expect(groups).toEqual([
+      { kind: 'classes', label: '', timeRange: '', showHeading: false, classes: [expect.anything()] },
+    ]);
   });
 
   it('is empty for an event with neither classes nor a schedule block', () => {
-    expect(buildScheduleGroups(makeEvent({ classes: undefined, schedule: undefined }), true)).toEqual([]);
+    expect(buildScheduleGroups(makeEvent({ classes: undefined, schedule: undefined }))).toEqual([]);
+  });
+
+  it('treats a time-range-shaped legacy period as the timeRange, not a heading', () => {
+    const groups = buildScheduleGroups(
+      makeEvent({
+        schedule: undefined,
+        classes: [
+          { name: 'Games', period: '10:00 – 10:45 AM', days: '', room: '' },
+          { name: 'Closing Circle', period: '11:40 AM – 12:00 PM', days: '', room: '' },
+        ],
+      })
+    );
+    expect(groups).toEqual([
+      { kind: 'classes', label: '', timeRange: '10:00 – 10:45 AM', showHeading: false, classes: [expect.anything()] },
+      {
+        kind: 'classes',
+        label: '',
+        timeRange: '11:40 AM – 12:00 PM',
+        showHeading: false,
+        classes: [expect.anything()],
+      },
+    ]);
   });
 });

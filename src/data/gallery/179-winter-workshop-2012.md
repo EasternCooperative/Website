@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/179-winter-workshop-2012.jpg'
-alt: 'Winter Workshop 2012'
+alt: 'A boy dances energetically on a wooden dance floor among other children and adults (Jesse)'
 caption: 'Jesse dancing at the Eastern Cooperative Recreation School –ECRS Winter Workshop, New Year’s Eve 12/31/12.'
 year: 2012
 date: '2012-12-31'

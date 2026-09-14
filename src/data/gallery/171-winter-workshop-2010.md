@@ -1,6 +1,6 @@
 ---
 image: '/images/gallery/171-winter-workshop-2010.jpg'
-alt: 'Winter Workshop 2010'
+alt: 'A bearded man and a woman conversing on a crowded dance floor (Henry and Patricia)'
 caption: 'Henry and Patricia – Eastern Cooperative Recreation School 70th Anniversary – ECRS Winter Workshop, New Year’s Eve 12/31/10.'
 year: 2010
 date: '2010-12-31'

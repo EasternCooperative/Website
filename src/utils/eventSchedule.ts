@@ -82,6 +82,20 @@ export function frontmatterToTimeslots(timeslots: FrontmatterTimeslot[]): TimeSl
   );
 }
 
+/**
+ * Some older events have no `schedule.timeslots` block and instead put the
+ * literal time range straight in each class's free-text `period` (e.g.
+ * "10:00 – 10:45 AM"), rather than a named section like "Morning Workshops".
+ * When that's what we're looking at, treat it as a timeRange rather than a
+ * heading, so the timeline still gets a time column instead of leaving one
+ * blank next to a heading that's just re-stating the time.
+ */
+const TIME_RANGE_PERIOD = /^\d{1,2}(?::\d{2})?\s*(?:AM|PM)?\s*[-–]\s*\d{1,2}(?::\d{2})?\s*(?:AM|PM)$/i;
+
+export function looksLikeTimeRange(period: string): boolean {
+  return TIME_RANGE_PERIOD.test(period.trim());
+}
+
 function nonBreakLabels(timeslots: FrontmatterTimeslot[]): Map<string, FrontmatterTimeslot> {
   const map = new Map<string, FrontmatterTimeslot>();
   for (const ts of timeslots) {
@@ -110,10 +124,12 @@ export function formatScheduleHeading(
 }
 
 /** One section of the event page's `#schedule` list: either a named block of
- * classes, or a bare break/free-time heading with nothing under it. */
+ * classes, or a bare break/free-time heading with nothing under it. `label`
+ * and `timeRange` are kept separate (rather than pre-joined) so the timeline
+ * layout can give the time its own column. */
 export type ScheduleGroup =
-  | { kind: 'classes'; heading: string; showHeading: boolean; classes: EventClass[] }
-  | { kind: 'break'; heading: string };
+  | { kind: 'classes'; label: string; timeRange: string; showHeading: boolean; classes: EventClass[] }
+  | { kind: 'break'; label: string; timeRange: string };
 
 /**
  * Build the event page's `#schedule` section groups. When the event defines a
@@ -124,7 +140,7 @@ export type ScheduleGroup =
  * `schedule` block, falls back to the original first-seen `period` grouping,
  * which has no break concept.
  */
-export function buildScheduleGroups(data: EventScheduleData, isMultiDay: boolean): ScheduleGroup[] {
+export function buildScheduleGroups(data: EventScheduleData): ScheduleGroup[] {
   const classes = data.classes ?? [];
   const timeslots = data.schedule?.timeslots ?? [];
   if (classes.length === 0 && timeslots.length === 0) return [];
@@ -139,8 +155,9 @@ export function buildScheduleGroups(data: EventScheduleData, isMultiDay: boolean
     const seen = new Set<string>();
     const groups: ScheduleGroup[] = [];
     for (const ts of timeslots) {
+      const timeRange = formatTimeRange(ts.start ?? '', ts.end ?? '');
       if (ts.isBreak) {
-        groups.push({ kind: 'break', heading: formatScheduleHeading(ts.label, ts, undefined, isMultiDay) });
+        groups.push({ kind: 'break', label: ts.label, timeRange });
         continue;
       }
       const key = slugifyPeriod(ts.label);
@@ -149,24 +166,32 @@ export function buildScheduleGroups(data: EventScheduleData, isMultiDay: boolean
       if (!tsClasses?.length) continue;
       groups.push({
         kind: 'classes',
-        heading: formatScheduleHeading(ts.label, ts, undefined, isMultiDay),
+        label: ts.label,
+        timeRange,
         showHeading: true,
         classes: tsClasses,
       });
     }
     const leftover = [...bySlug.entries()].filter(([k]) => !seen.has(k)).flatMap(([, v]) => v);
-    if (leftover.length > 0) groups.push({ kind: 'classes', heading: 'Other', showHeading: true, classes: leftover });
+    if (leftover.length > 0)
+      groups.push({ kind: 'classes', label: 'Other', timeRange: '', showHeading: true, classes: leftover });
     return groups;
   }
 
   const groupedByPeriod = groupClassesByPeriod(classes);
   const isFlat = groupedByPeriod.size === 1 && groupedByPeriod.has('');
-  return [...groupedByPeriod.entries()].map(([period, periodClasses]) => ({
-    kind: 'classes',
-    heading: period,
-    showHeading: !isFlat && !!period,
-    classes: periodClasses,
-  }));
+  return [...groupedByPeriod.entries()].map(([period, periodClasses]) => {
+    if (looksLikeTimeRange(period)) {
+      return { kind: 'classes', label: '', timeRange: period, showHeading: false, classes: periodClasses };
+    }
+    return {
+      kind: 'classes',
+      label: period,
+      timeRange: '',
+      showHeading: !isFlat && !!period,
+      classes: periodClasses,
+    };
+  });
 }
 
 /**
