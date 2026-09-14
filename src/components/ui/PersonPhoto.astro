@@ -42,7 +42,7 @@ const dialogId = `person-photo-${crypto.randomUUID()}`;
       type="button"
       data-dialog-close
       aria-label="Close"
-      class="icon-btn-focus absolute top-2 right-2 w-9 h-9 flex items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-primary cursor-pointer border-0 text-xl leading-none"
+      class="icon-btn-focus absolute top-2 right-2 w-9 h-9 flex items-center justify-center rounded-full bg-page/90 text-heading hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary dark:hover:text-primary cursor-pointer border-0 text-xl leading-none"
     >
       ×
     </button>
@@ -54,7 +54,7 @@ const dialogId = `person-photo-${crypto.randomUUID()}`;
       widths={[400, 800]}
       sizes="400px"
       layout="cover"
-      class="w-full aspect-square rounded-xl object-cover"
+      class="w-full aspect-square rounded-xl object-cover mt-10"
     />
     <p class="mt-3 text-center font-semibold text-heading">{name}</p>
   </div>
