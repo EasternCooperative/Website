@@ -17,7 +17,7 @@ const dialogId = `person-photo-${crypto.randomUUID()}`;
   data-photo-trigger
   data-dialog-id={dialogId}
   aria-label={`View larger photo of ${name}`}
-  class:list={['rounded-full flex-shrink-0 cursor-pointer p-0 border-0 overflow-hidden', className]}
+  class:list={['icon-btn-focus rounded-full flex-shrink-0 cursor-pointer p-0 border-0 overflow-hidden', className]}
   style={`width:${size}px;height:${size}px`}
 >
   <Image
@@ -42,7 +42,7 @@ const dialogId = `person-photo-${crypto.randomUUID()}`;
       type="button"
       data-dialog-close
       aria-label="Close"
-      class="absolute top-2 right-2 w-9 h-9 flex items-center justify-center rounded-full bg-page/90 text-heading hover:bg-primary/10 cursor-pointer border-0 text-xl leading-none"
+      class="icon-btn-focus absolute top-2 right-2 w-9 h-9 flex items-center justify-center rounded-full bg-page/90 text-heading hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary dark:hover:text-primary cursor-pointer border-0 text-xl leading-none"
     >
       ×
     </button>
