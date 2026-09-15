@@ -44,7 +44,11 @@ const id = ANALYTICS?.vendors?.googleAnalytics?.id ? String(ANALYTICS.vendors.go
       window.gtag('js', new Date());
       // page_view is sent manually so it also fires on View Transition navigations.
       window.gtag('config', GA_ID, { send_page_view: false });
-      window.gtag('config', 'AW-964636937');
+      // TEMP diagnostic: commented out to test whether this is the source of
+      // the live.primis.tech chain dominating the Lighthouse network
+      // dependency tree. This branch exists only to test that hypothesis via
+      // a Cloudflare Pages preview — do not merge as-is.
+      // window.gtag('config', 'AW-964636937');
       sendPageView();
     }
 
