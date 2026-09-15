@@ -186,6 +186,7 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
                     layout="cover"
                     class="w-full h-44 object-cover"
                     loading="eager"
+                    fetchpriority="high"
                   />
                 )}
                 <div class="flex flex-col sm:flex-row items-start gap-6 p-5 sm:p-8 lg:p-10">
@@ -274,6 +275,7 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
                     layout="cover"
                     class="w-full h-44 object-cover"
                     loading="eager"
+                    fetchpriority="high"
                   />
                 )}
                 <div class="flex flex-col p-8 lg:p-10">
