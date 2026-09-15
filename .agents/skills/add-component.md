@@ -28,9 +28,7 @@ const {
 
 <WidgetWrapper id={id} isDark={isDark} containerClass={classes?.container ?? ''} bg={bg}>
   <Headline title={title} subtitle={subtitle} tagline={tagline} classes={classes?.headline} />
-  <div class="max-w-5xl mx-auto">
-    <!-- Widget content here -->
-  </div>
+  <div class="max-w-5xl mx-auto"><!-- Widget content here --></div>
 </WidgetWrapper>
 ```
 

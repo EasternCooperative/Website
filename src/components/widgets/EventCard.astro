@@ -37,30 +37,28 @@ const isPast = variant === 'past';
       : 'rounded-2xl border border-gray-200 dark:border-gray-700 hover:shadow-lg hover:border-primary/40',
   ]}
 >
-  {
-    image ? (
-      <Image
-        src={image}
-        alt=""
-        width={600}
-        height={isPast ? 220 : 300}
-        widths={[400, 600, 800]}
-        sizes="(max-width: 768px) 100vw, 400px"
-        layout="cover"
-        class:list={['w-full object-cover', isPast ? 'h-36 grayscale-[75%]' : 'h-44']}
-        loading="lazy"
-      />
-    ) : isPast ? (
-      <div class="w-full h-36 bg-gray-100 dark:bg-gray-800" aria-hidden="true" />
-    ) : (
-      <div
-        class="w-full h-44 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center"
-        aria-hidden="true"
-      >
-        <span class="font-heading text-4xl font-bold text-primary/40">ECRS</span>
-      </div>
-    )
-  }
+  {image ? (
+    <Image
+      src={image}
+      alt=""
+      width={600}
+      height={isPast ? 220 : 300}
+      widths={[400, 600, 800]}
+      sizes="(max-width: 768px) 100vw, 400px"
+      layout="cover"
+      class:list={['w-full object-cover', isPast ? 'h-36 grayscale-[75%]' : 'h-44']}
+      loading="lazy"
+    />
+  ) : isPast ? (
+    <div class="w-full h-36 bg-gray-100 dark:bg-gray-800" aria-hidden="true" />
+  ) : (
+    <div
+      class="w-full h-44 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center"
+      aria-hidden="true"
+    >
+      <span class="font-heading text-4xl font-bold text-primary/40">ECRS</span>
+    </div>
+  )}
 
   <div class:list={['flex flex-col flex-1', isPast ? 'p-4' : 'p-5']}>
     <p class:list={['text-xs font-bold uppercase tracking-widest mb-1', isPast ? 'text-muted' : 'text-primary']}>
@@ -78,26 +76,22 @@ const isPast = variant === 'past';
 
     {!isPast && excerpt && <p class="text-sm text-default line-clamp-3 flex-1 mt-2">{excerpt}</p>}
 
-    {
-      !isPast && registrationDeadline && (
-        <p class="text-xs text-secondary font-semibold mt-3">
-          Register by{' '}
-          {registrationDeadline.toLocaleDateString('en-US', {
-            month: 'long',
-            day: 'numeric',
-            year: 'numeric',
-            timeZone: 'UTC',
-          })}
-        </p>
-      )
-    }
+    {!isPast && registrationDeadline && (
+      <p class="text-xs text-secondary font-semibold mt-3">
+        Register by{' '}
+        {registrationDeadline.toLocaleDateString('en-US', {
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+          timeZone: 'UTC',
+        })}
+      </p>
+    )}
 
-    {
-      !isPast && (
-        <span class="mt-4 text-sm font-semibold text-primary group-hover:underline">
-          {hasRegistration ? 'Register Now →' : 'Learn More →'}
-        </span>
-      )
-    }
+    {!isPast && (
+      <span class="mt-4 text-sm font-semibold text-primary group-hover:underline">
+        {hasRegistration ? 'Register Now →' : 'Learn More →'}
+      </span>
+    )}
   </div>
 </a>

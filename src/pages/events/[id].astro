@@ -224,58 +224,68 @@ const breadcrumbJsonLd = {
 
 <Layout metadata={metadata} noIndex={noIndex}>
   <Fragment slot="head">
-    <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
-    <script is:inline type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd)} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(jsonLd)}></script>
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd)}></script>
   </Fragment>
 
   <!-- ============================================================
        EVENT HERO
        ============================================================ -->
   <section class="relative" aria-label={data.title}>
-    {
-      venue.image && (
-        <div
-          class="relative w-full h-[40vh] lg:h-auto lg:aspect-[2/1] lg:max-h-[min(55vh,640px)] max-w-[2400px] mx-auto overflow-hidden"
-          data-event-hero
-          aria-hidden="true"
-        >
-          <Image
-            src={venue.image}
-            alt={data.title}
-            width={1200}
-            height={600}
-            widths={[640, 960, 1200, 1600, 1920, 2400]}
-            sizes="(min-width: 2400px) 2400px, 100vw"
-            layout="cover"
-            class="w-full h-full object-cover"
-            loading="eager"
-            fetchpriority="high"
-          />
-          <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" data-event-hero-overlay />
-        </div>
-      )
-    }
+    {venue.image && (
+      <div
+        class="relative w-full h-[40vh] lg:h-auto lg:aspect-[2/1] lg:max-h-[min(55vh,640px)] max-w-[2400px] mx-auto overflow-hidden"
+        data-event-hero
+        aria-hidden="true"
+      >
+        <Image
+          src={venue.image}
+          alt={data.title}
+          width={1200}
+          height={600}
+          widths={[640, 960, 1200, 1600, 1920, 2400]}
+          sizes="(min-width: 2400px) 2400px, 100vw"
+          layout="cover"
+          class="w-full h-full object-cover"
+          loading="eager"
+          fetchpriority="high"
+        />
+        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" data-event-hero-overlay />
+      </div>
+    )}
 
     <div class="max-w-4xl mx-auto px-4 sm:px-6 py-10 md:py-14">
       <!-- Breadcrumb -->
       <nav aria-label="Breadcrumb" class="mb-6">
         <ol class="flex items-center gap-2 text-sm text-muted list-none p-0 m-0">
-          <li><a href="/" class="hover:text-primary transition-colors">Home</a></li>
-          <li aria-hidden="true" class="text-muted/50">›</li>
-          <li><a href="/events" class="hover:text-primary transition-colors">Events</a></li>
-          <li aria-hidden="true" class="text-muted/50">›</li>
-          <li aria-current="page" class="text-default min-w-0 truncate">{data.title}</li>
+          <li>
+            <a href="/" class="hover:text-primary transition-colors">
+              Home
+            </a>
+          </li>
+          <li aria-hidden="true" class="text-muted/50">
+            ›
+          </li>
+          <li>
+            <a href="/events" class="hover:text-primary transition-colors">
+              Events
+            </a>
+          </li>
+          <li aria-hidden="true" class="text-muted/50">
+            ›
+          </li>
+          <li aria-current="page" class="text-default min-w-0 truncate">
+            {data.title}
+          </li>
         </ol>
       </nav>
 
       <!-- Status badge -->
-      {
-        isPast && (
-          <span class="inline-block mb-4 px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-full bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
-            Past Event
-          </span>
-        )
-      }
+      {isPast && (
+        <span class="inline-block mb-4 px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-full bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+          Past Event
+        </span>
+      )}
 
       <div class="flex items-start gap-3 mb-6">
         <h1 class="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-heading leading-tight flex-1">
@@ -297,16 +307,19 @@ const breadcrumbJsonLd = {
             stroke-linecap="round"
             stroke-linejoin="round"
             aria-hidden="true"
-            ><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"
-            ></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg
           >
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
         </a>
         <button
           id="share-btn"
           class="mt-2 shrink-0 p-2 rounded-full text-muted hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
           data-title={data.title}
-          data-text={data.excerpt ??
-            `${data.title} — ${formatEventDateRange(data.date, data.endDate)} at ${venue.location}`}
+          data-text={
+            data.excerpt ?? `${data.title} — ${formatEventDateRange(data.date, data.endDate)} at ${venue.location}`
+          }
           aria-label="Share this event"
         >
           <svg
@@ -319,13 +332,13 @@ const breadcrumbJsonLd = {
             stroke-linecap="round"
             stroke-linejoin="round"
             aria-hidden="true"
-            ><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"
-            ></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line
-              x1="15.41"
-              y1="6.51"
-              x2="8.59"
-              y2="10.49"></line></svg
           >
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+          </svg>
         </button>
       </div>
 
@@ -345,192 +358,181 @@ const breadcrumbJsonLd = {
               stroke-width="2"
               stroke-linecap="round"
               stroke-linejoin="round"
-              ><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"
-              ></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg
             >
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
           </span>
           <div>
             <p class="text-xs font-bold uppercase tracking-widest text-muted">Date</p>
             <p class="text-default font-semibold group-hover:underline">
               {formatEventDateRange(data.date, data.endDate)}
             </p>
-            {
-              (data.startTime || data.endTime) && (
-                <p class="text-sm text-muted">
-                  {data.startTime && `Starts ${data.startTime}`}
-                  {data.startTime && data.endTime && ' · '}
-                  {data.endTime && `Ends ${data.endTime}`}
-                </p>
-              )
-            }
+            {(data.startTime || data.endTime) && (
+              <p class="text-sm text-muted">
+                {data.startTime && `Starts ${data.startTime}`}
+                {data.startTime && data.endTime && ' · '}
+                {data.endTime && `Ends ${data.endTime}`}
+              </p>
+            )}
             {!data.startTime && !data.endTime && !isPast && <p class="text-sm text-muted">Time TBD</p>}
           </div>
         </a>
 
-        {
-          venue.address ? (
-            <a
-              href={`geo:0,0?q=${encodeURIComponent(mapQuery)}`}
-              data-maps-fallback={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`}
-              class="flex gap-3 items-start rounded-xl p-2 -m-2 hover:bg-primary/5 transition-colors group"
-            >
-              <span class="text-primary mt-0.5 flex-shrink-0" aria-hidden="true">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                  <circle cx="12" cy="10" r="3" />
-                </svg>
-              </span>
-              <div>
-                <p class="text-xs font-bold uppercase tracking-widest text-muted">Location</p>
-                <p class="text-default font-semibold group-hover:underline">{venue.location}</p>
-                <p class="text-sm text-muted">{venue.address}</p>
-                {venue.phone && <p class="text-sm text-muted">{venue.phone}</p>}
-              </div>
-            </a>
-          ) : (
-            <div class="flex gap-3 items-start p-2 -m-2">
-              <span class="text-primary mt-0.5 flex-shrink-0" aria-hidden="true">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                  <circle cx="12" cy="10" r="3" />
-                </svg>
-              </span>
-              <div>
-                <p class="text-xs font-bold uppercase tracking-widest text-muted">Location</p>
-                <p class="text-default font-semibold">{venue.location}</p>
-              </div>
+        {venue.address ? (
+          <a
+            href={`geo:0,0?q=${encodeURIComponent(mapQuery)}`}
+            data-maps-fallback={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`}
+            class="flex gap-3 items-start rounded-xl p-2 -m-2 hover:bg-primary/5 transition-colors group"
+          >
+            <span class="text-primary mt-0.5 flex-shrink-0" aria-hidden="true">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+            </span>
+            <div>
+              <p class="text-xs font-bold uppercase tracking-widest text-muted">Location</p>
+              <p class="text-default font-semibold group-hover:underline">{venue.location}</p>
+              <p class="text-sm text-muted">{venue.address}</p>
+              {venue.phone && <p class="text-sm text-muted">{venue.phone}</p>}
             </div>
-          )
-        }
+          </a>
+        ) : (
+          <div class="flex gap-3 items-start p-2 -m-2">
+            <span class="text-primary mt-0.5 flex-shrink-0" aria-hidden="true">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+            </span>
+            <div>
+              <p class="text-xs font-bold uppercase tracking-widest text-muted">Location</p>
+              <p class="text-default font-semibold">{venue.location}</p>
+            </div>
+          </div>
+        )}
 
-        {
-          data.earlyBirdDeadline && !isPast && (
-            <div class="flex gap-3 items-start">
-              <span class="text-secondary mt-0.5 flex-shrink-0" aria-hidden="true">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <>
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M12 6v6l4 2" />
-                  </>
-                </svg>
-              </span>
-              <div>
-                <p class="text-xs font-bold uppercase tracking-widest text-muted">Early-bird deadline</p>
-                <p class="text-secondary font-semibold">{formatDate(data.earlyBirdDeadline)}</p>
-                {data.earlyBirdFeeNote && <p class="text-sm text-muted">{data.earlyBirdFeeNote}</p>}
-              </div>
+        {data.earlyBirdDeadline && !isPast && (
+          <div class="flex gap-3 items-start">
+            <span class="text-secondary mt-0.5 flex-shrink-0" aria-hidden="true">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <>
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 6v6l4 2" />
+                </>
+              </svg>
+            </span>
+            <div>
+              <p class="text-xs font-bold uppercase tracking-widest text-muted">Early-bird deadline</p>
+              <p class="text-secondary font-semibold">{formatDate(data.earlyBirdDeadline)}</p>
+              {data.earlyBirdFeeNote && <p class="text-sm text-muted">{data.earlyBirdFeeNote}</p>}
             </div>
-          )
-        }
+          </div>
+        )}
 
-        {
-          data.registrationDeadline && !isPast && (
-            <div class="flex gap-3 items-start">
-              <span class="text-secondary mt-0.5 flex-shrink-0" aria-hidden="true">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <>
-                    <circle cx="12" cy="12" r="10" />
-                    <polyline points="12 6 12 12 16 14" />
-                  </>
-                </svg>
-              </span>
-              <div>
-                <p class="text-xs font-bold uppercase tracking-widest text-muted">Register by</p>
-                <p class="text-secondary font-semibold">{formatDate(data.registrationDeadline)}</p>
-              </div>
+        {data.registrationDeadline && !isPast && (
+          <div class="flex gap-3 items-start">
+            <span class="text-secondary mt-0.5 flex-shrink-0" aria-hidden="true">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <>
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </>
+              </svg>
+            </span>
+            <div>
+              <p class="text-xs font-bold uppercase tracking-widest text-muted">Register by</p>
+              <p class="text-secondary font-semibold">{formatDate(data.registrationDeadline)}</p>
             </div>
-          )
-        }
-        {
-          venue.accessibilityNote && (
-            <div class="flex gap-3 items-start">
-              <span class="text-primary mt-0.5 flex-shrink-0" aria-hidden="true">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <>
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M12 8v4m0 4h.01" />
-                  </>
-                </svg>
-              </span>
-              <div>
-                <p class="text-xs font-bold uppercase tracking-widest text-muted">Accessibility</p>
-                <p class="text-default text-sm">{venue.accessibilityNote}</p>
-              </div>
+          </div>
+        )}
+        {venue.accessibilityNote && (
+          <div class="flex gap-3 items-start">
+            <span class="text-primary mt-0.5 flex-shrink-0" aria-hidden="true">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <>
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 8v4m0 4h.01" />
+                </>
+              </svg>
+            </span>
+            <div>
+              <p class="text-xs font-bold uppercase tracking-widest text-muted">Accessibility</p>
+              <p class="text-default text-sm">{venue.accessibilityNote}</p>
             </div>
-          )
-        }
+          </div>
+        )}
       </div>
 
       <!-- Action buttons -->
       <div class="flex flex-wrap gap-4 mb-10">
-        {
-          !isPast && (data.cognitoFormId || data.zeffyFormUrl) && (
-            <a href="#registration" class="btn btn-primary">
-              Register Now
-            </a>
-          )
-        }
-        {
-          !isPast && !data.cognitoFormId && !data.zeffyFormUrl && data.registrationUrl && (
-            <a href={data.registrationUrl} class="btn btn-primary" target="_blank" rel="noopener noreferrer">
-              Register Now
-            </a>
-          )
-        }
-        {
-          !isPast && (
-            <a href={`/events/${event.id}.ics`} class="btn btn-secondary">
-              Add to Calendar
-            </a>
-          )
-        }
-        <a href="/events" class="btn btn-secondary">← All Events</a>
+        {!isPast && (data.cognitoFormId || data.zeffyFormUrl) && (
+          <a href="#registration" class="btn btn-primary">
+            Register Now
+          </a>
+        )}
+        {!isPast && !data.cognitoFormId && !data.zeffyFormUrl && data.registrationUrl && (
+          <a href={data.registrationUrl} class="btn btn-primary" target="_blank" rel="noopener noreferrer">
+            Register Now
+          </a>
+        )}
+        {!isPast && (
+          <a href={`/events/${event.id}.ics`} class="btn btn-secondary">
+            Add to Calendar
+          </a>
+        )}
+        <a href="/events" class="btn btn-secondary">
+          ← All Events
+        </a>
       </div>
 
       <script
@@ -569,619 +571,583 @@ const breadcrumbJsonLd = {
           }
         }
       </script>
-
       <!-- Jump nav -->
-      {
-        showJumpNav && (
-          <nav aria-label="Jump to section" class="flex flex-wrap gap-2 mb-8">
-            {jumpLinks.map((link) => (
-              <a
-                href={link.href}
-                class="text-sm font-semibold text-primary border border-primary/30 rounded-full px-3 py-1 hover:bg-primary/5 transition-colors"
-              >
-                {link.label} ↓
-              </a>
-            ))}
-          </nav>
-        )
-      }
+      {showJumpNav && (
+        <nav aria-label="Jump to section" class="flex flex-wrap gap-2 mb-8">
+          {jumpLinks.map((link) => (
+            <a
+              href={link.href}
+              class="text-sm font-semibold text-primary border border-primary/30 rounded-full px-3 py-1 hover:bg-primary/5 transition-colors"
+            >
+              {link.label} ↓
+            </a>
+          ))}
+        </nav>
+      )}
 
       <!-- Description -->
-      {
-        data.description && (
-          <div class="prose prose-lg dark:prose-invert max-w-none">
-            <Fragment set:html={renderProse(data.description)} />
-          </div>
-        )
-      }
+      {data.description && (
+        <div class="prose prose-lg dark:prose-invert max-w-none">
+          <Fragment set:html={renderProse(data.description)} />
+        </div>
+      )}
 
       <!-- ── Simple fee ── -->
-      {
-        data.fee && (
-          <div id="costs" class="mt-10 scroll-mt-24">
-            <h2 class="font-heading text-2xl font-bold text-heading mb-3">Cost</h2>
-            <p class="text-lg text-default">{data.fee}</p>
-          </div>
-        )
-      }
+      {data.fee && (
+        <div id="costs" class="mt-10 scroll-mt-24">
+          <h2 class="font-heading text-2xl font-bold text-heading mb-3">Cost</h2>
+          <p class="text-lg text-default">{data.fee}</p>
+        </div>
+      )}
 
       <!-- ── Tuition ── -->
-      {
-        data.tuition && data.tuition.length > 0 && (
-          <div id={!data.fee ? 'costs' : undefined} class={!data.fee ? 'mt-10 scroll-mt-24' : 'mt-10'}>
-            <h2 class="font-heading text-2xl font-bold text-heading mb-4">{data.tuitionLabel ?? 'Tuition'}</h2>
-            {data.tuition.length === 1 ? (
-              <div class="inline-flex flex-col gap-0.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-6 py-4">
-                <span class="text-2xl font-bold text-heading">{data.tuition[0].amount}</span>
-                {data.tuition[0].label && <span class="text-sm text-muted">{data.tuition[0].label}</span>}
-                {data.tuition[0].note && <span class="text-xs text-muted italic mt-1">{data.tuition[0].note}</span>}
-              </div>
-            ) : (
-              (() => {
-                const hasLabels = data.tuition!.some((t) => t.label);
-                return (
-                  <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
-                    <table class="w-full text-sm">
-                      <thead>
-                        <tr class="bg-gray-50 dark:bg-gray-800">
-                          {hasLabels && (
-                            <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
-                              Category
-                            </th>
-                          )}
-                          <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
-                            Amount
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {data.tuition!.map((tier, i) => (
-                          <tr
-                            class:list={[
-                              'border-t border-gray-200 dark:border-gray-700',
-                              { 'bg-gray-50 dark:bg-gray-900': i % 2 === 0 },
-                            ]}
-                          >
-                            {hasLabels && (
-                              <td class="px-4 py-3">
-                                {tier.label && <span>{tier.label}</span>}
-                                {tier.note && <span class="block text-xs text-muted italic mt-0.5">{tier.note}</span>}
-                              </td>
-                            )}
-                            <td class="px-4 py-3 font-semibold">{tier.amount}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                );
-              })()
-            )}
-          </div>
-        )
-      }
-
-      <!-- ── Accommodations (room & board) ── -->
-      {
-        data.accommodations && data.accommodations.length > 0 && (
-          <div class="mt-10">
-            <h2 class="font-heading text-2xl font-bold text-heading mb-6">Room &amp; Board</h2>
-            <div class="space-y-8">
-              {data.accommodations.map((accom) => (
-                <div>
-                  <h3 class="font-heading text-lg font-bold text-heading mb-1">{accom.name}</h3>
-                  {accom.description && (
-                    <p class="text-sm text-muted mb-3 md-links" set:html={renderInlineMarkdown(accom.description)} />
-                  )}
-                  <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
-                    <table class="w-full text-sm">
-                      <thead>
-                        <tr class="bg-gray-50 dark:bg-gray-800">
-                          <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
-                            Occupancy
-                          </th>
-                          <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
-                            Per Person
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {accom.tiers.map((tier, i) => (
-                          <tr
-                            class:list={[
-                              'border-t border-gray-200 dark:border-gray-700',
-                              { 'bg-gray-50 dark:bg-gray-900': i % 2 === 0 },
-                            ]}
-                          >
-                            <td class="px-4 py-3">{tier.label}</td>
-                            <td class="px-4 py-3 font-semibold">{tier.amount}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              ))}
+      {data.tuition && data.tuition.length > 0 && (
+        <div id={!data.fee ? 'costs' : undefined} class={!data.fee ? 'mt-10 scroll-mt-24' : 'mt-10'}>
+          <h2 class="font-heading text-2xl font-bold text-heading mb-4">{data.tuitionLabel ?? 'Tuition'}</h2>
+          {data.tuition.length === 1 ? (
+            <div class="inline-flex flex-col gap-0.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-6 py-4">
+              <span class="text-2xl font-bold text-heading">{data.tuition[0].amount}</span>
+              {data.tuition[0].label && <span class="text-sm text-muted">{data.tuition[0].label}</span>}
+              {data.tuition[0].note && <span class="text-xs text-muted italic mt-1">{data.tuition[0].note}</span>}
             </div>
-          </div>
-        )
-      }
-
-      <!-- ── Simple pricing table (events without a tuition/accommodations breakdown) ── -->
-      {
-        pricingRows.length > 0 && (
-          <div class="mt-10">
-            <h2 class="font-heading text-2xl font-bold text-heading mb-4">Pricing</h2>
-            <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
-              <table class="w-full text-sm">
-                <thead>
-                  <tr class="bg-gray-50 dark:bg-gray-800">
-                    <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
-                      Category
-                    </th>
-                    <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
-                      Full Weekend
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pricingRows.map((tier, i) => (
-                    <tr
-                      class:list={[
-                        'border-t border-gray-200 dark:border-gray-700',
-                        { 'bg-gray-50 dark:bg-gray-900': i % 2 === 0 },
-                      ]}
-                    >
-                      <td class="px-4 py-3">{tier.label}</td>
-                      <td class="px-4 py-3 font-semibold">{tier.fullWeekend ?? '—'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {pricingNotes.map((p) => (
-              <p class="text-sm text-muted mt-3 italic">{p.note}</p>
-            ))}
-          </div>
-        )
-      }
-
-      <!-- ── Meals ── -->
-      {
-        (data.mealsIncluded || data.mealsNote) && (
-          <div class="mt-10">
-            <h2 class="font-heading text-2xl font-bold text-heading mb-3">Meals</h2>
-            {data.mealsIncluded && <p class="text-default font-semibold">{data.mealsIncluded}</p>}
-            {data.mealsNote && (
-              <p class="text-sm text-muted mt-1 md-links" set:html={renderInlineMarkdown(data.mealsNote)} />
-            )}
-          </div>
-        )
-      }
-
-      <!-- ── Classes / program ── -->
-      {
-        scheduleGroups.length > 0 && (
-          <div id="schedule" class="mt-10 scroll-mt-24">
-            <h2 class="font-heading text-2xl font-bold text-heading mb-6">Schedule</h2>
-            {masterSchedule.ok && (
-              <div class="mb-6 flex flex-wrap gap-3">
-                <a href={`/events/${event.id}/schedule`} class="btn btn-secondary">
-                  View schedule
-                </a>
-                {schedulePdfExists && (
-                  <a href={schedulePdfPath} class="btn btn-secondary" target="_blank" rel="noopener">
-                    Download PDF
-                  </a>
-                )}
-              </div>
-            )}
-            <div>
-              {scheduleGroups.map((group, groupIndex) => {
-                const isLast = groupIndex === scheduleGroups.length - 1;
-                const [startTime, endTime] = group.timeRange ? group.timeRange.split(/\s[-–]\s/) : ['', ''];
-                return (
-                  <div class="grid grid-cols-[4rem_0.75rem_1fr] sm:grid-cols-[6rem_0.75rem_1fr] gap-x-4 sm:gap-x-6">
-                    <div class="row-span-2 flex flex-col items-end text-right">
-                      {startTime && (
-                        <span class="font-heading font-bold text-sm sm:text-base text-heading tabular-nums whitespace-nowrap">
-                          {startTime}
-                        </span>
-                      )}
-                      {endTime && (
-                        <span class="font-heading font-normal text-sm sm:text-base text-muted tabular-nums whitespace-nowrap">
-                          – {endTime}
-                        </span>
-                      )}
-                    </div>
-                    <div class="flex items-center justify-center">
-                      <span
-                        class="w-3 h-3 rounded-full border-2 border-muted/50 bg-gray-50 dark:bg-gray-900"
-                        aria-hidden="true"
-                      />
-                    </div>
-                    <div class="flex items-center min-w-0">
-                      {group.kind === 'break' ? (
-                        <h3 class="font-heading text-sm font-bold uppercase tracking-widest text-muted">
-                          {group.label}
-                        </h3>
-                      ) : (
-                        group.showHeading && (
-                          <h3 class="font-heading text-base font-bold uppercase tracking-widest text-muted">
-                            {group.label}
-                          </h3>
-                        )
-                      )}
-                    </div>
-                    <div class="flex justify-center">
-                      {!isLast && <span class="w-px h-full bg-gray-200 dark:bg-gray-700" aria-hidden="true" />}
-                    </div>
-                    <div class="min-w-0 pb-8">
-                      {group.kind === 'classes' && (
-                        <div
+          ) : (
+            (() => {
+              const hasLabels = data.tuition!.some((t) => t.label);
+              return (
+                <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
+                  <table class="w-full text-sm">
+                    <thead>
+                      <tr class="bg-gray-50 dark:bg-gray-800">
+                        {hasLabels && (
+                          <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
+                            Category
+                          </th>
+                        )}
+                        <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
+                          Amount
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.tuition!.map((tier, i) => (
+                        <tr
                           class:list={[
-                            'mt-3',
-                            group.classes.length > 1 &&
-                              'rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-800/40 p-5',
+                            'border-t border-gray-200 dark:border-gray-700',
+                            { 'bg-gray-50 dark:bg-gray-900': i % 2 === 0 },
                           ]}
                         >
-                          <ul class="space-y-3 list-none p-0 m-0">
-                            {group.classes.map((cls) => (
-                              <li
-                                class="rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3"
-                                data-scroll-reveal="up-light"
-                              >
-                                <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                                  <span class="font-semibold text-heading">{cls.name}</span>
-                                  {(() => {
-                                    const resolved: ResolvedLeader[] = cls.leaders?.length
-                                      ? cls.leaders.flatMap((l): ResolvedLeader[] => {
-                                          const rec = l.id ? (leaderMap.get(l.id) ?? null) : null;
-                                          const nm = rec?.name ?? l.name;
-                                          if (!nm) return [];
-                                          return [{ name: nm, record: rec, id: l.id, role: l.role }];
-                                        })
-                                      : (() => {
-                                          const rec = cls.leaderId ? (leaderMap.get(cls.leaderId) ?? null) : null;
-                                          const nm = rec?.name ?? cls.leader;
-                                          if (!nm) return [];
-                                          return [{ name: nm, record: rec, id: cls.leaderId, role: undefined }];
-                                        })();
+                          {hasLabels && (
+                            <td class="px-4 py-3">
+                              {tier.label && <span>{tier.label}</span>}
+                              {tier.note && <span class="block text-xs text-muted italic mt-0.5">{tier.note}</span>}
+                            </td>
+                          )}
+                          <td class="px-4 py-3 font-semibold">{tier.amount}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              );
+            })()
+          )}
+        </div>
+      )}
 
-                                    if (!resolved.length) return null;
+      <!-- ── Accommodations (room & board) ── -->
+      {data.accommodations && data.accommodations.length > 0 && (
+        <div class="mt-10">
+          <h2 class="font-heading text-2xl font-bold text-heading mb-6">Room &amp; Board</h2>
+          <div class="space-y-8">
+            {data.accommodations.map((accom) => (
+              <div>
+                <h3 class="font-heading text-lg font-bold text-heading mb-1">{accom.name}</h3>
+                {accom.description && (
+                  <p class="text-sm text-muted mb-3 md-links" set:html={renderInlineMarkdown(accom.description)} />
+                )}
+                <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
+                  <table class="w-full text-sm">
+                    <thead>
+                      <tr class="bg-gray-50 dark:bg-gray-800">
+                        <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
+                          Occupancy
+                        </th>
+                        <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
+                          Per Person
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {accom.tiers.map((tier, i) => (
+                        <tr
+                          class:list={[
+                            'border-t border-gray-200 dark:border-gray-700',
+                            { 'bg-gray-50 dark:bg-gray-900': i % 2 === 0 },
+                          ]}
+                        >
+                          <td class="px-4 py-3">{tier.label}</td>
+                          <td class="px-4 py-3 font-semibold">{tier.amount}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
-                                    const primary = resolved.filter((l) => l.role !== 'assistant');
-                                    const assistants = resolved.filter((l) => l.role === 'assistant');
+      <!-- ── Simple pricing table (events without a tuition/accommodations breakdown) ── -->
+      {pricingRows.length > 0 && (
+        <div class="mt-10">
+          <h2 class="font-heading text-2xl font-bold text-heading mb-4">Pricing</h2>
+          <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="bg-gray-50 dark:bg-gray-800">
+                  <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
+                    Category
+                  </th>
+                  <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
+                    Full Weekend
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {pricingRows.map((tier, i) => (
+                  <tr
+                    class:list={[
+                      'border-t border-gray-200 dark:border-gray-700',
+                      { 'bg-gray-50 dark:bg-gray-900': i % 2 === 0 },
+                    ]}
+                  >
+                    <td class="px-4 py-3">{tier.label}</td>
+                    <td class="px-4 py-3 font-semibold">{tier.fullWeekend ?? '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {pricingNotes.map((p) => (
+            <p class="text-sm text-muted mt-3 italic">{p.note}</p>
+          ))}
+        </div>
+      )}
 
-                                    const renderLeader = (l: (typeof resolved)[0]) => {
-                                      // Only leaders with a bio get the interactive popover — a photo
-                                      // alone is already visible as the inline avatar and doesn't add
-                                      // anything a click would reveal.
-                                      const hasBio =
-                                        siteSettings.featureFlags.peopleWithoutPhotoOrBio || !!l.record?.bio;
-                                      return (
-                                        <span class="inline-flex items-center gap-1">
-                                          {l.record?.photo && (
-                                            <PersonPhoto name={l.name} photo={l.record.photo} size={20} />
-                                          )}
-                                          {l.record && hasBio ? (
-                                            <button
-                                              type="button"
-                                              data-popover-target={`leader-${l.id}`}
-                                              aria-controls={`leader-${l.id}`}
-                                              aria-expanded="false"
-                                              class="underline decoration-dotted underline-offset-2 cursor-pointer hover:text-primary transition-colors"
-                                            >
-                                              {l.name}
-                                            </button>
-                                          ) : (
-                                            <span>{l.name}</span>
-                                          )}
-                                        </span>
-                                      );
-                                    };
+      <!-- ── Meals ── -->
+      {(data.mealsIncluded || data.mealsNote) && (
+        <div class="mt-10">
+          <h2 class="font-heading text-2xl font-bold text-heading mb-3">Meals</h2>
+          {data.mealsIncluded && <p class="text-default font-semibold">{data.mealsIncluded}</p>}
+          {data.mealsNote && (
+            <p class="text-sm text-muted mt-1 md-links" set:html={renderInlineMarkdown(data.mealsNote)} />
+          )}
+        </div>
+      )}
 
-                                    const renderGroup = (items: typeof resolved) =>
-                                      items.map((l, i) => {
-                                        const isLast = i === items.length - 1;
-                                        return (
-                                          <>
-                                            {renderLeader(l)}
-                                            {items.length >= 3 && !isLast && <span>,</span>}
-                                            {i === items.length - 2 && <span>and</span>}
-                                          </>
-                                        );
-                                      });
+      <!-- ── Classes / program ── -->
+      {scheduleGroups.length > 0 && (
+        <div id="schedule" class="mt-10 scroll-mt-24">
+          <h2 class="font-heading text-2xl font-bold text-heading mb-6">Schedule</h2>
+          {masterSchedule.ok && (
+            <div class="mb-6 flex flex-wrap gap-3">
+              <a href={`/events/${event.id}/schedule`} class="btn btn-secondary">
+                View schedule
+              </a>
+              {schedulePdfExists && (
+                <a href={schedulePdfPath} class="btn btn-secondary" target="_blank" rel="noopener">
+                  Download PDF
+                </a>
+              )}
+            </div>
+          )}
+          <div>
+            {scheduleGroups.map((group, groupIndex) => {
+              const isLast = groupIndex === scheduleGroups.length - 1;
+              const [startTime, endTime] = group.timeRange ? group.timeRange.split(/\s[-–]\s/) : ['', ''];
+              return (
+                <div class="grid grid-cols-[4rem_0.75rem_1fr] sm:grid-cols-[6rem_0.75rem_1fr] gap-x-4 sm:gap-x-6">
+                  <div class="row-span-2 flex flex-col items-end text-right">
+                    {startTime && (
+                      <span class="font-heading font-bold text-sm sm:text-base text-heading tabular-nums whitespace-nowrap">
+                        {startTime}
+                      </span>
+                    )}
+                    {endTime && (
+                      <span class="font-heading font-normal text-sm sm:text-base text-muted tabular-nums whitespace-nowrap">
+                        – {endTime}
+                      </span>
+                    )}
+                  </div>
+                  <div class="flex items-center justify-center">
+                    <span
+                      class="w-3 h-3 rounded-full border-2 border-muted/50 bg-gray-50 dark:bg-gray-900"
+                      aria-hidden="true"
+                    />
+                  </div>
+                  <div class="flex items-center min-w-0">
+                    {group.kind === 'break' ? (
+                      <h3 class="font-heading text-sm font-bold uppercase tracking-widest text-muted">{group.label}</h3>
+                    ) : (
+                      group.showHeading && (
+                        <h3 class="font-heading text-base font-bold uppercase tracking-widest text-muted">
+                          {group.label}
+                        </h3>
+                      )
+                    )}
+                  </div>
+                  <div class="flex justify-center">
+                    {!isLast && <span class="w-px h-full bg-gray-200 dark:bg-gray-700" aria-hidden="true" />}
+                  </div>
+                  <div class="min-w-0 pb-8">
+                    {group.kind === 'classes' && (
+                      <div
+                        class:list={[
+                          'mt-3',
+                          group.classes.length > 1 &&
+                            'rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-800/40 p-5',
+                        ]}
+                      >
+                        <ul class="space-y-3 list-none p-0 m-0">
+                          {group.classes.map((cls) => (
+                            <li
+                              class="rounded-xl border border-gray-200 dark:border-gray-700 px-4 py-3"
+                              data-scroll-reveal="up-light"
+                            >
+                              <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                                <span class="font-semibold text-heading">{cls.name}</span>
+                                {(() => {
+                                  const resolved: ResolvedLeader[] = cls.leaders?.length
+                                    ? cls.leaders.flatMap((l): ResolvedLeader[] => {
+                                        const rec = l.id ? (leaderMap.get(l.id) ?? null) : null;
+                                        const nm = rec?.name ?? l.name;
+                                        if (!nm) return [];
+                                        return [{ name: nm, record: rec, id: l.id, role: l.role }];
+                                      })
+                                    : (() => {
+                                        const rec = cls.leaderId ? (leaderMap.get(cls.leaderId) ?? null) : null;
+                                        const nm = rec?.name ?? cls.leader;
+                                        if (!nm) return [];
+                                        return [{ name: nm, record: rec, id: cls.leaderId, role: undefined }];
+                                      })();
 
+                                  if (!resolved.length) return null;
+
+                                  const primary = resolved.filter((l) => l.role !== 'assistant');
+                                  const assistants = resolved.filter((l) => l.role === 'assistant');
+
+                                  const renderLeader = (l: (typeof resolved)[0]) => {
+                                    // Only leaders with a bio get the interactive popover — a photo
+                                    // alone is already visible as the inline avatar and doesn't add
+                                    // anything a click would reveal.
+                                    const hasBio = siteSettings.featureFlags.peopleWithoutPhotoOrBio || !!l.record?.bio;
                                     return (
-                                      <span class="inline-flex items-center flex-wrap gap-1 text-sm text-muted">
-                                        —{renderGroup(primary)}
-                                        {assistants.length > 0 && (
-                                          <>
-                                            <span>assisted by</span>
-                                            {renderGroup(assistants)}
-                                          </>
+                                      <span class="inline-flex items-center gap-1">
+                                        {l.record?.photo && (
+                                          <PersonPhoto name={l.name} photo={l.record.photo} size={20} />
+                                        )}
+                                        {l.record && hasBio ? (
+                                          <button
+                                            type="button"
+                                            data-popover-target={`leader-${l.id}`}
+                                            aria-controls={`leader-${l.id}`}
+                                            aria-expanded="false"
+                                            class="underline decoration-dotted underline-offset-2 cursor-pointer hover:text-primary transition-colors"
+                                          >
+                                            {l.name}
+                                          </button>
+                                        ) : (
+                                          <span>{l.name}</span>
                                         )}
                                       </span>
                                     );
-                                  })()}
-                                  {cls.restriction && (
-                                    <span class="text-xs font-semibold text-muted border border-muted/30 rounded-full px-2 py-0.5">
-                                      {cls.restriction}
+                                  };
+
+                                  const renderGroup = (items: typeof resolved) =>
+                                    items.map((l, i) => {
+                                      const isLast = i === items.length - 1;
+                                      return (
+                                        <>
+                                          {renderLeader(l)}
+                                          {items.length >= 3 && !isLast && <span>,</span>}
+                                          {i === items.length - 2 && <span>and</span>}
+                                        </>
+                                      );
+                                    });
+
+                                  return (
+                                    <span class="inline-flex items-center flex-wrap gap-1 text-sm text-muted">
+                                      —{renderGroup(primary)}
+                                      {assistants.length > 0 && (
+                                        <>
+                                          <span>assisted by</span>
+                                          {renderGroup(assistants)}
+                                        </>
+                                      )}
                                     </span>
-                                  )}
-                                  {isMultiDay && cls.days && <span class="text-xs text-muted">{cls.days}</span>}
-                                  {cls.limitedCapacity && (
-                                    <span class="text-xs font-semibold text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-600 rounded-full px-2 py-0.5">
-                                      Limited capacity
-                                    </span>
-                                  )}
-                                </div>
-                                {cls.description && (
-                                  <p
-                                    class="text-sm text-muted mt-1 md-links"
-                                    set:html={renderInlineMarkdown(cls.description)}
-                                  />
+                                  );
+                                })()}
+                                {cls.restriction && (
+                                  <span class="text-xs font-semibold text-muted border border-muted/30 rounded-full px-2 py-0.5">
+                                    {cls.restriction}
+                                  </span>
                                 )}
-                                {cls.callout && <p class="text-sm font-semibold text-primary mt-1">{cls.callout}</p>}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
+                                {isMultiDay && cls.days && <span class="text-xs text-muted">{cls.days}</span>}
+                                {cls.limitedCapacity && (
+                                  <span class="text-xs font-semibold text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-600 rounded-full px-2 py-0.5">
+                                    Limited capacity
+                                  </span>
+                                )}
+                              </div>
+                              {cls.description && (
+                                <p
+                                  class="text-sm text-muted mt-1 md-links"
+                                  set:html={renderInlineMarkdown(cls.description)}
+                                />
+                              )}
+                              {cls.callout && <p class="text-sm font-semibold text-primary mt-1">{cls.callout}</p>}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
           </div>
-        )
-      }
+        </div>
+      )}
 
       <!-- ── Newcomer / financial aid / leader profiles ── -->
-      {
-        (data.newcomerNote || data.financialAidNote) && (
-          <div class="mt-10 flex flex-col gap-3">
-            {data.newcomerNote && (
-              <p class="text-sm text-default bg-primary/5 rounded-xl px-4 py-3 md-links">
-                <span class="font-semibold">New to ECRS?</span>{' '}
-                <Fragment set:html={renderInlineMarkdown(data.newcomerNote)} />
-              </p>
-            )}
-            {data.financialAidNote && (
-              <p class="text-sm text-default bg-accent/5 rounded-xl px-4 py-3 md-links">
-                <span class="font-semibold">Financial assistance:</span>{' '}
-                <Fragment set:html={renderInlineMarkdown(data.financialAidNote)} />
-              </p>
-            )}
-            <p class="text-sm text-default">
-              <a href="/our-people" class="text-primary hover:underline font-semibold">
-                View leader &amp; staff profiles →
-              </a>
+      {(data.newcomerNote || data.financialAidNote) && (
+        <div class="mt-10 flex flex-col gap-3">
+          {data.newcomerNote && (
+            <p class="text-sm text-default bg-primary/5 rounded-xl px-4 py-3 md-links">
+              <span class="font-semibold">New to ECRS?</span>{' '}
+              <Fragment set:html={renderInlineMarkdown(data.newcomerNote)} />
             </p>
-          </div>
-        )
-      }
+          )}
+          {data.financialAidNote && (
+            <p class="text-sm text-default bg-accent/5 rounded-xl px-4 py-3 md-links">
+              <span class="font-semibold">Financial assistance:</span>{' '}
+              <Fragment set:html={renderInlineMarkdown(data.financialAidNote)} />
+            </p>
+          )}
+          <p class="text-sm text-default">
+            <a href="/our-people" class="text-primary hover:underline font-semibold">
+              View leader &amp; staff profiles →
+            </a>
+          </p>
+        </div>
+      )}
 
       <!-- ── Policies ── -->
-      {
-        (data.showCancellationPolicy || data.showHealthPolicy) && (
-          <div class="mt-10 space-y-6">
-            <h2 class="font-heading text-2xl font-bold text-heading">Policies</h2>
+      {(data.showCancellationPolicy || data.showHealthPolicy) && (
+        <div class="mt-10 space-y-6">
+          <h2 class="font-heading text-2xl font-bold text-heading">Policies</h2>
 
-            {data.showCancellationPolicy && data.cancellationPolicy && (
-              <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-5">
-                <h3 class="font-heading text-base font-bold text-heading mb-1">Cancellation</h3>
-                {cancellationCutoff && (
-                  <p class="text-sm font-semibold text-secondary mb-2">
-                    Refund cutoff: {formatCutoff(cancellationCutoff)}
-                  </p>
-                )}
-                <div
-                  class="text-sm text-muted prose prose-sm dark:prose-invert max-w-none"
-                  set:html={renderProse(data.cancellationPolicy)}
-                />
-              </div>
-            )}
+          {data.showCancellationPolicy && data.cancellationPolicy && (
+            <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+              <h3 class="font-heading text-base font-bold text-heading mb-1">Cancellation</h3>
+              {cancellationCutoff && (
+                <p class="text-sm font-semibold text-secondary mb-2">
+                  Refund cutoff: {formatCutoff(cancellationCutoff)}
+                </p>
+              )}
+              <div
+                class="text-sm text-muted prose prose-sm dark:prose-invert max-w-none"
+                set:html={renderProse(data.cancellationPolicy)}
+              />
+            </div>
+          )}
 
-            {data.showHealthPolicy && data.healthPolicy && (
-              <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-5">
-                <h3 class="font-heading text-base font-bold text-heading mb-2">Health</h3>
-                <div
-                  class="text-sm text-muted prose prose-sm dark:prose-invert max-w-none"
-                  set:html={renderProse(data.healthPolicy)}
-                />
-              </div>
-            )}
-          </div>
-        )
-      }
+          {data.showHealthPolicy && data.healthPolicy && (
+            <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+              <h3 class="font-heading text-base font-bold text-heading mb-2">Health</h3>
+              <div
+                class="text-sm text-muted prose prose-sm dark:prose-invert max-w-none"
+                set:html={renderProse(data.healthPolicy)}
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       <!-- ── Event staff (logistics/coordination roles, not class leaders) ── -->
-      {
-        resolvedStaff.length > 0 && (
-          <div class="mt-10">
-            <h2 class="font-heading text-2xl font-bold text-heading mb-6">Event Staff</h2>
-            <ul class="grid sm:grid-cols-2 gap-x-8 gap-y-2 list-none p-0 m-0">
-              {resolvedStaff.map((s) => {
-                const hasBio = siteSettings.featureFlags.peopleWithoutPhotoOrBio || !!s.bio;
-                return (
-                  <li class="flex items-center gap-2 text-sm">
-                    {s.role && <span class="text-muted">{s.role}:</span>}
-                    {s.photo && <PersonPhoto name={s.name} photo={s.photo} size={20} />}
-                    {s.id && hasBio ? (
-                      <button
-                        type="button"
-                        data-popover-target={`staff-${s.id}`}
-                        aria-controls={`staff-${s.id}`}
-                        aria-expanded="false"
-                        class="font-semibold text-heading underline decoration-dotted underline-offset-2 cursor-pointer hover:text-primary transition-colors"
-                      >
-                        {s.name}
-                      </button>
-                    ) : (
-                      <span class="font-semibold text-heading">{s.name}</span>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        )
-      }
+      {resolvedStaff.length > 0 && (
+        <div class="mt-10">
+          <h2 class="font-heading text-2xl font-bold text-heading mb-6">Event Staff</h2>
+          <ul class="grid sm:grid-cols-2 gap-x-8 gap-y-2 list-none p-0 m-0">
+            {resolvedStaff.map((s) => {
+              const hasBio = siteSettings.featureFlags.peopleWithoutPhotoOrBio || !!s.bio;
+              return (
+                <li class="flex items-center gap-2 text-sm">
+                  {s.role && <span class="text-muted">{s.role}:</span>}
+                  {s.photo && <PersonPhoto name={s.name} photo={s.photo} size={20} />}
+                  {s.id && hasBio ? (
+                    <button
+                      type="button"
+                      data-popover-target={`staff-${s.id}`}
+                      aria-controls={`staff-${s.id}`}
+                      aria-expanded="false"
+                      class="font-semibold text-heading underline decoration-dotted underline-offset-2 cursor-pointer hover:text-primary transition-colors"
+                    >
+                      {s.name}
+                    </button>
+                  ) : (
+                    <span class="font-semibold text-heading">{s.name}</span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
 
       <!-- Tags -->
-      {
-        eventTags.length > 0 && (
-          <div class="mt-8 flex flex-wrap gap-2" aria-label="Event tags">
-            {eventTags.map((tag) => (
-              <span class="px-3 py-1 text-xs font-semibold rounded-full bg-accent/10 text-accent dark:bg-accent/20">
-                {tag}
-              </span>
-            ))}
-          </div>
-        )
-      }
+      {eventTags.length > 0 && (
+        <div class="mt-8 flex flex-wrap gap-2" aria-label="Event tags">
+          {eventTags.map((tag) => (
+            <span class="px-3 py-1 text-xs font-semibold rounded-full bg-accent/10 text-accent dark:bg-accent/20">
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   </section>
 
   <!-- ============================================================
        REGISTRATION FORM
        ============================================================ -->
-  {
-    !isPast && (data.cognitoFormId || data.zeffyFormUrl) && (
-      <div id="registration" class="scroll-mt-24">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 pt-4 pb-2">
-          <h2 class="font-heading text-2xl font-bold text-heading">Register</h2>
-        </div>
-        {data.cognitoFormId ? (
-          <CognitoForm formId={data.cognitoFormId} formName="event" />
-        ) : (
-          data.zeffyFormUrl && <ZeffyForm formUrl={data.zeffyFormUrl} formName="event" eventId={event.id} />
-        )}
+  {!isPast && (data.cognitoFormId || data.zeffyFormUrl) && (
+    <div id="registration" class="scroll-mt-24">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 pt-4 pb-2">
+        <h2 class="font-heading text-2xl font-bold text-heading">Register</h2>
       </div>
-    )
-  }
+      {data.cognitoFormId ? (
+        <CognitoForm formId={data.cognitoFormId} formName="event" />
+      ) : (
+        data.zeffyFormUrl && <ZeffyForm formUrl={data.zeffyFormUrl} formName="event" eventId={event.id} />
+      )}
+    </div>
+  )}
 
   <!-- ============================================================
        BOTTOM CTA
        ============================================================ -->
-  {
-    !isPast &&
-      (() => {
-        const hasRegistration = !!(data.registrationUrl || data.cognitoFormId || data.zeffyFormUrl);
-        const isMultiDay = !!data.endDate;
-        const ctaTitle = hasRegistration
-          ? siteSettings.eventCtaTitle
-          : data.noRegistrationRequired
-            ? siteSettings.eventCtaTitleDropIn
-            : siteSettings.eventCtaTitleComingSoon;
-        const ctaSubtitle = hasRegistration
-          ? isMultiDay
-            ? siteSettings.eventCtaSubtitle
-            : siteSettings.eventCtaSubtitleOneDay
-          : data.noRegistrationRequired
-            ? siteSettings.eventCtaSubtitleDropIn
-            : siteSettings.eventCtaSubtitleComingSoon;
-        return (
-          <CallToAction
-            title={ctaTitle}
-            subtitle={renderInlineMarkdown(ctaSubtitle)}
-            actions={
-              data.registrationUrl
-                ? [
-                    { variant: 'primary', text: 'Register Now', href: data.registrationUrl, target: '_blank' },
-                    { text: 'Contact Us', href: '/contact' },
+  {!isPast &&
+    (() => {
+      const hasRegistration = !!(data.registrationUrl || data.cognitoFormId || data.zeffyFormUrl);
+      const isMultiDay = !!data.endDate;
+      const ctaTitle = hasRegistration
+        ? siteSettings.eventCtaTitle
+        : data.noRegistrationRequired
+          ? siteSettings.eventCtaTitleDropIn
+          : siteSettings.eventCtaTitleComingSoon;
+      const ctaSubtitle = hasRegistration
+        ? isMultiDay
+          ? siteSettings.eventCtaSubtitle
+          : siteSettings.eventCtaSubtitleOneDay
+        : data.noRegistrationRequired
+          ? siteSettings.eventCtaSubtitleDropIn
+          : siteSettings.eventCtaSubtitleComingSoon;
+      return (
+        <CallToAction
+          title={ctaTitle}
+          subtitle={renderInlineMarkdown(ctaSubtitle)}
+          actions={
+            data.registrationUrl
+              ? [
+                  { variant: 'primary', text: 'Register Now', href: data.registrationUrl, target: '_blank' },
+                  { text: 'Contact Us', href: '/contact' },
+                ]
+              : data.cognitoFormId || data.zeffyFormUrl
+                ? [{ variant: 'primary', text: 'Contact Us', href: '/contact' }]
+                : [
+                    { variant: 'primary', text: 'Contact Us', href: '/contact' },
+                    { text: 'All Events', href: '/events' },
                   ]
-                : data.cognitoFormId || data.zeffyFormUrl
-                  ? [{ variant: 'primary', text: 'Contact Us', href: '/contact' }]
-                  : [
-                      { variant: 'primary', text: 'Contact Us', href: '/contact' },
-                      { text: 'All Events', href: '/events' },
-                    ]
-            }
-          >
-            <Fragment slot="bg">
-              <div class="absolute inset-0 bg-primary/5 dark:bg-transparent" />
-            </Fragment>
-          </CallToAction>
-        );
-      })()
-  }
+          }
+        >
+          <Fragment slot="bg">
+            <div class="absolute inset-0 bg-primary/5 dark:bg-transparent" />
+          </Fragment>
+        </CallToAction>
+      );
+    })()}
 
   <!-- ── Leader popovers ── -->
-  {
-    linkedLeaderIds.map((id) => {
-      const leader = leaderMap.get(id);
-      if (!leader) return null;
-      if (!siteSettings.featureFlags.peopleWithoutPhotoOrBio && !leader.bio) return null;
-      return (
-        <div
-          id={`leader-${id}`}
-          popover="auto"
-          class="m-0 p-0 border-0 bg-transparent shadow-none [&::backdrop]:bg-black/20"
-        >
-          <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl p-4 w-64 max-w-[calc(100vw-2rem)]">
-            <div class="flex items-center gap-3 mb-2">
-              {leader.photo && <PersonPhoto name={leader.name} photo={leader.photo} size={48} class="flex-shrink-0" />}
-              <div class="min-w-0">
-                <p class="font-semibold text-gray-900 dark:text-white leading-snug">{leader.name}</p>
-                {leader.title && <p class="text-xs text-gray-500 dark:text-gray-400 leading-snug">{leader.title}</p>}
-              </div>
+  {linkedLeaderIds.map((id) => {
+    const leader = leaderMap.get(id);
+    if (!leader) return null;
+    if (!siteSettings.featureFlags.peopleWithoutPhotoOrBio && !leader.bio) return null;
+    return (
+      <div
+        id={`leader-${id}`}
+        popover="auto"
+        class="m-0 p-0 border-0 bg-transparent shadow-none [&::backdrop]:bg-black/20"
+      >
+        <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl p-4 w-64 max-w-[calc(100vw-2rem)]">
+          <div class="flex items-center gap-3 mb-2">
+            {leader.photo && <PersonPhoto name={leader.name} photo={leader.photo} size={48} class="flex-shrink-0" />}
+            <div class="min-w-0">
+              <p class="font-semibold text-gray-900 dark:text-white leading-snug">{leader.name}</p>
+              {leader.title && <p class="text-xs text-gray-500 dark:text-gray-400 leading-snug">{leader.title}</p>}
             </div>
-            {leader.bio && (
-              <p
-                class="text-sm text-gray-600 dark:text-gray-300 line-clamp-6 mb-3 md-links"
-                set:html={renderInlineMarkdown(leader.bio)}
-              />
-            )}
-            <a href={`/our-people#leader-${id}`} class="text-xs font-semibold text-primary hover:underline">
-              View full profile →
-            </a>
           </div>
+          {leader.bio && (
+            <p
+              class="text-sm text-gray-600 dark:text-gray-300 line-clamp-6 mb-3 md-links"
+              set:html={renderInlineMarkdown(leader.bio)}
+            />
+          )}
+          <a href={`/our-people#leader-${id}`} class="text-xs font-semibold text-primary hover:underline">
+            View full profile →
+          </a>
         </div>
-      );
-    })
-  }
+      </div>
+    );
+  })}
 
   <!-- ── Staff popovers ── -->
-  {
-    linkedStaffIds.map((id) => {
-      const staffMember = staffMap.get(id);
-      if (!staffMember) return null;
-      if (!siteSettings.featureFlags.peopleWithoutPhotoOrBio && !staffMember.bio) return null;
-      return (
-        <div
-          id={`staff-${id}`}
-          popover="auto"
-          class="m-0 p-0 border-0 bg-transparent shadow-none [&::backdrop]:bg-black/20"
-        >
-          <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl p-4 w-64 max-w-[calc(100vw-2rem)]">
-            <div class="flex items-center gap-3 mb-2">
-              {staffMember.photo && (
-                <PersonPhoto name={staffMember.name} photo={staffMember.photo} size={48} class="flex-shrink-0" />
-              )}
-              <div class="min-w-0">
-                <p class="font-semibold text-gray-900 dark:text-white leading-snug">{staffMember.name}</p>
-                {staffMember.role && (
-                  <p class="text-xs text-gray-500 dark:text-gray-400 leading-snug">{staffMember.role}</p>
-                )}
-              </div>
-            </div>
-            {staffMember.bio && (
-              <p
-                class="text-sm text-gray-600 dark:text-gray-300 line-clamp-6 mb-3 md-links"
-                set:html={renderInlineMarkdown(staffMember.bio)}
-              />
+  {linkedStaffIds.map((id) => {
+    const staffMember = staffMap.get(id);
+    if (!staffMember) return null;
+    if (!siteSettings.featureFlags.peopleWithoutPhotoOrBio && !staffMember.bio) return null;
+    return (
+      <div
+        id={`staff-${id}`}
+        popover="auto"
+        class="m-0 p-0 border-0 bg-transparent shadow-none [&::backdrop]:bg-black/20"
+      >
+        <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl p-4 w-64 max-w-[calc(100vw-2rem)]">
+          <div class="flex items-center gap-3 mb-2">
+            {staffMember.photo && (
+              <PersonPhoto name={staffMember.name} photo={staffMember.photo} size={48} class="flex-shrink-0" />
             )}
-            <a href={`/our-people#staff-${id}`} class="text-xs font-semibold text-primary hover:underline">
-              View full profile →
-            </a>
+            <div class="min-w-0">
+              <p class="font-semibold text-gray-900 dark:text-white leading-snug">{staffMember.name}</p>
+              {staffMember.role && (
+                <p class="text-xs text-gray-500 dark:text-gray-400 leading-snug">{staffMember.role}</p>
+              )}
+            </div>
           </div>
+          {staffMember.bio && (
+            <p
+              class="text-sm text-gray-600 dark:text-gray-300 line-clamp-6 mb-3 md-links"
+              set:html={renderInlineMarkdown(staffMember.bio)}
+            />
+          )}
+          <a href={`/our-people#staff-${id}`} class="text-xs font-semibold text-primary hover:underline">
+            View full profile →
+          </a>
         </div>
-      );
-    })
-  }
+      </div>
+    );
+  })}
 </Layout>
 
 <script>

@@ -55,77 +55,69 @@ const columnsClass =
       <div class="md:basis-1/2 self-center" data-scroll-reveal={isReversed ? 'right' : 'left'}>
         {content && <div class="mb-12 text-lg text-default" set:html={content} />}
 
-        {
-          callToAction && (
-            <div class="mt-[-40px] mb-8 text-primary">
-              <Button variant="link" {...callToAction} />
-            </div>
-          )
-        }
+        {callToAction && (
+          <div class="mt-[-40px] mb-8 text-primary">
+            <Button variant="link" {...callToAction} />
+          </div>
+        )}
 
-        {
-          items.length > 0 && (
-            <div class:list={['grid mx-auto gap-y-4 md:gap-y-8 gap-8', columnsClass]}>
-              {items.map(({ title: itemTitle, description, icon, callToAction }) => (
-                <div data-scroll-reveal="up">
-                  <div class="flex flex-row max-w-none">
-                    <div class="flex justify-center">
-                      <Icon
-                        name={icon || 'tabler:check'}
-                        class="flex h-7 w-7 items-center justify-center rounded-full bg-ecrs-green text-gray-50 p-1 mr-2 rtl:mr-0 rtl:ml-2"
+        {items.length > 0 && (
+          <div class:list={['grid mx-auto gap-y-4 md:gap-y-8 gap-8', columnsClass]}>
+            {items.map(({ title: itemTitle, description, icon, callToAction }) => (
+              <div data-scroll-reveal="up">
+                <div class="flex flex-row max-w-none">
+                  <div class="flex justify-center">
+                    <Icon
+                      name={icon || 'tabler:check'}
+                      class="flex h-7 w-7 items-center justify-center rounded-full bg-ecrs-green text-gray-50 p-1 mr-2 rtl:mr-0 rtl:ml-2"
+                    />
+                  </div>
+                  <div class="mt-0.5">
+                    {itemTitle && (
+                      <h3 class="text-lg font-medium leading-6 dark:text-white ml-2 rtl:ml-0 rtl:mr-2">{itemTitle}</h3>
+                    )}
+                    {description && (
+                      <p
+                        class:list={[{ 'mt-3': itemTitle }, 'text-muted dark:text-slate-400 ml-2 rtl:ml-0 rtl:mr-2']}
+                        set:html={description}
                       />
-                    </div>
-                    <div class="mt-0.5">
-                      {itemTitle && (
-                        <h3 class="text-lg font-medium leading-6 dark:text-white ml-2 rtl:ml-0 rtl:mr-2">
-                          {itemTitle}
-                        </h3>
-                      )}
-                      {description && (
-                        <p
-                          class:list={[{ 'mt-3': itemTitle }, 'text-muted dark:text-slate-400 ml-2 rtl:ml-0 rtl:mr-2']}
-                          set:html={description}
-                        />
-                      )}
-                      {callToAction && (
-                        <div
-                          class:list={[
-                            { 'mt-3': itemTitle || description },
-                            'text-lg font-medium leading-6 dark:text-white ml-2 rtl:ml-0 rtl:mr-2',
-                          ]}
-                        >
-                          <Button variant="link" {...callToAction} />
-                        </div>
-                      )}
-                    </div>
+                    )}
+                    {callToAction && (
+                      <div
+                        class:list={[
+                          { 'mt-3': itemTitle || description },
+                          'text-lg font-medium leading-6 dark:text-white ml-2 rtl:ml-0 rtl:mr-2',
+                        ]}
+                      >
+                        <Button variant="link" {...callToAction} />
+                      </div>
+                    )}
                   </div>
                 </div>
-              ))}
-            </div>
-          )
-        }
+              </div>
+            ))}
+          </div>
+        )}
       </div>
       <div aria-hidden="true" class="mt-10 md:mt-0 md:basis-1/2" data-scroll-reveal={isReversed ? 'left' : 'right'}>
-        {
-          image && (
-            <div class="relative m-auto max-w-4xl">
-              {typeof image === 'string' ? (
-                <Fragment set:html={image} />
-              ) : (
-                <Image
-                  class="mx-auto w-full rounded-lg bg-gray-500 shadow-lg"
-                  width={500}
-                  height={500}
-                  widths={[400, 500, 800]}
-                  sizes="(max-width: 768px) 100vw, 432px"
-                  layout="responsive"
-                  format="webp"
-                  {...image}
-                />
-              )}
-            </div>
-          )
-        }
+        {image && (
+          <div class="relative m-auto max-w-4xl">
+            {typeof image === 'string' ? (
+              <Fragment set:html={image} />
+            ) : (
+              <Image
+                class="mx-auto w-full rounded-lg bg-gray-500 shadow-lg"
+                width={500}
+                height={500}
+                widths={[400, 500, 800]}
+                sizes="(max-width: 768px) 100vw, 432px"
+                layout="responsive"
+                format="webp"
+                {...image}
+              />
+            )}
+          </div>
+        )}
       </div>
     </div>
   </div>

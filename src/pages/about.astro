@@ -35,21 +35,19 @@ const pillars = aboutSettings.pillars.map((pillar) => ({
 
   <Features2 title="" columns={2} items={pillars} classes={{ container: 'pt-4 md:pt-6 lg:pt-8' }} />
 
-  {
-    siteSettings.featureFlags.aboutPageMap && (
-      <>
-        <HeroText
-          tagline="Our Community"
-          title="ECRS Members Across the Map"
-          subtitle="Our members come from all over North America. Wherever you live, you belong here."
-        />
+  {siteSettings.featureFlags.aboutPageMap && (
+    <>
+      <HeroText
+        tagline="Our Community"
+        title="ECRS Members Across the Map"
+        subtitle="Our members come from all over North America. Wherever you live, you belong here."
+      />
 
-        <WidgetWrapper containerClass="py-8 max-w-4xl">
-          <MemberHeatmap cities={memberLocations.cities} maskSmallCounts client:visible />
-        </WidgetWrapper>
-      </>
-    )
-  }
+      <WidgetWrapper containerClass="py-8 max-w-4xl">
+        <MemberHeatmap cities={memberLocations.cities} maskSmallCounts client:visible />
+      </WidgetWrapper>
+    </>
+  )}
 
   <CallToAction
     title={aboutSettings.ctaTitle}

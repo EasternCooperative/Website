@@ -18,7 +18,10 @@ const metadata = {
     <p class="text-center text-muted mb-2">{pageSettings.introText}</p>
     <p class="text-center text-muted text-sm mb-8">
       {pageSettings.formNote}{' '}
-      <a href={`mailto:${pageSettings.formNoteEmail}`} class="text-link underline">{pageSettings.formNoteEmail}</a>.
+      <a href={`mailto:${pageSettings.formNoteEmail}`} class="text-link underline">
+        {pageSettings.formNoteEmail}
+      </a>
+      .
     </p>
 
     <MailchimpForm id="join-email-list-form" />

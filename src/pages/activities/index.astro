@@ -86,7 +86,7 @@ const itemListJsonLd = {
 
 <Layout metadata={metadata} noIndex={!isPublished}>
   <Fragment slot="head">
-    <script is:inline type="application/ld+json" set:html={JSON.stringify(itemListJsonLd)} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(itemListJsonLd)}></script>
   </Fragment>
   <HeroText
     tagline={activitiesListSettings.heroTagline}
@@ -95,7 +95,9 @@ const itemListJsonLd = {
   />
 
   <section class="pt-6 md:pt-8 pb-12 md:pb-16 px-4 max-w-7xl mx-auto" aria-labelledby="activities-heading">
-    <h2 id="activities-heading" class="sr-only">Activities</h2>
+    <h2 id="activities-heading" class="sr-only">
+      Activities
+    </h2>
 
     <!-- ============================================================
          SEARCH + FILTERS
@@ -200,155 +202,149 @@ const itemListJsonLd = {
 
             <!-- Posture/Group Size/Meter/Key pair up into two columns on wide screens,
              rather than each claiming a full-width row like Type/Tags do. -->
-            {
-              anyGridFilters && (
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  {(allPostures.length > 0 || anyWheelchairAdaptable) && (
-                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5" data-filter-group="posture">
-                      <span class="text-xs font-bold uppercase tracking-widest text-muted sm:w-20 sm:shrink-0">
-                        Posture
-                      </span>
-                      <div class="flex flex-wrap gap-2">
-                        {allPostures.map((posture) => (
-                          <button
-                            type="button"
-                            data-filter-posture={posture}
-                            data-relevant-types="game,dance"
-                            aria-pressed="false"
-                            class="text-xs font-medium rounded-full px-3 py-2 border border-gray-200 dark:border-gray-700 text-default hover:border-primary/40 transition-colors cursor-pointer"
-                          >
-                            {sentenceCase(posture)}
-                          </button>
-                        ))}
-                        {anyWheelchairAdaptable && (
-                          <button
-                            type="button"
-                            id="filter-wheelchair-adaptable"
-                            data-relevant-types="game,dance"
-                            aria-pressed="false"
-                            class="inline-flex items-center gap-1 text-xs font-medium rounded-full px-3 py-2 border border-gray-200 dark:border-gray-700 text-default hover:border-primary/40 transition-colors cursor-pointer"
-                          >
-                            <Icon name="tabler:wheelchair" class="w-3.5 h-3.5" aria-hidden="true" />
-                            Wheelchair Adaptable
-                          </button>
-                        )}
-                      </div>
+            {anyGridFilters && (
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                {(allPostures.length > 0 || anyWheelchairAdaptable) && (
+                  <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5" data-filter-group="posture">
+                    <span class="text-xs font-bold uppercase tracking-widest text-muted sm:w-20 sm:shrink-0">
+                      Posture
+                    </span>
+                    <div class="flex flex-wrap gap-2">
+                      {allPostures.map((posture) => (
+                        <button
+                          type="button"
+                          data-filter-posture={posture}
+                          data-relevant-types="game,dance"
+                          aria-pressed="false"
+                          class="text-xs font-medium rounded-full px-3 py-2 border border-gray-200 dark:border-gray-700 text-default hover:border-primary/40 transition-colors cursor-pointer"
+                        >
+                          {sentenceCase(posture)}
+                        </button>
+                      ))}
+                      {anyWheelchairAdaptable && (
+                        <button
+                          type="button"
+                          id="filter-wheelchair-adaptable"
+                          data-relevant-types="game,dance"
+                          aria-pressed="false"
+                          class="inline-flex items-center gap-1 text-xs font-medium rounded-full px-3 py-2 border border-gray-200 dark:border-gray-700 text-default hover:border-primary/40 transition-colors cursor-pointer"
+                        >
+                          <Icon name="tabler:wheelchair" class="w-3.5 h-3.5" aria-hidden="true" />
+                          Wheelchair Adaptable
+                        </button>
+                      )}
                     </div>
-                  )}
-
-                  {anyGroupSizeData && (
-                    <div id="groupsize-filter-row" class="flex flex-col sm:flex-row sm:items-center sm:gap-5">
-                      <span class="text-xs font-bold uppercase tracking-widest text-muted sm:w-20 sm:shrink-0">
-                        Group Size
-                      </span>
-                      <div class="flex-1 max-w-sm">
-                        <div class="flex items-center justify-between mb-2">
-                          <span class="text-xs text-muted">People</span>
-                          <RollingLabel
-                            id="group-size-range-value"
-                            class="text-xs font-semibold text-default leading-none"
-                          >
-                            Any size
-                          </RollingLabel>
-                        </div>
-                        <RangeSlider
-                          idPrefix="group-size"
-                          boundMin={groupSizeBoundMin}
-                          boundMax={groupSizeBoundMax}
-                          ariaLabelMin="Minimum group size"
-                          ariaLabelMax="Maximum group size"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {allMeters.length > 0 && (
-                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5" data-filter-group="meter">
-                      <span class="text-xs font-bold uppercase tracking-widest text-muted sm:w-20 sm:shrink-0">
-                        Meter
-                      </span>
-                      <div class="flex flex-wrap gap-2">
-                        {allMeters.map((meter) => (
-                          <button
-                            type="button"
-                            data-filter-meter={meter}
-                            data-relevant-types="dance"
-                            aria-pressed="false"
-                            class="text-xs font-medium rounded-full px-3 py-2 border border-gray-200 dark:border-gray-700 text-default hover:border-primary/40 transition-colors cursor-pointer"
-                          >
-                            {meter}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {allKeys.length > 0 && (
-                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5" data-filter-group="key">
-                      <span class="text-xs font-bold uppercase tracking-widest text-muted sm:w-20 sm:shrink-0">
-                        Key
-                      </span>
-                      <div class="flex flex-wrap gap-2">
-                        {allKeys.map((key) => (
-                          <button
-                            type="button"
-                            data-filter-key={key}
-                            data-relevant-types="song"
-                            aria-pressed="false"
-                            class="text-xs font-medium rounded-full px-3 py-2 border border-gray-200 dark:border-gray-700 text-default hover:border-primary/40 transition-colors cursor-pointer"
-                          >
-                            {key}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )
-            }
-
-            {
-              allTags.length > 0 && (
-                <div
-                  class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5 pt-4 border-t border-gray-200 dark:border-gray-700"
-                  data-filter-group="tags"
-                >
-                  <span class="text-xs font-bold uppercase tracking-widest text-muted sm:w-20 sm:shrink-0">Tags</span>
-                  <div class="flex flex-wrap gap-2">
-                    {allTags.map((tag) => (
-                      <button
-                        type="button"
-                        data-filter-tag={tag}
-                        aria-pressed="false"
-                        class="text-xs font-medium rounded-full px-3 py-2 border border-gray-200 dark:border-gray-700 text-default hover:border-primary/40 transition-colors cursor-pointer"
-                      >
-                        {tag}
-                      </button>
-                    ))}
                   </div>
+                )}
+
+                {anyGroupSizeData && (
+                  <div id="groupsize-filter-row" class="flex flex-col sm:flex-row sm:items-center sm:gap-5">
+                    <span class="text-xs font-bold uppercase tracking-widest text-muted sm:w-20 sm:shrink-0">
+                      Group Size
+                    </span>
+                    <div class="flex-1 max-w-sm">
+                      <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs text-muted">People</span>
+                        <RollingLabel
+                          id="group-size-range-value"
+                          class="text-xs font-semibold text-default leading-none"
+                        >
+                          Any size
+                        </RollingLabel>
+                      </div>
+                      <RangeSlider
+                        idPrefix="group-size"
+                        boundMin={groupSizeBoundMin}
+                        boundMax={groupSizeBoundMax}
+                        ariaLabelMin="Minimum group size"
+                        ariaLabelMax="Maximum group size"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {allMeters.length > 0 && (
+                  <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5" data-filter-group="meter">
+                    <span class="text-xs font-bold uppercase tracking-widest text-muted sm:w-20 sm:shrink-0">
+                      Meter
+                    </span>
+                    <div class="flex flex-wrap gap-2">
+                      {allMeters.map((meter) => (
+                        <button
+                          type="button"
+                          data-filter-meter={meter}
+                          data-relevant-types="dance"
+                          aria-pressed="false"
+                          class="text-xs font-medium rounded-full px-3 py-2 border border-gray-200 dark:border-gray-700 text-default hover:border-primary/40 transition-colors cursor-pointer"
+                        >
+                          {meter}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {allKeys.length > 0 && (
+                  <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5" data-filter-group="key">
+                    <span class="text-xs font-bold uppercase tracking-widest text-muted sm:w-20 sm:shrink-0">Key</span>
+                    <div class="flex flex-wrap gap-2">
+                      {allKeys.map((key) => (
+                        <button
+                          type="button"
+                          data-filter-key={key}
+                          data-relevant-types="song"
+                          aria-pressed="false"
+                          class="text-xs font-medium rounded-full px-3 py-2 border border-gray-200 dark:border-gray-700 text-default hover:border-primary/40 transition-colors cursor-pointer"
+                        >
+                          {key}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {allTags.length > 0 && (
+              <div
+                class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5 pt-4 border-t border-gray-200 dark:border-gray-700"
+                data-filter-group="tags"
+              >
+                <span class="text-xs font-bold uppercase tracking-widest text-muted sm:w-20 sm:shrink-0">Tags</span>
+                <div class="flex flex-wrap gap-2">
+                  {allTags.map((tag) => (
+                    <button
+                      type="button"
+                      data-filter-tag={tag}
+                      aria-pressed="false"
+                      class="text-xs font-medium rounded-full px-3 py-2 border border-gray-200 dark:border-gray-700 text-default hover:border-primary/40 transition-colors cursor-pointer"
+                    >
+                      {tag}
+                    </button>
+                  ))}
                 </div>
-              )
-            }
+              </div>
+            )}
           </div>
         </div>
       </div>
     </div>
 
-    <p data-empty-state class="text-muted text-lg hidden">{activitiesListSettings.emptyStateText}</p>
+    <p data-empty-state class="text-muted text-lg hidden">
+      {activitiesListSettings.emptyStateText}
+    </p>
 
-    {
-      allActivities.length === 0 ? (
-        <p class="text-muted text-lg">{activitiesListSettings.emptyStateText}</p>
-      ) : (
-        <ul id="activity-grid" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 list-none p-0 m-0" role="list">
-          {allActivities.map((activity) => (
-            <li data-scroll-reveal="up">
-              <ActivityCard data={activity.data} href={`/activities/${activity.id}`} cardStyle={cardStyle} />
-            </li>
-          ))}
-        </ul>
-      )
-    }
+    {allActivities.length === 0 ? (
+      <p class="text-muted text-lg">{activitiesListSettings.emptyStateText}</p>
+    ) : (
+      <ul id="activity-grid" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 list-none p-0 m-0" role="list">
+        {allActivities.map((activity) => (
+          <li data-scroll-reveal="up">
+            <ActivityCard data={activity.data} href={`/activities/${activity.id}`} cardStyle={cardStyle} />
+          </li>
+        ))}
+      </ul>
+    )}
   </section>
 </Layout>
 

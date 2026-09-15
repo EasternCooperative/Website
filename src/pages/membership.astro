@@ -30,22 +30,20 @@ const metadata = {
       classes={{ subtitle: 'text-base' }}
     />
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-      {
-        membershipSettings.pricingTiers.map((tier) => (
-          <div
-            class:list={[
-              'rounded-xl p-6',
-              tier.featured
-                ? 'border-2 border-accent bg-accent/5'
-                : 'border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900',
-            ]}
-          >
-            <h3 class="font-bold text-lg mb-1 text-heading">{tier.title}</h3>
-            <p class="text-muted text-sm mb-4">{tier.subtitle}</p>
-            <p class="font-heading text-4xl font-bold text-primary">{tier.price}</p>
-          </div>
-        ))
-      }
+      {membershipSettings.pricingTiers.map((tier) => (
+        <div
+          class:list={[
+            'rounded-xl p-6',
+            tier.featured
+              ? 'border-2 border-accent bg-accent/5'
+              : 'border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-900',
+          ]}
+        >
+          <h3 class="font-bold text-lg mb-1 text-heading">{tier.title}</h3>
+          <p class="text-muted text-sm mb-4">{tier.subtitle}</p>
+          <p class="font-heading text-4xl font-bold text-primary">{tier.price}</p>
+        </div>
+      ))}
     </div>
   </WidgetWrapper>
 

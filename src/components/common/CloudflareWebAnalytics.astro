@@ -8,13 +8,11 @@ const token = ANALYTICS?.vendors?.cloudflareWebAnalytics?.token
   : '';
 ---
 
-{
-  token && import.meta.env.PROD && (
-    <script
-      is:inline
-      defer
-      src="https://static.cloudflareinsights.com/beacon.min.js"
-      data-cf-beacon={JSON.stringify({ token })}
-    />
-  )
-}
+{token && import.meta.env.PROD && (
+  <script
+    is:inline
+    defer
+    src="https://static.cloudflareinsights.com/beacon.min.js"
+    data-cf-beacon={JSON.stringify({ token })}
+  ></script>
+)}

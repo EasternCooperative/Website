@@ -45,15 +45,13 @@ const knownSites = siteGeocodesRaw;
             </tr>
           </thead>
           <tbody>
-            {
-              memberLocations.cities.map((city) => (
-                <tr class="border-b border-gray-100 dark:border-gray-800">
-                  <td class="py-2 pr-6">{city.name}</td>
-                  <td class="py-2 pr-6 text-right tabular-nums font-semibold">{city.count}</td>
-                  <td class="py-2 text-muted">{city.country}</td>
-                </tr>
-              ))
-            }
+            {memberLocations.cities.map((city) => (
+              <tr class="border-b border-gray-100 dark:border-gray-800">
+                <td class="py-2 pr-6">{city.name}</td>
+                <td class="py-2 pr-6 text-right tabular-nums font-semibold">{city.count}</td>
+                <td class="py-2 text-muted">{city.country}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

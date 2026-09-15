@@ -31,30 +31,39 @@ const labelClass = 'block text-base font-bold text-default mb-1.5';
   class="max-w-md mx-auto space-y-4"
 >
   <div>
-    <label for="mce-EMAIL" class={labelClass}> Email <span class="text-red-600">*</span> </label>
+    <label for="mce-EMAIL" class={labelClass}>
+      {' '}
+      Email <span class="text-red-600">*</span>{' '}
+    </label>
     <input type="email" name="EMAIL" id="mce-EMAIL" autocomplete="email" required class={inputClass} />
   </div>
 
   <div class="grid grid-cols-2 gap-4">
     <div>
-      <label for="mce-FNAME" class={labelClass}>First Name</label>
+      <label for="mce-FNAME" class={labelClass}>
+        First Name
+      </label>
       <input type="text" name="FNAME" id="mce-FNAME" autocomplete="given-name" class={inputClass} />
     </div>
     <div>
-      <label for="mce-LNAME" class={labelClass}>Last Name</label>
+      <label for="mce-LNAME" class={labelClass}>
+        Last Name
+      </label>
       <input type="text" name="LNAME" id="mce-LNAME" autocomplete="family-name" class={inputClass} />
     </div>
   </div>
 
   <div>
-    <label for="mce-MMERGE4" class={labelClass}>Primary Phone</label>
+    <label for="mce-MMERGE4" class={labelClass}>
+      Primary Phone
+    </label>
     <input type="tel" name="MMERGE4" id="mce-MMERGE4" autocomplete="tel" class={inputClass} />
   </div>
 
   <fieldset class={`rounded-md border border-gray-200 ${surfaceBorder} p-4`}>
-    <legend class="px-1 text-base font-bold text-default"
-      >Marketing Permissions <span class="text-red-600">*</span></legend
-    >
+    <legend class="px-1 text-base font-bold text-default">
+      Marketing Permissions <span class="text-red-600">*</span>
+    </legend>
     <p class="mb-2 text-sm text-muted">
       Please select all the ways you would like to hear from Eastern Cooperative Recreation School:
     </p>
@@ -63,12 +72,8 @@ const labelClass = 'block text-base font-bold text-default mb-1.5';
         <input type="checkbox" id="gdpr_6437" name="gdpr[6437]" value="Y" required class="peer sr-only" />
         <span
           class={`h-6 w-10 rounded-full bg-gray-300 dark:bg-(--aw-color-border-surface-dark) transition-colors peer-checked:bg-primary peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-2`}
-        >
-        </span>
-        <span
-          class="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition-transform peer-checked:translate-x-4"
-        >
-        </span>
+        ></span>
+        <span class="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition-transform peer-checked:translate-x-4"></span>
       </span>
       Email
     </label>
@@ -81,7 +86,8 @@ const labelClass = 'block text-base font-bold text-default mb-1.5';
       will be transferred to Mailchimp for processing.{' '}
       <a href="https://mailchimp.com/legal/terms" class="underline" target="_blank" rel="noopener noreferrer">
         Learn more
-      </a> about Mailchimp's privacy practices.
+      </a>{' '}
+      about Mailchimp's privacy practices.
     </p>
   </fieldset>
 
@@ -90,7 +96,9 @@ const labelClass = 'block text-base font-bold text-default mb-1.5';
   </div>
 
   <div class="flex flex-wrap items-center justify-between gap-3">
-    <button type="submit" name="subscribe" class="btn-primary">Subscribe</button>
+    <button type="submit" name="subscribe" class="btn-primary">
+      Subscribe
+    </button>
     <a href="http://eepurl.com/yaC1IN5Xzi" title="Mailchimp - email marketing made easy and fun">
       <img
         src="https://digitalasset.intuit.com/render/content/dam/intuit/mc-fe/en_us/images/intuit-mc-rewards-text-dark.svg"

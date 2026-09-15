@@ -32,36 +32,34 @@ const columnsClass =
 <WidgetWrapper id={id} isDark={isDark} containerClass={`max-w-5xl ${classes?.container ?? ''}`} bg={bg}>
   <Headline title={title} subtitle={subtitle} tagline={tagline} classes={classes?.headline as Record<string, string>} />
 
-  {
-    items.length > 0 && (
-      <div class:list={['grid mx-auto gap-8 md:gap-y-12', columnsClass]}>
-        {items.map(({ title: itemTitle, description, icon, classes: itemClasses, callToAction }) => (
-          <div data-scroll-reveal="up">
-            <div class="flex flex-row max-w-md">
-              {(icon || defaultIcon) && (
-                <div class="flex justify-center">
-                  <Icon
-                    name={icon || defaultIcon}
-                    class:list={[
-                      'w-7 h-7 mr-2 rtl:mr-0 rtl:ml-2 text-white rounded-full md:w-12 md:h-12 md:p-3 p-2 mr-4 rtl:ml-4 rtl:mr-0',
-                      itemClasses?.icon ?? 'bg-primary',
-                    ]}
-                  />
+  {items.length > 0 && (
+    <div class:list={['grid mx-auto gap-8 md:gap-y-12', columnsClass]}>
+      {items.map(({ title: itemTitle, description, icon, classes: itemClasses, callToAction }) => (
+        <div data-scroll-reveal="up">
+          <div class="flex flex-row max-w-md">
+            {(icon || defaultIcon) && (
+              <div class="flex justify-center">
+                <Icon
+                  name={icon || defaultIcon}
+                  class:list={[
+                    'w-7 h-7 mr-2 rtl:mr-0 rtl:ml-2 text-white rounded-full md:w-12 md:h-12 md:p-3 p-2 mr-4 rtl:ml-4 rtl:mr-0',
+                    itemClasses?.icon ?? 'bg-primary',
+                  ]}
+                />
+              </div>
+            )}
+            <div class="mt-0.5">
+              {itemTitle && <h3 class="text-xl md:text-[1.3rem] font-bold">{itemTitle}</h3>}
+              {description && <p class:list={[{ 'mt-3': itemTitle }, 'text-muted']} set:html={description} />}
+              {callToAction && (
+                <div class:list={[{ 'mt-3': itemTitle || description }]}>
+                  <Button variant="link" {...callToAction} />
                 </div>
               )}
-              <div class="mt-0.5">
-                {itemTitle && <h3 class="text-xl md:text-[1.3rem] font-bold">{itemTitle}</h3>}
-                {description && <p class:list={[{ 'mt-3': itemTitle }, 'text-muted']} set:html={description} />}
-                {callToAction && (
-                  <div class:list={[{ 'mt-3': itemTitle || description }]}>
-                    <Button variant="link" {...callToAction} />
-                  </div>
-                )}
-              </div>
             </div>
           </div>
-        ))}
-      </div>
-    )
-  }
+        </div>
+      ))}
+    </div>
+  )}
 </WidgetWrapper>

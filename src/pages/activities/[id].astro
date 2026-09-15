@@ -119,69 +119,75 @@ const breadcrumbJsonLd = {
 
 <Layout metadata={metadata} noIndex={noIndex}>
   <Fragment slot="head">
-    <script is:inline type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd)} />
-    {howToJsonLd && <script is:inline type="application/ld+json" set:html={JSON.stringify(howToJsonLd)} />}
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd)}></script>
+    {howToJsonLd && <script is:inline type="application/ld+json" set:html={JSON.stringify(howToJsonLd)}></script>}
   </Fragment>
 
   <section class="relative" aria-label={data.title}>
-    {
-      data.image && (
-        <div class="relative w-full h-[32vh] overflow-hidden print:hidden" aria-hidden="true">
-          <Image
-            src={data.image}
-            alt={data.title}
-            width={1200}
-            height={480}
-            widths={[640, 960, 1200, 1600]}
-            sizes="100vw"
-            layout="cover"
-            class="w-full h-full object-cover"
-            loading="eager"
-            fetchpriority="high"
-          />
-          <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        </div>
-      )
-    }
+    {data.image && (
+      <div class="relative w-full h-[32vh] overflow-hidden print:hidden" aria-hidden="true">
+        <Image
+          src={data.image}
+          alt={data.title}
+          width={1200}
+          height={480}
+          widths={[640, 960, 1200, 1600]}
+          sizes="100vw"
+          layout="cover"
+          class="w-full h-full object-cover"
+          loading="eager"
+          fetchpriority="high"
+        />
+        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+      </div>
+    )}
 
     <div class="max-w-3xl mx-auto px-4 sm:px-6 py-10 md:py-14 print:py-4">
       <!-- Breadcrumb -->
       <nav aria-label="Breadcrumb" class="mb-6 print:hidden">
         <ol class="flex items-center gap-2 text-sm text-muted list-none p-0 m-0">
-          <li><a href="/" class="hover:text-primary transition-colors">Home</a></li>
-          <li aria-hidden="true" class="text-muted/50">›</li>
-          <li><a href="/activities" class="hover:text-primary transition-colors">Activities</a></li>
-          <li aria-hidden="true" class="text-muted/50">›</li>
-          <li aria-current="page" class="text-default min-w-0 truncate">{data.title}</li>
+          <li>
+            <a href="/" class="hover:text-primary transition-colors">
+              Home
+            </a>
+          </li>
+          <li aria-hidden="true" class="text-muted/50">
+            ›
+          </li>
+          <li>
+            <a href="/activities" class="hover:text-primary transition-colors">
+              Activities
+            </a>
+          </li>
+          <li aria-hidden="true" class="text-muted/50">
+            ›
+          </li>
+          <li aria-current="page" class="text-default min-w-0 truncate">
+            {data.title}
+          </li>
         </ol>
       </nav>
 
       <div class="flex flex-wrap gap-2 mb-4">
-        <span
-          class="inline-block px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-full bg-primary/10 text-primary"
-        >
+        <span class="inline-block px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-full bg-primary/10 text-primary">
           {typeLabel}
         </span>
-        {
-          posturePill && (
-            <span class="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full bg-accent/10 text-accent">
-              {posturePill.label}
-              {posturePill.accessible && (
-                <>
-                  <Icon name="tabler:wheelchair" class="w-3.5 h-3.5" aria-hidden="true" />
-                  {posturePill.label !== 'Seated/wheelchair adaptable' && (
-                    <span class="sr-only">Seated/wheelchair adaptable</span>
-                  )}
-                </>
-              )}
-            </span>
-          )
-        }
-        {
-          badges.map((b) => (
-            <span class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-accent/10 text-accent">{b}</span>
-          ))
-        }
+        {posturePill && (
+          <span class="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full bg-accent/10 text-accent">
+            {posturePill.label}
+            {posturePill.accessible && (
+              <>
+                <Icon name="tabler:wheelchair" class="w-3.5 h-3.5" aria-hidden="true" />
+                {posturePill.label !== 'Seated/wheelchair adaptable' && (
+                  <span class="sr-only">Seated/wheelchair adaptable</span>
+                )}
+              </>
+            )}
+          </span>
+        )}
+        {badges.map((b) => (
+          <span class="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-accent/10 text-accent">{b}</span>
+        ))}
       </div>
 
       <div class="flex items-start gap-3 mb-4">
@@ -201,331 +207,295 @@ const breadcrumbJsonLd = {
             stroke-linecap="round"
             stroke-linejoin="round"
             aria-hidden="true"
-            ><polyline points="6 9 6 2 18 2 18 9"></polyline><path
-              d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect
-              x="6"
-              y="14"
-              width="12"
-              height="8"></rect></svg
           >
+            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+            <rect x="6" y="14" width="12" height="8"></rect>
+          </svg>
         </button>
       </div>
 
       {data.excerpt && <p class="text-lg text-muted mb-6">{data.excerpt}</p>}
 
-      {
-        quickFacts.length > 0 && (
-          <div class="grid sm:grid-cols-3 gap-4 mb-8 text-sm">
-            {quickFacts.map((f) => (
-              <div>
-                <p class="text-xs font-bold uppercase tracking-widest text-muted">{f.label}</p>
-                <p class="text-default font-semibold capitalize">{f.value}</p>
-              </div>
-            ))}
-          </div>
-        )
-      }
+      {quickFacts.length > 0 && (
+        <div class="grid sm:grid-cols-3 gap-4 mb-8 text-sm">
+          {quickFacts.map((f) => (
+            <div>
+              <p class="text-xs font-bold uppercase tracking-widest text-muted">{f.label}</p>
+              <p class="text-default font-semibold capitalize">{f.value}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
       <!-- Objective (game) -->
-      {
-        data.objective && (
-          <div class="mb-8 rounded-xl bg-primary/5 border border-primary/20 p-4">
-            <p class="text-xs font-bold uppercase tracking-widest text-muted mb-1">Objective</p>
-            <p class="text-default font-semibold">{data.objective}</p>
-          </div>
-        )
-      }
+      {data.objective && (
+        <div class="mb-8 rounded-xl bg-primary/5 border border-primary/20 p-4">
+          <p class="text-xs font-bold uppercase tracking-widest text-muted mb-1">Objective</p>
+          <p class="text-default font-semibold">{data.objective}</p>
+        </div>
+      )}
 
       <!-- Instructions -->
-      {
-        data.instructions && (
-          <div class="mt-4">
-            <h2 class="font-heading text-2xl font-bold text-heading mb-3">How to Lead It</h2>
-            <div class="prose prose-lg dark:prose-invert max-w-none">
-              <Fragment set:html={renderProse(data.instructions)} />
-            </div>
+      {data.instructions && (
+        <div class="mt-4">
+          <h2 class="font-heading text-2xl font-bold text-heading mb-3">How to Lead It</h2>
+          <div class="prose prose-lg dark:prose-invert max-w-none">
+            <Fragment set:html={renderProse(data.instructions)} />
           </div>
-        )
-      }
+        </div>
+      )}
 
       <!-- Lyrics (song) -->
-      {
-        data.lyrics && (
-          <div class="mt-8">
-            <h2 class="font-heading text-2xl font-bold text-heading mb-3">Lyrics</h2>
-            <div class="prose prose-lg dark:prose-invert max-w-none">
-              <Fragment set:html={renderMarkdown(data.lyrics)} />
-            </div>
-            {data.isRound && (
-              <p class="text-xs text-muted italic mt-2">
-                This is a round — voice-entry cues are marked directly in the lyrics above.
-              </p>
-            )}
+      {data.lyrics && (
+        <div class="mt-8">
+          <h2 class="font-heading text-2xl font-bold text-heading mb-3">Lyrics</h2>
+          <div class="prose prose-lg dark:prose-invert max-w-none">
+            <Fragment set:html={renderMarkdown(data.lyrics)} />
           </div>
-        )
-      }
+          {data.isRound && (
+            <p class="text-xs text-muted italic mt-2">
+              This is a round — voice-entry cues are marked directly in the lyrics above.
+            </p>
+          )}
+        </div>
+      )}
 
       <!-- Language / translation / transliteration (song) -->
-      {
-        (data.language || data.translation || data.transliteration) && (
-          <div class="mt-6 grid sm:grid-cols-2 gap-4">
-            {data.language && (
-              <div>
-                <p class="text-xs font-bold uppercase tracking-widest text-muted">Language</p>
-                <p class="text-default font-semibold">{data.language}</p>
+      {(data.language || data.translation || data.transliteration) && (
+        <div class="mt-6 grid sm:grid-cols-2 gap-4">
+          {data.language && (
+            <div>
+              <p class="text-xs font-bold uppercase tracking-widest text-muted">Language</p>
+              <p class="text-default font-semibold">{data.language}</p>
+            </div>
+          )}
+          {data.translation && (
+            <div class="sm:col-span-2">
+              <p class="text-xs font-bold uppercase tracking-widest text-muted mb-1">Translation</p>
+              <div class="prose prose-sm dark:prose-invert max-w-none">
+                <Fragment set:html={renderMarkdown(data.translation)} />
               </div>
-            )}
-            {data.translation && (
-              <div class="sm:col-span-2">
-                <p class="text-xs font-bold uppercase tracking-widest text-muted mb-1">Translation</p>
-                <div class="prose prose-sm dark:prose-invert max-w-none">
-                  <Fragment set:html={renderMarkdown(data.translation)} />
-                </div>
+            </div>
+          )}
+          {data.transliteration && (
+            <div class="sm:col-span-2">
+              <p class="text-xs font-bold uppercase tracking-widest text-muted mb-1">Transliteration</p>
+              <div class="prose prose-sm dark:prose-invert max-w-none">
+                <Fragment set:html={renderMarkdown(data.transliteration)} />
               </div>
-            )}
-            {data.transliteration && (
-              <div class="sm:col-span-2">
-                <p class="text-xs font-bold uppercase tracking-widest text-muted mb-1">Transliteration</p>
-                <div class="prose prose-sm dark:prose-invert max-w-none">
-                  <Fragment set:html={renderMarkdown(data.transliteration)} />
-                </div>
-              </div>
-            )}
-          </div>
-        )
-      }
+            </div>
+          )}
+        </div>
+      )}
 
       <!-- Sheet music / formation diagram -->
-      {
-        (data.sheetMusicFile || data.formationDiagram) && (
-          <div class="mt-8 grid sm:grid-cols-2 gap-4">
-            {data.sheetMusicFile && (
-              <a
-                href={data.sheetMusicFile}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-primary hover:underline font-semibold text-sm"
-              >
-                View sheet music →
-              </a>
-            )}
-            {data.formationDiagram && (
-              <Image
-                src={data.formationDiagram}
-                alt={`${data.title} formation diagram`}
-                width={500}
-                height={350}
-                widths={[400, 600]}
-                sizes="(max-width: 640px) 100vw, 500px"
-                layout="constrained"
-                class="rounded-lg border border-gray-200 dark:border-gray-700"
-              />
-            )}
-          </div>
-        )
-      }
+      {(data.sheetMusicFile || data.formationDiagram) && (
+        <div class="mt-8 grid sm:grid-cols-2 gap-4">
+          {data.sheetMusicFile && (
+            <a
+              href={data.sheetMusicFile}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-primary hover:underline font-semibold text-sm"
+            >
+              View sheet music →
+            </a>
+          )}
+          {data.formationDiagram && (
+            <Image
+              src={data.formationDiagram}
+              alt={`${data.title} formation diagram`}
+              width={500}
+              height={350}
+              widths={[400, 600]}
+              sizes="(max-width: 640px) 100vw, 500px"
+              layout="constrained"
+              class="rounded-lg border border-gray-200 dark:border-gray-700"
+            />
+          )}
+        </div>
+      )}
 
       <!-- Tabs (song) -->
-      {
-        data.tabs && data.tabs.length > 0 && (
-          <div class="mt-8">
-            <h2 class="font-heading text-lg font-bold text-heading mb-3">Chords &amp; Tabs</h2>
-            <div class="space-y-4">
-              {data.tabs.map((tab) => (
-                <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
-                  <p class="text-xs font-bold uppercase tracking-widest text-muted mb-2">{tab.instrument}</p>
-                  {tab.notation && <pre class="text-sm font-mono overflow-x-auto">{tab.notation}</pre>}
-                  {tab.file && (
-                    <a
-                      href={tab.file}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="text-primary hover:underline font-semibold text-sm"
-                    >
-                      View uploaded tab →
-                    </a>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )
-      }
-
-      <!-- Variations (game) -->
-      {
-        data.variations && (
-          <div class="mt-8">
-            <h2 class="font-heading text-lg font-bold text-heading mb-2">Variations</h2>
-            <div class="prose prose-sm dark:prose-invert max-w-none">
-              <Fragment set:html={renderProse(data.variations)} />
-            </div>
-          </div>
-        )
-      }
-
-      <!-- Adaptations -->
-      {
-        data.adaptations && (
-          <div class="mt-8">
-            <h2 class="font-heading text-lg font-bold text-heading mb-2">Adaptations</h2>
-            <div class="prose prose-sm dark:prose-invert max-w-none">
-              <Fragment set:html={renderProse(data.adaptations)} />
-            </div>
-          </div>
-        )
-      }
-
-      <!-- Group size adaptations (games/dances/play-parties) -->
-      {
-        data.groupSizeAdaptationNotes && (
-          <div class="mt-8">
-            <h2 class="font-heading text-lg font-bold text-heading mb-2">Adapting for Group Size</h2>
-            <div class="prose prose-sm dark:prose-invert max-w-none">
-              <Fragment set:html={renderProse(data.groupSizeAdaptationNotes)} />
-            </div>
-          </div>
-        )
-      }
-
-      <!-- Leading tips -->
-      {
-        data.leadingTips && (
-          <div class="mt-8 rounded-xl bg-accent/5 border border-accent/20 p-5">
-            <h2 class="font-heading text-lg font-bold text-heading mb-2">Leading Tips</h2>
-            <div class="prose prose-sm dark:prose-invert max-w-none text-default">
-              <Fragment set:html={renderProse(data.leadingTips)} />
-            </div>
-          </div>
-        )
-      }
-
-      <!-- Accessibility -->
-      {
-        data.accessibilityNotes && (
-          <div class="mt-8 rounded-xl bg-primary/5 border border-primary/20 p-5">
-            <h2 class="font-heading text-lg font-bold text-heading mb-2">Accessibility</h2>
-            <div class="prose prose-sm dark:prose-invert max-w-none text-default">
-              <Fragment set:html={renderProse(data.accessibilityNotes)} />
-            </div>
-          </div>
-        )
-      }
-
-      <!-- Safety -->
-      {
-        ((data.safetyFlags && data.safetyFlags.length > 0) || data.safetyNotesOther) && (
-          <div class="mt-8 rounded-xl bg-secondary/5 border border-secondary/20 p-5">
-            <h2 class="font-heading text-lg font-bold text-heading mb-2">Safety</h2>
-            {data.safetyFlags && data.safetyFlags.length > 0 && (
-              <ul class="list-disc list-inside text-sm text-default mb-2">
-                {data.safetyFlags.map((flag) => (
-                  <li>{safetyFlagLabel[flag] ?? flag}</li>
-                ))}
-              </ul>
-            )}
-            {data.safetyNotesOther && (
-              <div
-                class="text-sm text-default prose prose-sm dark:prose-invert max-w-none"
-                set:html={renderProse(data.safetyNotesOther)}
-              />
-            )}
-          </div>
-        )
-      }
-
-      <!-- References -->
-      {
-        data.references && data.references.length > 0 && (
-          <div class="mt-8">
-            <h2 class="font-heading text-lg font-bold text-heading mb-2">References</h2>
-            <ul class="flex flex-col gap-1 list-none p-0 m-0">
-              {data.references.map((ref) => (
-                <li>
+      {data.tabs && data.tabs.length > 0 && (
+        <div class="mt-8">
+          <h2 class="font-heading text-lg font-bold text-heading mb-3">Chords &amp; Tabs</h2>
+          <div class="space-y-4">
+            {data.tabs.map((tab) => (
+              <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                <p class="text-xs font-bold uppercase tracking-widest text-muted mb-2">{tab.instrument}</p>
+                {tab.notation && <pre class="text-sm font-mono overflow-x-auto">{tab.notation}</pre>}
+                {tab.file && (
                   <a
-                    href={ref.url}
+                    href={tab.file}
                     target="_blank"
                     rel="noopener noreferrer"
                     class="text-primary hover:underline font-semibold text-sm"
                   >
-                    {ref.label ?? ref.url} →
+                    View uploaded tab →
                   </a>
-                </li>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <!-- Variations (game) -->
+      {data.variations && (
+        <div class="mt-8">
+          <h2 class="font-heading text-lg font-bold text-heading mb-2">Variations</h2>
+          <div class="prose prose-sm dark:prose-invert max-w-none">
+            <Fragment set:html={renderProse(data.variations)} />
+          </div>
+        </div>
+      )}
+
+      <!-- Adaptations -->
+      {data.adaptations && (
+        <div class="mt-8">
+          <h2 class="font-heading text-lg font-bold text-heading mb-2">Adaptations</h2>
+          <div class="prose prose-sm dark:prose-invert max-w-none">
+            <Fragment set:html={renderProse(data.adaptations)} />
+          </div>
+        </div>
+      )}
+
+      <!-- Group size adaptations (games/dances/play-parties) -->
+      {data.groupSizeAdaptationNotes && (
+        <div class="mt-8">
+          <h2 class="font-heading text-lg font-bold text-heading mb-2">Adapting for Group Size</h2>
+          <div class="prose prose-sm dark:prose-invert max-w-none">
+            <Fragment set:html={renderProse(data.groupSizeAdaptationNotes)} />
+          </div>
+        </div>
+      )}
+
+      <!-- Leading tips -->
+      {data.leadingTips && (
+        <div class="mt-8 rounded-xl bg-accent/5 border border-accent/20 p-5">
+          <h2 class="font-heading text-lg font-bold text-heading mb-2">Leading Tips</h2>
+          <div class="prose prose-sm dark:prose-invert max-w-none text-default">
+            <Fragment set:html={renderProse(data.leadingTips)} />
+          </div>
+        </div>
+      )}
+
+      <!-- Accessibility -->
+      {data.accessibilityNotes && (
+        <div class="mt-8 rounded-xl bg-primary/5 border border-primary/20 p-5">
+          <h2 class="font-heading text-lg font-bold text-heading mb-2">Accessibility</h2>
+          <div class="prose prose-sm dark:prose-invert max-w-none text-default">
+            <Fragment set:html={renderProse(data.accessibilityNotes)} />
+          </div>
+        </div>
+      )}
+
+      <!-- Safety -->
+      {((data.safetyFlags && data.safetyFlags.length > 0) || data.safetyNotesOther) && (
+        <div class="mt-8 rounded-xl bg-secondary/5 border border-secondary/20 p-5">
+          <h2 class="font-heading text-lg font-bold text-heading mb-2">Safety</h2>
+          {data.safetyFlags && data.safetyFlags.length > 0 && (
+            <ul class="list-disc list-inside text-sm text-default mb-2">
+              {data.safetyFlags.map((flag) => (
+                <li>{safetyFlagLabel[flag] ?? flag}</li>
               ))}
             </ul>
-          </div>
-        )
-      }
+          )}
+          {data.safetyNotesOther && (
+            <div
+              class="text-sm text-default prose prose-sm dark:prose-invert max-w-none"
+              set:html={renderProse(data.safetyNotesOther)}
+            />
+          )}
+        </div>
+      )}
+
+      <!-- References -->
+      {data.references && data.references.length > 0 && (
+        <div class="mt-8">
+          <h2 class="font-heading text-lg font-bold text-heading mb-2">References</h2>
+          <ul class="flex flex-col gap-1 list-none p-0 m-0">
+            {data.references.map((ref) => (
+              <li>
+                <a
+                  href={ref.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-primary hover:underline font-semibold text-sm"
+                >
+                  {ref.label ?? ref.url} →
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <!-- Origin / attribution -->
       {data.origin && <p class="mt-4 text-sm text-muted italic">Origin: {data.origin}</p>}
 
       <!-- Related leaders -->
-      {
-        relatedLeaders.length > 0 && (
-          <div class="mt-10 print:hidden">
-            <h2 class="font-heading text-lg font-bold text-heading mb-3">Leaders Who Teach This</h2>
-            <ul class="flex flex-wrap gap-3 list-none p-0 m-0">
-              {relatedLeaders.map((l) => (
-                <li>
-                  <a
-                    href={`/our-people#leader-${l.id}`}
-                    class="flex items-center gap-2 rounded-full border border-gray-200 dark:border-gray-700 pl-1 pr-3 py-1 hover:border-primary/40 transition-colors"
-                  >
-                    {l.data.photo && (
-                      <Image
-                        src={l.data.photo}
-                        alt={l.data.name}
-                        width={28}
-                        height={28}
-                        widths={[28, 56]}
-                        sizes="28px"
-                        layout="cover"
-                        class="w-7 h-7 rounded-full object-cover"
-                      />
-                    )}
-                    <span class="text-sm font-semibold">{l.data.name}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )
-      }
+      {relatedLeaders.length > 0 && (
+        <div class="mt-10 print:hidden">
+          <h2 class="font-heading text-lg font-bold text-heading mb-3">Leaders Who Teach This</h2>
+          <ul class="flex flex-wrap gap-3 list-none p-0 m-0">
+            {relatedLeaders.map((l) => (
+              <li>
+                <a
+                  href={`/our-people#leader-${l.id}`}
+                  class="flex items-center gap-2 rounded-full border border-gray-200 dark:border-gray-700 pl-1 pr-3 py-1 hover:border-primary/40 transition-colors"
+                >
+                  {l.data.photo && (
+                    <Image
+                      src={l.data.photo}
+                      alt={l.data.name}
+                      width={28}
+                      height={28}
+                      widths={[28, 56]}
+                      sizes="28px"
+                      layout="cover"
+                      class="w-7 h-7 rounded-full object-cover"
+                    />
+                  )}
+                  <span class="text-sm font-semibold">{l.data.name}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <!-- Related events -->
-      {
-        relatedEvents.length > 0 && (
-          <div class="mt-8 print:hidden">
-            <h2 class="font-heading text-lg font-bold text-heading mb-3">Taught At These Events</h2>
-            <ul class="flex flex-wrap gap-2 list-none p-0 m-0">
-              {relatedEvents.map((e) => (
-                <li>
-                  <a
-                    href={`/events/${e.id}`}
-                    class="text-sm font-semibold text-primary border border-primary/30 rounded-full px-3 py-1 hover:bg-primary/5 transition-colors"
-                  >
-                    {e.data.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )
-      }
+      {relatedEvents.length > 0 && (
+        <div class="mt-8 print:hidden">
+          <h2 class="font-heading text-lg font-bold text-heading mb-3">Taught At These Events</h2>
+          <ul class="flex flex-wrap gap-2 list-none p-0 m-0">
+            {relatedEvents.map((e) => (
+              <li>
+                <a
+                  href={`/events/${e.id}`}
+                  class="text-sm font-semibold text-primary border border-primary/30 rounded-full px-3 py-1 hover:bg-primary/5 transition-colors"
+                >
+                  {e.data.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <!-- Tags -->
-      {
-        (data.tags ?? []).length > 0 && (
-          <div class="mt-8 flex flex-wrap gap-2 print:hidden" aria-label="Activity tags">
-            {(data.tags ?? []).map((tag) => (
-              <span class="px-3 py-1 text-xs font-semibold rounded-full bg-accent/10 text-accent dark:bg-accent/20">
-                {tag}
-              </span>
-            ))}
-          </div>
-        )
-      }
+      {(data.tags ?? []).length > 0 && (
+        <div class="mt-8 flex flex-wrap gap-2 print:hidden" aria-label="Activity tags">
+          {(data.tags ?? []).map((tag) => (
+            <span class="px-3 py-1 text-xs font-semibold rounded-full bg-accent/10 text-accent dark:bg-accent/20">
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
 
       <p class="mt-10 text-sm text-muted italic print:hidden">
         Instructions and tips are ECRS's own descriptions. Any linked recordings or media belong to their original
@@ -533,7 +503,9 @@ const breadcrumbJsonLd = {
       </p>
 
       <div class="mt-8 print:hidden">
-        <a href="/activities" class="btn btn-secondary">← All Activities</a>
+        <a href="/activities" class="btn btn-secondary">
+          ← All Activities
+        </a>
       </div>
     </div>
   </section>

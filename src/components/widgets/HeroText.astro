@@ -34,52 +34,44 @@ const {
          padding, so an extra bottom margin here would double-stack the gap. -->
     <div class="pt-8 md:pt-12">
       <div class="text-center max-w-5xl mx-auto">
-        {
-          tagline && (
-            <p
-              class="text-base text-secondary font-bold tracking-wide uppercase"
-              data-scroll-reveal="up"
-              set:html={tagline}
-            />
-          )
-        }
-        {
-          title && (
-            <h1
-              class="text-5xl md:text-6xl font-bold leading-tighter tracking-tighter mb-4 font-heading dark:text-gray-200"
-              data-scroll-reveal="up"
-              set:html={title}
-            />
-          )
-        }
+        {tagline && (
+          <p
+            class="text-base text-secondary font-bold tracking-wide uppercase"
+            data-scroll-reveal="up"
+            set:html={tagline}
+          />
+        )}
+        {title && (
+          <h1
+            class="text-5xl md:text-6xl font-bold leading-tighter tracking-tighter mb-4 font-heading dark:text-gray-200"
+            data-scroll-reveal="up"
+            set:html={title}
+          />
+        )}
         <div class="max-w-3xl mx-auto">
           {subtitle && <p class="text-xl text-muted mb-6" data-scroll-reveal="up" set:html={subtitle} />}
           <div
             class="max-w-xs sm:max-w-md m-auto flex flex-nowrap flex-col sm:flex-row sm:justify-center gap-4"
             data-scroll-reveal="up"
           >
-            {
-              callToAction && (
-                <div class="flex w-full sm:w-auto">
-                  {typeof callToAction === 'string' ? (
-                    <Fragment set:html={callToAction} />
-                  ) : (
-                    <Button variant="primary" {...callToAction} />
-                  )}
-                </div>
-              )
-            }
-            {
-              callToAction2 && (
-                <div class="flex w-full sm:w-auto">
-                  {typeof callToAction2 === 'string' ? (
-                    <Fragment set:html={callToAction2} />
-                  ) : (
-                    <Button {...callToAction2} />
-                  )}
-                </div>
-              )
-            }
+            {callToAction && (
+              <div class="flex w-full sm:w-auto">
+                {typeof callToAction === 'string' ? (
+                  <Fragment set:html={callToAction} />
+                ) : (
+                  <Button variant="primary" {...callToAction} />
+                )}
+              </div>
+            )}
+            {callToAction2 && (
+              <div class="flex w-full sm:w-auto">
+                {typeof callToAction2 === 'string' ? (
+                  <Fragment set:html={callToAction2} />
+                ) : (
+                  <Button {...callToAction2} />
+                )}
+              </div>
+            )}
           </div>
         </div>
         {content && <Fragment set:html={content} />}
