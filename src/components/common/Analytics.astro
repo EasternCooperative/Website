@@ -45,21 +45,37 @@ const id = ANALYTICS?.vendors?.googleAnalytics?.id ? String(ANALYTICS.vendors.go
       // page_view is sent manually so it also fires on View Transition navigations.
       window.gtag('config', GA_ID, { send_page_view: false });
       sendPageView();
-      // The Ads conversion config pulls in a heavy doubleclick/remarketing
-      // request chain (confirmed via Lighthouse to dominate the critical
-      // path and add seconds to LCP). Conversions are only ever fired later
-      // from a real user action (e.g. a form submit in EventTracker.astro),
-      // so it's safe to configure this once the page has gone idle instead
-      // of blocking the initial render.
-      if ('requestIdleCallback' in window) {
-        requestIdleCallback(configureAdsConversion, { timeout: 3000 });
-      } else {
-        setTimeout(configureAdsConversion, 2000);
-      }
+      scheduleAdsConversion();
     }
 
+    // The Ads conversion config pulls in a heavy doubleclick/remarketing
+    // request chain (confirmed via Lighthouse to dominate the critical path
+    // and add seconds to LCP). Conversions are only ever fired later from a
+    // real user action (e.g. a form submit in EventTracker.astro), so this
+    // is tied to the visitor's first interaction rather than page load —
+    // a fixed timer left it dangling as a visible "still loading" tab state
+    // well after the page had already rendered. A long fallback timer still
+    // covers visitors who never interact (e.g. pure view-through impressions).
+    var adsConfigured = false;
+    var INTERACTION_EVENTS = ['pointerdown', 'keydown', 'touchstart', 'scroll'];
     function configureAdsConversion() {
-      if (window.gtag) window.gtag('config', 'AW-964636937');
+      if (adsConfigured || !window.gtag) return;
+      adsConfigured = true;
+      INTERACTION_EVENTS.forEach(function (evt) {
+        window.removeEventListener(evt, configureAdsConversion);
+      });
+      window.gtag('config', 'AW-964636937');
+    }
+    function scheduleAdsConversion() {
+      INTERACTION_EVENTS.forEach(function (evt) {
+        window.addEventListener(evt, configureAdsConversion, { passive: true });
+      });
+      var FALLBACK_DELAY_MS = 9000;
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(configureAdsConversion, { timeout: FALLBACK_DELAY_MS });
+      } else {
+        setTimeout(configureAdsConversion, FALLBACK_DELAY_MS);
+      }
     }
 
     function sendPageView() {
