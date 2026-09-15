@@ -33,34 +33,43 @@ export function initScrollReveal(root: ParentNode = document): void {
   const isDesktop = window.matchMedia('(min-width: 768px)').matches;
   if (prefersReduced || !isDesktop) return;
 
-  root
-    .querySelectorAll<HTMLElement>('[data-scroll-reveal]:not([data-scroll-reveal-ready]):not([hidden])')
-    .forEach((el) => {
-      el.dataset.scrollRevealReady = 'true';
+  const candidates = root.querySelectorAll<HTMLElement>(
+    '[data-scroll-reveal]:not([data-scroll-reveal-ready]):not([hidden])'
+  );
 
-      // If the element's reveal window has already been reached by its static position
-      // (e.g. it's already partway down a freshly-loaded page, or the page opened at a
-      // scrolled position), scroll-linking it would leave it stuck at whatever partial
-      // opacity/blur/offset that position implies until the user scrolls further — which
-      // reads as a rendering glitch, not an animation. Just show it fully revealed.
-      const startPx = (START_PERCENT / 100) * window.innerHeight;
-      if (el.getBoundingClientRect().top <= startPx) return;
+  // Read phase: mark every candidate ready and take its geometry up front, before any
+  // animate()/scroll() calls below can write styles — interleaving reads and writes here
+  // is what causes a forced reflow per element.
+  const startPx = (START_PERCENT / 100) * window.innerHeight;
+  const toReveal: HTMLElement[] = [];
+  candidates.forEach((el) => {
+    el.dataset.scrollRevealReady = 'true';
 
-      const direction = el.dataset.scrollReveal as Direction;
-      const { x, y } = OFFSETS[direction] ?? OFFSETS.up;
-      const isLight = direction === 'up-light';
+    // If the element's reveal window has already been reached by its static position
+    // (e.g. it's already partway down a freshly-loaded page, or the page opened at a
+    // scrolled position), scroll-linking it would leave it stuck at whatever partial
+    // opacity/blur/offset that position implies until the user scrolls further — which
+    // reads as a rendering glitch, not an animation. Just show it fully revealed.
+    if (el.getBoundingClientRect().top > startPx) toReveal.push(el);
+  });
 
-      scroll(
-        animate(
-          el,
-          {
-            opacity: [0, 1],
-            transform: [`translate(${x}px, ${y}px)`, 'translate(0px, 0px)'],
-            ...(isLight ? {} : { filter: ['blur(4px)', 'blur(0px)'] }),
-          },
-          { duration: isLight ? 0.5 : 1 }
-        ),
-        { target: el, offset: [`start ${START_PERCENT}%`, `start ${END_PERCENT}%`] }
-      );
-    });
+  // Write phase: wire up the scroll-linked animations now that all geometry has been read.
+  toReveal.forEach((el) => {
+    const direction = el.dataset.scrollReveal as Direction;
+    const { x, y } = OFFSETS[direction] ?? OFFSETS.up;
+    const isLight = direction === 'up-light';
+
+    scroll(
+      animate(
+        el,
+        {
+          opacity: [0, 1],
+          transform: [`translate(${x}px, ${y}px)`, 'translate(0px, 0px)'],
+          ...(isLight ? {} : { filter: ['blur(4px)', 'blur(0px)'] }),
+        },
+        { duration: isLight ? 0.5 : 1 }
+      ),
+      { target: el, offset: [`start ${START_PERCENT}%`, `start ${END_PERCENT}%`] }
+    );
+  });
 }
