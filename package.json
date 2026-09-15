@@ -75,7 +75,7 @@
     "@typescript-eslint/parser": "^8.63.0",
     "@vitest/coverage-v8": "^5.0.0",
     "astro-compress": "^2.4.1",
-    "astro-eslint-parser": "^2.1.0",
+    "astro-eslint-parser": "^3.1.0",
     "eslint": "^10.8.0",
     "eslint-plugin-astro": "^3.0.1",
     "globals": "^17.7.0",
