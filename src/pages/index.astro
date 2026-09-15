@@ -90,28 +90,32 @@ const metadata = {
         'An intergenerational community for people of all ages — music, dance, games, crafts, and friendship.'
     )}
     badge={featuredEvent ? `Next Event · ${featuredDateStr}` : undefined}
-    eventCard={featuredEvent
-      ? {
-          label: 'Upcoming Event',
-          title: featuredEvent.data.title,
-          date: featuredDateStr,
-          location: featuredVenue!.location,
-          deadline: featuredEvent.data.registrationDeadline
-            ? `Register by ${featuredEvent.data.registrationDeadline.toLocaleDateString('en-US', { month: 'long', day: 'numeric', timeZone: 'UTC' })}`
-            : undefined,
-          image: featuredVenue!.image,
-          dateISO: featuredEvent.data.date.toISOString(),
-          hasRegistration: !!(featuredEvent.data.registrationUrl || featuredEvent.data.cognitoFormId),
-        }
-      : undefined}
+    eventCard={
+      featuredEvent
+        ? {
+            label: 'Upcoming Event',
+            title: featuredEvent.data.title,
+            date: featuredDateStr,
+            location: featuredVenue!.location,
+            deadline: featuredEvent.data.registrationDeadline
+              ? `Register by ${featuredEvent.data.registrationDeadline.toLocaleDateString('en-US', { month: 'long', day: 'numeric', timeZone: 'UTC' })}`
+              : undefined,
+            image: featuredVenue!.image,
+            dateISO: featuredEvent.data.date.toISOString(),
+            hasRegistration: !!(featuredEvent.data.registrationUrl || featuredEvent.data.cognitoFormId),
+          }
+        : undefined
+    }
     eventHref={featuredEvent ? `/events/${featuredEvent.id}` : undefined}
-    secondaryEvent={secondEvent
-      ? {
-          title: secondEvent.data.title,
-          href: `/events/${secondEvent.id}`,
-          date: formatEventDateRange(secondEvent.data.date, secondEvent.data.endDate),
-        }
-      : undefined}
+    secondaryEvent={
+      secondEvent
+        ? {
+            title: secondEvent.data.title,
+            href: `/events/${secondEvent.id}`,
+            date: formatEventDateRange(secondEvent.data.date, secondEvent.data.endDate),
+          }
+        : undefined
+    }
     primaryCta={featuredEvent ? undefined : { text: 'See Upcoming Events', href: '/events' }}
     secondaryCta={featuredEvent ? { text: 'All Events', href: '/events' } : { text: 'Who We Are', href: '#who-we-are' }}
   />
@@ -202,57 +206,53 @@ const metadata = {
   <!-- ============================================================
        KEY STATS
        ============================================================ -->
-  {
-    landing?.stats && landing.stats.length > 0 && (
-      <Stats stats={landing.stats}>
-        <Fragment slot="bg">
-          <div class="absolute inset-0 bg-primary/5 dark:bg-transparent" />
-        </Fragment>
-      </Stats>
-    )
-  }
+  {landing?.stats && landing.stats.length > 0 && (
+    <Stats stats={landing.stats}>
+      <Fragment slot="bg">
+        <div class="absolute inset-0 bg-primary/5 dark:bg-transparent" />
+      </Fragment>
+    </Stats>
+  )}
 
   <!-- ============================================================
        MORE UPCOMING EVENTS
        ============================================================ -->
-  {
-    upcomingEvents.length > 0 && (
-      <WidgetWrapper id="more-events" containerClass="py-16 md:py-20">
-        <div class="text-center mb-12">
-          <p class="text-base font-bold uppercase tracking-widest text-primary mb-2">
-            {landing?.moreEventsEyebrow ?? 'Join Us'}
-          </p>
-          <h2 class="font-heading text-4xl md:text-5xl font-bold text-heading">
-            {landing?.moreEventsHeading ?? 'More Upcoming Events'}
-          </h2>
-        </div>
-        <ul class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 list-none p-0 m-0" role="list">
-          {upcomingEvents.map((event: (typeof upcomingEvents)[0]) => {
-            const v = resolveVenue(event.data, event.data.siteId ? siteMap.get(event.data.siteId) : undefined);
-            return (
-              <li data-scroll-reveal="up">
-                <EventCard
-                  title={event.data.title}
-                  date={formatEventDateRange(event.data.date, event.data.endDate)}
-                  location={v.location}
-                  href={`/events/${event.id}`}
-                  image={v.image}
-                  excerpt={event.data.excerpt}
-                  hasRegistration={!!(event.data.registrationUrl || event.data.cognitoFormId)}
-                  variant="upcoming"
-                />
-              </li>
-            );
-          })}
-        </ul>
-        <div class="text-center mt-10">
-          <a href="/events" class="btn btn-secondary">
-            {landing?.moreEventsViewAllText ?? 'View all events'}
-          </a>
-        </div>
-      </WidgetWrapper>
-    )
-  }
+  {upcomingEvents.length > 0 && (
+    <WidgetWrapper id="more-events" containerClass="py-16 md:py-20">
+      <div class="text-center mb-12">
+        <p class="text-base font-bold uppercase tracking-widest text-primary mb-2">
+          {landing?.moreEventsEyebrow ?? 'Join Us'}
+        </p>
+        <h2 class="font-heading text-4xl md:text-5xl font-bold text-heading">
+          {landing?.moreEventsHeading ?? 'More Upcoming Events'}
+        </h2>
+      </div>
+      <ul class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 list-none p-0 m-0" role="list">
+        {upcomingEvents.map((event: (typeof upcomingEvents)[0]) => {
+          const v = resolveVenue(event.data, event.data.siteId ? siteMap.get(event.data.siteId) : undefined);
+          return (
+            <li data-scroll-reveal="up">
+              <EventCard
+                title={event.data.title}
+                date={formatEventDateRange(event.data.date, event.data.endDate)}
+                location={v.location}
+                href={`/events/${event.id}`}
+                image={v.image}
+                excerpt={event.data.excerpt}
+                hasRegistration={!!(event.data.registrationUrl || event.data.cognitoFormId)}
+                variant="upcoming"
+              />
+            </li>
+          );
+        })}
+      </ul>
+      <div class="text-center mt-10">
+        <a href="/events" class="btn btn-secondary">
+          {landing?.moreEventsViewAllText ?? 'View all events'}
+        </a>
+      </div>
+    </WidgetWrapper>
+  )}
 
   <!-- ============================================================
        GET INVOLVED CTA

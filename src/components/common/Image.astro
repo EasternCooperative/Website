@@ -158,35 +158,33 @@ const cdnSrcSet =
     : undefined;
 ---
 
-{
-  isCdnUrl ? (
-    <img
-      src={cdnSrc}
-      srcset={cdnSrcSet}
-      width={w}
-      height={h}
-      alt={alt}
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-      {...rest}
-      style={finalStyle}
-    />
-  ) : (
-    /* The native <Image /> typing is overly strict for our forwarding wrapper;
+{isCdnUrl ? (
+  <img
+    src={cdnSrc}
+    srcset={cdnSrcSet}
+    width={w}
+    height={h}
+    alt={alt}
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+    {...rest}
+    style={finalStyle}
+  />
+) : (
+  /* The native <Image /> typing is overly strict for our forwarding wrapper;
        we cast through `unknown` once so each call site keeps clean types. */
-    resolved && (
-      <AstroImage
-        {...({
-          ...rest,
-          src: resolved,
-          width: w,
-          height: h,
-          alt,
-          widths,
-          format,
-          style: finalStyle,
-        } as unknown as Parameters<typeof AstroImage>[0])}
-      />
-    )
+  resolved && (
+    <AstroImage
+      {...({
+        ...rest,
+        src: resolved,
+        width: w,
+        height: h,
+        alt,
+        widths,
+        format,
+        style: finalStyle,
+      } as unknown as Parameters<typeof AstroImage>[0])}
+    />
   )
-}
+)}

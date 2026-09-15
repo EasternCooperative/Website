@@ -51,7 +51,7 @@ if (!metadata.openGraph?.images?.length) {
   <slot name="header">
     <Header {...headerData} isSticky showToggleTheme />
   </slot>
-  <main id="main-content" {...noIndex ? { 'data-pagefind-ignore': true } : { 'data-pagefind-body': true }}>
+  <main id="main-content" {...(noIndex ? { 'data-pagefind-ignore': true } : { 'data-pagefind-body': true })}>
     <slot />
   </main>
   <slot name="footer">

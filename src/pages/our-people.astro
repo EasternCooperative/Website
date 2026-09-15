@@ -226,32 +226,28 @@ const peopleJsonLd = {
 
 <Layout metadata={metadata}>
   <Fragment slot="head">
-    <script is:inline type="application/ld+json" set:html={JSON.stringify(peopleJsonLd)} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(peopleJsonLd)}></script>
   </Fragment>
   <div class="max-w-5xl mx-auto px-4 sm:px-6 py-16">
-    <h1 class="font-heading text-4xl md:text-5xl font-bold text-heading mb-8">
-      {peoplePageData.title}
-    </h1>
+    <h1 class="font-heading text-4xl md:text-5xl font-bold text-heading mb-8">{peoplePageData.title}</h1>
 
     <!-- ── Quick jump nav ── -->
-    {
-      jumpSections.length > 1 && (
-        <nav aria-label="Jump to section" class="mb-8">
-          <ul class="flex flex-wrap gap-2 list-none p-0 m-0">
-            {jumpSections.map((section) => (
-              <li>
-                <a
-                  href={`#${section.id}`}
-                  class="inline-block text-sm font-semibold rounded-full px-4 py-2 border border-gray-200 dark:border-gray-700 text-default hover:border-primary/40 hover:text-primary transition-colors"
-                >
-                  {section.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      )
-    }
+    {jumpSections.length > 1 && (
+      <nav aria-label="Jump to section" class="mb-8">
+        <ul class="flex flex-wrap gap-2 list-none p-0 m-0">
+          {jumpSections.map((section) => (
+            <li>
+              <a
+                href={`#${section.id}`}
+                class="inline-block text-sm font-semibold rounded-full px-4 py-2 border border-gray-200 dark:border-gray-700 text-default hover:border-primary/40 hover:text-primary transition-colors"
+              >
+                {section.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    )}
 
     <!-- ── Sort + filter toolbar ── -->
     <div
@@ -313,120 +309,116 @@ const peopleJsonLd = {
       </div>
     </div>
 
-    <p data-people-empty class="hidden text-muted text-lg mb-12">No one to show with the current filter.</p>
+    <p data-people-empty class="hidden text-muted text-lg mb-12">
+      No one to show with the current filter.
+    </p>
 
     <!-- ── Program Leaders (auto from leader records) ── -->
-    {
-      balancedLeaders.length > 0 && (
-        <section
-          class:list={['mb-16', balancedLeaders.every(hiddenByDefault) && 'hidden']}
-          aria-labelledby="leaders-heading"
-          data-people-section
+    {balancedLeaders.length > 0 && (
+      <section
+        class:list={['mb-16', balancedLeaders.every(hiddenByDefault) && 'hidden']}
+        aria-labelledby="leaders-heading"
+        data-people-section
+      >
+        <h2
+          id="leaders-heading"
+          class="font-heading text-2xl font-bold text-heading mb-8 pb-2 border-b border-gray-200 dark:border-gray-700 scroll-mt-24"
         >
-          <h2
-            id="leaders-heading"
-            class="font-heading text-2xl font-bold text-heading mb-8 pb-2 border-b border-gray-200 dark:border-gray-700 scroll-mt-24"
-          >
-            Leaders
-          </h2>
-          <ul class="grid sm:grid-cols-2 gap-8 list-none p-0 m-0" data-people-list>
-            {balancedLeaders.map((leader) => (
-              <li
-                id={`leader-${leader.id}`}
-                class:list={['scroll-mt-24', hiddenByDefault(leader) && 'hidden']}
-                data-scroll-reveal="up"
-                data-person-card
-                data-name={leader.name}
-                data-has-profile={String(hasProfile(leader))}
-              >
-                {leader.extraIds.map((extraId) => (
-                  <span id={`leader-${extraId}`} class="sr-only scroll-mt-24" aria-hidden="true" />
-                ))}
-                <PersonCard
-                  name={leader.name}
-                  title={leader.title}
-                  photo={leader.photo}
-                  bio={leader.bio ? renderInlineMarkdown(leader.bio) : undefined}
-                />
-              </li>
-            ))}
-          </ul>
-        </section>
-      )
-    }
+          Leaders
+        </h2>
+        <ul class="grid sm:grid-cols-2 gap-8 list-none p-0 m-0" data-people-list>
+          {balancedLeaders.map((leader) => (
+            <li
+              id={`leader-${leader.id}`}
+              class:list={['scroll-mt-24', hiddenByDefault(leader) && 'hidden']}
+              data-scroll-reveal="up"
+              data-person-card
+              data-name={leader.name}
+              data-has-profile={String(hasProfile(leader))}
+            >
+              {leader.extraIds.map((extraId) => (
+                <span id={`leader-${extraId}`} class="sr-only scroll-mt-24" aria-hidden="true" />
+              ))}
+              <PersonCard
+                name={leader.name}
+                title={leader.title}
+                photo={leader.photo}
+                bio={leader.bio ? renderInlineMarkdown(leader.bio) : undefined}
+              />
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
 
     <!-- ── Staff (auto from staff records) ── -->
-    {
-      balancedStaff.length > 0 && (
-        <section
-          class:list={['mb-16', balancedStaff.every(hiddenByDefault) && 'hidden']}
-          aria-labelledby="staff-heading"
-          data-people-section
+    {balancedStaff.length > 0 && (
+      <section
+        class:list={['mb-16', balancedStaff.every(hiddenByDefault) && 'hidden']}
+        aria-labelledby="staff-heading"
+        data-people-section
+      >
+        <h2
+          id="staff-heading"
+          class="font-heading text-2xl font-bold text-heading mb-8 pb-2 border-b border-gray-200 dark:border-gray-700 scroll-mt-24"
         >
-          <h2
-            id="staff-heading"
-            class="font-heading text-2xl font-bold text-heading mb-8 pb-2 border-b border-gray-200 dark:border-gray-700 scroll-mt-24"
-          >
-            Staff
-          </h2>
-          <ul class="grid sm:grid-cols-2 gap-8 list-none p-0 m-0" data-people-list>
-            {balancedStaff.map((staffMember) => (
-              <li
-                id={`staff-${staffMember.id}`}
-                class:list={['scroll-mt-24', hiddenByDefault(staffMember) && 'hidden']}
-                data-scroll-reveal="up"
-                data-person-card
-                data-name={staffMember.name}
-                data-has-profile={String(hasProfile(staffMember))}
-              >
-                <PersonCard
-                  name={staffMember.name}
-                  title={staffMember.title}
-                  photo={staffMember.photo}
-                  bio={staffMember.bio ? renderInlineMarkdown(staffMember.bio) : undefined}
-                />
-              </li>
-            ))}
-          </ul>
-        </section>
-      )
-    }
+          Staff
+        </h2>
+        <ul class="grid sm:grid-cols-2 gap-8 list-none p-0 m-0" data-people-list>
+          {balancedStaff.map((staffMember) => (
+            <li
+              id={`staff-${staffMember.id}`}
+              class:list={['scroll-mt-24', hiddenByDefault(staffMember) && 'hidden']}
+              data-scroll-reveal="up"
+              data-person-card
+              data-name={staffMember.name}
+              data-has-profile={String(hasProfile(staffMember))}
+            >
+              <PersonCard
+                name={staffMember.name}
+                title={staffMember.title}
+                photo={staffMember.photo}
+                bio={staffMember.bio ? renderInlineMarkdown(staffMember.bio) : undefined}
+              />
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
 
     <!-- ── Editor-defined sections (Board of Directors, committees) ──
          These are official rosters, not a directory of profiles — everyone
          on them stays visible regardless of the "Empty Profiles" filter,
          so a name-only board or committee member never appears to be
          missing from the page. -->
-    {
-      (peoplePageData.categories ?? []).map((cat) =>
-        cat.people && cat.people.length > 0 ? (
-          <section
-            class="mb-16"
-            aria-labelledby={`section-${cat.label.toLowerCase().replace(/\s+/g, '-')}`}
-            data-people-section
+    {(peoplePageData.categories ?? []).map((cat) =>
+      cat.people && cat.people.length > 0 ? (
+        <section
+          class="mb-16"
+          aria-labelledby={`section-${cat.label.toLowerCase().replace(/\s+/g, '-')}`}
+          data-people-section
+        >
+          <h2
+            id={`section-${cat.label.toLowerCase().replace(/\s+/g, '-')}`}
+            class="font-heading text-2xl font-bold text-heading mb-8 pb-2 border-b border-gray-200 dark:border-gray-700 scroll-mt-24"
           >
-            <h2
-              id={`section-${cat.label.toLowerCase().replace(/\s+/g, '-')}`}
-              class="font-heading text-2xl font-bold text-heading mb-8 pb-2 border-b border-gray-200 dark:border-gray-700 scroll-mt-24"
-            >
-              {cat.label}
-            </h2>
-            <ul class="grid sm:grid-cols-2 gap-8 list-none p-0 m-0" data-people-list>
-              {cat.people.map((person) => (
-                <li data-scroll-reveal="up" data-person-card data-name={person.name} data-has-profile="true">
-                  <PersonCard
-                    name={person.name}
-                    title={person.title ?? undefined}
-                    photo={person.photo ?? undefined}
-                    bio={person.bio ? renderInlineMarkdown(person.bio) : undefined}
-                  />
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null
-      )
-    }
+            {cat.label}
+          </h2>
+          <ul class="grid sm:grid-cols-2 gap-8 list-none p-0 m-0" data-people-list>
+            {cat.people.map((person) => (
+              <li data-scroll-reveal="up" data-person-card data-name={person.name} data-has-profile="true">
+                <PersonCard
+                  name={person.name}
+                  title={person.title ?? undefined}
+                  photo={person.photo ?? undefined}
+                  bio={person.bio ? renderInlineMarkdown(person.bio) : undefined}
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null
+    )}
   </div>
 </Layout>
 

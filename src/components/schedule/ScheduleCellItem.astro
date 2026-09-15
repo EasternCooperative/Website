@@ -38,47 +38,43 @@ const withSlashBreaks = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\//g, '/<wbr>');
 ---
 
-{
-  hasPopover ? (
-    <span
-      role="button"
-      tabindex="0"
-      data-popover-target={`sd-${item.classIndex}`}
-      aria-controls={`sd-${item.classIndex}`}
-      aria-expanded="false"
-      class="sched-trigger cursor-pointer font-semibold text-heading underline decoration-dotted underline-offset-2 transition-colors hover:text-primary"
-      set:html={withSlashBreaks(item.name)}
-    />
-  ) : (
-    <span class="font-semibold text-heading" set:html={withSlashBreaks(item.name)} />
-  )
-}
-{
-  leaders.length > 0 && (
-    <span class="sched-leaders mt-0.5 block text-xs text-muted italic">
-      {leaders.map((l, i) => (
-        <Fragment>
-          {i > 0 ? ', ' : null}
-          {l.photo ? (
-            <span class="sched-avatar mr-1 inline-block align-middle not-italic">
-              <PersonPhoto name={l.name} photo={l.photo} size={16} />
-            </span>
-          ) : null}
-          {l.id && l.hasBio ? (
-            <span
-              role="button"
-              tabindex="0"
-              data-popover-target={`leader-${l.id}`}
-              aria-controls={`leader-${l.id}`}
-              aria-expanded="false"
-              class="sched-trigger cursor-pointer underline decoration-dotted underline-offset-2 transition-colors hover:text-primary"
-              set:text={l.name}
-            />
-          ) : (
-            <span set:text={l.name} />
-          )}
-        </Fragment>
-      ))}
-    </span>
-  )
-}
+{hasPopover ? (
+  <span
+    role="button"
+    tabindex="0"
+    data-popover-target={`sd-${item.classIndex}`}
+    aria-controls={`sd-${item.classIndex}`}
+    aria-expanded="false"
+    class="sched-trigger cursor-pointer font-semibold text-heading underline decoration-dotted underline-offset-2 transition-colors hover:text-primary"
+    set:html={withSlashBreaks(item.name)}
+  />
+) : (
+  <span class="font-semibold text-heading" set:html={withSlashBreaks(item.name)} />
+)}
+{leaders.length > 0 && (
+  <span class="sched-leaders mt-0.5 block text-xs text-muted italic">
+    {leaders.map((l, i) => (
+      <Fragment>
+        {i > 0 ? ', ' : null}
+        {l.photo ? (
+          <span class="sched-avatar mr-1 inline-block align-middle not-italic">
+            <PersonPhoto name={l.name} photo={l.photo} size={16} />
+          </span>
+        ) : null}
+        {l.id && l.hasBio ? (
+          <span
+            role="button"
+            tabindex="0"
+            data-popover-target={`leader-${l.id}`}
+            aria-controls={`leader-${l.id}`}
+            aria-expanded="false"
+            class="sched-trigger cursor-pointer underline decoration-dotted underline-offset-2 transition-colors hover:text-primary"
+            set:text={l.name}
+          />
+        ) : (
+          <span set:text={l.name} />
+        )}
+      </Fragment>
+    ))}
+  </span>
+)}

@@ -53,8 +53,8 @@ const currentPath = `/${trimSlash(new URL(Astro.url).pathname)}`;
     { sticky: isSticky, relative: !isSticky, dark: isDark },
     'top-0 z-40 flex-none mx-auto w-full border-b border-gray-50/0 transition-[opacity] ease-in-out',
   ]}
-  {...isSticky ? { 'data-aw-sticky-header': true } : {}}
-  {...id ? { id } : {}}
+  {...(isSticky ? { 'data-aw-sticky-header': true } : {})}
+  {...(id ? { id } : {})}
   data-pagefind-ignore
 >
   <div class="absolute inset-0"></div>
@@ -87,21 +87,19 @@ const currentPath = `/${trimSlash(new URL(Astro.url).pathname)}`;
       <div class="flex items-center gap-1 nav:hidden">
         <Search />
         {showToggleTheme && <ToggleTheme iconClass="w-6 h-6" />}
-        {
-          siteData.socialLinks
-            .filter((link) => link.url)
-            .map((link) => (
-              <a
-                href={link.url}
-                aria-label={link.platform}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="icon-btn-focus text-muted dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary dark:hover:text-primary rounded-lg p-2 inline-flex items-center transition-colors"
-              >
-                <Icon name={link.icon} class="w-5 h-5" />
-              </a>
-            ))
-        }
+        {siteData.socialLinks
+          .filter((link) => link.url)
+          .map((link) => (
+            <a
+              href={link.url}
+              aria-label={link.platform}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="icon-btn-focus text-muted dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary dark:hover:text-primary rounded-lg p-2 inline-flex items-center transition-colors"
+            >
+              <Icon name={link.icon} class="w-5 h-5" />
+            </a>
+          ))}
         <ToggleMenu />
       </div>
     </div>
@@ -109,58 +107,54 @@ const currentPath = `/${trimSlash(new URL(Astro.url).pathname)}`;
       class="items-center w-full nav:w-auto hidden nav:flex nav:mx-5 text-default overflow-y-auto overflow-x-hidden nav:overflow-visible nav:justify-self-center"
       aria-label="Main navigation"
     >
-      <ul
-        class="flex flex-col nav:flex-row nav:self-center w-full nav:w-auto text-xl nav:text-[0.9375rem] tracking-[0.01rem] font-medium nav:justify-center"
-      >
-        {
-          links.map(({ text, href, links }) => (
-            <li class={links?.length ? 'dropdown' : ''}>
-              {links?.length ? (
-                <>
-                  <button
-                    type="button"
-                    class:list={[
-                      'hover:text-link dark:hover:text-white px-4 py-3 flex items-center whitespace-nowrap cursor-pointer',
-                      // Keep the active underline visible on the parent while the
-                      // current page is one of its children, which a flat link got
-                      // for free before the submenu existed.
-                      { 'aw-link-active': links.some((child) => child.href === currentPath) },
-                    ]}
-                  >
-                    {text}{' '}
-                    <Icon name="tabler:chevron-down" class="w-3.5 h-3.5 ml-0.5 rtl:ml-0 rtl:mr-0.5 hidden nav:inline" />
-                  </button>
-                  <ul class="dropdown-menu nav:backdrop-blur-md dark:nav:bg-dark rounded nav:absolute pl-4 nav:pl-0 nav:hidden font-medium nav:bg-gray-50/90 nav:min-w-[200px] drop-shadow-xl">
-                    {links.map(({ text: text2, href: href2 }) => (
-                      <li>
-                        <a
-                          class:list={[
-                            'first:rounded-t last:rounded-b nav:hover:bg-gray-100 hover:text-link dark:hover:text-white dark:hover:bg-gray-700 py-2 px-5 block whitespace-no-wrap',
-                            { 'aw-link-active': href2 === currentPath },
-                          ]}
-                          href={href2}
-                        >
-                          {text2}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              ) : (
-                <a
+      <ul class="flex flex-col nav:flex-row nav:self-center w-full nav:w-auto text-xl nav:text-[0.9375rem] tracking-[0.01rem] font-medium nav:justify-center">
+        {links.map(({ text, href, links }) => (
+          <li class={links?.length ? 'dropdown' : ''}>
+            {links?.length ? (
+              <>
+                <button
+                  type="button"
                   class:list={[
-                    'nav-link hover:text-link dark:hover:text-white px-4 py-3 flex items-center whitespace-nowrap',
-                    { 'aw-link-active': href === currentPath },
+                    'hover:text-link dark:hover:text-white px-4 py-3 flex items-center whitespace-nowrap cursor-pointer',
+                    // Keep the active underline visible on the parent while the
+                    // current page is one of its children, which a flat link got
+                    // for free before the submenu existed.
+                    { 'aw-link-active': links.some((child) => child.href === currentPath) },
                   ]}
-                  href={href}
-                  aria-current={href === currentPath ? 'page' : undefined}
                 >
-                  {text}
-                </a>
-              )}
-            </li>
-          ))
-        }
+                  {text}{' '}
+                  <Icon name="tabler:chevron-down" class="w-3.5 h-3.5 ml-0.5 rtl:ml-0 rtl:mr-0.5 hidden nav:inline" />
+                </button>
+                <ul class="dropdown-menu nav:backdrop-blur-md dark:nav:bg-dark rounded nav:absolute pl-4 nav:pl-0 nav:hidden font-medium nav:bg-gray-50/90 nav:min-w-[200px] drop-shadow-xl">
+                  {links.map(({ text: text2, href: href2 }) => (
+                    <li>
+                      <a
+                        class:list={[
+                          'first:rounded-t last:rounded-b nav:hover:bg-gray-100 hover:text-link dark:hover:text-white dark:hover:bg-gray-700 py-2 px-5 block whitespace-no-wrap',
+                          { 'aw-link-active': href2 === currentPath },
+                        ]}
+                        href={href2}
+                      >
+                        {text2}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <a
+                class:list={[
+                  'nav-link hover:text-link dark:hover:text-white px-4 py-3 flex items-center whitespace-nowrap',
+                  { 'aw-link-active': href === currentPath },
+                ]}
+                href={href}
+                aria-current={href === currentPath ? 'page' : undefined}
+              >
+                {text}
+              </a>
+            )}
+          </li>
+        ))}
       </ul>
     </nav>
     <div
@@ -173,33 +167,29 @@ const currentPath = `/${trimSlash(new URL(Astro.url).pathname)}`;
         <div class="hidden nav:flex items-center gap-1">
           <Search />
           {showToggleTheme && <ToggleTheme iconClass="w-5 h-5" />}
-          {
-            siteData.socialLinks
-              .filter((link) => link.url)
-              .map((link) => (
-                <a
-                  href={link.url}
-                  aria-label={link.platform}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="icon-btn-focus text-muted dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary dark:hover:text-primary rounded-lg p-2 inline-flex items-center transition-colors"
-                >
-                  <Icon name={link.icon} class="w-5 h-5" />
-                </a>
-              ))
-          }
+          {siteData.socialLinks
+            .filter((link) => link.url)
+            .map((link) => (
+              <a
+                href={link.url}
+                aria-label={link.platform}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="icon-btn-focus text-muted dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary dark:hover:text-primary rounded-lg p-2 inline-flex items-center transition-colors"
+              >
+                <Icon name={link.icon} class="w-5 h-5" />
+              </a>
+            ))}
         </div>
-        {
-          actions?.length ? (
-            <span class="ml-auto rtl:ml-0 rtl:mr-auto">
-              {actions.map((btnProps) => (
-                <Button {...btnProps} class="ml-2 py-2.5 px-5.5 nav:px-6 font-semibold shadow-none text-sm w-auto" />
-              ))}
-            </span>
-          ) : (
-            ''
-          )
-        }
+        {actions?.length ? (
+          <span class="ml-auto rtl:ml-0 rtl:mr-auto">
+            {actions.map((btnProps) => (
+              <Button {...btnProps} class="ml-2 py-2.5 px-5.5 nav:px-6 font-semibold shadow-none text-sm w-auto" />
+            ))}
+          </span>
+        ) : (
+          ''
+        )}
       </div>
     </div>
   </div>

@@ -114,7 +114,7 @@ const itemListJsonLd = {
 
 <Layout metadata={metadata}>
   <Fragment slot="head">
-    <script is:inline type="application/ld+json" set:html={JSON.stringify(itemListJsonLd)} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(itemListJsonLd)}></script>
   </Fragment>
   <HeroText
     tagline={eventsListSettings.heroTagline}
@@ -130,134 +130,130 @@ const itemListJsonLd = {
       {eventsListSettings.upcomingHeading}
     </h2>
 
-    {
-      upcoming.length === 0 ? (
-        <p class="text-muted text-lg">{eventsListSettings.emptyStateText}</p>
-      ) : (
-        <ul class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 list-none p-0 m-0" role="list">
-          {upcoming.map((event: (typeof upcoming)[0]) => {
-            const v = resolveVenue(event.data, event.data.siteId ? siteMap.get(event.data.siteId) : undefined);
-            return (
-              <li data-scroll-reveal="up">
-                <EventCard
-                  title={event.data.title}
-                  date={formatEventDateRange(event.data.date, event.data.endDate)}
-                  location={v.location}
-                  href={`/events/${event.id}`}
-                  image={v.image}
-                  excerpt={event.data.excerpt}
-                  registrationDeadline={event.data.registrationDeadline}
-                  hasRegistration={!!(event.data.registrationUrl || event.data.cognitoFormId)}
-                  variant="upcoming"
-                />
-              </li>
-            );
-          })}
-        </ul>
-      )
-    }
+    {upcoming.length === 0 ? (
+      <p class="text-muted text-lg">{eventsListSettings.emptyStateText}</p>
+    ) : (
+      <ul class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 list-none p-0 m-0" role="list">
+        {upcoming.map((event: (typeof upcoming)[0]) => {
+          const v = resolveVenue(event.data, event.data.siteId ? siteMap.get(event.data.siteId) : undefined);
+          return (
+            <li data-scroll-reveal="up">
+              <EventCard
+                title={event.data.title}
+                date={formatEventDateRange(event.data.date, event.data.endDate)}
+                location={v.location}
+                href={`/events/${event.id}`}
+                image={v.image}
+                excerpt={event.data.excerpt}
+                registrationDeadline={event.data.registrationDeadline}
+                hasRegistration={!!(event.data.registrationUrl || event.data.cognitoFormId)}
+                variant="upcoming"
+              />
+            </li>
+          );
+        })}
+      </ul>
+    )}
   </section>
 
   <!-- ============================================================
        PAST EVENTS
        ============================================================ -->
-  {
-    past.length > 0 && (
-      <section
-        class="py-12 md:py-16 px-4 max-w-7xl mx-auto border-t border-gray-200 dark:border-gray-700"
-        aria-labelledby="past-heading"
-      >
-        <h2 id="past-heading" class="font-heading text-3xl md:text-4xl font-bold mb-8 text-muted">
-          {eventsListSettings.pastHeading}
-        </h2>
+  {past.length > 0 && (
+    <section
+      class="py-12 md:py-16 px-4 max-w-7xl mx-auto border-t border-gray-200 dark:border-gray-700"
+      aria-labelledby="past-heading"
+    >
+      <h2 id="past-heading" class="font-heading text-3xl md:text-4xl font-bold mb-8 text-muted">
+        {eventsListSettings.pastHeading}
+      </h2>
 
-        {(pastYearBoundMin !== pastYearBoundMax || pastSites.length > 1) && (
-          <div
-            id="past-events-filters"
-            class="flex flex-col gap-4 mb-8 pb-6 border-b border-gray-200 dark:border-gray-700"
-          >
-            {pastYearBoundMin !== pastYearBoundMax && (
-              <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5">
-                <span class="text-xs font-bold uppercase tracking-widest text-muted sm:w-20 sm:shrink-0">Year</span>
-                <div class="flex-1 max-w-sm">
-                  <div class="flex items-center justify-between mb-2 gap-2">
-                    <span class="text-xs text-muted">Range</span>
-                    <span class="flex items-center gap-2">
-                      <RollingLabel id="past-year-range-value" class="text-xs font-semibold text-default leading-none">
-                        All years
-                      </RollingLabel>
-                      <button
-                        type="button"
-                        id="past-year-reset"
-                        class="hidden text-xs text-primary hover:underline leading-none cursor-pointer"
-                      >
-                        Reset
-                      </button>
-                    </span>
-                  </div>
-                  <RangeSlider
-                    idPrefix="past-year"
-                    boundMin={pastYearBoundMin}
-                    boundMax={pastYearBoundMax}
-                    ariaLabelMin="Earliest year"
-                    ariaLabelMax="Latest year"
-                  />
-                </div>
-              </div>
-            )}
-
-            {pastSites.length > 1 && (
-              <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5">
-                <span class="text-xs font-bold uppercase tracking-widest text-muted sm:w-20 sm:shrink-0">Site</span>
-                <div class="flex flex-wrap gap-2">
-                  {pastSites.map((site) => (
+      {(pastYearBoundMin !== pastYearBoundMax || pastSites.length > 1) && (
+        <div
+          id="past-events-filters"
+          class="flex flex-col gap-4 mb-8 pb-6 border-b border-gray-200 dark:border-gray-700"
+        >
+          {pastYearBoundMin !== pastYearBoundMax && (
+            <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5">
+              <span class="text-xs font-bold uppercase tracking-widest text-muted sm:w-20 sm:shrink-0">Year</span>
+              <div class="flex-1 max-w-sm">
+                <div class="flex items-center justify-between mb-2 gap-2">
+                  <span class="text-xs text-muted">Range</span>
+                  <span class="flex items-center gap-2">
+                    <RollingLabel id="past-year-range-value" class="text-xs font-semibold text-default leading-none">
+                      All years
+                    </RollingLabel>
                     <button
                       type="button"
-                      data-filter-site={site}
-                      aria-pressed="false"
-                      class="text-xs font-medium rounded-full px-3 py-2 border border-gray-200 dark:border-gray-700 text-default hover:border-primary/40 transition-colors cursor-pointer"
+                      id="past-year-reset"
+                      class="hidden text-xs text-primary hover:underline leading-none cursor-pointer"
                     >
-                      {site}
+                      Reset
                     </button>
-                  ))}
+                  </span>
                 </div>
-              </div>
-            )}
-
-            <button
-              type="button"
-              id="clear-past-filters"
-              class="hidden self-start text-xs font-semibold text-primary hover:underline cursor-pointer"
-            >
-              Clear filters
-            </button>
-          </div>
-        )}
-
-        <p data-past-empty-state class="hidden text-muted text-lg mb-4">
-          {eventsListSettings.pastEmptyStateText}
-        </p>
-
-        <ul id="past-events-grid" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 list-none p-0 m-0" role="list">
-          {past.map((event: (typeof past)[0]) => {
-            const v = resolveVenue(event.data, event.data.siteId ? siteMap.get(event.data.siteId) : undefined);
-            return (
-              <li data-scroll-reveal="up" data-year={event.data.date.getFullYear()} data-site={v.location}>
-                <EventCard
-                  title={event.data.title}
-                  date={formatEventDateRange(event.data.date, event.data.endDate)}
-                  location={v.location}
-                  href={`/events/${event.id}`}
-                  image={v.image}
-                  variant="past"
+                <RangeSlider
+                  idPrefix="past-year"
+                  boundMin={pastYearBoundMin}
+                  boundMax={pastYearBoundMax}
+                  ariaLabelMin="Earliest year"
+                  ariaLabelMax="Latest year"
                 />
-              </li>
-            );
-          })}
-        </ul>
-      </section>
-    )
-  }
+              </div>
+            </div>
+          )}
+
+          {pastSites.length > 1 && (
+            <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5">
+              <span class="text-xs font-bold uppercase tracking-widest text-muted sm:w-20 sm:shrink-0">Site</span>
+              <div class="flex flex-wrap gap-2">
+                {pastSites.map((site) => (
+                  <button
+                    type="button"
+                    data-filter-site={site}
+                    aria-pressed="false"
+                    class="text-xs font-medium rounded-full px-3 py-2 border border-gray-200 dark:border-gray-700 text-default hover:border-primary/40 transition-colors cursor-pointer"
+                  >
+                    {site}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <button
+            type="button"
+            id="clear-past-filters"
+            class="hidden self-start text-xs font-semibold text-primary hover:underline cursor-pointer"
+          >
+            Clear filters
+          </button>
+        </div>
+      )}
+
+      <p data-past-empty-state class="hidden text-muted text-lg mb-4">
+        {eventsListSettings.pastEmptyStateText}
+      </p>
+
+      <ul id="past-events-grid" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 list-none p-0 m-0" role="list">
+        {past.map((event: (typeof past)[0]) => {
+          const v = resolveVenue(event.data, event.data.siteId ? siteMap.get(event.data.siteId) : undefined);
+          return (
+            <li data-scroll-reveal="up" data-year={event.data.date.getFullYear()} data-site={v.location}>
+              <EventCard
+                title={event.data.title}
+                date={formatEventDateRange(event.data.date, event.data.endDate)}
+                location={v.location}
+                href={`/events/${event.id}`}
+                image={v.image}
+                variant="past"
+              />
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  )}
 </Layout>
 
 <script>

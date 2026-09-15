@@ -31,19 +31,17 @@ const tools = [
     <p class="text-muted mb-8">Staff and board resources — not linked from the public site.</p>
 
     <ul class="space-y-4">
-      {
-        tools.map((tool) => (
-          <li>
-            <a
-              href={tool.href}
-              class="block rounded-xl border border-gray-200 dark:border-gray-700 p-5 hover:border-primary transition-colors"
-            >
-              <h2 class="font-heading text-heading text-lg font-semibold">{tool.title}</h2>
-              <p class="text-sm text-muted mt-1">{tool.description}</p>
-            </a>
-          </li>
-        ))
-      }
+      {tools.map((tool) => (
+        <li>
+          <a
+            href={tool.href}
+            class="block rounded-xl border border-gray-200 dark:border-gray-700 p-5 hover:border-primary transition-colors"
+          >
+            <h2 class="font-heading text-heading text-lg font-semibold">{tool.title}</h2>
+            <p class="text-sm text-muted mt-1">{tool.description}</p>
+          </a>
+        </li>
+      ))}
     </ul>
   </section>
 </Layout>
