@@ -69,4 +69,5 @@ schedule:
       isBreak: true
 tags:
   - one-day
+zeffyFormUrl: /embed/ticketing/ecrs-fun-day-in-philly-oct-17th
 ---
