@@ -123,15 +123,11 @@ describe('initVideoHero — playback toggle', () => {
     expect(toggle.getAttribute('aria-label')).toBe('Pause background video');
   });
 
-  it('defers playback until the window load event when the document is still loading', async () => {
+  it('starts playback immediately even when the document is still loading', async () => {
     buildToggleFixture();
     Object.defineProperty(document, 'readyState', { value: 'loading', configurable: true });
     try {
       await loadAndTrigger();
-      expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
-
-      window.dispatchEvent(new Event('load'));
-      await vi.advanceTimersByTimeAsync(0);
       expect(HTMLMediaElement.prototype.play).toHaveBeenCalled();
     } finally {
       Object.defineProperty(document, 'readyState', { value: 'complete', configurable: true });
