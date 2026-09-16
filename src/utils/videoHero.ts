@@ -84,13 +84,15 @@ function initVideoHero() {
     toggleBtn.addEventListener('click', () => setPaused(isPlaying));
   }
 
-  // The hero video is purely decorative — starting it immediately on load makes it
-  // compete for bandwidth/CPU with actually-critical resources (notably the LCP
-  // image) on slow connections. Deferring playback until the window has fully
-  // loaded keeps the static poster on screen a little longer in exchange for a
-  // meaningfully faster paint of real content. On a view-transition navigation
-  // into this page (not a hard reload), the window is already loaded, so this
-  // runs immediately.
+  // The video is the hero's main visual, not decoration — it should start as
+  // soon as possible. The one thing worth not competing with for bandwidth is
+  // the small fetchpriority="high" event-card image rendered on top of it
+  // (this is what Lighthouse actually measures as the LCP element, not the
+  // video itself). astro:page-load, which wraps this whole function, already
+  // fires at DOM-ready — gating on that alone, rather than waiting for window
+  // 'load' (every image/font/script on the page), keeps that LCP image
+  // unblocked without leaving the video sitting behind its poster for seconds
+  // longer than necessary.
   function startHero() {
     if (videos.length === 0) return;
     videos[0].preload = 'metadata';
@@ -181,11 +183,7 @@ function initVideoHero() {
   }
 
   if (!reducedMotion) {
-    if (document.readyState === 'complete') {
-      startHero();
-    } else {
-      window.addEventListener('load', startHero, { once: true });
-    }
+    startHero();
   } else {
     // No HTML autoplay to pause (preload="none" everywhere) — just hide the toggle,
     // since there's no motion for it to control.
