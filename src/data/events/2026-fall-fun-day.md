@@ -7,8 +7,13 @@ endTime: 9:00 PM
 siteId: the-philadelphia-ethical-society
 location: ''
 address: ''
-excerpt: An afternoon/evening of creative and engaging activities for all ages — think folk and line dancing, singing, collaborative games, and crafts — that build community and develop leadership.
-description: An afternoon/evening of creative and engaging activities for all ages — think folk and line dancing, singing, collaborative games, and crafts — that build community and develop leadership.
+excerpt: Join ECRS for a day of folk dancing, singing, crafts, games, and other community activities. All ages, experience levels, and physical abilities are welcome.
+description: |
+  Join ECRS for a day of folk dancing, singing, crafts, games, and other community activities. All ages, experience levels, and physical abilities are welcome.
+
+  The day will include a mix of full-group activities and two workshop periods, with a choice of activities including community singing, folk & line dances, contra & community dances, and collaging. We'll come back together for a potluck dinner, followed by an evening of full-group activities and singing.
+
+  Come spend the day with us, meet some new people, and try something new.
 phone: ''
 accessibilityNote: ''
 registrationUrl: ''
