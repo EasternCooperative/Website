@@ -84,7 +84,16 @@ function initVideoHero() {
     toggleBtn.addEventListener('click', () => setPaused(isPlaying));
   }
 
-  if (!reducedMotion) {
+  // The hero video is purely decorative — starting it immediately on load makes it
+  // compete for bandwidth/CPU with actually-critical resources (notably the LCP
+  // image) on slow connections. Deferring playback until the window has fully
+  // loaded keeps the static poster on screen a little longer in exchange for a
+  // meaningfully faster paint of real content. On a view-transition navigation
+  // into this page (not a hard reload), the window is already loaded, so this
+  // runs immediately.
+  function startHero() {
+    if (videos.length === 0) return;
+    videos[0].preload = 'metadata';
     if (videos.length > 1) {
       let current = 0;
       let transitioning = false;
@@ -169,9 +178,17 @@ function initVideoHero() {
       });
       isPlaying = true;
     }
+  }
+
+  if (!reducedMotion) {
+    if (document.readyState === 'complete') {
+      startHero();
+    } else {
+      window.addEventListener('load', startHero, { once: true });
+    }
   } else {
-    // Pause the HTML autoplay and hide the toggle (no motion to toggle).
-    videos[0]?.pause();
+    // No HTML autoplay to pause (preload="none" everywhere) — just hide the toggle,
+    // since there's no motion for it to control.
     if (toggleBtn) toggleBtn.style.display = 'none';
   }
 }

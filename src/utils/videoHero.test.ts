@@ -123,6 +123,21 @@ describe('initVideoHero — playback toggle', () => {
     expect(toggle.getAttribute('aria-label')).toBe('Pause background video');
   });
 
+  it('defers playback until the window load event when the document is still loading', async () => {
+    buildToggleFixture();
+    Object.defineProperty(document, 'readyState', { value: 'loading', configurable: true });
+    try {
+      await loadAndTrigger();
+      expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
+
+      window.dispatchEvent(new Event('load'));
+      await vi.advanceTimersByTimeAsync(0);
+      expect(HTMLMediaElement.prototype.play).toHaveBeenCalled();
+    } finally {
+      Object.defineProperty(document, 'readyState', { value: 'complete', configurable: true });
+    }
+  });
+
   it('pauses on toggle click and updates aria-label/icons', async () => {
     buildToggleFixture();
     await loadAndTrigger();
@@ -211,7 +226,7 @@ describe('initVideoHero — playback toggle', () => {
 });
 
 describe('initVideoHero — reduced motion', () => {
-  it('pauses the video and hides the toggle button', async () => {
+  it('never starts playback and hides the toggle button', async () => {
     document.body.innerHTML = `
       <section data-video-hero>
         <video data-hero-video></video>
@@ -221,7 +236,9 @@ describe('initVideoHero — reduced motion', () => {
     mockReducedMotion(true);
     await loadAndTrigger();
 
-    expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled();
+    // There's no HTML autoplay attribute (preload="none" everywhere) and playback
+    // is never kicked off under reduced motion, so nothing needs pausing.
+    expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
     const toggle = document.querySelector<HTMLButtonElement>('[data-video-toggle]')!;
     expect(toggle.style.display).toBe('none');
   });

@@ -94,8 +94,7 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
         ]}
         muted
         playsinline
-        autoplay={i === 0}
-        preload={i === 0 ? 'metadata' : 'none'}
+        preload="none"
         poster={v.poster}
       >
         <source src={v.webm} type='video/webm; codecs="av01.0.08M.08"' />
