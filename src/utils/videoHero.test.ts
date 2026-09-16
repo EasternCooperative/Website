@@ -123,12 +123,45 @@ describe('initVideoHero — playback toggle', () => {
     expect(toggle.getAttribute('aria-label')).toBe('Pause background video');
   });
 
-  it('starts playback immediately even when the document is still loading', async () => {
+  it('starts playback on DOMContentLoaded without waiting for astro:page-load', async () => {
     buildToggleFixture();
     Object.defineProperty(document, 'readyState', { value: 'loading', configurable: true });
     try {
-      await loadAndTrigger();
+      const { initVideoHeroPage } = await import('./videoHero');
+      initVideoHeroPage();
+      expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
+
+      // astro:page-load is wired to window 'load' on the initial page load, which can
+      // lag DOMContentLoaded by seconds on a page with third-party scripts — playback
+      // must not wait for it.
+      document.dispatchEvent(new Event('DOMContentLoaded'));
+      await vi.advanceTimersByTimeAsync(0);
+
       expect(HTMLMediaElement.prototype.play).toHaveBeenCalled();
+    } finally {
+      Object.defineProperty(document, 'readyState', { value: 'complete', configurable: true });
+    }
+  });
+
+  it('does not double-register listeners when astro:page-load fires after DOMContentLoaded', async () => {
+    buildToggleFixture();
+    Object.defineProperty(document, 'readyState', { value: 'loading', configurable: true });
+    try {
+      const { initVideoHeroPage } = await import('./videoHero');
+      initVideoHeroPage();
+      document.dispatchEvent(new Event('DOMContentLoaded'));
+      await vi.advanceTimersByTimeAsync(0);
+
+      // Same document/elements — astro:page-load firing afterward (as it does on the
+      // initial load, once window 'load' catches up) must not re-run init.
+      document.dispatchEvent(new Event('astro:page-load'));
+      await vi.advanceTimersByTimeAsync(0);
+
+      const toggle = document.querySelector<HTMLButtonElement>('[data-video-toggle]')!;
+      toggle.click();
+
+      expect(HTMLMediaElement.prototype.pause).toHaveBeenCalledTimes(1);
+      expect(toggle.getAttribute('aria-label')).toBe('Play background video');
     } finally {
       Object.defineProperty(document, 'readyState', { value: 'complete', configurable: true });
     }
