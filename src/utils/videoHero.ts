@@ -9,7 +9,12 @@ function initVideoHero() {
   const section = document.querySelector<HTMLElement>('[data-video-hero]');
   const content = document.querySelector<HTMLElement>('[data-video-hero-content]');
 
-  if (!section) return;
+  // Guards against double-init: on the initial page load this runs from both
+  // DOMContentLoaded and astro:page-load (see initVideoHeroPage below), and
+  // without this the resize/ended/click listeners and the countdown interval
+  // would all be registered twice on the same elements.
+  if (!section || section.dataset.heroInitialized === 'true') return;
+  section.dataset.heroInitialized = 'true';
 
   if (header) {
     applyHeaderOffset(header, section, content);
@@ -193,7 +198,8 @@ function initVideoHero() {
 
 function initCountdown() {
   const el = document.querySelector<HTMLElement>('[data-countdown]');
-  if (!el) return;
+  if (!el || el.dataset.countdownInitialized === 'true') return;
+  el.dataset.countdownInitialized = 'true';
 
   const target = new Date(el.dataset.countdown!).getTime();
 
@@ -284,8 +290,23 @@ function initCountdown() {
 }
 
 export function initVideoHeroPage(): void {
-  document.addEventListener('astro:page-load', () => {
+  function run() {
     initVideoHero();
     initCountdown();
-  });
+  }
+
+  // astro:page-load is wired to the browser's native `load` event for the
+  // initial hard page load (see astro/dist/transitions/router.js), which can
+  // be seconds behind DOMContentLoaded on a page with third-party analytics/
+  // ad scripts. Run once the DOM itself is ready instead, so the hero video
+  // doesn't wait on unrelated network activity. astro:page-load still drives
+  // every subsequent view-transition navigation, which has no DOMContentLoaded
+  // of its own. initVideoHero/initCountdown each guard against being run
+  // twice on the same elements.
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', run, { once: true });
+  } else {
+    run();
+  }
+  document.addEventListener('astro:page-load', run);
 }
