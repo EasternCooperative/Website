@@ -15,7 +15,7 @@ description: |-
 
   See schedule, below.
 
-  <br /><br />
+  ---
 
   All ages, experience levels, and physical abilities are welcome.
 
@@ -23,7 +23,7 @@ description: |-
 
   (Optional) Bring snacks or a potluck item to share.
 
-  <br /><br />
+  ---
 
   Parking - Parking discounts are available for the garage @ Parkway [1845 Walnut Street](https://www.parkwaycorp.com/parking/locations/1845-walnut-street/philadelphia/pa/19103). We will provide the vouchers at registration, first come first serve. Please check the box in the "questions" section. Street parking is available. There are many [parking garages](https://www.google.com/maps/search/parking+garages+near+the+ethical+society+philadelphia/) around Rittenhouse Square.
 
