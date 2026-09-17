@@ -341,4 +341,31 @@ describe('GET /events/[id].txt', () => {
     expect(text).toContain('EVENT STAFF');
     expect(text).toContain('Late Night Coordinator: Joe Leader');
   });
+
+  it('falls back to the staff/leader record role when no per-event role is given', async () => {
+    vi.mocked(getCollection).mockImplementation(async (name: string) => {
+      if (name === 'staff') {
+        return [{ id: 'jane-staff', data: { name: 'Jane Registrar', role: 'Registrar' } }] as never;
+      }
+      if (name === 'leader') {
+        return [{ id: 'joe-leader', data: { name: 'Joe Leader', title: 'Games' } }] as never;
+      }
+      return [] as never;
+    });
+    const text = await callGet(makeEvent({ staff: [{ id: 'jane-staff' }, { leaderId: 'joe-leader' }] } as never));
+    expect(text).toContain('Registrar: Jane Registrar');
+    expect(text).toContain('Games: Joe Leader');
+  });
+
+  it('omits an event staff row that resolves to no name', async () => {
+    const text = await callGet(makeEvent({ staff: [{ id: 'missing-staff', role: 'Registrar' }] } as never));
+    expect(text).not.toContain('EVENT STAFF');
+  });
+
+  it('prints an event staff name with no role as a bare line', async () => {
+    const text = await callGet(makeEvent({ staff: [{ name: 'Volunteer Crew' }] } as never));
+    expect(text).toContain('EVENT STAFF');
+    expect(text).toContain('Volunteer Crew');
+    expect(text).not.toContain(': Volunteer Crew');
+  });
 });
