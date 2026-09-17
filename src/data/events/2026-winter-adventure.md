@@ -17,20 +17,14 @@ staff:
     role: 'Business Manager'
   - name: 'TBD'
     role: 'Assistant Business Manager'
-  - name: 'Mark'
+  - id: mark-schwartz
     role: 'Program for All Co-Coordinator'
-  - name: 'Josh & Rachael Silverbauer'
+  - id: josh-silverbauer
     role: 'Program for All Co-Coordinator'
-  - name: 'Max Kaye'
+  - id: rachael-silverbauer
+    role: 'Program for All Co-Coordinator'
+  - id: max-kaye
     role: 'Late Night Activity Coordinator'
-  - name: 'Susannah Duncan'
-    role: "Children's Program Coordinator (1st period)"
-  - name: 'Lisa Natale'
-    role: "Children's Program Coordinator (2nd period)"
-  - name: 'Beverly Pincus'
-    role: "Children's Program Assistant (1st period)"
-  - name: 'TBD'
-    role: "Children's Program Assistant (2nd period)"
   - id: tom-helde
     role: 'A/V Technician'
   - name: 'TBD'
@@ -56,7 +50,10 @@ classes:
     days: 'All 4 days'
     room: 'Chapel A'
   - name: "Children's Program"
-    leaderId: susannah-duncan
+    leaders:
+      - id: susannah-duncan
+      - id: beverly-pincus
+        role: assistant
     period: '1st Period (9:00–10:40 AM)'
     days: 'All 4 days'
     room: 'Elm Room'
@@ -93,7 +90,10 @@ classes:
     room: 'Rec Hall'
     description: 'Mafia, the Dictionary Game, Thumper, Up Jenkins, Catch Phrase! These are the ECRS favorites, and free periods never seem long enough to get to them all. This class is where you finally do.'
   - name: "Children's Program"
-    leaderId: lisa-natale
+    leaders:
+      - id: lisa-natale
+      - name: 'TBD'
+        role: assistant
     period: '2nd Period (10:50 AM–12:30 PM)'
     days: 'All 4 days'
     room: 'Elm Room'
