@@ -327,4 +327,18 @@ describe('GET /events/[id].txt', () => {
     expect(text).toContain('EVENT STAFF');
     expect(text).toContain('Registrar: Jane Registrar');
   });
+
+  it('resolves event staff via leaderId when they only have a leader record', async () => {
+    vi.mocked(getCollection).mockImplementation(async (name: string) => {
+      if (name === 'leader') {
+        return [{ id: 'joe-leader', data: { name: 'Joe Leader', title: 'Games' } }] as never;
+      }
+      return [] as never;
+    });
+    const text = await callGet(
+      makeEvent({ staff: [{ leaderId: 'joe-leader', role: 'Late Night Coordinator' }] } as never)
+    );
+    expect(text).toContain('EVENT STAFF');
+    expect(text).toContain('Late Night Coordinator: Joe Leader');
+  });
 });

@@ -17,13 +17,13 @@ staff:
     role: 'Business Manager'
   - name: 'TBD'
     role: 'Assistant Business Manager'
-  - name: 'Mark Schwartz'
+  - leaderId: mark-schwartz
     role: 'Program for All Co-Coordinator'
-  - name: 'Josh Silverbauer'
+  - leaderId: josh-silverbauer
     role: 'Program for All Co-Coordinator'
-  - name: 'Rachael Silverbauer'
+  - leaderId: rachael-silverbauer
     role: 'Program for All Co-Coordinator'
-  - name: 'Max Kaye'
+  - leaderId: max-kaye
     role: 'Late Night Activity Coordinator'
   - id: tom-helde
     role: 'A/V Technician'
