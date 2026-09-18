@@ -73,32 +73,24 @@ const allStaff = await getCollection('staff');
 const staffMap = new Map<string, CollectionEntry<'staff'>['data']>(allStaff.map((s) => [s.id, s.data]));
 const resolvedStaff = (data.staff ?? [])
   .map((s) => {
-    const staffRecord = s.id ? staffMap.get(s.id) : undefined;
-    const leaderRecord = s.leaderId ? leaderMap.get(s.leaderId) : undefined;
-    const record = staffRecord ?? leaderRecord;
+    const record = s.id ? staffMap.get(s.id) : undefined;
     const name = s.name ?? record?.name;
     if (!name) return null;
-    const popover = staffRecord
-      ? { kind: 'staff' as const, id: s.id! }
-      : leaderRecord
-        ? { kind: 'leader' as const, id: s.leaderId! }
-        : null;
     return {
-      popover,
+      id: s.id,
       name,
-      role: s.role ?? staffRecord?.role ?? leaderRecord?.title,
+      role: s.role ?? record?.role,
       photo: record?.photo,
       bio: record?.bio,
     };
   })
   .filter((s): s is NonNullable<typeof s> => s !== null);
-const linkedStaffIds = [...new Set(resolvedStaff.filter((s) => s.popover?.kind === 'staff').map((s) => s.popover!.id))];
+const linkedStaffIds = [...new Set(resolvedStaff.map((s) => s.id).filter((id): id is string => !!id))];
 
 const linkedLeaderIds = [
   ...new Set([
     ...(data.classes ?? []).map((c) => c.leaderId).filter((id): id is string => !!id),
     ...(data.classes ?? []).flatMap((c) => (c.leaders ?? []).map((l) => l.id).filter((id): id is string => !!id)),
-    ...resolvedStaff.filter((s) => s.popover?.kind === 'leader').map((s) => s.popover!.id),
   ]),
 ];
 
@@ -994,11 +986,11 @@ const breadcrumbJsonLd = {
                 <li class="flex items-center gap-2 text-sm">
                   {s.role && <span class="text-muted">{s.role}:</span>}
                   {s.photo && <PersonPhoto name={s.name} photo={s.photo} size={20} />}
-                  {s.popover && hasBio ? (
+                  {s.id && hasBio ? (
                     <button
                       type="button"
-                      data-popover-target={`${s.popover.kind}-${s.popover.id}`}
-                      aria-controls={`${s.popover.kind}-${s.popover.id}`}
+                      data-popover-target={`staff-${s.id}`}
+                      aria-controls={`staff-${s.id}`}
                       aria-expanded="false"
                       class="font-semibold text-heading underline decoration-dotted underline-offset-2 cursor-pointer hover:text-primary transition-colors"
                     >
