@@ -243,15 +243,12 @@ const eventCollection = defineCollection({
       .optional(),
 
     // Event staff — logistics/coordination roles (registrar, tech support, business
-    // manager, etc.) that aren't tied to teaching a class. `id` references the `staff`
-    // collection; `leaderId` references the `leader` collection instead, for someone
-    // filling a staff role whose profile already lives there (a class leader also
-    // running logistics) — reuses their name/photo/bio without a duplicate record.
+    // manager, etc.) that aren't tied to teaching a class. Distinct from `classes[].leaderId`,
+    // which references the `leader` collection instead. References the `staff` collection.
     staff: z
       .array(
         z.object({
           id: z.string().optional(),
-          leaderId: z.string().optional(),
           name: z.string().optional(),
           role: z.string().optional(),
         })

@@ -143,11 +143,10 @@ export const GET: APIRoute = async ({ props }) => {
 
   const resolvedStaff: { name: string; role?: string }[] = [];
   for (const s of data.staff ?? []) {
-    const staffRecord = s.id ? staffMap.get(s.id) : undefined;
-    const leaderRecord = s.leaderId ? leaderMap.get(s.leaderId) : undefined;
-    const name = s.name ?? staffRecord?.name ?? leaderRecord?.name;
+    const record = s.id ? staffMap.get(s.id) : undefined;
+    const name = s.name ?? record?.name;
     if (!name) continue;
-    resolvedStaff.push({ name, role: s.role ?? staffRecord?.role ?? leaderRecord?.title });
+    resolvedStaff.push({ name, role: s.role ?? record?.role });
   }
 
   if (resolvedStaff.length > 0) {
