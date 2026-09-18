@@ -53,7 +53,10 @@ classes:
     room: 'Chapel A'
     restriction: 'Ages 15+'
     limitedCapacity: true
-    description: 'What does "facilitating" mean to you? How can you engage group participants to contribute to the extent they themselves might choose? What mindset or actions will help you achieve a meeting''s purpose? This course will raise self awareness while offering insights and skills for you to become (more) effective when leading group discussions among friends, at ECRS or at work.'
+    description: |
+      What does "facilitating" mean to you? How can you engage group participants to contribute to the extent they themselves might choose? What mindset or actions will help you achieve a meeting's purpose?
+
+      This course will raise self awareness while offering insights and skills for you to become (more) effective when leading group discussions among friends, at ECRS or at work.
     callout: 'Class size is limited. Please register in advance. We will keep a wait list once we have reached capacity.'
   - name: "Children's Program"
     leaders:
@@ -64,7 +67,12 @@ classes:
     days: 'All 4 days'
     room: 'Elm Room'
     restriction: 'Ages 2-11'
-    description: "Why should the grown-ups have all the fun? ECRS offers a completely integrated program for children ages 2-11 during two class periods. Many activities mirror the cooperative play that ECRS is built on. Children may learn new games, create new crafts, sing silly songs, or even get the chance to share activities they have fun doing at home. Depending on age and interest, they may take a field trip to experience the more kid-friendly adult classes! Children's Program is first and third periods only. A cooperatively-led Children's Program staffed by parents and volunteers is 2nd period. Note: Children are expected to stay for the entire program, and are the responsibility of their guardians at all other times."
+    description: |
+      Why should the grown-ups have all the fun? ECRS offers a completely integrated program for children ages 2-11 during two class periods. Many activities mirror the cooperative play that ECRS is built on. Children may learn new games, create new crafts, sing silly songs, or even get the chance to share activities they have fun doing at home. Depending on age and interest, they may take a field trip to experience the more kid-friendly adult classes!
+
+      Children's Program is first and third periods only. A cooperatively-led Children's Program staffed by parents and volunteers is 2nd period.
+
+      Note: Children are expected to stay for the entire program, and are the responsibility of their guardians at all other times.
   - name: 'Joy of Movement'
     leaderId: judi-powers
     period: '1st Period (9:00–10:40 AM)'
@@ -80,7 +88,12 @@ classes:
     room: 'Craft Room'
     restriction: 'Ages 12+'
     limitedCapacity: true
-    description: "Join Toby and Crow to make art and swap stories! Storytelling has always helped us make sense of the world and understand each other. In this class we will explore the art of spoken word while making art out of paper. We will talk about the fundamentals of storytelling and how stories are crafted. Join us if you want to catch up with friends and paste cut out pictures from magazines together into fun art! It's going to be a blast!"
+    description: |
+      Join Toby and Crow to make art and swap stories! Storytelling has always helped us make sense of the world and understand each other.
+
+      In this class we will explore the art of spoken word while making art out of paper. We will talk about the fundamentals of storytelling and how stories are crafted.
+
+      Join us if you want to catch up with friends and paste cut out pictures from magazines together into fun art! It's going to be a blast!
     callout: 'Class size is limited. Please register in advance. We will keep a wait list once we have reached capacity.'
 
   # ── 2nd Period (10:50 AM–12:30 PM) ──
@@ -116,7 +129,12 @@ classes:
     days: 'All 4 days'
     room: 'Elm Room'
     restriction: 'Ages 2-11'
-    description: "Why should the grown-ups have all the fun? ECRS offers a completely integrated program for children ages 2-11 during two class periods. Many activities mirror the cooperative play that ECRS is built on. Children may learn new games, create new crafts, sing silly songs, or even get the chance to share activities they have fun doing at home. Depending on age and interest, they may take a field trip to experience the more kid-friendly adult classes! Children's Program is first and third periods only. A cooperatively-led Children's Program staffed by parents and volunteers is 2nd period. Note: Children are expected to stay for the entire program, and are the responsibility of their guardians at all other times."
+    description: |
+      Why should the grown-ups have all the fun? ECRS offers a completely integrated program for children ages 2-11 during two class periods. Many activities mirror the cooperative play that ECRS is built on. Children may learn new games, create new crafts, sing silly songs, or even get the chance to share activities they have fun doing at home. Depending on age and interest, they may take a field trip to experience the more kid-friendly adult classes!
+
+      Children's Program is first and third periods only. A cooperatively-led Children's Program staffed by parents and volunteers is 2nd period.
+
+      Note: Children are expected to stay for the entire program, and are the responsibility of their guardians at all other times.
   - name: 'The Write Stuff'
     leaderId: beverly-pincus
     period: '2nd Period (10:50 AM–12:30 PM)'
@@ -143,7 +161,10 @@ classes:
     days: 'Days 1–2'
     room: 'Dining Room'
     restriction: 'Ages 12+'
-    description: "Join us to learn a variety of fun line dances, done to all types of music that will make you want to move: Pop, Latin, Swing, and more. With a two-day class, we'll have time to work on one or two slightly more challenging dances, and we'll also repeat some favorites on the second day. All dances will be taught, no experience required."
+    description: |
+      Join us to learn a variety of fun line dances, done to all types of music that will make you want to move: Pop, Latin, Swing, and more.
+
+      With a two-day class, we'll have time to work on one or two slightly more challenging dances, and we'll also repeat some favorites on the second day. All dances will be taught, no experience required.
   - name: 'Small Scenes'
     leaderId: camden-elliott-williams
     period: '3rd Period (3:45–5:45 PM)'
@@ -176,7 +197,12 @@ classes:
     room: 'Craft Room'
     restriction: 'Ages 12+'
     limitedCapacity: true
-    description: "In this class Crow and Toby will lead a story swap while crafting using fabric. On the first day everyone will learn how to loom knit. On the second day, stories will be shared with knitting continuing. Join us if you've ever wanted to learn how to knit. With loom knitting you can make hats, scarves, blankets, and so much more! All other types of knitting are welcome or other fabric crafting. Crafting supplies will be supplied but feel free to bring your own."
+    description: |
+      In this class Crow and Toby will lead a story swap while crafting using fabric.
+
+      On the first day everyone will learn how to loom knit. On the second day, stories will be shared with knitting continuing.
+
+      Join us if you've ever wanted to learn how to knit. With loom knitting you can make hats, scarves, blankets, and so much more! All other types of knitting are welcome or other fabric crafting. Crafting supplies will be supplied but feel free to bring your own.
     callout: 'Class size is limited. Please register in advance. We will keep a wait list once we have reached capacity.'
   - name: "Co-op Children's Program"
     period: '3rd Period (3:45–5:45 PM)'
@@ -196,5 +222,10 @@ classes:
     days: 'Days 3–4'
     room: 'Rec Hall'
     restriction: 'Ages 12+'
-    description: "Have you ever wanted to experience being someone (or something!) other than yourself, perhaps an animal or an inanimate object.  Use your imagination to bring to life whatever you choose to be. Be prepared to think outside of the box, laugh, experiment and most of all have fun!  This course will consist of structured creative dramatic games, warm ups, and exercises structured to promote positive interaction. Each day will culminate in small skits for the participants' and audience's enjoyment."
+    description: |
+      Have you ever wanted to experience being someone (or something!) other than yourself, perhaps an animal or an inanimate object.  Use your imagination to bring to life whatever you choose to be. Be prepared to think outside of the box, laugh, experiment and most of all have fun! 
+
+      This course will consist of structured creative dramatic games, warm ups, and exercises structured to promote positive interaction.
+
+      Each day will culminate in small skits for the participants' and audience's enjoyment.
 ---
