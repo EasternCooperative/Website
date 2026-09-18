@@ -208,6 +208,7 @@ classes:
     period: '3rd Period (3:45–5:45 PM)'
     days: 'All 4 days'
     room: 'Elm Room'
+    restriction: 'Ages 2-11'
     description: 'Group activities organized and staffed by parents and volunteers. We will create a sign-up sheet and there will be a room designated with some materials to share.'
   - name: 'Board and Card Games'
     leaderId: bonnie-ostrofsky
