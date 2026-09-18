@@ -159,7 +159,9 @@ classes:
     days: 'Days 1–2'
     room: 'Rec Hall'
     restriction: 'Ages 12+'
+    limitedCapacity: true
     description: "The year is 1933 and you've got a job to do. A stranger has called you and several others together to secure an object they need, no questions answered and cash on delivery. They're not saying much more. You'll each play a character making their way through the story with the rest of this unlikely crew, and I'll bring the world and whatever is waiting in it. Ever heard of Dungeons and Dragons and wanted to see what it's like? This is a no-experience-necessary way to do just that!"
+    callout: 'Class size is limited. Please register in advance. We will keep a wait list once we have reached capacity.'
   - name: 'Knitting/Macrame/Crochet & Storytelling'
     leaders:
       - id: toby-woods
