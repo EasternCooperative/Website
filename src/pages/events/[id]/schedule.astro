@@ -223,8 +223,7 @@ const leaderPopoverIds = [
      drop the avatars (and their reserved space), strip link styling. -->
 <style is:global>
   @media print {
-    /* Drop the avatars (and the space they'd reserve) and the link styling;
-       names flow as plain inline text. */
+    /* Drop the avatars (and the space they'd reserve) and the link styling; names flow as plain inline text. */
     .schedule-grid .sched-avatar {
       display: none !important;
     }
@@ -244,8 +243,7 @@ const leaderPopoverIds = [
   .schedule-grid thead th,
   .schedule-break td {
     background: #f3f4f6;
-    /* Keep the fills when printing, without relying on the browser's
-       "Background graphics" checkbox. */
+    /* Keep the fills when printing, without relying on the browser's "Background graphics" checkbox. */
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -263,8 +261,7 @@ const leaderPopoverIds = [
     :global(main) {
       padding: 0 !important;
     }
-    /* Trim the page furniture above the table so the grid fits one page.
-       The table itself keeps its on-screen size. */
+    /* Trim the page furniture above the table so the grid fits one page. The table itself keeps its on-screen size. */
     @page {
       margin: 0.4in;
     }
@@ -279,12 +276,7 @@ const leaderPopoverIds = [
     section > p {
       display: none !important;
     }
-    /* With border-collapse, the shared line between two adjacent filled break
-       rows (Lunch / Free Time) gets painted over by the cell backgrounds in
-       some print engines. Switch to separate borders for print — never covered
-       by a background. The outer frame lives on the <table> itself (a cell's
-       right/bottom edge can get clipped at the printable area); cells draw the
-       internal right + bottom lines. */
+    /* With border-collapse, the shared line between two adjacent filled break rows (Lunch / Free Time) gets painted over by the cell backgrounds in some print engines. Switch to separate borders for print — never covered by a background. The outer frame lives on the <table> itself (a cell's right/bottom edge can get clipped at the printable area); cells draw the internal right + bottom lines. */
     .schedule-grid {
       border-collapse: separate;
       border-spacing: 0;
