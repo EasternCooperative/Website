@@ -82,7 +82,7 @@
     "globals": "^17.7.0",
     "js-yaml": "^5.2.2",
     "jsdom": "^30.0.0",
-    "lefthook": "^2.1.9",
+    "lefthook": "^2.1.14",
     "prettier": "^3.9.4",
     "prettier-plugin-astro": "^1.0.0",
     "satori": "^0.33.4",
