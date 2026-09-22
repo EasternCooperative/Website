@@ -63,10 +63,7 @@ const dialogId = `person-photo-${crypto.randomUUID()}`;
 
 <style>
   :global(.person-photo-preview) {
-    /* Overrides the UA popover defaults (inset: 0; margin: auto) so the
-       inline left/top set by positionPreview() are the only things placing
-       this element — otherwise the leftover auto-margins/inset fight the
-       explicit position. */
+    /* Overrides the UA popover defaults (inset: 0; margin: auto) so the inline left/top set by positionPreview() are the only things placing this element — otherwise the leftover auto-margins/inset fight the explicit position. */
     position: fixed;
     inset: auto;
     margin: 0;
