@@ -30,6 +30,13 @@ staff:
   - name: 'TBD'
     role: 'Snacks Assistant'
 
+classesIntro: |
+  Classes may be subject to change, if necessary.
+
+  You'll be able to register for all classes right after you complete the event registration.
+
+  Note that you will be able to swap classes the first night of Winter Adventure.
+
 classes:
   # ── 1st Period (9:00–10:40 AM) ──
   - name: 'Movement Playground'
@@ -213,6 +220,13 @@ classes:
     room: 'Elm Room'
     restriction: 'Ages 2-11'
     description: 'Group activities organized and staffed by parents and volunteers. We will create a sign-up sheet and there will be a room designated with some materials to share.'
+  - name: 'Board and Card Games'
+    leaderId: bonnie-ostrofsky
+    period: '3rd Period (3:45–5:45 PM)'
+    days: 'Days 3–4'
+    room: 'Dining Room'
+    restriction: 'Ages 12+'
+    description: 'Relax with board and card games. Participants can bring their own games to teach and share with others, or play the games provided by the workshop leader.'
   - name: 'Rounds from Around'
     leaders:
       - id: celia-nicholson
