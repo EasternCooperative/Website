@@ -22,6 +22,7 @@ const makeEvent = (
     fee: string | undefined;
     tuition: { label?: string; amount: string; note?: string }[] | undefined;
     pricing: { label?: string; fullWeekend?: string; note?: string }[] | undefined;
+    classesIntro: string | undefined;
     classes: unknown[] | undefined;
     schedule: { timeslots: { label: string; start?: string; end?: string; isBreak?: boolean }[] } | undefined;
     showCancellationPolicy: boolean | undefined;
@@ -44,6 +45,7 @@ const makeEvent = (
     fee: undefined as string | undefined,
     tuition: undefined as { label?: string; amount: string; note?: string }[] | undefined,
     pricing: undefined as { label?: string; fullWeekend?: string; note?: string }[] | undefined,
+    classesIntro: undefined as string | undefined,
     classes: undefined as unknown[] | undefined,
     schedule: undefined as
       { timeslots: { label: string; start?: string; end?: string; isBreak?: boolean }[] } | undefined,
@@ -173,6 +175,18 @@ describe('GET /events/[id].txt', () => {
     expect(text).toContain('SCHEDULE');
     expect(text).toContain('Beginner Contra');
     expect(text).toContain('A fun intro class');
+  });
+
+  it('includes the classes intro under the schedule heading', async () => {
+    const text = await callGet(
+      makeEvent({
+        classesIntro: 'Classes may **change**.',
+        classes: [{ name: 'Beginner Contra' }],
+      })
+    );
+    expect(text).toContain('Classes may change.');
+    expect(text.indexOf('Classes may change.')).toBeGreaterThan(text.indexOf('SCHEDULE'));
+    expect(text.indexOf('Classes may change.')).toBeLessThan(text.indexOf('Beginner Contra'));
   });
 
   it('composes schedule headings from a matched timeslot', async () => {

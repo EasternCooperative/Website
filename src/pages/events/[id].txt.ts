@@ -107,6 +107,7 @@ export const GET: APIRoute = async ({ props }) => {
 
   if (data.classes && data.classes.length > 0) {
     heading('Schedule');
+    if (data.classesIntro) lines.push(stripMarkdown(data.classesIntro));
     const slotByPeriod = new Map(
       (data.schedule?.timeslots ?? []).filter((ts) => !ts.isBreak).map((ts) => [slugifyPeriod(ts.label), ts])
     );

@@ -758,6 +758,9 @@ const breadcrumbJsonLd = {
       {scheduleGroups.length > 0 && (
         <div id="schedule" class="mt-10 scroll-mt-24">
           <h2 class="font-heading text-2xl font-bold text-heading mb-6">Schedule</h2>
+          {data.classesIntro && (
+            <div class="mb-6 text-muted prose dark:prose-invert max-w-none" set:html={renderProse(data.classesIntro)} />
+          )}
           {masterSchedule.ok && (
             <div class="mb-6 flex flex-wrap gap-3">
               <a href={`/events/${event.id}/schedule`} class="btn btn-secondary">

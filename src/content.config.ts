@@ -194,6 +194,8 @@ const eventCollection = defineCollection({
     photoPolicy: z.string().optional(),
 
     // Classes / program
+    // Markdown shown under the Schedule heading, above the class list.
+    classesIntro: z.string().optional(),
     classes: z
       .array(
         z.object({
