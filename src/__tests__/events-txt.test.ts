@@ -278,6 +278,19 @@ describe('GET /events/[id].txt', () => {
     expect(text).toContain('Masks optional.');
   });
 
+  it('includes photo policy when shown, without markdown link syntax', async () => {
+    const text = await callGet(
+      makeEvent({ showPhotoPolicy: true, photoPolicy: 'Email [photos@ecrs.org](mailto:photos@ecrs.org).' } as never)
+    );
+    expect(text).toContain('PHOTO POLICY');
+    expect(text).toContain('Email photos@ecrs.org.');
+  });
+
+  it('omits photo policy when showPhotoPolicy is false', async () => {
+    const text = await callGet(makeEvent({ showPhotoPolicy: false, photoPolicy: 'Photos welcome.' } as never));
+    expect(text).not.toContain('PHOTO POLICY');
+  });
+
   it('includes tuition note and pricing note', async () => {
     const text = await callGet(
       makeEvent({

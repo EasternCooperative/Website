@@ -190,6 +190,8 @@ const eventCollection = defineCollection({
     cancellationPolicy: z.string().optional(),
     showHealthPolicy: z.boolean().optional(),
     healthPolicy: z.string().optional(),
+    showPhotoPolicy: z.boolean().optional(),
+    photoPolicy: z.string().optional(),
 
     // Classes / program
     classes: z

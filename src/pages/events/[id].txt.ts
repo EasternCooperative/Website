@@ -141,6 +141,11 @@ export const GET: APIRoute = async ({ props }) => {
     lines.push(stripMarkdown(data.healthPolicy));
   }
 
+  if (data.showPhotoPolicy && data.photoPolicy) {
+    heading('Photo Policy');
+    lines.push(stripMarkdown(data.photoPolicy));
+  }
+
   const resolvedStaff: { name: string; role?: string }[] = [];
   for (const s of data.staff ?? []) {
     const record = s.id ? staffMap.get(s.id) : undefined;

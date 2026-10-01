@@ -50,6 +50,8 @@ healthPolicy: |-
   ECRS events are fragrance-, drug-, and alcohol-free.
 
   During the week before the event, please mask in crowded indoor spaces and monitor your health. If you are sick, we ask you not to come.
+showPhotoPolicy: true
+photoPolicy: We welcome community photography at ECRS events! If you have event photos you would like to share for use on our website or social media, please email [photos@ecrs.org](mailto:photos@ecrs.org). If you are not comfortable with your likeness being used for this purpose and would like to opt out, please email [no-photos@ecrs.org](mailto:no-photos@ecrs.org).
 classes:
   - name: Community Songs
     leaderId: ''
