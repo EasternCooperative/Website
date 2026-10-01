@@ -32,15 +32,28 @@ staff:
 
 schedule:
   timeslots:
+    - label: 'Breakfast'
+      start: '08:00'
+      isBreak: true
     - label: '1st Period (9:00–10:40 AM)'
       start: '09:00'
       end: '10:40'
     - label: '2nd Period (10:50 AM–12:30 PM)'
       start: '10:50'
       end: '12:30'
+    - label: 'Lunch'
+      start: '12:45'
+      isBreak: true
+    - label: 'Free Time'
+      start: '13:30'
+      end: '15:35'
+      isBreak: true
     - label: '3rd Period (3:45–5:45 PM)'
       start: '15:45'
       end: '17:45'
+    - label: 'Dinner'
+      start: '18:00'
+      isBreak: true
 
 classesIntro: |
   Classes may be subject to change, if necessary.
