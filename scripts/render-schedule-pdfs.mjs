@@ -111,7 +111,7 @@ const MAX_SCALE = 2;
 async function renderToFit(page) {
   const render = (scale) => page.pdf({ printBackground: true, preferCSSPageSize: true, scale });
   const atMax = await render(MAX_SCALE);
-  if (pageCount(atMax) <= 1) return { pdf: atMax, scale: MAX_SCALE };
+  if (pageCount(atMax) <= 1) return stretchToFill(page, { pdf: atMax, scale: MAX_SCALE }, render);
   let lo = MIN_SCALE;
   let hi = MAX_SCALE;
   let best = { pdf: await render(lo), scale: lo };
@@ -125,7 +125,33 @@ async function renderToFit(page) {
       hi = mid;
     }
   }
-  return best;
+  return stretchToFill(page, best, render);
+}
+
+// After the scale is set, grow the table's height (the extra is shared across
+// its rows) until it reaches the bottom margin, so the grid fills the page.
+async function stretchToFill(page, best, render) {
+  const setHeight = (px) =>
+    page.evaluate((h) => {
+      document.querySelector('table.schedule-grid').style.height = h ? `${h}px` : '';
+    }, px);
+  const natural = await page.evaluate(() => document.querySelector('table.schedule-grid').offsetHeight);
+  let lo = natural;
+  let hi = natural * 2;
+  let pdf = best.pdf;
+  while (hi - lo > 2) {
+    const mid = Math.round((lo + hi) / 2);
+    await setHeight(mid);
+    const candidate = await render(best.scale);
+    if (pageCount(candidate) <= 1) {
+      pdf = candidate;
+      lo = mid;
+    } else {
+      hi = mid;
+    }
+  }
+  await setHeight(0);
+  return { pdf, scale: best.scale };
 }
 
 await mkdir(OUT_DIR, { recursive: true });
