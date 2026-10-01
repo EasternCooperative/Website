@@ -81,14 +81,8 @@
           "bio": null
         },
         {
-          "name": "Jack Marquess",
-          "title": null,
-          "photo": null,
-          "bio": null
-        },
-        {
           "name": "Bonnie Ostrofsky",
-          "title": "Co-Chair",
+          "title": "Chair",
           "leaderId": "bonnie-ostrofsky",
           "photo": null,
           "bio": null
@@ -97,12 +91,6 @@
           "name": "Judi Powers",
           "title": "Board Liaison",
           "leaderId": "judi-powers",
-          "photo": null,
-          "bio": null
-        },
-        {
-          "name": "Sharon Underberg",
-          "title": "Co-Chair",
           "photo": null,
           "bio": null
         },
