@@ -33,7 +33,7 @@ const year = data.date.getUTCFullYear();
 const eventLabel = `${baseEventTitle(data.title)} ${year}`;
 
 const metadata = {
-  title: `${eventLabel} — Master Schedule`,
+  title: `${eventLabel} Schedule`,
   description: `Printable class schedule for ${eventLabel}.`,
 };
 
@@ -79,7 +79,7 @@ const leaderPopoverIds = [
       )}
     </div>
 
-    <h1 class="font-heading mb-1 text-3xl font-bold text-heading">{eventLabel} — Master Schedule</h1>
+    <h1 class="font-heading mb-1 text-3xl font-bold text-heading">{eventLabel} Schedule</h1>
     <p class="mb-6 text-sm text-muted">Class times and rooms. Tap a class or leader for details.</p>
 
     <div class="overflow-x-auto">
