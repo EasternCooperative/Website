@@ -54,6 +54,16 @@ schedule:
     - label: 'Dinner'
       start: '18:00'
       isBreak: true
+    - label: 'Evening Program and Evening Sing'
+      start: '19:30'
+      end: '21:00'
+      isBreak: true
+    - label: 'Snack'
+      start: '21:00'
+      isBreak: true
+    - label: 'Late-Night Activities'
+      start: '21:15'
+      isBreak: true
 
 classesIntro: |
   Classes may be subject to change, if necessary.
