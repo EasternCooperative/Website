@@ -100,6 +100,34 @@ for (const entry of await readdir(eventsDir, { withFileTypes: true })) {
 }
 ids.sort();
 
+// Chrome writes one uncompressed `/Type /Page` dictionary per page.
+const pageCount = (pdf) => (pdf.toString('latin1').match(/\/Type\s*\/Page\b(?!s)/g) ?? []).length;
+
+// Largest print scale that keeps the schedule on one page, so text grows to fill
+// whatever space the event's grid leaves. Binary search over Playwright's
+// `scale` (valid range 0.1-2); falls back to the smallest tried if nothing fits.
+const MIN_SCALE = 0.5;
+const MAX_SCALE = 2;
+async function renderToFit(page) {
+  const render = (scale) => page.pdf({ printBackground: true, preferCSSPageSize: true, scale });
+  const atMax = await render(MAX_SCALE);
+  if (pageCount(atMax) <= 1) return { pdf: atMax, scale: MAX_SCALE };
+  let lo = MIN_SCALE;
+  let hi = MAX_SCALE;
+  let best = { pdf: await render(lo), scale: lo };
+  while (hi - lo > 0.01) {
+    const mid = (lo + hi) / 2;
+    const pdf = await render(mid);
+    if (pageCount(pdf) <= 1) {
+      best = { pdf, scale: mid };
+      lo = mid;
+    } else {
+      hi = mid;
+    }
+  }
+  return best;
+}
+
 await mkdir(OUT_DIR, { recursive: true });
 const browser = await chromium.launch();
 try {
@@ -107,10 +135,10 @@ try {
     const page = await browser.newPage();
     await page.goto(`http://localhost:${PORT}/events/${id}/schedule`, { waitUntil: 'load' });
     await page.waitForSelector('table.schedule-grid');
-    const pdf = await page.pdf({ printBackground: true, preferCSSPageSize: true });
+    const { pdf, scale } = await renderToFit(page);
     await writeFile(join(OUT_DIR, `${id}.pdf`), pdf);
     await page.close();
-    console.log(`  ${id}.pdf  (${(pdf.length / 1024).toFixed(0)} KB)`);
+    console.log(`  ${id}.pdf  (${(pdf.length / 1024).toFixed(0)} KB, scale ${scale.toFixed(2)})`);
   }
 } finally {
   await browser.close();
