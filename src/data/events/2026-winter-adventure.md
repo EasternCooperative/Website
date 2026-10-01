@@ -213,13 +213,17 @@ classes:
     room: 'Elm Room'
     restriction: 'Ages 2-11'
     description: 'Group activities organized and staffed by parents and volunteers. We will create a sign-up sheet and there will be a room designated with some materials to share.'
-  - name: 'Board and Card Games'
-    leaderId: bonnie-ostrofsky
+  - name: 'Rounds from Around'
+    leaders:
+      - id: celia-nicholson
+      - id: sonia-nicholson
     period: '3rd Period (3:45–5:45 PM)'
     days: 'Days 3–4'
-    room: 'Dining Room'
     restriction: 'Ages 12+'
-    description: 'Relax with board and card games. Participants can bring their own games to teach and share with others, or play the games provided by the workshop leader.'
+    description: |
+      In this mini, we will teach a handful of rounds, songs with melodies that when staggered, overlap to create beautiful harmonies! We have been collecting and learning rounds over the years and are excited to share them with YOU!
+
+      You may recognize a few (or not!). No previous experience required. Our hope is for you to find joy, have fun, and maybe even find a round you want to bring home and teach around your own circles.
   - name: 'Informal Dramatics'
     leaderId: lane-neubauer
     period: '3rd Period (3:45–5:45 PM)'
