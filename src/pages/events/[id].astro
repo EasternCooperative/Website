@@ -944,7 +944,7 @@ const breadcrumbJsonLd = {
       )}
 
       <!-- ── Policies ── -->
-      {(data.showCancellationPolicy || data.showHealthPolicy) && (
+      {(data.showCancellationPolicy || data.showHealthPolicy || data.showPhotoPolicy) && (
         <div class="mt-10 space-y-6">
           <h2 class="font-heading text-2xl font-bold text-heading">Policies</h2>
 
@@ -969,6 +969,16 @@ const breadcrumbJsonLd = {
               <div
                 class="text-sm text-muted prose prose-sm dark:prose-invert max-w-none"
                 set:html={renderProse(data.healthPolicy)}
+              />
+            </div>
+          )}
+
+          {data.showPhotoPolicy && data.photoPolicy && (
+            <div class="rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+              <h3 class="font-heading text-base font-bold text-heading mb-2">Photography</h3>
+              <div
+                class="text-sm text-muted prose prose-sm dark:prose-invert max-w-none"
+                set:html={renderProse(data.photoPolicy)}
               />
             </div>
           )}
