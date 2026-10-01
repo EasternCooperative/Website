@@ -38,7 +38,7 @@ classes:
     days: 'Days 1–2'
     room: 'Dining Room'
     restriction: 'Ages 12+'
-    description: 'Explore capability and expression through deliberate gross-motor movements. We will blend practices and games from improvisational theater, juggling, parkour, and other recreation disciplines. For all movement ability levels. Bring an attitude of self-discovery and three or more extra rolled-up socks (our juggling props!).'
+    description: 'Explore capability and expression through deliberate macro-movements. We will blend practices and games from improvisational theater, juggling, parkour, and other recreation disciplines. For all movement ability levels. Bring an attitude of self-discovery and three or more extra rolled-up socks (our juggling props!).'
   - name: 'Chair Yoga'
     leaderId: judi-powers
     period: '1st Period (9:00–10:40 AM)'
@@ -73,12 +73,13 @@ classes:
       Children's Program is first and third periods only. A cooperatively-led Children's Program staffed by parents and volunteers is 2nd period.
 
       Note: Children are expected to stay for the entire program, and are the responsibility of their guardians at all other times.
-  - name: 'Joy of Movement'
+  - name: 'Joy of Movement: Moving to Heal'
     leaderId: judi-powers
     period: '1st Period (9:00–10:40 AM)'
     days: 'Days 3–4'
     room: 'Rec Hall'
-    description: "Let's Dance and stretch your body's way. Music and dance will be fun, playful, and healing. Come enjoy! All levels invited, you will be encouraged to modify to your body's needs. All ages welcome."
+    restriction: 'Ages 12+'
+    description: "Let's Dance and stretch your body's way. Music and dance will be fun, playful, and healing. Come enjoy! All levels invited, you will be encouraged to modify to your body's needs."
   - name: 'Collage Craft & Storytelling'
     leaders:
       - id: toby-woods
@@ -97,7 +98,7 @@ classes:
     callout: 'Class size is limited. Please register in advance. We will keep a wait list once we have reached capacity.'
 
   # ── 2nd Period (10:50 AM–12:30 PM) ──
-  - name: 'International Folk Dancing'
+  - name: 'International Folk Dance'
     leaderId: patricia-williams
     period: '2nd Period (10:50 AM–12:30 PM)'
     days: 'All 4 days'
@@ -110,7 +111,7 @@ classes:
     days: 'Days 1–2'
     room: 'Martin Room'
     restriction: 'Ages 12+'
-    description: 'Participants would choose songs from ECRS songbook for singalong and participants who want to play their musical instruments will accompany them. Participants also have opportunity to offer songs in advance of Winter Adventure.'
+    description: 'Come sing with us! If you play a musical instrument, please play along with us. Our ECRS songbook has the lyrics and chords to a wide variety of songs: folk, rock, parodies, pop, country, ballads, show tunes and more. We will take turns selecting songs and leading. Extra ukuleles available.'
   - name: 'ECRS Game Favorites'
     leaders:
       - id: isaac-lebwohl-steiner
@@ -155,7 +156,7 @@ classes:
     description: "Are you ready? No? Perfect! Come make it up as you go. We'll learn a little, play a lot, and laugh too much. No experience needed."
 
   # ── 3rd Period (3:45–5:45 PM) ──
-  - name: 'Line Dance'
+  - name: 'Line Dancing'
     leaderId: debbie-karl
     period: '3rd Period (3:45–5:45 PM)'
     days: 'Days 1–2'
@@ -170,7 +171,7 @@ classes:
     period: '3rd Period (3:45–5:45 PM)'
     days: 'All 4 days'
     room: 'Chapel A'
-    restriction: 'Ages 12+'
+    restriction: 'Ages 15+'
     limitedCapacity: true
     description: 'Participants are cast as characters in small-group comedic or dramatic scenes. Limited rehearsals culminate with on-script performances. The emphasis is on character portrayal and timing; sets, props, and costumes are typically left to the imagination.'
     callout: 'Class size is limited. Please register in advance. We will keep a wait list once we have reached capacity.'
@@ -198,6 +199,8 @@ classes:
     restriction: 'Ages 12+'
     limitedCapacity: true
     description: |
+      Join Toby and Crow to make art and swap stories! Storytelling has always helped us make sense of the world and understand each other.
+
       In this class Crow and Toby will lead a story swap while crafting using fabric.
 
       On the first day everyone will learn how to loom knit. On the second day, stories will be shared with knitting continuing.
@@ -224,7 +227,7 @@ classes:
     room: 'Rec Hall'
     restriction: 'Ages 12+'
     description: |
-      Have you ever wanted to experience being someone (or something!) other than yourself, perhaps an animal or an inanimate object.  Use your imagination to bring to life whatever you choose to be. Be prepared to think outside of the box, laugh, experiment and most of all have fun! 
+      Have you ever wanted to experience being someone (or something!) other than yourself, perhaps an animal or an inanimate object. Use your imagination to bring to life whatever you choose to be. Be prepared to think outside of the box, laugh, experiment and most of all have fun!
 
       This course will consist of structured creative dramatic games, warm ups, and exercises structured to promote positive interaction.
 
