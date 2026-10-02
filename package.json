@@ -65,7 +65,7 @@
     "@axe-core/playwright": "^4.12.1",
     "@eslint/js": "^10.0.1",
     "@iconify-json/flat-color-icons": "^1.2.3",
-    "@iconify-json/tabler": "^1.2.35",
+    "@iconify-json/tabler": "^1.2.41",
     "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.61.1",
     "@sveltia/cms": "^0.221.8",
