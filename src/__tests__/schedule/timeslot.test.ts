@@ -42,7 +42,7 @@ describe('formatTimeRange', () => {
     expect(formatTimeRange('', '10:00')).toBe('');
   });
 
-  it('returns empty string when end time is missing', () => {
-    expect(formatTimeRange('09:00', '')).toBe('');
+  it('returns just the start time when end time is missing', () => {
+    expect(formatTimeRange('09:00', '')).toBe('9:00 AM');
   });
 });
