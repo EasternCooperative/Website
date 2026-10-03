@@ -2,10 +2,45 @@
 title: 'Winter Adventure'
 date: 2026-12-27
 endDate: 2027-01-01
+startTime: '4:00 PM'
+endTime: '10:30 AM'
 siteId: the-y-at-watson-woods
+address: '9620 Dry Run Road, Painted Post, NY 14870'
+phone: 'On-site phone during the event (Dec 27 - Jan 1 only): 607-962-0541'
+accessibilityNote: 'The Y at Watson Woods is wheelchair accessible.'
 excerpt: 'ECRS Winter Adventure offers a joyful alternative holiday with diverse classes, free time for relaxation, and three delicious buffet meals daily.'
 description: |
-  ECRS Winter Adventure offers a joyful alternative holiday with diverse classes, free time for relaxation, and three delicious buffet meals daily. Evenings bring singing, dancing, games, and themed celebrations, culminating in a festive New Year's ceremony.
+  ### A new way to connect
+
+  ECRS Winter Adventure is a creative and joyous alternative holiday experience. There's nothing tedious or tiresome here. Young and old will be thoroughly engaged in four days filled with a diverse array of classes.
+
+  ### It's about community
+
+  Each evening, we gather together as a group to enjoy a mix of activities for all ages: games, dancing, informal dramatics, sing-alongs and making music together, and good conversation. After an evening snack, there are a variety of “late-night activities.” Not a fan of typical New Year's Eve parties? Celebrate the uniquely ECRS way, with enough warmth, light, and fun to last through next year.
+
+  ### Eating is a time to connect, too
+
+  Breakfast, lunch and dinner are buffet-style, with everyone eating together in groups at large round tables. Connect with one special friend, or with a different one of your ECRS “family” at each meal! Vegetarian and gluten-free options are available.
+
+  ### How will you use your unscheduled time?
+
+  Board games? Jigsaw puzzles? Hanging out by the fireplace? Taking a nap? Take a walk or other outdoor activities? Explore Corning or other nearby towns?
+
+  ### The 'Y' at Watson Woods
+
+  The Y at Watson Woods (Watson Homestead) is a conference center on 600 beautiful acres near Corning, NY. We're ideally situated for winter sports and local attractions, including sledding, hiking, and the nearby Corning Museum of Glass. The Y at Watson Woods is wheelchair accessible.
+
+  ### Accommodation Options
+
+  **Main Lodge:** Dorm-style rooms with twin or bunk beds, and shared bath; guests must bring sheets and towels.
+
+  **West Wing (attached to Main Lodge):** Hotel-style rooms with two double beds, private bath, and carpeting; all linens (blankets, sheets, towels, and pillows) are supplied.
+
+  **Hillside (a short walk up a hill from Main Lodge):** There's a limited number of rooms with shared baths in this two-story house; guests must bring sheets and towels.
+
+  Pre-registration required for all attendees. Questions: [registration@ecrs.org](mailto:registration@ecrs.org)
+mealsIncluded: 'Winter Adventure includes a hearty breakfast, lunch and dinner every day beginning with dinner on December 27th and wrapping up with breakfast on January 1st.'
+mealsNote: 'All meals are served family-style in the “dining room” (part of the great hall). Coffee, tea and hot chocolate are available all day. Snacks are served after Evening Program and feature a smorgasbord that often includes yogurt, hummus, fruit, veggies, cheese, and chips with dip. Vegetarian or gluten-free? Watson supplies limited vegetarian and gluten free options (you must specify when you register). If you have significant dietary restrictions and want to bring your own food to supplement the family-style offerings, there is a refrigerator and microwave available.'
 showHealthPolicy: true
 healthPolicy: |-
   ECRS events are fragrance-, drug-, and alcohol-free.
@@ -53,7 +88,7 @@ schedule:
       isBreak: true
     - label: 'Free Time'
       start: '13:30'
-      end: '15:35'
+      end: '15:45'
       isBreak: true
     - label: '3rd Period (3:45–5:45 PM)'
       start: '15:45'
@@ -73,6 +108,12 @@ schedule:
       isBreak: true
 
 classesIntro: |
+  Room assignments start at 4:00 PM December 27.
+
+  Staff introduction, orientation, class registration and activities is after the first evening meal.
+
+  The final meal is breakfast on January 1, followed by a closing program.
+
   Classes may be subject to change, if necessary.
 
   You'll be able to register for all classes right after you complete the event registration.
