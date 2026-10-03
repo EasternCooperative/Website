@@ -250,6 +250,17 @@ const leaderPopoverIds = [
   .schedule-grid tr {
     page-break-inside: avoid;
   }
+  /* Dark mode on screen only; printing always uses the light fills above. Uses the site's warm dark surface tokens. */
+  @media screen {
+    :global(html.dark) .schedule-grid th,
+    :global(html.dark) .schedule-grid td {
+      border-color: var(--aw-color-border-surface-dark);
+    }
+    :global(html.dark) .schedule-grid thead th,
+    :global(html.dark) .schedule-break td {
+      background: var(--aw-color-bg-surface-dark);
+    }
+  }
 
   @media print {
     :global(header),
