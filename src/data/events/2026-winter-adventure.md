@@ -160,7 +160,7 @@ classes:
     description: |
       Why should the grown-ups have all the fun? ECRS offers a completely integrated program for children ages 2-11 during two class periods. Many activities mirror the cooperative play that ECRS is built on. Children may learn new games, create new crafts, sing silly songs, or even get the chance to share activities they have fun doing at home. Depending on age and interest, they may take a field trip to experience the more kid-friendly adult classes!
 
-      Children's Program is first and third periods only. A cooperatively-led Children's Program staffed by parents and volunteers is 2nd period.
+      Children's Program is during the first and second morning class periods only. A cooperatively-led Children's Program staffed by parents and volunteers is during the afternoon class.
 
       Note: Children are expected to stay for the entire program, and are the responsibility of their guardians at all other times.
   - name: 'Joy of Movement: Moving to Heal'
@@ -223,7 +223,7 @@ classes:
     description: |
       Why should the grown-ups have all the fun? ECRS offers a completely integrated program for children ages 2-11 during two class periods. Many activities mirror the cooperative play that ECRS is built on. Children may learn new games, create new crafts, sing silly songs, or even get the chance to share activities they have fun doing at home. Depending on age and interest, they may take a field trip to experience the more kid-friendly adult classes!
 
-      Children's Program is first and third periods only. A cooperatively-led Children's Program staffed by parents and volunteers is 2nd period.
+      Children's Program is during the first and second morning class periods only. A cooperatively-led Children's Program staffed by parents and volunteers is during the afternoon class.
 
       Note: Children are expected to stay for the entire program, and are the responsibility of their guardians at all other times.
   - name: 'The Write Stuff'
