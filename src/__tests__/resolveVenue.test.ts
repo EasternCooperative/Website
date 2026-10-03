@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { resolveVenue } from '../utils/resolveEvent';
+import { resolveVenue, splitPhone } from '../utils/resolveEvent';
 
 const site = {
   name: 'Camp Onas',
@@ -90,5 +90,35 @@ describe('resolveVenue', () => {
     const result = resolveVenue({ location: 'Solo Venue', address: '1 Elm St' });
     expect(result.location).toBe('Solo Venue');
     expect(result.address).toBe('1 Elm St');
+  });
+});
+
+describe('splitPhone', () => {
+  it('returns a bare number with a dialable tel and no note', () => {
+    expect(splitPhone('215-555-0000')).toEqual({ number: '215-555-0000', tel: '2155550000', note: undefined });
+  });
+
+  it('pulls a trailing parenthetical out as the note', () => {
+    expect(splitPhone('607-962-0541 (on-site, Dec 27 to Jan 1 only)')).toEqual({
+      number: '607-962-0541',
+      tel: '6079620541',
+      note: 'on-site, Dec 27 to Jan 1 only',
+    });
+  });
+
+  it('handles a leading label and (xxx) area code', () => {
+    expect(splitPhone('On-site phone: (607) 962-0541')).toEqual({
+      number: '(607) 962-0541',
+      tel: '6079620541',
+      note: 'On-site phone',
+    });
+  });
+
+  it('keeps the international + prefix in tel', () => {
+    expect(splitPhone('+1 607 962 0541').tel).toBe('+16079620541');
+  });
+
+  it('treats text without a number as a note only', () => {
+    expect(splitPhone('Ask at the front desk')).toEqual({ note: 'Ask at the front desk' });
   });
 });

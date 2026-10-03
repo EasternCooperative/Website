@@ -9,7 +9,7 @@ import ZeffyForm from '~/components/widgets/ZeffyForm.astro';
 import Image from '~/components/common/Image.astro';
 import PersonPhoto from '~/components/ui/PersonPhoto.astro';
 import { findImage } from '~/utils/images';
-import { resolveVenue } from '~/utils/resolveEvent';
+import { resolveVenue, splitPhone } from '~/utils/resolveEvent';
 import siteSettings from '~/data/settings/site.json';
 import { resolveClassLeaderNames } from '~/utils/classes';
 import { hasMasterSchedule, buildScheduleGroups } from '~/utils/eventSchedule';
@@ -42,6 +42,7 @@ interface Props {
 const { event, siteData } = Astro.props;
 const { data } = event;
 const venue = resolveVenue(data, siteData);
+const phone = venue.phone ? splitPhone(venue.phone) : undefined;
 const mapQuery =
   venue.lat != null && venue.lng != null
     ? `${venue.lat},${venue.lng}`
@@ -414,7 +415,6 @@ const breadcrumbJsonLd = {
               <p class="text-xs font-bold uppercase tracking-widest text-muted">Location</p>
               <p class="text-default font-semibold group-hover:underline">{venue.location}</p>
               <p class="text-sm text-muted">{venue.address}</p>
-              {venue.phone && <p class="text-sm text-muted">{venue.phone}</p>}
             </div>
           </a>
         ) : (
@@ -440,6 +440,51 @@ const breadcrumbJsonLd = {
             </div>
           </div>
         )}
+
+        {phone &&
+          (() => {
+            const icon = (
+              <span class="text-primary mt-0.5 flex-shrink-0" aria-hidden="true">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M5 4h4l2 5l-2.5 1.5a11 11 0 0 0 5 5l1.5 -2.5l5 2v4a2 2 0 0 1 -2 2a16 16 0 0 1 -15 -15a2 2 0 0 1 2 -2" />
+                </svg>
+              </span>
+            );
+            const text = (
+              <div>
+                <p class="text-xs font-bold uppercase tracking-widest text-muted">Phone</p>
+                {phone.number && (
+                  <p class:list={['text-default font-semibold', { 'group-hover:underline': phone.tel }]}>
+                    {phone.number}
+                  </p>
+                )}
+                {phone.note && <p class="text-sm text-muted">{phone.note}</p>}
+              </div>
+            );
+            return phone.tel ? (
+              <a
+                href={`tel:${phone.tel}`}
+                class="flex gap-3 items-start rounded-xl p-2 -m-2 hover:bg-primary/5 transition-colors group"
+              >
+                {icon}
+                {text}
+              </a>
+            ) : (
+              <div class="flex gap-3 items-start p-2 -m-2">
+                {icon}
+                {text}
+              </div>
+            );
+          })()}
 
         {data.earlyBirdDeadline && !isPast && (
           <div class="flex gap-3 items-start">
