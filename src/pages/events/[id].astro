@@ -673,33 +673,36 @@ const breadcrumbJsonLd = {
                 {accom.description && (
                   <p class="text-sm text-muted mb-3 md-links" set:html={renderInlineMarkdown(accom.description)} />
                 )}
-                <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
-                  <table class="w-full text-sm">
-                    <thead>
-                      <tr class="bg-gray-50 dark:bg-gray-800">
-                        <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
-                          Occupancy
-                        </th>
-                        <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
-                          Per Person
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {accom.tiers.map((tier, i) => (
-                        <tr
-                          class:list={[
-                            'border-t border-gray-200 dark:border-gray-700',
-                            { 'bg-gray-50 dark:bg-gray-900': i % 2 === 0 },
-                          ]}
-                        >
-                          <td class="px-4 py-3">{tier.label}</td>
-                          <td class="px-4 py-3 font-semibold">{tier.amount}</td>
+                {/* Rooms can be listed before prices are set; skip the empty table until then. */}
+                {accom.tiers.length > 0 && (
+                  <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
+                    <table class="w-full text-sm">
+                      <thead>
+                        <tr class="bg-gray-50 dark:bg-gray-800">
+                          <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
+                            Occupancy
+                          </th>
+                          <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
+                            Per Person
+                          </th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {accom.tiers.map((tier, i) => (
+                          <tr
+                            class:list={[
+                              'border-t border-gray-200 dark:border-gray-700',
+                              { 'bg-gray-50 dark:bg-gray-900': i % 2 === 0 },
+                            ]}
+                          >
+                            <td class="px-4 py-3">{tier.label}</td>
+                            <td class="px-4 py-3 font-semibold">{tier.amount}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             ))}
           </div>
