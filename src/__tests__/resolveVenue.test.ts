@@ -121,4 +121,8 @@ describe('splitPhone', () => {
   it('treats text without a number as a note only', () => {
     expect(splitPhone('Ask at the front desk')).toEqual({ note: 'Ask at the front desk' });
   });
+
+  it('returns nothing for a blank string', () => {
+    expect(splitPhone('   ')).toEqual({ note: undefined });
+  });
 });
