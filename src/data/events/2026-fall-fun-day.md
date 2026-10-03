@@ -53,7 +53,7 @@ healthPolicy: |-
 showPhotoPolicy: true
 photoPolicy: We welcome community photography at ECRS events! If you have event photos you would like to share for use on our website or social media, please email [photos@ecrs.org](mailto:photos@ecrs.org). If you are not comfortable with your likeness being used for this purpose and would like to opt out, please email [no-photos@ecrs.org](mailto:no-photos@ecrs.org).
 classes:
-  - name: Community Songs
+  - name: Group Singing for All
     leaderId: ''
     leader: ''
     ageRange: ''
