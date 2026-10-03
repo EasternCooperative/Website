@@ -1,11 +1,38 @@
 ---
-title: 'Winter Adventure'
+title: 'Winter Adventure 2026'
 date: 2026-12-27
 endDate: 2027-01-01
+startTime: '4:00 PM'
+endTime: '10:30 AM'
 siteId: the-y-at-watson-woods
+address: '9620 Dry Run Road, Painted Post, NY 14870'
+phone: '607-962-0541 (on-site, Dec 27 to Jan 1 only)'
+accessibilityNote: 'The Y at Watson Woods is wheelchair accessible.'
 excerpt: 'ECRS Winter Adventure offers a joyful alternative holiday with diverse classes, free time for relaxation, and three delicious buffet meals daily.'
 description: |
-  ECRS Winter Adventure offers a joyful alternative holiday with diverse classes, free time for relaxation, and three delicious buffet meals daily. Evenings bring singing, dancing, games, and themed celebrations, culminating in a festive New Year's ceremony.
+  **A new way to connect.** ECRS Winter Adventure is a creative and joyous alternative holiday experience. There's nothing tedious or tiresome here. Young and old will be thoroughly engaged in four days filled with a diverse array of classes.
+
+  **It's about community.** Each evening, we gather together as a group to enjoy a mix of activities for all ages: games, dancing, informal dramatics, sing-alongs and making music together, and good conversation. After an evening snack, there are a variety of “late-night activities.” Not a fan of typical New Year's Eve parties? Celebrate the uniquely ECRS way, with enough warmth, light, and fun to last through next year.
+
+  **Eating is a time to connect, too.** Breakfast, lunch and dinner are buffet-style, with everyone eating together in groups at large round tables. Connect with one special friend, or with a different one of your ECRS “family” at each meal!
+
+  **How will you use your unscheduled time?** Board games? Jigsaw puzzles? Hanging out by the fireplace? Taking a nap? Take a walk or other outdoor activities? Explore Corning or other nearby towns?
+
+  **The 'Y' at Watson Woods.** The Y at Watson Woods (Watson Homestead) is a conference center on 600 beautiful acres near Corning, NY. We're ideally situated for winter sports and local attractions, including sledding, hiking, and the nearby Corning Museum of Glass.
+
+  Pre-registration required for all attendees. Questions: [registration@ecrs.org](mailto:registration@ecrs.org)
+accommodations:
+  - name: 'Main Lodge'
+    description: 'Dorm-style rooms with twin or bunk beds, and shared bath; guests must bring sheets and towels.'
+    tiers: []
+  - name: 'Hillside'
+    description: "A short walk up a hill from Main Lodge. There's a limited number of rooms with shared baths in this two-story house; guests must bring sheets and towels."
+    tiers: []
+  - name: 'West Wing'
+    description: 'Attached to Main Lodge. Hotel-style rooms with two double beds, private bath, and carpeting; all linens (blankets, sheets, towels, and pillows) are supplied.'
+    tiers: []
+mealsIncluded: 'Breakfast, lunch, and dinner daily, from dinner on December 27 through breakfast on January 1.'
+mealsNote: 'All meals are served buffet-style in the “dining room” (part of the great hall). Coffee, tea and hot chocolate are available all day. Snacks are served after Evening Program and feature a smorgasbord that often includes yogurt, hummus, fruit, veggies, cheese, and chips with dip. Vegetarian or gluten-free? Watson supplies limited vegetarian and gluten free options (you must specify when you register). If you have significant dietary restrictions and want to bring your own food to supplement the buffet-style offerings, there is a refrigerator and microwave available.'
 showHealthPolicy: true
 healthPolicy: |-
   ECRS events are fragrance-, drug-, and alcohol-free.
@@ -22,7 +49,7 @@ staff:
     role: 'Staff Coordinator'
   - id: gabriella-frisone
     role: 'Business Manager'
-  - name: 'TBD'
+  - id: myriam-siftar
     role: 'Assistant Business Manager'
   - leaderId: mark-schwartz
     role: 'Program for All Co-Coordinator'
@@ -42,37 +69,43 @@ schedule:
     - label: 'Breakfast'
       start: '08:00'
       isBreak: true
-    - label: '1st Period (9:00–10:40 AM)'
+    - label: 'Morning class, first period'
       start: '09:00'
       end: '10:40'
-    - label: '2nd Period (10:50 AM–12:30 PM)'
+    - label: 'Morning class, second period'
       start: '10:50'
       end: '12:30'
     - label: 'Lunch'
       start: '12:45'
       isBreak: true
-    - label: 'Free Time'
+    - label: 'Free time activities'
       start: '13:30'
-      end: '15:35'
+      end: '15:45'
       isBreak: true
-    - label: '3rd Period (3:45–5:45 PM)'
+    - label: 'Afternoon class'
       start: '15:45'
       end: '17:45'
     - label: 'Dinner'
       start: '18:00'
       isBreak: true
-    - label: 'Evening Program and Evening Sing'
+    - label: 'Evening Program'
       start: '19:30'
       end: '21:00'
       isBreak: true
-    - label: 'Snack'
+    - label: 'Snacks'
       start: '21:00'
       isBreak: true
-    - label: 'Late-Night Activities'
+    - label: 'Late(r) Night Activities'
       start: '21:15'
       isBreak: true
 
 classesIntro: |
+  Room assignments start at 4:00 PM December 27.
+
+  Staff introduction, orientation, class registration and activities are after the first evening meal.
+
+  The final meal is breakfast on January 1, followed by a closing program.
+
   Classes may be subject to change, if necessary.
 
   You'll be able to register for all classes right after you complete the event registration.
@@ -80,24 +113,24 @@ classesIntro: |
   Note that you will be able to swap classes the first night of Winter Adventure.
 
 classes:
-  # ── 1st Period (9:00–10:40 AM) ──
+  # ── Morning class, first period ──
   - name: 'Movement Playground'
     leaderId: camden-elliott-williams
-    period: '1st Period (9:00–10:40 AM)'
+    period: 'Morning class, first period'
     days: 'Days 1–2'
     room: 'Dining Room'
     restriction: 'Ages 12+'
     description: 'Explore capability and expression through deliberate macro-movements. We will blend practices and games from improvisational theater, juggling, parkour, and other recreation disciplines. For all movement ability levels. Bring an attitude of self-discovery and three or more extra rolled-up socks (our juggling props!).'
   - name: 'Chair Yoga'
     leaderId: judi-powers
-    period: '1st Period (9:00–10:40 AM)'
+    period: 'Morning class, first period'
     days: 'Days 1–2'
     room: 'Martin Room'
     restriction: 'Ages 12+'
     description: 'Stretch your body, relax and feel renewed with Chair Yoga. Yoga poses and exercises done in a chair or standing next to a chair. Wear comfortable clothes and bring a water bottle.'
   - name: 'Facilitating Groups and Meetings'
     leaderId: kim-neubauer
-    period: '1st Period (9:00–10:40 AM)'
+    period: 'Morning class, first period'
     days: 'All 4 days'
     room: 'Chapel A'
     restriction: 'Ages 15+'
@@ -112,19 +145,19 @@ classes:
       - id: susannah-duncan
       - id: beverly-pincus
         role: assistant
-    period: '1st Period (9:00–10:40 AM)'
+    period: 'Morning class, first period'
     days: 'All 4 days'
     room: 'Elm Room'
     restriction: 'Ages 2-11'
     description: |
       Why should the grown-ups have all the fun? ECRS offers a completely integrated program for children ages 2-11 during two class periods. Many activities mirror the cooperative play that ECRS is built on. Children may learn new games, create new crafts, sing silly songs, or even get the chance to share activities they have fun doing at home. Depending on age and interest, they may take a field trip to experience the more kid-friendly adult classes!
 
-      Children's Program is first and third periods only. A cooperatively-led Children's Program staffed by parents and volunteers is 2nd period.
+      Children's Program is during the first and second morning class periods only. A cooperatively-led Children's Program staffed by parents and volunteers is during the afternoon class.
 
       Note: Children are expected to stay for the entire program, and are the responsibility of their guardians at all other times.
   - name: 'Joy of Movement: Moving to Heal'
     leaderId: judi-powers
-    period: '1st Period (9:00–10:40 AM)'
+    period: 'Morning class, first period'
     days: 'Days 3–4'
     room: 'Rec Hall'
     restriction: 'Ages 12+'
@@ -133,7 +166,7 @@ classes:
     leaders:
       - id: toby-woods
       - id: crow-underberg-davis
-    period: '1st Period (9:00–10:40 AM)'
+    period: 'Morning class, first period'
     days: 'Days 3–4'
     room: 'Craft Room'
     restriction: 'Ages 12+'
@@ -146,17 +179,17 @@ classes:
       Join us if you want to catch up with friends and paste cut out pictures from magazines together into fun art! It's going to be a blast!
     callout: 'Class size is limited. Please register in advance. We will keep a wait list once we have reached capacity.'
 
-  # ── 2nd Period (10:50 AM–12:30 PM) ──
+  # ── Morning class, second period ──
   - name: 'International Folk Dance'
     leaderId: patricia-williams
-    period: '2nd Period (10:50 AM–12:30 PM)'
+    period: 'Morning class, second period'
     days: 'All 4 days'
     room: 'Dining Room'
     restriction: 'Ages 12+'
     description: 'Connect with cultures from around the world in body, mind and spirit. Learn a variety of dances, fast and slow, in circles and in lines, serene, joyful and everything in between. Great music, great exercise, great fun, great community! No partner necessary, and absolutely no need to do them "right"!'
   - name: 'Sing and Play Music'
     leaderId: bonnie-ostrofsky
-    period: '2nd Period (10:50 AM–12:30 PM)'
+    period: 'Morning class, second period'
     days: 'Days 1–2'
     room: 'Martin Room'
     restriction: 'Ages 12+'
@@ -165,7 +198,7 @@ classes:
     leaders:
       - id: isaac-lebwohl-steiner
       - id: toby-woods
-    period: '2nd Period (10:50 AM–12:30 PM)'
+    period: 'Morning class, second period'
     days: 'Days 1–2'
     room: 'Rec Hall'
     restriction: 'Ages 12+'
@@ -175,19 +208,19 @@ classes:
       - id: lisa-natale
       - name: 'TBD'
         role: assistant
-    period: '2nd Period (10:50 AM–12:30 PM)'
+    period: 'Morning class, second period'
     days: 'All 4 days'
     room: 'Elm Room'
     restriction: 'Ages 2-11'
     description: |
       Why should the grown-ups have all the fun? ECRS offers a completely integrated program for children ages 2-11 during two class periods. Many activities mirror the cooperative play that ECRS is built on. Children may learn new games, create new crafts, sing silly songs, or even get the chance to share activities they have fun doing at home. Depending on age and interest, they may take a field trip to experience the more kid-friendly adult classes!
 
-      Children's Program is first and third periods only. A cooperatively-led Children's Program staffed by parents and volunteers is 2nd period.
+      Children's Program is during the first and second morning class periods only. A cooperatively-led Children's Program staffed by parents and volunteers is during the afternoon class.
 
       Note: Children are expected to stay for the entire program, and are the responsibility of their guardians at all other times.
   - name: 'The Write Stuff'
     leaderId: beverly-pincus
-    period: '2nd Period (10:50 AM–12:30 PM)'
+    period: 'Morning class, second period'
     days: 'Days 3–4'
     room: 'Library'
     restriction: 'Ages 15+'
@@ -198,16 +231,16 @@ classes:
     leaders:
       - id: isaac-lebwohl-steiner
       - id: joe-feigin
-    period: '2nd Period (10:50 AM–12:30 PM)'
+    period: 'Morning class, second period'
     days: 'Days 3–4'
     room: 'Rec Hall'
     restriction: 'Ages 12+'
     description: "Are you ready? No? Perfect! Come make it up as you go. We'll learn a little, play a lot, and laugh too much. No experience needed."
 
-  # ── 3rd Period (3:45–5:45 PM) ──
+  # ── Afternoon class ──
   - name: 'Line Dancing'
     leaderId: debbie-karl
-    period: '3rd Period (3:45–5:45 PM)'
+    period: 'Afternoon class'
     days: 'Days 1–2'
     room: 'Dining Room'
     restriction: 'Ages 12+'
@@ -217,7 +250,7 @@ classes:
       With a two-day class, we'll have time to work on one or two slightly more challenging dances, and we'll also repeat some favorites on the second day. All dances will be taught, no experience required.
   - name: 'Small Scenes'
     leaderId: camden-elliott-williams
-    period: '3rd Period (3:45–5:45 PM)'
+    period: 'Afternoon class'
     days: 'All 4 days'
     room: 'Chapel A'
     restriction: 'Ages 15+'
@@ -226,7 +259,7 @@ classes:
     callout: 'Class size is limited. Please register in advance. We will keep a wait list once we have reached capacity.'
   - name: 'Roll For It'
     leaderId: isaac-lebwohl-steiner
-    period: '3rd Period (3:45–5:45 PM)'
+    period: 'Afternoon class'
     days: 'Days 1–2'
     room: 'Rec Hall'
     restriction: 'Ages 12+'
@@ -242,7 +275,7 @@ classes:
     leaders:
       - id: toby-woods
       - id: crow-underberg-davis
-    period: '3rd Period (3:45–5:45 PM)'
+    period: 'Afternoon class'
     days: 'Days 1–2'
     room: 'Craft Room'
     restriction: 'Ages 12+'
@@ -257,7 +290,7 @@ classes:
       Join us if you've ever wanted to learn how to knit. With loom knitting you can make hats, scarves, blankets, and so much more! All other types of knitting are welcome or other fabric crafting. Crafting supplies will be supplied but feel free to bring your own.
     callout: 'Class size is limited. Please register in advance. We will keep a wait list once we have reached capacity.'
   - name: "Co-op Children's Program"
-    period: '3rd Period (3:45–5:45 PM)'
+    period: 'Afternoon class'
     days: 'All 4 days'
     room: 'Elm Room'
     restriction: 'Ages 2-11'
@@ -266,7 +299,7 @@ classes:
     leaders:
       - id: celia-nicholson
       - id: sonia-nicholson
-    period: '3rd Period (3:45–5:45 PM)'
+    period: 'Afternoon class'
     days: 'Days 3–4'
     room: 'Martin Room'
     restriction: 'Ages 12+'
@@ -276,7 +309,7 @@ classes:
       You may recognize a few (or not!). No previous experience required. Our hope is for you to find joy, have fun, and maybe even find a round you want to bring home and teach around your own circles.
   - name: 'Informal Dramatics'
     leaderId: lane-neubauer
-    period: '3rd Period (3:45–5:45 PM)'
+    period: 'Afternoon class'
     days: 'Days 3–4'
     room: 'Rec Hall'
     restriction: 'Ages 12+'

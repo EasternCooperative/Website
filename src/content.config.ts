@@ -72,7 +72,7 @@ const accommodationTierSchema = z.object({
 const accommodationSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
-  tiers: z.array(accommodationTierSchema),
+  tiers: z.array(accommodationTierSchema).default([]),
 });
 
 const tuitionTierSchema = z.object({

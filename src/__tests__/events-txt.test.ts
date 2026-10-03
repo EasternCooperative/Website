@@ -277,6 +277,15 @@ describe('GET /events/[id].txt', () => {
     expect(text).toContain('Per person: $100');
   });
 
+  it('lists accommodations that have no price tiers yet', async () => {
+    const text = await callGet(
+      makeEvent({ accommodations: [{ name: 'Main Lodge', description: 'Dorm-style rooms', tiers: [] }] } as never)
+    );
+    expect(text).toContain('ROOM & BOARD');
+    expect(text).toContain('Main Lodge');
+    expect(text).toContain('Dorm-style rooms');
+  });
+
   it('includes mealsIncluded and mealsNote', async () => {
     const text = await callGet(
       makeEvent({ mealsIncluded: 'All meals provided', mealsNote: 'Let us know about *allergies*' } as never)
