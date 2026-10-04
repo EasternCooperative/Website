@@ -2,6 +2,8 @@
 import { Icon } from 'astro-icon/components';
 import { SITE } from 'astrowind:config';
 import { getHomePermalink } from '~/utils/permalinks';
+import Button from '~/components/ui/Button.astro';
+import type { CallToAction } from '~/types';
 
 interface Link {
   text?: string;
@@ -19,12 +21,21 @@ export interface Props {
   links: Array<Links>;
   secondaryLinks: Array<Link>;
   socialLinks: Array<Link>;
+  cta?: CallToAction;
   footNote?: string;
   address?: string;
   theme?: string;
 }
 
-const { socialLinks = [], secondaryLinks = [], links = [], footNote = '', address = '', theme = 'light' } = Astro.props;
+const {
+  socialLinks = [],
+  secondaryLinks = [],
+  links = [],
+  cta,
+  footNote = '',
+  address = '',
+  theme = 'light',
+} = Astro.props;
 ---
 
 <footer
@@ -60,6 +71,8 @@ const { socialLinks = [], secondaryLinks = [], links = [], footNote = '', addres
             Cookie settings
           </button>
         </div>
+        {/* People who can't find the header CTA scroll to the bottom looking for it. */}
+        {cta && <Button {...cta} class="mt-5 py-2.5 px-5.5 font-semibold shadow-none text-sm w-auto" />}
       </div>
       {links.map(({ title, links }) => (
         <div class="col-span-6 md:col-span-3 lg:col-span-2">

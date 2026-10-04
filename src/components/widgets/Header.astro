@@ -27,6 +27,7 @@ export interface Props {
   id?: string;
   links?: Array<MenuLink>;
   actions?: Array<CallToAction>;
+  mobileAction?: CallToAction;
   isSticky?: boolean;
   isDark?: boolean;
   isFullWidth?: boolean;
@@ -38,6 +39,7 @@ const {
   id = 'header',
   links = [],
   actions = [],
+  mobileAction,
   isSticky = false,
   isDark = false,
   isFullWidth = false,
@@ -87,19 +89,12 @@ const currentPath = `/${trimSlash(new URL(Astro.url).pathname)}`;
       <div class="flex items-center gap-1 nav:hidden">
         <Search />
         {showToggleTheme && <ToggleTheme iconClass="w-6 h-6" />}
-        {siteData.socialLinks
-          .filter((link) => link.url)
-          .map((link) => (
-            <a
-              href={link.url}
-              aria-label={link.platform}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="icon-btn-focus text-muted dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-primary dark:hover:text-primary rounded-lg p-2 inline-flex items-center transition-colors"
-            >
-              <Icon name={link.icon} class="w-5 h-5" />
-            </a>
-          ))}
+        {/* The mailing-list CTA takes the slot social icons have on desktop:
+            testers on phones never thought to open the menu to find it, and
+            Facebook is still a tap away in the footer. */}
+        {mobileAction && (
+          <Button {...mobileAction} class="ml-1 py-1.5 px-3 text-sm font-semibold shadow-none whitespace-nowrap" />
+        )}
         <ToggleMenu />
       </div>
     </div>
@@ -160,7 +155,10 @@ const currentPath = `/${trimSlash(new URL(Astro.url).pathname)}`;
     <div
       class:list={[
         { 'ml-auto rtl:ml-0 rtl:mr-auto': position === 'left' },
-        'hidden nav:self-center nav:flex items-center nav:mb-0 fixed w-full nav:w-auto nav:static justify-end left-0 rtl:left-auto rtl:right-0 bottom-0 p-3 nav:p-0 nav:justify-self-end',
+        // Desktop only: the menu toggle script flips `hidden` on this block, so
+        // `max-nav:hidden!` keeps it from reappearing pinned to the bottom of
+        // the open mobile menu, where the top-bar Join button already covers it.
+        'hidden max-nav:hidden! nav:self-center nav:flex items-center nav:justify-self-end',
       ]}
     >
       <div class="items-center flex justify-between w-full nav:w-auto">
