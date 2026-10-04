@@ -60,37 +60,6 @@ const labelClass = 'block text-base font-bold text-default mb-1.5';
     <input type="tel" name="MMERGE4" id="mce-MMERGE4" autocomplete="tel" class={inputClass} />
   </div>
 
-  <fieldset class={`rounded-md border border-gray-200 ${surfaceBorder} p-4`}>
-    <legend class="px-1 text-base font-bold text-default">
-      Marketing Permissions <span class="text-red-600">*</span>
-    </legend>
-    <p class="mb-2 text-sm text-muted">
-      Please select all the ways you would like to hear from Eastern Cooperative Recreation School:
-    </p>
-    <label class="flex w-fit cursor-pointer items-center gap-3 text-sm text-default">
-      <span class="relative inline-flex shrink-0 items-center">
-        <input type="checkbox" id="gdpr_6437" name="gdpr[6437]" value="Y" required class="peer sr-only" />
-        <span
-          class={`h-6 w-10 rounded-full bg-gray-300 dark:bg-(--aw-color-border-surface-dark) transition-colors peer-checked:bg-primary peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-2`}
-        ></span>
-        <span class="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition-transform peer-checked:translate-x-4"></span>
-      </span>
-      Email
-    </label>
-    <p class="mt-2 text-xs text-muted">
-      You can unsubscribe at any time by clicking the link in the footer of our emails. For information about our
-      privacy practices, please visit our website.
-    </p>
-    <p class="mt-2 text-xs text-muted">
-      We use Mailchimp as our marketing platform. By clicking below to subscribe, you acknowledge that your information
-      will be transferred to Mailchimp for processing.{' '}
-      <a href="https://mailchimp.com/legal/terms" class="underline" target="_blank" rel="noopener noreferrer">
-        Learn more
-      </a>{' '}
-      about Mailchimp's privacy practices.
-    </p>
-  </fieldset>
-
   <div aria-hidden="true" class="absolute -left-[5000px]">
     <input type="text" name="b_26c8c63440ac3a046e97a93c2_99254bd486" tabindex="-1" value="" />
   </div>
@@ -115,5 +84,20 @@ const labelClass = 'block text-base font-bold text-default mb-1.5';
         class="hidden h-auto w-36 dark:block"
       />
     </a>
+  </div>
+
+  <div class="space-y-2 text-xs text-muted">
+    <p>
+      You can unsubscribe at any time by clicking the link in the footer of our emails. For information about our
+      privacy practices, please visit our website.
+    </p>
+    <p>
+      We use Mailchimp as our marketing platform. By clicking above to subscribe, you acknowledge that your information
+      will be transferred to Mailchimp for processing.{' '}
+      <a href="https://mailchimp.com/legal/terms" class="underline" target="_blank" rel="noopener noreferrer">
+        Learn more
+      </a>{' '}
+      about Mailchimp's privacy practices.
+    </p>
   </div>
 </form>

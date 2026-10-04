@@ -56,6 +56,9 @@ export const headerData = {
     .map(resolveLink)
     .filter((link): link is NonNullable<typeof link> => link !== null),
   actions: [{ text: ctaText, href: getPermalink(navData.cta.href), variant: 'primary' as const }],
+  // Below `nav` the CTA above is hidden, so phones get this short label in the
+  // top bar instead of having to find it inside the hamburger menu.
+  mobileAction: { text: navData.cta.textMobile, href: getPermalink(navData.cta.href), variant: 'primary' as const },
 };
 
 export const footerData_ = {
@@ -78,6 +81,7 @@ export const footerData_ = {
     icon: s.icon,
     href: s.url,
   })),
+  cta: { text: navData.cta.text, href: getPermalink(navData.cta.href), variant: 'primary' as const },
   footNote: footerData.footNote,
   address: footerData.address,
 };
