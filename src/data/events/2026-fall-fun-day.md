@@ -65,7 +65,6 @@ classes:
     callout: ''
     leaders:
       - name: Chloe Mohr
-      - name: Evan Mohr
   - name: Folk & Line Dances
     leaderId: ''
     leader: ''
@@ -79,17 +78,6 @@ classes:
     leaders:
       - id: debbie-karl
       - id: kim-neubauer
-  - name: Children's Program
-    leaderId: ''
-    leader: ''
-    ageRange: ''
-    period: Afternoon Workshops
-    days: ''
-    room: ''
-    limitedCapacity: false
-    description: ''
-    callout: ''
-    restriction: Ages 3-9
   - name: Joy Collage (Craft)
     leaderId: heather-klemanski
     leader: ''
@@ -110,17 +98,6 @@ classes:
     limitedCapacity: false
     description: ''
     callout: Live music by Bill Quern & Sarah Gowan
-  - name: Children's Program
-    leaderId: ''
-    leader: ''
-    ageRange: ''
-    period: Evening Workshops
-    days: ''
-    room: ''
-    limitedCapacity: false
-    description: ''
-    callout: ''
-    restriction: Ages 3-9
 schedule:
   timeslots:
     - label: Program for All
