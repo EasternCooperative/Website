@@ -875,6 +875,11 @@ const breadcrumbJsonLd = {
                               data-scroll-reveal="up-light"
                             >
                               <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                                {isMultiDay && cls.days && (
+                                  <span class="text-xs font-semibold text-primary bg-primary/10 rounded-full px-2 py-0.5 whitespace-nowrap">
+                                    {cls.days}
+                                  </span>
+                                )}
                                 <span class="font-semibold text-heading">{cls.name}</span>
                                 {(() => {
                                   const resolved: ResolvedLeader[] = cls.leaders?.length
@@ -952,7 +957,6 @@ const breadcrumbJsonLd = {
                                     {cls.restriction}
                                   </span>
                                 )}
-                                {isMultiDay && cls.days && <span class="text-xs text-muted">{cls.days}</span>}
                                 {cls.limitedCapacity && (
                                   <span class="text-xs font-semibold text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-600 rounded-full px-2 py-0.5">
                                     Limited capacity

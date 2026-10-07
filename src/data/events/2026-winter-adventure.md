@@ -10,9 +10,9 @@ phone: '607-962-0541 (on-site, Dec 27 to Jan 1 only)'
 accessibilityNote: 'The Y at Watson Woods is wheelchair accessible.'
 excerpt: 'ECRS Winter Adventure offers a joyful alternative holiday with diverse classes, free time for relaxation, and three delicious buffet meals daily.'
 description: |
-  **A new way to connect.** ECRS Winter Adventure is a creative and joyous alternative holiday experience. There's nothing tedious or tiresome here. Young and old will be thoroughly engaged in four days filled with a diverse array of classes.
+  **A new way to connect.** ECRS Winter Adventure is a creative and joyous alternative holiday experience. Young and old will be thoroughly engaged in four days filled with a diverse array of classes.
 
-  **It's about community.** Each evening, we gather together as a group to enjoy a mix of activities for all ages: games, dancing, informal dramatics, sing-alongs and making music together, and good conversation. After an evening snack, there are a variety of “late-night activities.” Not a fan of typical New Year's Eve parties? Celebrate the uniquely ECRS way, with enough warmth, light, and fun to last through next year.
+  **It's about community.** Each evening, we gather together as a group to enjoy a mix of activities for all ages: games, dancing, informal dramatics, sing-alongs and making music together, and good conversation. After an evening snack, there are a variety of “late-night activities.” Celebrate New Year's Eve the uniquely ECRS way, with enough warmth, light, and fun to last through next year.
 
   **Eating is a time to connect, too.** Breakfast, lunch and dinner are buffet-style, with everyone eating together in groups at large round tables. Connect with one special friend, or with a different one of your ECRS “family” at each meal!
 
@@ -39,7 +39,7 @@ healthPolicy: |-
 
   During the week before the event, please mask in crowded indoor spaces and monitor your health. If you are sick, we ask you not to come.
 showPhotoPolicy: true
-photoPolicy: 'We welcome community photography at ECRS events! If you have event photos you would like to share for use on our website or social media, please email [photos@ecrs.org](mailto:photos@ecrs.org). If you are not comfortable with your likeness being used for this purpose and would like to opt out, please email [no-photos@ecrs.org](mailto:no-photos@ecrs.org).'
+photoPolicy: 'We welcome community photography at ECRS events! If you have event photos or videos you would like to share for use on our website or social media, please email [photos@ecrs.org](mailto:photos@ecrs.org). If you are not comfortable with your likeness being used for this purpose and would like to opt out, please email [no-photos@ecrs.org](mailto:no-photos@ecrs.org) before the event.'
 tags:
   - multi-day
   - new-year
@@ -230,7 +230,7 @@ classes:
   - name: 'Improv Games'
     leaders:
       - id: isaac-lebwohl-steiner
-      - id: joe-feigin
+      - id: joseph-feigin
     period: 'Morning class, second period'
     days: 'Days 3–4'
     room: 'Rec Hall'
