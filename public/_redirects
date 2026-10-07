@@ -8,6 +8,9 @@
 # static site, so they fall back to the homepage rather than 404ing; pages
 # with an obvious topical match redirect there instead.
 
+# --- Short links for print and QR codes ---
+/join                                             /join-email-list   301
+
 # --- Core pages that moved ---
 /about-us-2/*                                    /about   301
 /our-organization-3/*                             /about   301
@@ -24,7 +27,7 @@
 /resources/*                                      /connections   301
 
 /contact-us/*                                     /contact   301
-/join-our-mailing-list/*                          /contact   301
+/join-our-mailing-list/*                          /join-email-list   301
 
 /upcoming-events/*                                /events   301
 /event/*                                          /events   301
