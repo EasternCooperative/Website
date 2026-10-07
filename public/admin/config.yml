@@ -17,6 +17,10 @@ backend:
 
 local_backend: true
 
+# Uncomment to lock the whole CMS (browse and preview only) during maintenance
+# or a migration. This only affects the CMS UI; it does not block git pushes.
+# readonly: true
+
 media_folder: 'public/images'
 public_folder: '/images'
 
@@ -284,7 +288,12 @@ collections:
                       required: false,
                       hint: 'If this person already has a Leaders & Instructors record, pick it here instead of re-entering their photo/bio. The Photo/Bio below only need filling in if this section should show something different (e.g. no Leaders record exists yet, or a different photo for this context).',
                     }
-                  - { label: 'Photo', name: 'photo', widget: 'image', required: false }
+                  - label: 'Photo'
+                    name: 'photo'
+                    widget: 'image'
+                    required: false
+                    media_folder: '/public/images/headshots'
+                    public_folder: '/images/headshots'
                   - { label: 'Bio', name: 'bio', widget: 'markdown', required: false }
 
       - name: 'not-found'
@@ -312,7 +321,17 @@ collections:
           required: false,
           hint: 'e.g. Folk Dance Instructor, Musician',
         }
-      - { label: 'Photo', name: 'photo', widget: 'image', required: false }
+      - label: 'Photo'
+        name: 'photo'
+        widget: 'image'
+        required: false
+        hint: 'Uploads are renamed to match this leader and saved in /images/headshots. Square photos look best.'
+        media_folder: '/public/images/headshots'
+        public_folder: '/images/headshots'
+        media_libraries:
+          default:
+            config:
+              filename_template: '{{slug}}'
       - { label: 'Bio', name: 'bio', widget: 'markdown', required: false }
       - {
           label: 'Co-Leader (from Leader Records)',
@@ -1057,7 +1076,7 @@ collections:
     folder: 'src/data/gallery'
     create: true
     identifier_field: alt
-    media_folder: '/images/gallery'
+    media_folder: '/public/images/gallery'
     public_folder: '/images/gallery'
     slug: '{{fields.year}}-{{slug}}'
     summary: '{{fields.alt}}'
