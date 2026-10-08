@@ -714,10 +714,27 @@ const breadcrumbJsonLd = {
           <div class="space-y-8">
             {data.accommodations.map((accom) => (
               <div>
-                <h3 class="font-heading text-lg font-bold text-heading mb-1">{accom.name}</h3>
-                {accom.description && (
-                  <p class="text-sm text-muted mb-3 md-links" set:html={renderInlineMarkdown(accom.description)} />
-                )}
+                <div class={accom.image ? 'sm:grid sm:grid-cols-[16rem_1fr] sm:gap-5 sm:items-start' : undefined}>
+                  {accom.image && (
+                    <Image
+                      src={accom.image}
+                      alt={accom.imageAlt ?? accom.name}
+                      width={512}
+                      height={266}
+                      widths={[256, 512, 768]}
+                      sizes="(min-width: 640px) 256px, 100vw"
+                      layout="constrained"
+                      class="w-full h-auto rounded-xl mb-3"
+                      loading="lazy"
+                    />
+                  )}
+                  <div>
+                    <h3 class="font-heading text-lg font-bold text-heading mb-1">{accom.name}</h3>
+                    {accom.description && (
+                      <p class="text-sm text-muted mb-3 md-links" set:html={renderInlineMarkdown(accom.description)} />
+                    )}
+                  </div>
+                </div>
                 {/* Rooms can be listed before prices are set; skip the empty table until then. */}
                 {accom.tiers.length > 0 && (
                   <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">

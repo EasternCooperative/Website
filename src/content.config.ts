@@ -72,6 +72,8 @@ const accommodationTierSchema = z.object({
 const accommodationSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
+  image: z.string().optional(),
+  imageAlt: z.string().optional(),
   tiers: z.array(accommodationTierSchema).default([]),
 });
 

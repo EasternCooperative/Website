@@ -5,31 +5,46 @@ endDate: 2027-01-01
 startTime: '4:00 PM'
 endTime: '10:30 AM'
 siteId: the-y-at-watson-woods
+image: '/images/events/2026-winter-adventure/dance.jpg'
 address: '9620 Dry Run Road, Painted Post, NY 14870'
 phone: '607-962-0541 (on-site, Dec 27 to Jan 1 only)'
 accessibilityNote: 'The Y at Watson Woods is wheelchair accessible.'
 excerpt: 'ECRS Winter Adventure offers a joyful alternative holiday with diverse classes, free time for relaxation, and three delicious buffet meals daily.'
 description: |
-  **A new way to connect.** ECRS Winter Adventure is a creative and joyous alternative holiday experience. Young and old will be thoroughly engaged in four days filled with a diverse array of classes.
+  **A new way to connect.** ECRS Winter Adventure is a creative and joyous alternative holiday experience. Grownups will forget work and frolic like they're kids again. Kids will leave their phones in their rooms to join a pop-up game of Mafia in the library. Young and old will be thoroughly engaged in four days filled with dancing, crafts, games, singing and more: classes and unstructured free time during the day and group activities at night, with lots of room for conversation and connection in between.
 
-  **It's about community.** Each evening, we gather together as a group to enjoy a mix of activities for all ages: games, dancing, informal dramatics, sing-alongs and making music together, and good conversation. After an evening snack, there are a variety of “late-night activities.” Celebrate New Year's Eve the uniquely ECRS way, with enough warmth, light, and fun to last through next year.
+  **It's about community.** Each evening, all ages gather in the great hall for a smorgasbord of activities: games, dancing, informal dramatics, sing-alongs and making music together. After an evening snack, there are a variety of “late-night activities.” Celebrate New Year's Eve the uniquely ECRS way, with fun around the fire and a circle ceremony to ring in the new year with enough warmth, light, and fun to last through next year.
 
   **Eating is a time to connect, too.** Breakfast, lunch and dinner are buffet-style, with everyone eating together in groups at large round tables. Connect with one special friend, or with a different one of your ECRS “family” at each meal!
 
   **How will you use your unscheduled time?** Board games? Jigsaw puzzles? Hanging out by the fireplace? Taking a nap? Take a walk or other outdoor activities? Explore Corning or other nearby towns?
 
-  **The 'Y' at Watson Woods.** The Y at Watson Woods (Watson Homestead) is a conference center on 600 beautiful acres near Corning, NY. We're ideally situated for winter sports and local attractions, including sledding, hiking, and the nearby Corning Museum of Glass.
+  **The 'Y' at Watson Woods.** The Y at Watson Woods (Watson Homestead) is a conference center on 600 beautiful acres near Corning, NY.
+
+  The great hall is the center of activity: the dining room where we gather for meals and a newly renovated dance floor, all with great views of the fields beyond.
+
+  ![The great hall at the Y at Watson Woods, with round tables and white chairs under arched wooden beams](/images/events/2026-winter-adventure/great-hall.jpg)
+
+  There are lots of other spaces to gather: a basement rec room, a craft room, and even a non-denominational chapel, all an easy (and mostly indoor) walk from your bedroom.
+
+  ![A lounge with a stone fireplace and blue armchairs at the Y at Watson Woods](/images/events/2026-winter-adventure/fireplace-lounge.jpg)
+
+  You could stay in your pajamas the whole time and still get more exercise than you do in a week at home. And if you get antsy being inside, we're ideally situated for winter sports and local attractions, including sledding, hiking, and the nearby Corning Museum of Glass.
 
   Pre-registration required for all attendees. Questions: [registration@ecrs.org](mailto:registration@ecrs.org)
 accommodations:
   - name: 'Main Lodge'
-    description: 'Dorm-style rooms with twin or bunk beds, and shared bath; guests must bring sheets and towels.'
+    description: 'South Wing and North Wing, located off the central dining room. Dorm-style rooms with twin or bunk beds, and shared bath; guests must bring sheets and towels.'
     tiers: []
   - name: 'Hillside'
     description: "A short walk up a hill from Main Lodge. There's a limited number of rooms with shared baths in this two-story house; guests must bring sheets and towels."
+    image: '/images/events/2026-winter-adventure/hillside-room.jpg'
+    imageAlt: 'A Hillside bedroom with two twin beds made up with green covers and plaid blankets'
     tiers: []
   - name: 'West Wing'
     description: 'Attached to Main Lodge. Hotel-style rooms with two double beds, private bath, and carpeting; all linens (blankets, sheets, towels, and pillows) are supplied.'
+    image: '/images/events/2026-winter-adventure/west-wing-room.jpg'
+    imageAlt: 'A West Wing hotel-style room with two double beds'
     tiers: []
 mealsIncluded: 'Breakfast, lunch, and dinner daily, from dinner on December 27 through breakfast on January 1.'
 mealsNote: 'All meals are served buffet-style in the “dining room” (part of the great hall). Coffee, tea and hot chocolate are available all day. Snacks are served after Evening Program and feature a smorgasbord that often includes yogurt, hummus, fruit, veggies, cheese, and chips with dip. Vegetarian or gluten-free? Watson supplies limited vegetarian and gluten free options (you must specify when you register). If you have significant dietary restrictions and want to bring your own food to supplement the buffet-style offerings, there is a refrigerator and microwave available.'

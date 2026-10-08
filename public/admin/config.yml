@@ -510,6 +510,20 @@ collections:
               required: false,
               hint: 'e.g. Dorm-style, shared bath, bring linens',
             }
+          - {
+              label: 'Photo',
+              name: 'image',
+              widget: 'image',
+              required: false,
+              hint: 'Optional. A photo of a typical room, shown above the description.',
+            }
+          - {
+              label: 'Photo Alt Text',
+              name: 'imageAlt',
+              widget: 'string',
+              required: false,
+              hint: 'Describe the photo for screen readers, e.g. Hotel-style room with two double beds',
+            }
           - label: 'Pricing Tiers'
             name: 'tiers'
             widget: 'list'
