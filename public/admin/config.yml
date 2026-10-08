@@ -529,6 +529,20 @@ collections:
               required: false,
               hint: 'e.g. Dorm-style, shared bath, bring linens',
             }
+          - {
+              label: 'Photo',
+              name: 'image',
+              widget: 'image',
+              required: false,
+              hint: 'Optional. A photo of a typical room, shown above the description.',
+            }
+          - {
+              label: 'Photo Alt Text',
+              name: 'imageAlt',
+              widget: 'string',
+              required: false,
+              hint: 'Describe the photo for screen readers, e.g. Hotel-style room with two double beds',
+            }
           - label: 'Pricing Tiers'
             name: 'tiers'
             widget: 'list'
@@ -588,6 +602,11 @@ collections:
         default: 'We welcome community photography at ECRS events! If you have event photos you would like to share for use on our website or social media, please email [photos@ecrs.org](mailto:photos@ecrs.org). If you are not comfortable with your likeness being used for this purpose and would like to opt out, please email [no-photos@ecrs.org](mailto:no-photos@ecrs.org).'
 
       # ── Classes / Program ─────────────────────────────────────────
+      - label: 'Classes Intro'
+        name: 'classesIntro'
+        widget: 'markdown'
+        required: false
+        hint: 'Shown under the Schedule heading, above the class list.'
       - label: 'Classes'
         name: 'classes'
         widget: 'list'

@@ -33,7 +33,7 @@ const year = data.date.getUTCFullYear();
 const eventLabel = `${baseEventTitle(data.title)} ${year}`;
 
 const metadata = {
-  title: `${eventLabel} — Master Schedule`,
+  title: `${eventLabel} Schedule`,
   description: `Printable class schedule for ${eventLabel}.`,
 };
 
@@ -79,7 +79,7 @@ const leaderPopoverIds = [
       )}
     </div>
 
-    <h1 class="font-heading mb-1 text-3xl font-bold text-heading">{eventLabel} — Master Schedule</h1>
+    <h1 class="font-heading mb-1 text-3xl font-bold text-heading">{eventLabel} Schedule</h1>
     <p class="mb-6 text-sm text-muted">Class times and rooms. Tap a class or leader for details.</p>
 
     <div class="overflow-x-auto">
@@ -274,7 +274,7 @@ const leaderPopoverIds = [
     }
     /* Trim the page furniture above the table so the grid fits one page. The table itself keeps its on-screen size. */
     @page {
-      margin: 0.4in;
+      margin: 0.25in;
     }
     section {
       max-width: none !important;
@@ -297,6 +297,15 @@ const leaderPopoverIds = [
     .schedule-grid td {
       border-width: 0 1px 1px 0 !important;
       border-color: #9ca3af !important;
+    }
+    /* Compact cells so a full day (meals, classes, evening) fits one page. */
+    .schedule-grid {
+      font-size: 0.75rem !important;
+      line-height: 1.25 !important;
+    }
+    .schedule-grid th,
+    .schedule-grid td {
+      padding: 0.25rem 0.5rem !important;
     }
   }
 </style>

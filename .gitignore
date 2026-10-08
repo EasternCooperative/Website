@@ -60,3 +60,4 @@ src/assets/images/headshots/
 # Partner logos are served straight from public/ via a plain <img> (see connections.astro),
 # so the mirrored copies are never used by Sharp.
 src/assets/images/logos/
+src/assets/images/events/

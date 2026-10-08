@@ -72,7 +72,9 @@ const accommodationTierSchema = z.object({
 const accommodationSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
-  tiers: z.array(accommodationTierSchema),
+  image: z.string().optional(),
+  imageAlt: z.string().optional(),
+  tiers: z.array(accommodationTierSchema).default([]),
 });
 
 const tuitionTierSchema = z.object({
@@ -194,6 +196,8 @@ const eventCollection = defineCollection({
     photoPolicy: z.string().optional(),
 
     // Classes / program
+    // Markdown shown under the Schedule heading, above the class list.
+    classesIntro: z.string().optional(),
     classes: z
       .array(
         z.object({
@@ -245,12 +249,15 @@ const eventCollection = defineCollection({
       .optional(),
 
     // Event staff — logistics/coordination roles (registrar, tech support, business
-    // manager, etc.) that aren't tied to teaching a class. Distinct from `classes[].leaderId`,
-    // which references the `leader` collection instead. References the `staff` collection.
+    // manager, etc.) that aren't tied to teaching a class. `id` references the `staff`
+    // collection; `leaderId` references the `leader` collection instead, for someone
+    // filling a staff role whose profile already lives there (a class leader also
+    // running logistics) — reuses their name/photo/bio without a duplicate record.
     staff: z
       .array(
         z.object({
           id: z.string().optional(),
+          leaderId: z.string().optional(),
           name: z.string().optional(),
           role: z.string().optional(),
         })

@@ -22,6 +22,7 @@ const makeEvent = (
     fee: string | undefined;
     tuition: { label?: string; amount: string; note?: string }[] | undefined;
     pricing: { label?: string; fullWeekend?: string; note?: string }[] | undefined;
+    classesIntro: string | undefined;
     classes: unknown[] | undefined;
     schedule: { timeslots: { label: string; start?: string; end?: string; isBreak?: boolean }[] } | undefined;
     showCancellationPolicy: boolean | undefined;
@@ -44,6 +45,7 @@ const makeEvent = (
     fee: undefined as string | undefined,
     tuition: undefined as { label?: string; amount: string; note?: string }[] | undefined,
     pricing: undefined as { label?: string; fullWeekend?: string; note?: string }[] | undefined,
+    classesIntro: undefined as string | undefined,
     classes: undefined as unknown[] | undefined,
     schedule: undefined as
       { timeslots: { label: string; start?: string; end?: string; isBreak?: boolean }[] } | undefined,
@@ -175,6 +177,18 @@ describe('GET /events/[id].txt', () => {
     expect(text).toContain('A fun intro class');
   });
 
+  it('includes the classes intro under the schedule heading', async () => {
+    const text = await callGet(
+      makeEvent({
+        classesIntro: 'Classes may **change**.',
+        classes: [{ name: 'Beginner Contra' }],
+      })
+    );
+    expect(text).toContain('Classes may change.');
+    expect(text.indexOf('Classes may change.')).toBeGreaterThan(text.indexOf('SCHEDULE'));
+    expect(text.indexOf('Classes may change.')).toBeLessThan(text.indexOf('Beginner Contra'));
+  });
+
   it('composes schedule headings from a matched timeslot', async () => {
     const text = await callGet(
       makeEvent({
@@ -263,6 +277,15 @@ describe('GET /events/[id].txt', () => {
     expect(text).toContain('Per person: $100');
   });
 
+  it('lists accommodations that have no price tiers yet', async () => {
+    const text = await callGet(
+      makeEvent({ accommodations: [{ name: 'Main Lodge', description: 'Dorm-style rooms', tiers: [] }] } as never)
+    );
+    expect(text).toContain('ROOM & BOARD');
+    expect(text).toContain('Main Lodge');
+    expect(text).toContain('Dorm-style rooms');
+  });
+
   it('includes mealsIncluded and mealsNote', async () => {
     const text = await callGet(
       makeEvent({ mealsIncluded: 'All meals provided', mealsNote: 'Let us know about *allergies*' } as never)
@@ -339,5 +362,46 @@ describe('GET /events/[id].txt', () => {
     const text = await callGet(makeEvent({ staff: [{ id: 'jane-staff', role: 'Registrar' }] } as never));
     expect(text).toContain('EVENT STAFF');
     expect(text).toContain('Registrar: Jane Registrar');
+  });
+
+  it('resolves event staff via leaderId when they only have a leader record', async () => {
+    vi.mocked(getCollection).mockImplementation(async (name: string) => {
+      if (name === 'leader') {
+        return [{ id: 'joe-leader', data: { name: 'Joe Leader', title: 'Games' } }] as never;
+      }
+      return [] as never;
+    });
+    const text = await callGet(
+      makeEvent({ staff: [{ leaderId: 'joe-leader', role: 'Late Night Coordinator' }] } as never)
+    );
+    expect(text).toContain('EVENT STAFF');
+    expect(text).toContain('Late Night Coordinator: Joe Leader');
+  });
+
+  it('falls back to the staff/leader record role when no per-event role is given', async () => {
+    vi.mocked(getCollection).mockImplementation(async (name: string) => {
+      if (name === 'staff') {
+        return [{ id: 'jane-staff', data: { name: 'Jane Registrar', role: 'Registrar' } }] as never;
+      }
+      if (name === 'leader') {
+        return [{ id: 'joe-leader', data: { name: 'Joe Leader', title: 'Games' } }] as never;
+      }
+      return [] as never;
+    });
+    const text = await callGet(makeEvent({ staff: [{ id: 'jane-staff' }, { leaderId: 'joe-leader' }] } as never));
+    expect(text).toContain('Registrar: Jane Registrar');
+    expect(text).toContain('Games: Joe Leader');
+  });
+
+  it('omits an event staff row that resolves to no name', async () => {
+    const text = await callGet(makeEvent({ staff: [{ id: 'missing-staff', role: 'Registrar' }] } as never));
+    expect(text).not.toContain('EVENT STAFF');
+  });
+
+  it('prints an event staff name with no role as a bare line', async () => {
+    const text = await callGet(makeEvent({ staff: [{ name: 'Volunteer Crew' }] } as never));
+    expect(text).toContain('EVENT STAFF');
+    expect(text).toContain('Volunteer Crew');
+    expect(text).not.toContain(': Volunteer Crew');
   });
 });
