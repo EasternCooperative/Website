@@ -4,7 +4,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 // jsdom implements neither the Popover API nor <dialog>.showModal()/close(), nor
 // window.matchMedia — stub minimal versions so the module under test can run.
 //
-// initPersonPhotoLightbox() registers persistent listeners on the shared jsdom
+// initPhotoLightbox() registers persistent listeners on the shared jsdom
 // `document`. Without removing them, listeners from earlier tests would keep
 // firing (and re-guard against re-init via the module-level window flag) —
 // contaminating later tests' call counts.
@@ -15,7 +15,7 @@ let addedListeners: [string, EventListenerOrEventListenerObject][] = [];
 beforeEach(() => {
   document.body.innerHTML = '';
   vi.resetModules();
-  delete (window as unknown as { __personPhotoLightboxInit?: boolean }).__personPhotoLightboxInit;
+  delete (window as unknown as { __photoLightboxInit?: boolean }).__photoLightboxInit;
 
   addedListeners = [];
   const originalAddEventListener = document.addEventListener.bind(document);
@@ -84,24 +84,24 @@ function makeTriggerAndDialog(opts: { imgComplete?: boolean; withImg?: boolean }
   return { trigger, dialog };
 }
 
-describe('initPersonPhotoLightbox — idempotency', () => {
+describe('initPhotoLightbox — idempotency', () => {
   it('only wires listeners once even if called multiple times', async () => {
     const addSpy = vi.spyOn(document, 'addEventListener');
-    const { initPersonPhotoLightbox } = await import('./personPhotoLightbox');
+    const { initPhotoLightbox } = await import('./photoLightbox');
 
-    initPersonPhotoLightbox();
+    initPhotoLightbox();
     const callsAfterFirst = addSpy.mock.calls.length;
-    initPersonPhotoLightbox();
+    initPhotoLightbox();
 
     expect(addSpy.mock.calls.length).toBe(callsAfterFirst);
   });
 });
 
-describe('initPersonPhotoLightbox — click to open/close the dialog', () => {
+describe('initPhotoLightbox — click to open/close the dialog', () => {
   it('opens the dialog via showModal when the trigger is clicked', async () => {
     const { trigger, dialog } = makeTriggerAndDialog();
-    const { initPersonPhotoLightbox } = await import('./personPhotoLightbox');
-    initPersonPhotoLightbox();
+    const { initPhotoLightbox } = await import('./photoLightbox');
+    initPhotoLightbox();
 
     trigger.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 
@@ -114,16 +114,16 @@ describe('initPersonPhotoLightbox — click to open/close the dialog', () => {
     trigger.dataset.dialogId = 'missing';
     document.body.appendChild(trigger);
 
-    const { initPersonPhotoLightbox } = await import('./personPhotoLightbox');
-    initPersonPhotoLightbox();
+    const { initPhotoLightbox } = await import('./photoLightbox');
+    initPhotoLightbox();
 
     expect(() => trigger.dispatchEvent(new MouseEvent('click', { bubbles: true }))).not.toThrow();
   });
 
   it('closes the dialog when the close button is clicked', async () => {
     const { dialog } = makeTriggerAndDialog();
-    const { initPersonPhotoLightbox } = await import('./personPhotoLightbox');
-    initPersonPhotoLightbox();
+    const { initPhotoLightbox } = await import('./photoLightbox');
+    initPhotoLightbox();
 
     const closeBtn = dialog.querySelector('[data-dialog-close]')!;
     closeBtn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
@@ -135,16 +135,16 @@ describe('initPersonPhotoLightbox — click to open/close the dialog', () => {
     const trigger = document.createElement('button');
     trigger.dataset.photoTrigger = '';
     document.body.appendChild(trigger);
-    const { initPersonPhotoLightbox } = await import('./personPhotoLightbox');
-    initPersonPhotoLightbox();
+    const { initPhotoLightbox } = await import('./photoLightbox');
+    initPhotoLightbox();
 
     expect(() => trigger.dispatchEvent(new MouseEvent('click', { bubbles: true }))).not.toThrow();
   });
 
   it('closes the dialog when the backdrop (the dialog element itself) is clicked', async () => {
     const { dialog } = makeTriggerAndDialog();
-    const { initPersonPhotoLightbox } = await import('./personPhotoLightbox');
-    initPersonPhotoLightbox();
+    const { initPhotoLightbox } = await import('./photoLightbox');
+    initPhotoLightbox();
 
     dialog.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 
@@ -152,26 +152,26 @@ describe('initPersonPhotoLightbox — click to open/close the dialog', () => {
   });
 });
 
-describe('initPersonPhotoLightbox — hover preview', () => {
+describe('initPhotoLightbox — hover preview', () => {
   it('does not attach hover listeners on devices without real hover', async () => {
     hoverMatches = false;
     const { trigger } = makeTriggerAndDialog();
-    const { initPersonPhotoLightbox } = await import('./personPhotoLightbox');
-    initPersonPhotoLightbox();
+    const { initPhotoLightbox } = await import('./photoLightbox');
+    initPhotoLightbox();
 
     trigger.dispatchEvent(new PointerEvent('pointerover', { bubbles: true }));
 
-    expect(document.querySelector('.person-photo-preview')).toBeNull();
+    expect(document.querySelector('.photo-preview')).toBeNull();
   });
 
   it('shows a preview on pointerover using an already-loaded source image', async () => {
     const { trigger } = makeTriggerAndDialog({ imgComplete: true });
-    const { initPersonPhotoLightbox } = await import('./personPhotoLightbox');
-    initPersonPhotoLightbox();
+    const { initPhotoLightbox } = await import('./photoLightbox');
+    initPhotoLightbox();
 
     trigger.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, clientX: 100, clientY: 100 }));
 
-    const preview = document.querySelector('.person-photo-preview') as HTMLElement;
+    const preview = document.querySelector('.photo-preview') as HTMLElement;
     expect(preview).not.toBeNull();
     expect(preview.classList.contains('is-visible')).toBe(true);
     expect(preview.classList.contains('is-loaded')).toBe(true);
@@ -182,22 +182,55 @@ describe('initPersonPhotoLightbox — hover preview', () => {
     expect(previewImg.src).toContain('photo.jpg');
   });
 
+  it('sizes the preview square by default and to the trigger aspect when set', async () => {
+    const { trigger } = makeTriggerAndDialog();
+    const { initPhotoLightbox } = await import('./photoLightbox');
+    initPhotoLightbox();
+
+    trigger.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, clientX: 10, clientY: 10 }));
+    const preview = document.querySelector('.photo-preview') as HTMLElement;
+    expect(preview.style.width).toBe('220px');
+    expect(preview.style.height).toBe('220px');
+
+    // A landscape photo widens up to the cap and keeps its shape.
+    const { trigger: wide } = makeTriggerAndDialog();
+    wide.dataset.previewAspect = '2';
+    trigger.dispatchEvent(new PointerEvent('pointerout', { bubbles: true, relatedTarget: wide }));
+    wide.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, clientX: 10, clientY: 10 }));
+    expect(preview.style.width).toBe('400px');
+    expect(preview.style.height).toBe('200px');
+  });
+
+  it('scales the preview off a large thumbnail, capped to the viewport', async () => {
+    const { trigger } = makeTriggerAndDialog();
+    trigger.dataset.previewAspect = '1.5';
+    vi.spyOn(trigger, 'getBoundingClientRect').mockReturnValue({ width: 300 } as DOMRect);
+    const { initPhotoLightbox } = await import('./photoLightbox');
+    initPhotoLightbox();
+
+    trigger.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, clientX: 10, clientY: 10 }));
+    const preview = document.querySelector('.photo-preview') as HTMLElement;
+    // 300 * 1.6 = 480, within jsdom's 1024px-wide viewport cap of 512.
+    expect(preview.style.width).toBe('480px');
+    expect(preview.style.height).toBe('320px');
+  });
+
   it('positions the preview near the cursor with an offset', async () => {
     const { trigger } = makeTriggerAndDialog();
-    const { initPersonPhotoLightbox } = await import('./personPhotoLightbox');
-    initPersonPhotoLightbox();
+    const { initPhotoLightbox } = await import('./photoLightbox');
+    initPhotoLightbox();
 
     trigger.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, clientX: 50, clientY: 60 }));
 
-    const preview = document.querySelector('.person-photo-preview') as HTMLElement;
+    const preview = document.querySelector('.photo-preview') as HTMLElement;
     expect(preview.style.left).toBe('68px');
     expect(preview.style.top).toBe('78px');
   });
 
   it('flips to the other side of the cursor when it would overflow the viewport', async () => {
     const { trigger } = makeTriggerAndDialog();
-    const { initPersonPhotoLightbox } = await import('./personPhotoLightbox');
-    initPersonPhotoLightbox();
+    const { initPhotoLightbox } = await import('./photoLightbox');
+    initPhotoLightbox();
 
     trigger.dispatchEvent(
       new PointerEvent('pointerover', {
@@ -207,7 +240,7 @@ describe('initPersonPhotoLightbox — hover preview', () => {
       })
     );
 
-    const preview = document.querySelector('.person-photo-preview') as HTMLElement;
+    const preview = document.querySelector('.photo-preview') as HTMLElement;
     const left = parseFloat(preview.style.left);
     const top = parseFloat(preview.style.top);
     expect(left).toBeLessThan(window.innerWidth - 5);
@@ -216,11 +249,11 @@ describe('initPersonPhotoLightbox — hover preview', () => {
 
   it('re-promotes an already-open preview (hide then show) rather than erroring', async () => {
     const { trigger } = makeTriggerAndDialog();
-    const { initPersonPhotoLightbox } = await import('./personPhotoLightbox');
-    initPersonPhotoLightbox();
+    const { initPhotoLightbox } = await import('./photoLightbox');
+    initPhotoLightbox();
 
     trigger.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, clientX: 10, clientY: 10 }));
-    const preview = document.querySelector('.person-photo-preview') as HTMLElement;
+    const preview = document.querySelector('.photo-preview') as HTMLElement;
     expect(preview.showPopover).toHaveBeenCalledTimes(1);
 
     // Move within the same trigger, then re-enter — showPreviewFor only re-fires
@@ -237,11 +270,11 @@ describe('initPersonPhotoLightbox — hover preview', () => {
 
   it('does not reload the image when hovering the same trigger again', async () => {
     const { trigger } = makeTriggerAndDialog();
-    const { initPersonPhotoLightbox } = await import('./personPhotoLightbox');
-    initPersonPhotoLightbox();
+    const { initPhotoLightbox } = await import('./photoLightbox');
+    initPhotoLightbox();
 
     trigger.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, clientX: 10, clientY: 10 }));
-    const preview = document.querySelector('.person-photo-preview') as HTMLElement;
+    const preview = document.querySelector('.photo-preview') as HTMLElement;
     preview.classList.remove('is-loaded');
 
     trigger.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, clientX: 11, clientY: 11 }));
@@ -252,8 +285,8 @@ describe('initPersonPhotoLightbox — hover preview', () => {
 
   it('lazily loads the source image and applies it once loaded', async () => {
     const { trigger } = makeTriggerAndDialog({ imgComplete: false });
-    const { initPersonPhotoLightbox } = await import('./personPhotoLightbox');
-    initPersonPhotoLightbox();
+    const { initPhotoLightbox } = await import('./photoLightbox');
+    initPhotoLightbox();
 
     trigger.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, clientX: 10, clientY: 10 }));
 
@@ -261,7 +294,7 @@ describe('initPersonPhotoLightbox — hover preview', () => {
     const sourceImg = dialog.querySelector('img') as HTMLImageElement;
     expect(sourceImg.loading).toBe('eager');
 
-    const preview = document.querySelector('.person-photo-preview') as HTMLElement;
+    const preview = document.querySelector('.photo-preview') as HTMLElement;
     expect(preview.classList.contains('is-loaded')).toBe(false);
 
     Object.defineProperty(sourceImg, 'currentSrc', { value: 'loaded.jpg', configurable: true });
@@ -275,19 +308,19 @@ describe('initPersonPhotoLightbox — hover preview', () => {
     const { trigger, dialog } = makeTriggerAndDialog();
     const sourceImg = dialog.querySelector('img') as HTMLImageElement;
     sourceImg.srcset = 'photo.jpg 1x, photo@2x.jpg 2x';
-    const { initPersonPhotoLightbox } = await import('./personPhotoLightbox');
-    initPersonPhotoLightbox();
+    const { initPhotoLightbox } = await import('./photoLightbox');
+    initPhotoLightbox();
 
     trigger.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, clientX: 10, clientY: 10 }));
 
-    const previewImg = document.querySelector('.person-photo-preview img') as HTMLImageElement;
+    const previewImg = document.querySelector('.photo-preview img') as HTMLImageElement;
     expect(previewImg.srcset).toBe('photo.jpg 1x, photo@2x.jpg 2x');
   });
 
   it('skips applying a lazily-loaded image if a different trigger became active first', async () => {
     const { trigger } = makeTriggerAndDialog({ imgComplete: false });
-    const { initPersonPhotoLightbox } = await import('./personPhotoLightbox');
-    initPersonPhotoLightbox();
+    const { initPhotoLightbox } = await import('./photoLightbox');
+    initPhotoLightbox();
 
     trigger.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, clientX: 10, clientY: 10 }));
     const sourceImg = document.getElementById('dlg-1')!.querySelector('img') as HTMLImageElement;
@@ -299,7 +332,7 @@ describe('initPersonPhotoLightbox — hover preview', () => {
     trigger.dispatchEvent(new PointerEvent('pointerout', { bubbles: true, relatedTarget: trigger2 }));
     trigger2.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, clientX: 20, clientY: 20 }));
 
-    const preview = document.querySelector('.person-photo-preview') as HTMLElement;
+    const preview = document.querySelector('.photo-preview') as HTMLElement;
     const previewImg = preview.querySelector('img') as HTMLImageElement;
     const forIdBeforeLoad = previewImg.dataset.forId;
 
@@ -313,11 +346,11 @@ describe('initPersonPhotoLightbox — hover preview', () => {
 
   it('does not re-fire showPreviewFor when hovering the same trigger again without leaving', async () => {
     const { trigger } = makeTriggerAndDialog();
-    const { initPersonPhotoLightbox } = await import('./personPhotoLightbox');
-    initPersonPhotoLightbox();
+    const { initPhotoLightbox } = await import('./photoLightbox');
+    initPhotoLightbox();
 
     trigger.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, clientX: 10, clientY: 10 }));
-    const preview = document.querySelector('.person-photo-preview') as HTMLElement;
+    const preview = document.querySelector('.photo-preview') as HTMLElement;
     expect(preview.showPopover).toHaveBeenCalledTimes(1);
 
     trigger.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, clientX: 12, clientY: 12 }));
@@ -326,20 +359,20 @@ describe('initPersonPhotoLightbox — hover preview', () => {
   });
 
   it('does nothing on pointermove when no trigger is active', async () => {
-    const { initPersonPhotoLightbox } = await import('./personPhotoLightbox');
-    initPersonPhotoLightbox();
+    const { initPhotoLightbox } = await import('./photoLightbox');
+    initPhotoLightbox();
 
     expect(() =>
       document.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, clientX: 5, clientY: 5 }))
     ).not.toThrow();
-    expect(document.querySelector('.person-photo-preview')).toBeNull();
+    expect(document.querySelector('.photo-preview')).toBeNull();
   });
 
   it('does nothing on pointerout when no trigger is active', async () => {
     const outside = document.createElement('div');
     document.body.appendChild(outside);
-    const { initPersonPhotoLightbox } = await import('./personPhotoLightbox');
-    initPersonPhotoLightbox();
+    const { initPhotoLightbox } = await import('./photoLightbox');
+    initPhotoLightbox();
 
     expect(() => document.dispatchEvent(new PointerEvent('pointerout', { bubbles: true }))).not.toThrow();
   });
@@ -348,11 +381,11 @@ describe('initPersonPhotoLightbox — hover preview', () => {
     const { trigger } = makeTriggerAndDialog();
     const child = document.createElement('span');
     trigger.appendChild(child);
-    const { initPersonPhotoLightbox } = await import('./personPhotoLightbox');
-    initPersonPhotoLightbox();
+    const { initPhotoLightbox } = await import('./photoLightbox');
+    initPhotoLightbox();
 
     trigger.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, clientX: 10, clientY: 10 }));
-    const preview = document.querySelector('.person-photo-preview') as HTMLElement;
+    const preview = document.querySelector('.photo-preview') as HTMLElement;
     expect(preview.classList.contains('is-visible')).toBe(true);
 
     trigger.dispatchEvent(new PointerEvent('pointerout', { bubbles: true, relatedTarget: child }));
@@ -362,11 +395,11 @@ describe('initPersonPhotoLightbox — hover preview', () => {
 
   it('does not hide the preview on pointerout from a trigger that is not the active one', async () => {
     const { trigger: triggerA } = makeTriggerAndDialog();
-    const { initPersonPhotoLightbox } = await import('./personPhotoLightbox');
-    initPersonPhotoLightbox();
+    const { initPhotoLightbox } = await import('./photoLightbox');
+    initPhotoLightbox();
 
     triggerA.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, clientX: 10, clientY: 10 }));
-    const preview = document.querySelector('.person-photo-preview') as HTMLElement;
+    const preview = document.querySelector('.photo-preview') as HTMLElement;
     expect(preview.classList.contains('is-visible')).toBe(true);
 
     const triggerB = document.createElement('button');
@@ -381,8 +414,8 @@ describe('initPersonPhotoLightbox — hover preview', () => {
   it('closes the dialog on click when the target is a dialog without the photo-dialog attribute', async () => {
     const plainDialog = document.createElement('dialog');
     document.body.appendChild(plainDialog);
-    const { initPersonPhotoLightbox } = await import('./personPhotoLightbox');
-    initPersonPhotoLightbox();
+    const { initPhotoLightbox } = await import('./photoLightbox');
+    initPhotoLightbox();
 
     plainDialog.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 
@@ -391,11 +424,11 @@ describe('initPersonPhotoLightbox — hover preview', () => {
 
   it('hides the preview on pointerout when leaving the trigger', async () => {
     const { trigger } = makeTriggerAndDialog();
-    const { initPersonPhotoLightbox } = await import('./personPhotoLightbox');
-    initPersonPhotoLightbox();
+    const { initPhotoLightbox } = await import('./photoLightbox');
+    initPhotoLightbox();
 
     trigger.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, clientX: 10, clientY: 10 }));
-    const preview = document.querySelector('.person-photo-preview') as HTMLElement;
+    const preview = document.querySelector('.photo-preview') as HTMLElement;
     expect(preview.classList.contains('is-visible')).toBe(true);
 
     const outside = document.createElement('div');
@@ -410,12 +443,12 @@ describe('initPersonPhotoLightbox — hover preview', () => {
     const sourceImg = dialog.querySelector('img') as HTMLImageElement;
     Object.defineProperty(sourceImg, 'currentSrc', { value: '', configurable: true });
     sourceImg.src = 'fallback.jpg';
-    const { initPersonPhotoLightbox } = await import('./personPhotoLightbox');
-    initPersonPhotoLightbox();
+    const { initPhotoLightbox } = await import('./photoLightbox');
+    initPhotoLightbox();
 
     trigger.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, clientX: 10, clientY: 10 }));
 
-    const previewImg = document.querySelector('.person-photo-preview img') as HTMLImageElement;
+    const previewImg = document.querySelector('.photo-preview img') as HTMLImageElement;
     expect(previewImg.src).toContain('fallback.jpg');
   });
 
@@ -423,31 +456,31 @@ describe('initPersonPhotoLightbox — hover preview', () => {
     const trigger = document.createElement('button');
     trigger.dataset.photoTrigger = '';
     document.body.appendChild(trigger);
-    const { initPersonPhotoLightbox } = await import('./personPhotoLightbox');
-    initPersonPhotoLightbox();
+    const { initPhotoLightbox } = await import('./photoLightbox');
+    initPhotoLightbox();
 
     trigger.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, clientX: 10, clientY: 10 }));
 
-    expect(document.querySelector('.person-photo-preview')).toBeNull();
+    expect(document.querySelector('.photo-preview')).toBeNull();
   });
 
   it('ignores a trigger with no image inside its dialog', async () => {
     const { trigger } = makeTriggerAndDialog({ withImg: false });
-    const { initPersonPhotoLightbox } = await import('./personPhotoLightbox');
-    initPersonPhotoLightbox();
+    const { initPhotoLightbox } = await import('./photoLightbox');
+    initPhotoLightbox();
 
     trigger.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, clientX: 10, clientY: 10 }));
 
-    expect(document.querySelector('.person-photo-preview')).toBeNull();
+    expect(document.querySelector('.photo-preview')).toBeNull();
   });
 
   it('recreates the preview if it was detached from the document (e.g. an Astro view-transition swap)', async () => {
     const { trigger } = makeTriggerAndDialog();
-    const { initPersonPhotoLightbox } = await import('./personPhotoLightbox');
-    initPersonPhotoLightbox();
+    const { initPhotoLightbox } = await import('./photoLightbox');
+    initPhotoLightbox();
 
     trigger.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, clientX: 10, clientY: 10 }));
-    const firstPreview = document.querySelector('.person-photo-preview') as HTMLElement;
+    const firstPreview = document.querySelector('.photo-preview') as HTMLElement;
     expect(firstPreview).not.toBeNull();
 
     // Simulate a view-transition body swap removing the dynamically-injected
@@ -461,7 +494,7 @@ describe('initPersonPhotoLightbox — hover preview', () => {
       trigger2.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, clientX: 20, clientY: 20 }))
     ).not.toThrow();
 
-    const secondPreview = document.querySelector('.person-photo-preview') as HTMLElement;
+    const secondPreview = document.querySelector('.photo-preview') as HTMLElement;
     expect(secondPreview).not.toBeNull();
     expect(secondPreview).not.toBe(firstPreview);
     expect(secondPreview.isConnected).toBe(true);

@@ -19,19 +19,20 @@ description: |
 
   **How will you use your unscheduled time?** Board games? Jigsaw puzzles? Hanging out by the fireplace? Taking a nap? Take a walk or other outdoor activities? Explore Corning or other nearby towns?
 
-  **The 'Y' at Watson Woods.** The Y at Watson Woods (Watson Homestead) is a conference center on 600 beautiful acres near Corning, NY.
-
-  The great hall is the center of activity: the dining room where we gather for meals and a newly renovated dance floor, all with great views of the fields beyond.
-
-  ![The great hall at the Y at Watson Woods, with round tables and white chairs under arched wooden beams](/images/events/2026-winter-adventure/great-hall.jpg)
-
-  There are lots of other spaces to gather: a basement rec room, a craft room, and even a non-denominational chapel, all an easy (and mostly indoor) walk from your bedroom.
-
-  ![A lounge with a stone fireplace and blue armchairs at the Y at Watson Woods](/images/events/2026-winter-adventure/fireplace-lounge.jpg)
-
-  You could stay in your pajamas the whole time and still get more exercise than you do in a week at home. And if you get antsy being inside, we're ideally situated for winter sports and local attractions, including sledding, hiking, and the nearby Corning Museum of Glass.
-
   Pre-registration required for all attendees. Questions: [registration@ecrs.org](mailto:registration@ecrs.org)
+highlights:
+  intro: "**The 'Y' at Watson Woods.** The Y at Watson Woods (Watson Homestead) is a conference center on 600 beautiful acres near Corning, NY."
+  items:
+    - text: 'The great hall is the center of activity: the dining room where we gather for meals and a newly renovated dance floor, all with great views of the fields beyond.'
+      image: '/images/events/2026-winter-adventure/great-hall.jpg'
+      imageAlt: 'The empty great hall at the Y at Watson Woods, a long wood dance floor under arched beams and chandeliers'
+    - text: 'There are lots of other spaces to gather: a basement rec room, a craft room, and even a non-denominational chapel, all an easy (and mostly indoor) walk from your bedroom.'
+      image: '/images/events/2026-winter-adventure/great-hall-fireplace.jpg'
+      imageAlt: 'The great hall seen from its stone fireplace end, with blue armchairs around a coffee table'
+    - text: "You could stay in your pajamas the whole time and still get more exercise than you do in a week at home. And if you get antsy being inside, we're ideally situated for winter sports and local attractions, including sledding, hiking, and the nearby Corning Museum of Glass."
+      image: '/images/events/2026-winter-adventure/playground.jpg'
+      imageAlt: 'People playing on the climbing wall, swings, and slide on the lawn at Watson Woods during Winter Adventure 2021'
+  outro: 'See more photos of the Y at Watson Woods [on their website](https://rochesterymca.org/y-watson-woods-facilities).'
 accommodations:
   - name: 'Main Lodge'
     description: 'South Wing and North Wing, located off the central dining room. Dorm-style rooms with twin or bunk beds, and shared bath; guests must bring sheets and towels.'
@@ -46,8 +47,10 @@ accommodations:
     image: '/images/events/2026-winter-adventure/west-wing-room.jpg'
     imageAlt: 'A West Wing hotel-style room with two double beds'
     tiers: []
-mealsIncluded: 'Breakfast, lunch, and dinner daily, from dinner on December 27 through breakfast on January 1.'
-mealsNote: 'All meals are served buffet-style in the “dining room” (part of the great hall). Coffee, tea and hot chocolate are available all day. Snacks are served after Evening Program and feature a smorgasbord that often includes yogurt, hummus, fruit, veggies, cheese, and chips with dip. Vegetarian or gluten-free? Watson supplies limited vegetarian and gluten free options (you must specify when you register). If you have significant dietary restrictions and want to bring your own food to supplement the buffet-style offerings, there is a refrigerator and microwave available.'
+mealsIncluded: 'A hearty breakfast, lunch, and dinner every day, starting with dinner on December 27 and wrapping up with breakfast on January 1.'
+mealsNote: 'All meals are served buffet-style in the “dining room” (part of the great hall). Coffee, tea and hot chocolate are available all day. Snacks are a Winter Adventure Tradition (with a capital “T”). Served after Evening Program, the spread takes up a twelve-foot table and often includes yogurt, hummus, fruit, veggies, cheese, and chips with dip. Vegetarian or gluten-free? Watson supplies limited vegetarian and gluten free options (you must specify when you register). If you have significant dietary restrictions and want to bring your own food to supplement the buffet-style offerings, there is a refrigerator and microwave available.'
+mealsImage: '/images/events/2026-winter-adventure/dining-room.jpg'
+mealsImageAlt: 'People talking around round tables in the great hall at Winter Adventure 2021, with string lights in the windows behind them'
 showHealthPolicy: true
 healthPolicy: |-
   ECRS events are fragrance-, drug-, and alcohol-free.
@@ -119,13 +122,15 @@ classesIntro: |
 
   Staff introduction, orientation, class registration and activities are after the first evening meal.
 
-  The final meal is breakfast on January 1, followed by a closing program.
+  The final meal is breakfast on January 1, followed by an often moving, always too short closing program.
 
   Classes may be subject to change, if necessary.
 
   You'll be able to register for all classes right after you complete the event registration.
 
   Note that you will be able to swap classes the first night of Winter Adventure.
+
+  **Free time activities.** Every afternoon from 1:30 to 3:45 there are no classes, so you can join in or do your own thing. Some years that means a sledding run, a hike, a trip to the Corning Museum of Glass, a long game of Mafia that nobody wants to end, or sometimes even axe throwing. There's always someone working on a jigsaw puzzle by the fireplace, and always someone up for a board game. And if you'd rather take a nap, that counts too.
 
 classes:
   # ── Morning class, first period ──

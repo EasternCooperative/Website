@@ -69,6 +69,22 @@ const accommodationTierSchema = z.object({
   amount: z.string(),
 });
 
+// Text-and-photo rows shown after the description, alternating sides on wider
+// screens (e.g. a tour of the venue). intro/outro are markdown around the rows.
+const highlightsSchema = z.object({
+  intro: z.string().optional(),
+  items: z
+    .array(
+      z.object({
+        text: z.string(),
+        image: z.string(),
+        imageAlt: z.string(),
+      })
+    )
+    .default([]),
+  outro: z.string().optional(),
+});
+
 const accommodationSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
@@ -160,6 +176,7 @@ const eventCollection = defineCollection({
     lng: z.number().optional(),
     excerpt: z.string().optional(),
     description: z.string().optional(),
+    highlights: highlightsSchema.optional(),
     image: z.string().optional(),
 
     // Registration
@@ -185,6 +202,8 @@ const eventCollection = defineCollection({
     // Logistics
     mealsIncluded: z.string().optional(),
     mealsNote: z.string().optional(),
+    mealsImage: z.string().optional(),
+    mealsImageAlt: z.string().optional(),
 
     // Policies (shown when toggled on; text editable per event)
     showCancellationPolicy: z.boolean().optional(),

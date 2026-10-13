@@ -8,6 +8,8 @@ import CognitoForm from '~/components/widgets/CognitoForm.astro';
 import ZeffyForm from '~/components/widgets/ZeffyForm.astro';
 import Image from '~/components/common/Image.astro';
 import PersonPhoto from '~/components/ui/PersonPhoto.astro';
+import ZoomablePhoto from '~/components/ui/ZoomablePhoto.astro';
+import PhotoBeside from '~/components/ui/PhotoBeside.astro';
 import { findImage } from '~/utils/images';
 import { resolveVenue, splitPhone } from '~/utils/resolveEvent';
 import siteSettings from '~/data/settings/site.json';
@@ -645,6 +647,51 @@ const breadcrumbJsonLd = {
         </div>
       )}
 
+      <!-- ── Photo highlights: text/photo rows, alternating sides from md up ── -->
+      {data.highlights && (
+        <div class="mt-8">
+          {data.highlights.intro && (
+            <div class="prose prose-lg dark:prose-invert max-w-none">
+              <Fragment set:html={renderProse(data.highlights.intro)} />
+            </div>
+          )}
+          <div class="mt-6 space-y-8 md:space-y-10">
+            {data.highlights.items.map((item, i) => (
+              <div
+                class:list={[
+                  'md:grid md:gap-8 md:items-center',
+                  i % 2 === 0 ? 'md:grid-cols-[11fr_9fr]' : 'md:grid-cols-[9fr_11fr]',
+                ]}
+              >
+                <div class="prose prose-lg dark:prose-invert max-w-none mb-4 md:mb-0 [&>:first-child]:mt-0 [&>:last-child]:mb-0">
+                  <Fragment set:html={renderProse(item.text)} />
+                </div>
+                <div class:list={[i % 2 === 1 && 'md:order-first']}>
+                  <ZoomablePhoto
+                    src={item.image}
+                    alt={item.imageAlt}
+                    label={`View larger photo: ${item.imageAlt}`}
+                    width={640}
+                    height={427}
+                    widths={[400, 640, 960]}
+                    sizes="(min-width: 768px) 380px, 100vw"
+                    class="block w-full rounded-xl"
+                    imgClass="w-full h-auto"
+                    dialogWidth={960}
+                    dialogHeight={640}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+          {data.highlights.outro && (
+            <div class="prose prose-lg dark:prose-invert max-w-none mt-8">
+              <Fragment set:html={renderProse(data.highlights.outro)} />
+            </div>
+          )}
+        </div>
+      )}
+
       <!-- ── Simple fee ── -->
       {data.fee && (
         <div id="costs" class="mt-10 scroll-mt-24">
@@ -714,27 +761,12 @@ const breadcrumbJsonLd = {
           <div class="space-y-8">
             {data.accommodations.map((accom) => (
               <div>
-                <div class={accom.image ? 'sm:grid sm:grid-cols-[16rem_1fr] sm:gap-5 sm:items-start' : undefined}>
-                  {accom.image && (
-                    <Image
-                      src={accom.image}
-                      alt={accom.imageAlt ?? accom.name}
-                      width={512}
-                      height={266}
-                      widths={[256, 512, 768]}
-                      sizes="(min-width: 640px) 256px, 100vw"
-                      layout="constrained"
-                      class="w-full h-auto rounded-xl mb-3"
-                      loading="lazy"
-                    />
+                <PhotoBeside image={accom.image} imageAlt={accom.imageAlt ?? accom.name} caption={accom.name}>
+                  <h3 class="font-heading text-lg font-bold text-heading mb-1">{accom.name}</h3>
+                  {accom.description && (
+                    <p class="text-sm text-muted mb-3 md-links" set:html={renderInlineMarkdown(accom.description)} />
                   )}
-                  <div>
-                    <h3 class="font-heading text-lg font-bold text-heading mb-1">{accom.name}</h3>
-                    {accom.description && (
-                      <p class="text-sm text-muted mb-3 md-links" set:html={renderInlineMarkdown(accom.description)} />
-                    )}
-                  </div>
-                </div>
+                </PhotoBeside>
                 {/* Rooms can be listed before prices are set; skip the empty table until then. */}
                 {accom.tiers.length > 0 && (
                   <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
@@ -812,10 +844,12 @@ const breadcrumbJsonLd = {
       {(data.mealsIncluded || data.mealsNote) && (
         <div class="mt-10">
           <h2 class="font-heading text-2xl font-bold text-heading mb-3">Meals</h2>
-          {data.mealsIncluded && <p class="text-default font-semibold">{data.mealsIncluded}</p>}
-          {data.mealsNote && (
-            <p class="text-sm text-muted mt-1 md-links" set:html={renderInlineMarkdown(data.mealsNote)} />
-          )}
+          <PhotoBeside image={data.mealsImage} imageAlt={data.mealsImageAlt ?? 'Meals'} caption="Meals">
+            {data.mealsIncluded && <p class="text-default font-semibold">{data.mealsIncluded}</p>}
+            {data.mealsNote && (
+              <p class="text-sm text-muted mt-1 md-links" set:html={renderInlineMarkdown(data.mealsNote)} />
+            )}
+          </PhotoBeside>
         </div>
       )}
 
@@ -1242,8 +1276,8 @@ const breadcrumbJsonLd = {
 
 <script>
   import { initEventPageInteractions } from '~/utils/eventPageInteractions';
-  import { initPersonPhotoLightbox } from '~/utils/personPhotoLightbox';
+  import { initPhotoLightbox } from '~/utils/photoLightbox';
 
   initEventPageInteractions();
-  initPersonPhotoLightbox();
+  initPhotoLightbox();
 </script>

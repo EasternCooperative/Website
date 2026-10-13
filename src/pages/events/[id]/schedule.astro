@@ -206,11 +206,11 @@ const leaderPopoverIds = [
 
 <script>
   import { initLeaderPopovers } from '~/utils/eventPageInteractions';
-  import { initPersonPhotoLightbox } from '~/utils/personPhotoLightbox';
+  import { initPhotoLightbox } from '~/utils/photoLightbox';
 
   function init() {
     initLeaderPopovers();
-    initPersonPhotoLightbox();
+    initPhotoLightbox();
   }
   init();
   document.addEventListener('astro:page-load', init);
