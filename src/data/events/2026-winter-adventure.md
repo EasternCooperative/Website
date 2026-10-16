@@ -77,9 +77,9 @@ staff:
     role: 'Program for All Co-Coordinator'
   - id: tom-helde
     role: 'A/V Technician'
-  - name: 'TBD'
+  - leaderId: carmen-siftar
     role: 'Snacks Coordinator'
-  - name: 'TBD'
+  - leaderId: roxanne-siftar
     role: 'Snacks Assistant'
 
 schedule:
