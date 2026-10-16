@@ -436,6 +436,28 @@ collections:
         }
       - { label: 'Short Description (excerpt)', name: 'excerpt', widget: 'string', required: false }
       - { label: 'Full Description', name: 'description', widget: 'markdown', required: false }
+      - label: 'Photo Highlights'
+        name: 'highlights'
+        widget: 'object'
+        required: false
+        collapsed: true
+        hint: 'Optional text-and-photo rows shown after the description (e.g. a tour of the venue). Photos alternate sides on wider screens. Use landscape photos of the same shape (3:2 works well).'
+        fields:
+          - { label: 'Intro', name: 'intro', widget: 'markdown', required: false }
+          - label: 'Rows'
+            name: 'items'
+            widget: 'list'
+            required: false
+            fields:
+              - { label: 'Text', name: 'text', widget: 'markdown' }
+              - { label: 'Photo', name: 'image', widget: 'image' }
+              - {
+                  label: 'Photo Alt Text',
+                  name: 'imageAlt',
+                  widget: 'string',
+                  hint: 'Describe the photo for screen readers.',
+                }
+          - { label: 'Outro', name: 'outro', widget: 'markdown', required: false }
       - {
           label: 'Event Image Override',
           name: 'image',
@@ -529,6 +551,20 @@ collections:
               required: false,
               hint: 'e.g. Dorm-style, shared bath, bring linens',
             }
+          - {
+              label: 'Photo',
+              name: 'image',
+              widget: 'image',
+              required: false,
+              hint: 'Optional. A photo of a typical room, shown above the description.',
+            }
+          - {
+              label: 'Photo Alt Text',
+              name: 'imageAlt',
+              widget: 'string',
+              required: false,
+              hint: 'Describe the photo for screen readers, e.g. Hotel-style room with two double beds',
+            }
           - label: 'Pricing Tiers'
             name: 'tiers'
             widget: 'list'
@@ -550,6 +586,20 @@ collections:
           widget: 'markdown',
           required: false,
           hint: 'Dietary accommodations, beverage info, etc.',
+        }
+      - {
+          label: 'Meals Photo',
+          name: 'mealsImage',
+          widget: 'image',
+          required: false,
+          hint: 'Optional. A landscape photo shown beside the meals text.',
+        }
+      - {
+          label: 'Meals Photo Alt Text',
+          name: 'mealsImageAlt',
+          widget: 'string',
+          required: false,
+          hint: 'Describe the photo for screen readers.',
         }
 
       # ── Policies ──────────────────────────────────────────────────
@@ -588,6 +638,11 @@ collections:
         default: 'We welcome community photography at ECRS events! If you have event photos you would like to share for use on our website or social media, please email [photos@ecrs.org](mailto:photos@ecrs.org). If you are not comfortable with your likeness being used for this purpose and would like to opt out, please email [no-photos@ecrs.org](mailto:no-photos@ecrs.org).'
 
       # ── Classes / Program ─────────────────────────────────────────
+      - label: 'Classes Intro'
+        name: 'classesIntro'
+        widget: 'markdown'
+        required: false
+        hint: 'Shown under the Schedule heading, above the class list.'
       - label: 'Classes'
         name: 'classes'
         widget: 'list'

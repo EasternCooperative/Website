@@ -107,6 +107,7 @@ export const GET: APIRoute = async ({ props }) => {
 
   if (data.classes && data.classes.length > 0) {
     heading('Schedule');
+    if (data.classesIntro) lines.push(stripMarkdown(data.classesIntro));
     const slotByPeriod = new Map(
       (data.schedule?.timeslots ?? []).filter((ts) => !ts.isBreak).map((ts) => [slugifyPeriod(ts.label), ts])
     );
@@ -148,10 +149,11 @@ export const GET: APIRoute = async ({ props }) => {
 
   const resolvedStaff: { name: string; role?: string }[] = [];
   for (const s of data.staff ?? []) {
-    const record = s.id ? staffMap.get(s.id) : undefined;
-    const name = s.name ?? record?.name;
+    const staffRecord = s.id ? staffMap.get(s.id) : undefined;
+    const leaderRecord = s.leaderId ? leaderMap.get(s.leaderId) : undefined;
+    const name = s.name ?? staffRecord?.name ?? leaderRecord?.name;
     if (!name) continue;
-    resolvedStaff.push({ name, role: s.role ?? record?.role });
+    resolvedStaff.push({ name, role: s.role ?? staffRecord?.role ?? leaderRecord?.title });
   }
 
   if (resolvedStaff.length > 0) {

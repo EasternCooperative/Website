@@ -43,3 +43,22 @@ export function resolveVenue(
     lng: event.lng ?? site?.lng,
   };
 }
+
+/**
+ * Split a free-text phone field into the dialable number and any note around it,
+ * e.g. "607-962-0541 (on-site, Dec 27 to Jan 1 only)" →
+ * { number: "607-962-0541", tel: "6079620541", note: "on-site, Dec 27 to Jan 1 only" }.
+ * Text with no recognisable number comes back as a note with no `tel`.
+ */
+export function splitPhone(phone: string): { number?: string; tel?: string; note?: string } {
+  const match = phone.match(/\+?\(?\d[\d().\s-]{5,}\d/);
+  if (!match) return { note: phone.trim() || undefined };
+  const number = match[0].trim();
+  const note = phone
+    .replace(match[0], ' ')
+    .replace(/\(\s*\)/g, ' ')
+    .trim()
+    .replace(/^[\s(:,-]+|[\s),:-]+$/g, '')
+    .trim();
+  return { number, tel: number.replace(/[^\d+]/g, ''), note: note || undefined };
+}

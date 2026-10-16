@@ -69,10 +69,28 @@ const accommodationTierSchema = z.object({
   amount: z.string(),
 });
 
+// Text-and-photo rows shown after the description, alternating sides on wider
+// screens (e.g. a tour of the venue). intro/outro are markdown around the rows.
+const highlightsSchema = z.object({
+  intro: z.string().optional(),
+  items: z
+    .array(
+      z.object({
+        text: z.string(),
+        image: z.string(),
+        imageAlt: z.string(),
+      })
+    )
+    .default([]),
+  outro: z.string().optional(),
+});
+
 const accommodationSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
-  tiers: z.array(accommodationTierSchema),
+  image: z.string().optional(),
+  imageAlt: z.string().optional(),
+  tiers: z.array(accommodationTierSchema).default([]),
 });
 
 const tuitionTierSchema = z.object({
@@ -158,6 +176,7 @@ const eventCollection = defineCollection({
     lng: z.number().optional(),
     excerpt: z.string().optional(),
     description: z.string().optional(),
+    highlights: highlightsSchema.optional(),
     image: z.string().optional(),
 
     // Registration
@@ -183,6 +202,8 @@ const eventCollection = defineCollection({
     // Logistics
     mealsIncluded: z.string().optional(),
     mealsNote: z.string().optional(),
+    mealsImage: z.string().optional(),
+    mealsImageAlt: z.string().optional(),
 
     // Policies (shown when toggled on; text editable per event)
     showCancellationPolicy: z.boolean().optional(),
@@ -194,6 +215,8 @@ const eventCollection = defineCollection({
     photoPolicy: z.string().optional(),
 
     // Classes / program
+    // Markdown shown under the Schedule heading, above the class list.
+    classesIntro: z.string().optional(),
     classes: z
       .array(
         z.object({
@@ -245,12 +268,15 @@ const eventCollection = defineCollection({
       .optional(),
 
     // Event staff — logistics/coordination roles (registrar, tech support, business
-    // manager, etc.) that aren't tied to teaching a class. Distinct from `classes[].leaderId`,
-    // which references the `leader` collection instead. References the `staff` collection.
+    // manager, etc.) that aren't tied to teaching a class. `id` references the `staff`
+    // collection; `leaderId` references the `leader` collection instead, for someone
+    // filling a staff role whose profile already lives there (a class leader also
+    // running logistics) — reuses their name/photo/bio without a duplicate record.
     staff: z
       .array(
         z.object({
           id: z.string().optional(),
+          leaderId: z.string().optional(),
           name: z.string().optional(),
           role: z.string().optional(),
         })

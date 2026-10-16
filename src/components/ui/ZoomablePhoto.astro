@@ -1,0 +1,149 @@
+---
+import { Icon } from 'astro-icon/components';
+import Image from '~/components/common/Image.astro';
+
+// A photo thumbnail that shows a cursor-following preview on hover and opens a
+// larger copy in a dialog on click. Behavior lives in ~/utils/photoLightbox;
+// the page (or a wrapping component) must call initPhotoLightbox().
+interface Props {
+  src: string;
+  alt: string;
+  /** Accessible name for the thumbnail button, e.g. "View larger photo of X". */
+  label: string;
+  /** Text under the photo in the dialog. */
+  caption?: string;
+  /** Intrinsic size of the thumbnail rendition. */
+  width: number;
+  height: number;
+  widths: number[];
+  sizes: string;
+  /** Classes and inline style for the thumbnail button and its image. */
+  class?: string;
+  style?: string;
+  imgClass?: string;
+  imgStyle?: string;
+  /** Size of the dialog image; its aspect ratio also shapes the hover preview. */
+  dialogWidth: number;
+  dialogHeight: number;
+}
+
+const {
+  src,
+  alt,
+  label,
+  caption,
+  width,
+  height,
+  widths,
+  sizes,
+  class: className,
+  style,
+  imgClass,
+  imgStyle,
+  dialogWidth,
+  dialogHeight,
+} = Astro.props;
+const dialogId = `photo-${crypto.randomUUID()}`;
+const aspect = dialogWidth / dialogHeight;
+---
+
+<button
+  type="button"
+  data-photo-trigger
+  data-dialog-id={dialogId}
+  data-preview-aspect={aspect === 1 ? undefined : aspect.toFixed(3)}
+  aria-label={label}
+  class:list={['icon-btn-focus cursor-pointer p-0 border-0 overflow-hidden', className]}
+  style={style}
+>
+  <Image
+    src={src}
+    alt={alt}
+    width={width}
+    height={height}
+    widths={widths}
+    sizes={sizes}
+    layout="cover"
+    class:list={['object-cover', imgClass]}
+    style={imgStyle}
+  />
+</button>
+<dialog
+  id={dialogId}
+  data-photo-dialog
+  class="m-auto w-full rounded-2xl bg-transparent p-0 backdrop:bg-black/60"
+  style={`max-width:min(90vw,${dialogWidth}px)`}
+>
+  <div class="relative bg-page rounded-2xl p-4 shadow-xl">
+    <button
+      type="button"
+      data-dialog-close
+      aria-label="Close"
+      class="icon-btn-focus absolute top-6 right-6 w-9 h-9 flex items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-pink-light cursor-pointer border-0"
+    >
+      <Icon name="tabler:x" class="w-5 h-5" />
+    </button>
+    <Image
+      src={src}
+      alt={alt}
+      width={dialogWidth}
+      height={dialogHeight}
+      widths={[dialogWidth, dialogWidth * 2]}
+      sizes={`${dialogWidth}px`}
+      layout="cover"
+      class="w-full rounded-xl object-cover"
+      style={`aspect-ratio:${dialogWidth}/${dialogHeight}`}
+    />
+    {caption && <p class="mt-3 text-center font-semibold text-heading">{caption}</p>}
+  </div>
+</dialog>
+
+<style>
+  :global(.photo-preview) {
+    /* Overrides the UA popover defaults (inset: 0; margin: auto) so the inline left/top set by positionPreview() are the only things placing this element — otherwise the leftover auto-margins/inset fight the explicit position. */
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    z-index: 60;
+    width: 220px;
+    height: 220px;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    background: var(--aw-color-bg-page, #fff);
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(0.96);
+    transition:
+      opacity 0.12s ease,
+      transform 0.12s ease;
+  }
+  :global(.photo-preview.is-visible) {
+    opacity: 1;
+    transform: scale(1);
+  }
+  :global(.photo-preview img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  :global(.photo-preview.is-loaded img) {
+    opacity: 1;
+  }
+
+  dialog[data-photo-dialog] {
+    animation: photo-dialog-in 0.15s ease-out;
+  }
+  @keyframes photo-dialog-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+</style>
