@@ -118,17 +118,19 @@ schedule:
       isBreak: true
 
 classesIntro: |
-  Room assignments start at 4:00 PM December 27.
+  **First Day: Sunday, December 27**
 
-  Staff introduction, orientation, class registration and activities are after the first evening meal.
+  4:00 pm Check-in & Room Assignments
 
-  The final meal is breakfast on January 1, followed by an often moving, always too short closing program.
+  6:00 pm Dinner, followed by orientation, staff introductions, class registration, and evening activities.
 
-  Classes may be subject to change, if necessary.
+  **December 28 to December 31** (see schedule below)
 
-  You'll be able to register for all classes right after you complete the event registration.
+  You'll be able to register for classes after you complete the event registration. Note that you will be able to swap classes the first night after orientation.
 
-  Note that you will be able to swap classes the first night of Winter Adventure.
+  **Last Day: Friday, January 1**
+
+  8 am Breakfast, followed by a short closing program
 
   **Free time activities.** Every afternoon from 1:30 to 3:45 there are no classes, so you can join in or do your own thing. Some years that means a sledding run, a hike, a trip to the Corning Museum of Glass, a long game of Mafia that nobody wants to end, or sometimes even axe throwing. There's always someone working on a jigsaw puzzle by the fireplace, and always someone up for a board game. And if you'd rather take a nap, that counts too.
 
