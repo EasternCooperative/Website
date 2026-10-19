@@ -1103,26 +1103,28 @@ const breadcrumbJsonLd = {
       {resolvedStaff.length > 0 && (
         <div class="mt-10">
           <h2 class="font-heading text-2xl font-bold text-heading mb-6">Event Staff</h2>
-          <ul class="grid sm:grid-cols-2 gap-x-8 gap-y-2 list-none p-0 m-0">
+          <ul class="sm:columns-2 sm:gap-x-8 list-none p-0 m-0">
             {resolvedStaff.map((s) => {
               const hasBio = siteSettings.featureFlags.peopleWithoutPhotoOrBio || !!s.bio;
               return (
-                <li class="flex items-center gap-2 text-sm">
+                <li class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm mb-2 break-inside-avoid">
                   {s.role && <span class="text-muted">{s.role}:</span>}
-                  {s.photo && <PersonPhoto name={s.name} photo={s.photo} size={20} />}
-                  {s.popover && hasBio ? (
-                    <button
-                      type="button"
-                      data-popover-target={`${s.popover.kind}-${s.popover.id}`}
-                      aria-controls={`${s.popover.kind}-${s.popover.id}`}
-                      aria-expanded="false"
-                      class="font-semibold text-heading underline decoration-dotted underline-offset-2 cursor-pointer hover:text-primary transition-colors"
-                    >
-                      {s.name}
-                    </button>
-                  ) : (
-                    <span class="font-semibold text-heading">{s.name}</span>
-                  )}
+                  <span class="inline-flex items-center gap-2 whitespace-nowrap">
+                    {s.photo && <PersonPhoto name={s.name} photo={s.photo} size={20} />}
+                    {s.popover && hasBio ? (
+                      <button
+                        type="button"
+                        data-popover-target={`${s.popover.kind}-${s.popover.id}`}
+                        aria-controls={`${s.popover.kind}-${s.popover.id}`}
+                        aria-expanded="false"
+                        class="font-semibold text-heading underline decoration-dotted underline-offset-2 cursor-pointer hover:text-primary transition-colors"
+                      >
+                        {s.name}
+                      </button>
+                    ) : (
+                      <span class="font-semibold text-heading">{s.name}</span>
+                    )}
+                  </span>
                 </li>
               );
             })}
