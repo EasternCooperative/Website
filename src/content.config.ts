@@ -66,7 +66,15 @@ const pricingTierSchema = z.object({
 
 const accommodationTierSchema = z.object({
   label: z.string(),
-  amount: z.string(),
+  amount: z.string(), // flat tiers: the price; matrix tiers (childAmount set): the adult price
+  childAmount: z.string().optional(), // matrix tiers: the child price; leave unset for adult-only rooms
+});
+
+// Terms (e.g. Adult, Child) defined once per event and shown as an age key and as popovers on every occurrence.
+const glossaryEntrySchema = z.object({
+  term: z.string(),
+  short: z.string().optional(), // compact form shown beside the term, e.g. "13+"
+  definition: z.string(),
 });
 
 // Text-and-photo rows shown after the description, alternating sides on wider
@@ -199,7 +207,7 @@ const eventCollection = defineCollection({
     costsIntro: z.string().optional(), // markdown overview of tuition + room & board charges
     tuitionLabel: optionalString, // override heading; defaults to "Tuition"
     tuition: z.array(tuitionTierSchema).optional(), // mid/full: tuition rows
-    accommodationsIntro: z.string().optional(), // markdown shown under the Room & Board heading
+    glossary: z.array(glossaryEntrySchema).optional(), // age key + popover definitions for room & board terms
     accommodations: z.array(accommodationSchema).optional(), // full: residential room & board
     pricing: z.array(pricingTierSchema).optional(), // simple: flat age-range price table
 

@@ -532,13 +532,15 @@ collections:
           - { label: 'Label', name: 'label', widget: 'string', required: false, hint: 'e.g. Ages 18+' }
           - { label: 'Amount', name: 'amount', widget: 'string', hint: 'e.g. $110' }
           - { label: 'Note', name: 'note', widget: 'string', required: false }
-      - {
-          label: 'Room & Board Intro',
-          name: 'accommodationsIntro',
-          widget: 'markdown',
-          required: false,
-          hint: 'Shown under the Room & Board heading, e.g. age brackets that apply to every housing type.',
-        }
+      - label: 'Glossary (Room & Board terms)'
+        name: 'glossary'
+        widget: 'list'
+        required: false
+        hint: 'Terms such as Adult and Child. Shown as an age key under Room & Board and as a popover wherever the word appears in the cost text and table headings.'
+        fields:
+          - { label: 'Term', name: 'term', widget: 'string', hint: 'e.g. Adult' }
+          - { label: 'Short Form', name: 'short', widget: 'string', required: false, hint: 'e.g. 13+' }
+          - { label: 'Definition', name: 'definition', widget: 'string', hint: 'e.g. Ages 13 and up.' }
       - label: 'Accommodations'
         name: 'accommodations'
         widget: 'list'
@@ -572,7 +574,19 @@ collections:
             widget: 'list'
             fields:
               - { label: 'Label', name: 'label', widget: 'string', hint: 'e.g. Adults, 2/room' }
-              - { label: 'Amount', name: 'amount', widget: 'string', hint: 'e.g. $430' }
+              - {
+                  label: 'Amount (Adult)',
+                  name: 'amount',
+                  widget: 'string',
+                  hint: 'e.g. $430. Used as the price when no Child amount is set.',
+                }
+              - {
+                  label: 'Child Amount',
+                  name: 'childAmount',
+                  widget: 'string',
+                  required: false,
+                  hint: 'e.g. $375. Setting this switches the table to Adult / Child columns; leave blank for adult-only rooms.',
+                }
           - {
               label: 'Footnote',
               name: 'note',

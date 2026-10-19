@@ -87,12 +87,18 @@ export const GET: APIRoute = async ({ props }) => {
 
   if (data.accommodations && data.accommodations.length > 0) {
     heading('Room & Board');
-    if (data.accommodationsIntro) lines.push(stripMarkdown(data.accommodationsIntro));
+    for (const g of data.glossary ?? []) {
+      lines.push(`${g.term}${g.short ? ` (${g.short})` : ''}: ${g.definition}`);
+    }
     for (const accom of data.accommodations) {
       lines.push(accom.name);
       if (accom.description) lines.push(`  ${stripMarkdown(accom.description)}`);
       for (const tier of accom.tiers) {
-        lines.push(`  ${tier.label}: ${tier.amount}`);
+        lines.push(
+          tier.childAmount
+            ? `  ${tier.label}: Adult ${tier.amount}, Child ${tier.childAmount}`
+            : `  ${tier.label}: ${tier.amount}`
+        );
       }
       if (accom.note) lines.push(`  ${stripMarkdown(accom.note)}`);
     }

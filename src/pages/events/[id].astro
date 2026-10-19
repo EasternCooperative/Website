@@ -16,6 +16,7 @@ import siteSettings from '~/data/settings/site.json';
 import { resolveClassLeaderNames } from '~/utils/classes';
 import { hasMasterSchedule, buildScheduleGroups } from '~/utils/eventSchedule';
 import { renderProse, renderInlineMarkdown, stripMarkdown } from '~/utils/markdown';
+import { annotateTerms, escapeHtml, glossaryId, glossaryTrigger } from '~/utils/glossary';
 
 type ResolvedLeader = {
   name: string;
@@ -72,6 +73,7 @@ if (import.meta.env.DEV && data.schedule?.timeslots?.length && !masterSchedule.o
 const isMultiDay = !!data.endDate;
 const scheduleGroups = buildScheduleGroups(data);
 
+const glossary = data.glossary ?? [];
 const allStaff = await getCollection('staff');
 const staffMap = new Map<string, CollectionEntry<'staff'>['data']>(allStaff.map((s) => [s.id, s.data]));
 const resolvedStaff = (data.staff ?? [])
@@ -704,7 +706,10 @@ const breadcrumbJsonLd = {
       {data.costsIntro && (
         <div id={!data.fee ? 'costs' : undefined} class={!data.fee ? 'mt-10 scroll-mt-24' : 'mt-10'}>
           {data.costsLabel && <h2 class="font-heading text-2xl font-bold text-heading mb-4">{data.costsLabel}</h2>}
-          <div class="prose dark:prose-invert max-w-none" set:html={renderProse(data.costsIntro)} />
+          <div
+            class="prose dark:prose-invert max-w-none"
+            set:html={annotateTerms(renderProse(data.costsIntro), glossary)}
+          />
         </div>
       )}
 
@@ -775,8 +780,17 @@ const breadcrumbJsonLd = {
       {data.accommodations && data.accommodations.length > 0 && (
         <div class="mt-10">
           <h2 class="font-heading text-2xl font-bold text-heading mb-6">Room &amp; Board</h2>
-          {data.accommodationsIntro && (
-            <div class="mb-6 prose dark:prose-invert max-w-none" set:html={renderProse(data.accommodationsIntro)} />
+          {glossary.length > 0 && (
+            <div class="mb-6 flex flex-wrap items-center gap-2 text-sm" role="group" aria-label="Age groups">
+              {glossary.map((g) => (
+                <span class="inline-flex items-center gap-1.5 rounded-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-3 py-1">
+                  <span class="font-semibold text-heading">
+                    <Fragment set:html={glossaryTrigger(g)} />
+                  </span>
+                  {g.short && <span class="text-muted">{g.short}</span>}
+                </span>
+              ))}
+            </div>
           )}
           <div class="space-y-8">
             {data.accommodations.map((accom) => (
@@ -788,35 +802,63 @@ const breadcrumbJsonLd = {
                   )}
                 </PhotoBeside>
                 {/* Rooms can be listed before prices are set; skip the empty table until then. */}
-                {accom.tiers.length > 0 && (
-                  <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
-                    <table class="w-full text-sm">
-                      <thead>
-                        <tr class="bg-gray-50 dark:bg-gray-800">
-                          <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
-                            Occupancy
-                          </th>
-                          <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
-                            Per Person
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {accom.tiers.map((tier, i) => (
-                          <tr
-                            class:list={[
-                              'border-t border-gray-200 dark:border-gray-700',
-                              { 'bg-gray-50 dark:bg-gray-900': i % 2 === 0 },
-                            ]}
-                          >
-                            <td class="px-4 py-3">{tier.label}</td>
-                            <td class="px-4 py-3 font-semibold">{tier.amount}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                {accom.tiers.length > 0 &&
+                  (() => {
+                    const isMatrix = accom.tiers.some((t) => t.childAmount);
+                    const termHeader = (name: string) => {
+                      const g = glossary.find((e) => e.term === name);
+                      return g
+                        ? `${glossaryTrigger(g, name)}${g.short ? ` <span class="font-normal text-muted">(${g.short})</span>` : ''}`
+                        : name;
+                    };
+                    return (
+                      <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
+                        <table class="w-full text-sm">
+                          <thead>
+                            <tr class="bg-gray-50 dark:bg-gray-800">
+                              <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
+                                Occupancy
+                              </th>
+                              {isMatrix ? (
+                                <>
+                                  <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
+                                    <Fragment set:html={termHeader('Adult')} />
+                                  </th>
+                                  <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
+                                    <Fragment set:html={termHeader('Child')} />
+                                  </th>
+                                </>
+                              ) : (
+                                <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
+                                  Per Person
+                                </th>
+                              )}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {accom.tiers.map((tier, i) => (
+                              <tr
+                                class:list={[
+                                  'border-t border-gray-200 dark:border-gray-700',
+                                  { 'bg-gray-50 dark:bg-gray-900': i % 2 === 0 },
+                                ]}
+                              >
+                                <td class="px-4 py-3">
+                                  <Fragment set:html={annotateTerms(escapeHtml(tier.label), glossary)} />
+                                </td>
+                                <td class="px-4 py-3 font-semibold">{tier.amount}</td>
+                                {isMatrix && (
+                                  <td class="px-4 py-3 font-semibold">
+                                    {tier.childAmount ?? <span class="font-normal text-muted">n/a</span>}
+                                  </td>
+                                )}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    );
+                  })()}
                 {accom.note && (
                   <p class="mt-2 text-xs text-muted md-links" set:html={renderInlineMarkdown(accom.note)} />
                 )}
@@ -1260,6 +1302,23 @@ const breadcrumbJsonLd = {
       </div>
     );
   })}
+
+  <!-- ── Glossary popovers ── -->
+  {glossary.map((g) => (
+    <div
+      id={glossaryId(g.term)}
+      popover="auto"
+      class="m-0 p-0 border-0 bg-transparent shadow-none [&::backdrop]:bg-black/20"
+    >
+      <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl px-4 py-3 w-56 max-w-[calc(100vw-2rem)]">
+        <p class="font-semibold text-gray-900 dark:text-white leading-snug">
+          {g.term}
+          {g.short && <span class="font-normal text-gray-500 dark:text-gray-400"> ({g.short})</span>}
+        </p>
+        <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">{g.definition}</p>
+      </div>
+    </div>
+  ))}
 
   <!-- ── Staff popovers ── -->
   {linkedStaffIds.map((id) => {
