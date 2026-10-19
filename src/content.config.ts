@@ -91,6 +91,7 @@ const accommodationSchema = z.object({
   image: z.string().optional(),
   imageAlt: z.string().optional(),
   tiers: z.array(accommodationTierSchema).default([]),
+  note: z.string().optional(), // footnote shown under this accommodation's price table
 });
 
 const tuitionTierSchema = z.object({
@@ -194,8 +195,11 @@ const eventCollection = defineCollection({
 
     // Pricing — three tiers of complexity (mutually exclusive, pick one)
     fee: z.string().optional(), // simple: "Free / $25 adults"
+    costsLabel: optionalString, // heading for the costs overview shown above tuition
+    costsIntro: z.string().optional(), // markdown overview of tuition + room & board charges
     tuitionLabel: optionalString, // override heading; defaults to "Tuition"
     tuition: z.array(tuitionTierSchema).optional(), // mid/full: tuition rows
+    accommodationsIntro: z.string().optional(), // markdown shown under the Room & Board heading
     accommodations: z.array(accommodationSchema).optional(), // full: residential room & board
     pricing: z.array(pricingTierSchema).optional(), // simple: flat age-range price table
 

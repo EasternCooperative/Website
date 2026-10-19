@@ -700,9 +700,20 @@ const breadcrumbJsonLd = {
         </div>
       )}
 
+      <!-- ── Costs overview ── -->
+      {data.costsIntro && (
+        <div id={!data.fee ? 'costs' : undefined} class={!data.fee ? 'mt-10 scroll-mt-24' : 'mt-10'}>
+          {data.costsLabel && <h2 class="font-heading text-2xl font-bold text-heading mb-4">{data.costsLabel}</h2>}
+          <div class="prose dark:prose-invert max-w-none" set:html={renderProse(data.costsIntro)} />
+        </div>
+      )}
+
       <!-- ── Tuition ── -->
       {data.tuition && data.tuition.length > 0 && (
-        <div id={!data.fee ? 'costs' : undefined} class={!data.fee ? 'mt-10 scroll-mt-24' : 'mt-10'}>
+        <div
+          id={!data.fee && !data.costsIntro ? 'costs' : undefined}
+          class={!data.fee && !data.costsIntro ? 'mt-10 scroll-mt-24' : 'mt-10'}
+        >
           <h2 class="font-heading text-2xl font-bold text-heading mb-4">{data.tuitionLabel ?? 'Tuition'}</h2>
           {data.tuition.length === 1 ? (
             <div class="inline-flex flex-col gap-0.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-6 py-4">
@@ -751,6 +762,12 @@ const breadcrumbJsonLd = {
               );
             })()
           )}
+          {data.newcomerNote && (
+            <p class="mt-4 text-sm text-default bg-primary/5 rounded-xl px-4 py-3 md-links">
+              <span class="font-semibold">New to ECRS?</span>{' '}
+              <Fragment set:html={renderInlineMarkdown(data.newcomerNote)} />
+            </p>
+          )}
         </div>
       )}
 
@@ -758,6 +775,9 @@ const breadcrumbJsonLd = {
       {data.accommodations && data.accommodations.length > 0 && (
         <div class="mt-10">
           <h2 class="font-heading text-2xl font-bold text-heading mb-6">Room &amp; Board</h2>
+          {data.accommodationsIntro && (
+            <div class="mb-6 prose dark:prose-invert max-w-none" set:html={renderProse(data.accommodationsIntro)} />
+          )}
           <div class="space-y-8">
             {data.accommodations.map((accom) => (
               <div>
@@ -796,6 +816,9 @@ const breadcrumbJsonLd = {
                       </tbody>
                     </table>
                   </div>
+                )}
+                {accom.note && (
+                  <p class="mt-2 text-xs text-muted md-links" set:html={renderInlineMarkdown(accom.note)} />
                 )}
               </div>
             ))}

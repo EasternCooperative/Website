@@ -503,6 +503,20 @@ collections:
           hint: 'For day events with a single price, e.g. "Free / $25 adults". Leave blank for multi-tier pricing below.',
         }
       - {
+          label: 'Costs Heading',
+          name: 'costsLabel',
+          widget: 'string',
+          required: false,
+          hint: 'Heading for the costs overview shown above tuition, e.g. Costs (Tuition plus Room & Board)',
+        }
+      - {
+          label: 'Costs Overview',
+          name: 'costsIntro',
+          widget: 'markdown',
+          required: false,
+          hint: 'Optional overview of the separate charges, late-fee and deadline bullets.',
+        }
+      - {
           label: 'Tuition Section Heading',
           name: 'tuitionLabel',
           widget: 'string',
@@ -518,6 +532,13 @@ collections:
           - { label: 'Label', name: 'label', widget: 'string', required: false, hint: 'e.g. Ages 18+' }
           - { label: 'Amount', name: 'amount', widget: 'string', hint: 'e.g. $110' }
           - { label: 'Note', name: 'note', widget: 'string', required: false }
+      - {
+          label: 'Room & Board Intro',
+          name: 'accommodationsIntro',
+          widget: 'markdown',
+          required: false,
+          hint: 'Shown under the Room & Board heading, e.g. age brackets that apply to every housing type.',
+        }
       - label: 'Accommodations'
         name: 'accommodations'
         widget: 'list'
@@ -552,6 +573,13 @@ collections:
             fields:
               - { label: 'Label', name: 'label', widget: 'string', hint: 'e.g. Adults, 2/room' }
               - { label: 'Amount', name: 'amount', widget: 'string', hint: 'e.g. $430' }
+          - {
+              label: 'Footnote',
+              name: 'note',
+              widget: 'markdown',
+              required: false,
+              hint: 'Shown under the price table for this housing type, e.g. an asterisk explanation.',
+            }
 
       # ── Logistics ─────────────────────────────────────────────────
       - {

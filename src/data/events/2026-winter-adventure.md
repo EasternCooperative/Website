@@ -38,6 +38,14 @@ registrationDeadline: 2026-12-06
 earlyBirdDeadline: 2026-11-15
 earlyBirdFeeNote: 'Register by this date to avoid a late fee ($50 per adult, $25 per child).'
 
+costsLabel: 'Costs (Tuition plus Room & Board)'
+costsIntro: |
+  There are two separate charges for attending Winter Adventure: (1) Room and Board, and (2) Tuition (to cover programming costs). All room rates are per person/occupant. Housing options are limited, and available on a first come, first served basis (single occupancy is restricted to age 18 and above).
+
+  - Avoid a late fee: Register by November 15, 2026 ($50 per adult, $25 per child)
+  - Final day to register is December 6, 2026
+  - Pre-registration is required for all attendees
+
 tuitionLabel: 'Tuition'
 tuition:
   - label: 'Ages 18 and up'
@@ -46,9 +54,14 @@ tuition:
     amount: 'Free'
     note: 'Tuition is waived for children and teens.'
 
+accommodationsIntro: |
+  - Adults (13+)
+  - Children (6-12)
+  - Children 0-5 have free room and board
+
 accommodations:
   - name: 'Main Lodge'
-    description: 'South Wing and North Wing, located off the central dining room. Dorm-style rooms with twin or bunk beds, and shared bath; guests must bring sheets and towels. Ages 0-5 are free, ages 6-12 are "Child," and ages 13+ are "Adult."'
+    description: 'South Wing and North Wing, located off the central dining room. Dorm-style rooms with twin or bunk beds, and shared bath; guests must bring sheets and towels.'
     tiers:
       - label: '2 per room, Adult'
         amount: '$540'
@@ -70,7 +83,7 @@ accommodations:
       - label: 'Single, Adult'
         amount: '$575'
   - name: 'West Wing'
-    description: 'Attached to Main Lodge. Hotel-style rooms with two double beds, private bath, and carpeting; all linens (blankets, sheets, towels, and pillows) are supplied. *Single rooms are subject to availability; contact registration@ecrs.org for more information.'
+    description: 'Attached to Main Lodge. Hotel-style rooms with two double beds, private bath, and carpeting; all linens (blankets, sheets, towels, and pillows) are supplied.'
     image: '/images/events/2026-winter-adventure/west-wing-room.jpg'
     imageAlt: 'A West Wing hotel-style room with two double beds'
     tiers:
@@ -88,6 +101,7 @@ accommodations:
         amount: '$470'
       - label: '4 per room, Child'
         amount: '$410'
+    note: '*Subject to availability. Contact [registration@ecrs.org](mailto:registration@ecrs.org) for more information.'
 mealsIncluded: 'A hearty breakfast, lunch, and dinner are provided every day, starting with dinner on December 27 and wrapping up with breakfast on January 1.'
 mealsNote: 'All meals are served buffet-style in the “dining room” (part of the great hall). Coffee, tea and hot chocolate are available all day. Snacks are a Winter Adventure Tradition (with a capital “T”). Served after Evening Program, the spread takes up a twelve-foot table and often includes yogurt, hummus, fruit, veggies, cheese, and chips with dip. Vegetarian or gluten-free? Watson supplies limited vegetarian and gluten free options (you must specify when you register). If you have significant dietary restrictions and want to bring your own food to supplement the buffet-style offerings, there is a refrigerator and microwave available.'
 mealsImage: '/images/events/2026-winter-adventure/dining-room.jpg'
@@ -378,7 +392,7 @@ classes:
     room: 'Martin Room'
     restriction: 'Ages 12+'
     description: |
-      In this mini, we will teach a handful of rounds — songs with melodies that when staggered, overlap to create beautiful harmonies! We have been collecting and learning rounds over the years and are excited to share them with YOU!
+      In this mini, we will teach a handful of rounds, songs with melodies that when staggered, overlap to create beautiful harmonies! We have been collecting and learning rounds over the years and are excited to share them with YOU!
 
       You may recognize a few (or not!). No previous experience required. Our hope is for you to find joy, have fun, and maybe even find a round you want to bring home and teach around your own circles.
 

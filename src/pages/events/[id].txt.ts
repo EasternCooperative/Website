@@ -72,6 +72,11 @@ export const GET: APIRoute = async ({ props }) => {
     lines.push(data.fee);
   }
 
+  if (data.costsIntro) {
+    if (data.costsLabel) heading(data.costsLabel);
+    lines.push(stripMarkdown(data.costsIntro));
+  }
+
   if (data.tuition && data.tuition.length > 0) {
     heading(data.tuitionLabel ?? 'Tuition');
     for (const tier of data.tuition) {
@@ -82,12 +87,14 @@ export const GET: APIRoute = async ({ props }) => {
 
   if (data.accommodations && data.accommodations.length > 0) {
     heading('Room & Board');
+    if (data.accommodationsIntro) lines.push(stripMarkdown(data.accommodationsIntro));
     for (const accom of data.accommodations) {
       lines.push(accom.name);
       if (accom.description) lines.push(`  ${stripMarkdown(accom.description)}`);
       for (const tier of accom.tiers) {
         lines.push(`  ${tier.label}: ${tier.amount}`);
       }
+      if (accom.note) lines.push(`  ${stripMarkdown(accom.note)}`);
     }
   }
 
