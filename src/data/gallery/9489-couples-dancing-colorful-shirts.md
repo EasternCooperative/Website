@@ -1,4 +1,4 @@
 ---
 image: '/images/gallery/9489-couples-dancing-colorful-shirts.jpg'
-alt: 'Couples dancing in the great hall, one dancer in a bright patterned shirt'
+alt: 'Pairs of dancers in a line across the great hall under strings of paper banners, one in a bright patterned shirt'
 ---
