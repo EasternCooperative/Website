@@ -25,7 +25,7 @@ type ResolvedLeader = {
   role: 'assistant' | undefined;
 };
 import { computeEventSections } from '~/utils/eventSections';
-import { formatEventDateRange } from '~/utils/dates';
+import { formatEventDateRange, formatEventDayShort } from '~/utils/dates';
 
 export async function getStaticPaths() {
   const events = await getCollection('event');
@@ -142,7 +142,6 @@ function buildISODateTime(date: Date, timeStr: string | undefined): string {
   if (m[3].toUpperCase() === 'AM' && h === 12) h = 0;
   return `${datePart}T${String(h).padStart(2, '0')}:${m[2]}:00`;
 }
-const eventTags: string[] = data.tags ?? [];
 
 // Keep draft events and e2e test fixtures out of the search index, mirroring
 // the sitemap (astro.config.ts) and listing exclusions.
@@ -385,9 +384,10 @@ const breadcrumbJsonLd = {
             </p>
             {(data.startTime || data.endTime) && (
               <p class="text-sm text-muted">
-                {data.startTime && `Starts ${data.startTime}`}
+                {data.startTime && `Starts ${isMultiDay ? `${formatEventDayShort(data.date)}, ` : ''}${data.startTime}`}
                 {data.startTime && data.endTime && ' · '}
-                {data.endTime && `Ends ${data.endTime}`}
+                {data.endTime &&
+                  `Ends ${isMultiDay && data.endDate ? `${formatEventDayShort(data.endDate)}, ` : ''}${data.endTime}`}
               </p>
             )}
             {!data.startTime && !data.endTime && !isPast && <p class="text-sm text-muted">Time TBD</p>}
@@ -1197,17 +1197,6 @@ const breadcrumbJsonLd = {
               );
             })}
           </ul>
-        </div>
-      )}
-
-      <!-- Tags -->
-      {eventTags.length > 0 && (
-        <div class="mt-8 flex flex-wrap gap-2" aria-label="Event tags">
-          {eventTags.map((tag) => (
-            <span class="px-3 py-1 text-xs font-semibold rounded-full bg-accent/10 text-accent dark:bg-accent/20">
-              {tag}
-            </span>
-          ))}
         </div>
       )}
     </div>
