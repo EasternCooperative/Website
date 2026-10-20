@@ -81,6 +81,10 @@ Components use `twMerge` from `tailwind-merge` v3 for conditional class composit
 
 Defined in `src/content.config.ts` using the Astro Content Layer API with `glob()` loaders: `event` (`src/data/events/`), `leader`, `site` (venues), `testimonial`, and `landingSettings` (`src/data/settings/landing.md`). The zod schemas double as validation for CMS commits — a build fails on invalid content. The full CMS ↔ collection mapping is in [docs/deployment-and-cms.md](./docs/deployment-and-cms.md); when adding a field, update `public/admin/config.yml` and the zod schema together.
 
+### Copy style
+
+Use the Oxford (serial) comma in site copy: "breakfast, lunch, and dinner". Leave it out when only two items are joined ("friend or family"). Applied to the Winter Adventure page first; leader and staff bios keep each person's own voice and are exempt, and other pages get it as they are touched.
+
 ## Component Patterns
 
 - Props extend interfaces from `~/types`
