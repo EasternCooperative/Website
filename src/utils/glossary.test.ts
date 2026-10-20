@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { annotateTerms, glossaryId, glossaryTrigger } from './glossary';
+import { annotateTerms, escapeHtml, glossaryId, glossaryTrigger } from './glossary';
 
 const glossary = [
   { term: 'Adult', short: '13+', definition: 'Ages 13 and up.' },
@@ -53,5 +53,15 @@ describe('annotateTerms', () => {
 describe('glossaryTrigger', () => {
   it('uses the term as the default label', () => {
     expect(glossaryTrigger(glossary[1])).toContain('>Child</button>');
+  });
+});
+
+describe('escapeHtml', () => {
+  it('escapes ampersands, angle brackets, and double quotes', () => {
+    expect(escapeHtml('<a href="x">Tom & Jerry</a>')).toBe('&lt;a href=&quot;x&quot;&gt;Tom &amp; Jerry&lt;/a&gt;');
+  });
+
+  it('leaves plain text alone', () => {
+    expect(escapeHtml('plain text')).toBe('plain text');
   });
 });

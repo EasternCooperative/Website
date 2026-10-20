@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatEventDateRange } from './dates';
+import { formatEventDateRange, formatEventDayShort } from './dates';
 
 describe('formatEventDateRange', () => {
   it('returns a single formatted date when no endDate is given', () => {
@@ -34,5 +34,15 @@ describe('formatEventDateRange', () => {
     const start = new Date('2025-12-31T00:00:00Z');
     const end = new Date('2026-01-01T00:00:00Z');
     expect(formatEventDateRange(start, end)).toBe('December 31, 2025 – January 1, 2026');
+  });
+});
+
+describe('formatEventDayShort', () => {
+  it('formats month and day only', () => {
+    expect(formatEventDayShort(new Date('2026-12-27'))).toBe('Dec 27');
+  });
+
+  it('uses the UTC date so midnight UTC does not roll back a day', () => {
+    expect(formatEventDayShort(new Date('2026-01-01T00:00:00Z'))).toBe('Jan 1');
   });
 });

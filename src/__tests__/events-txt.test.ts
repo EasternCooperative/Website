@@ -404,4 +404,72 @@ describe('GET /events/[id].txt', () => {
     expect(text).toContain('Volunteer Crew');
     expect(text).not.toContain(': Volunteer Crew');
   });
+
+  it('prints the costs intro, with its label heading when one is set', async () => {
+    const text = await callGet(makeEvent({ costsLabel: 'Costs', costsIntro: 'Prices cover **everything**.' } as never));
+    expect(text).toContain('COSTS');
+    expect(text).toContain('Prices cover everything.');
+  });
+
+  it('prints the costs intro without a heading when no label is set', async () => {
+    const text = await callGet(makeEvent({ costsIntro: 'Prices cover everything.' } as never));
+    expect(text).toContain('Prices cover everything.');
+    expect(text).not.toContain('COSTS');
+  });
+
+  it('uses a custom tuition label as the heading', async () => {
+    const text = await callGet(makeEvent({ tuitionLabel: 'Class Fees', tuition: [{ amount: '$50' }] } as never));
+    expect(text).toContain('CLASS FEES');
+    expect(text).toContain('$50');
+  });
+
+  it('lists glossary terms (with and without a short form) under Room & Board', async () => {
+    const text = await callGet(
+      makeEvent({
+        glossary: [
+          { term: 'Adult', short: '13+', definition: 'Ages 13 and up.' },
+          { term: 'Dorm', definition: 'Shared sleeping room.' },
+        ],
+        accommodations: [{ name: 'Lodge', tiers: [] }],
+      } as never)
+    );
+    expect(text).toContain('Adult (13+): Ages 13 and up.');
+    expect(text).toContain('Dorm: Shared sleeping room.');
+  });
+
+  it('shows adult and child amounts for a tier with a child price, plus the accommodation note', async () => {
+    const text = await callGet(
+      makeEvent({
+        accommodations: [
+          {
+            name: 'Cabin',
+            note: 'Bring a **sleeping bag**',
+            tiers: [{ label: 'Per night', amount: '$40', childAmount: '$20' }],
+          },
+        ],
+      } as never)
+    );
+    expect(text).toContain('Per night: Adult $40, Child $20');
+    expect(text).toContain('Bring a sleeping bag');
+  });
+
+  it('notes online registration when a Zeffy form is embedded', async () => {
+    const text = await callGet(makeEvent({ id: 'zeffy-event', zeffyFormUrl: 'https://zeffy.com/embed/x' } as never));
+    expect(text).toContain('Register online at https://ecrs.org/events/zeffy-event#registration');
+  });
+
+  it('prints a class with a restriction and no leaders or period', async () => {
+    const text = await callGet(makeEvent({ classes: [{ name: 'Youth Dance', restriction: 'Ages 8-12' }] }));
+    expect(text).toContain('Youth Dance (Ages 8-12)');
+  });
+
+  it('prints a bare tuition tier amount when it has no label', async () => {
+    const text = await callGet(makeEvent({ tuition: [{ amount: '$75' }] }));
+    expect(text).toContain('$75');
+  });
+
+  it('falls back to TBD when the event has no location', async () => {
+    const text = await callGet(makeEvent());
+    expect(text).toContain('TBD');
+  });
 });
