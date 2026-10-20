@@ -11,22 +11,22 @@ phone: '607-962-0541 (on-site, Dec 27 to Jan 1 only)'
 accessibilityNote: 'The Y at Watson Woods is wheelchair accessible.'
 excerpt: 'ECRS Winter Adventure offers a joyful alternative holiday with diverse classes, free time for relaxation, and three delicious buffet meals daily.'
 description: |
-  **A new way to connect.** ECRS Winter Adventure is a creative and joyous alternative holiday experience. Grownups will forget work and frolic like they're kids again. Kids will leave their phones in their rooms to join a pop-up game of Mafia in the library. Young and old will be thoroughly engaged in four days filled with dancing, crafts, games, singing, drama and more: classes and unstructured free time during the day and group activities at night, with lots of room for conversation and connection in between.
+  **A new way to connect.** ECRS Winter Adventure is a creative and joyous alternative holiday experience. Grownups will forget work, and frolic like they're kids again. Kids will leave their phones in their rooms to join a pop-up game of Mafia in the library. Young and old will be thoroughly engaged in four days filled with dancing, crafts, games, singing, drama, and more: classes and unstructured free time during the day and group activities at night, with lots of room for conversation and connection in between.
 
   **It's about community.** Each evening, all ages gather in the great hall for a smorgasbord of group activities. After an evening snack, there are a variety of “late-night activities.” Celebrate New Year's Eve the uniquely ECRS way, with fun around the fireplace and a circle ceremony to ring in the new year with enough warmth, light, and fun to last through next year.
 
-  **Eating is a time to connect, too.** Breakfast, lunch and dinner are buffet-style, with everyone eating together in groups at large round tables. Connect with one special friend, or with a different one of your ECRS “family” at each meal!
+  **Eating is a time to connect, too.** Breakfast, lunch, and dinner are buffet-style, with everyone eating together in groups at large round tables. Connect with one special friend or with a different one of your ECRS “family” at each meal!
 
   **How will you use your unscheduled time?** Board games? Jigsaw puzzles? Hanging out by the fireplace? Taking a nap? Take a walk or other outdoor activities? Explore Corning or other nearby towns?
 
-  Pre-registration required for all attendees. Questions: [registration@ecrs.org](mailto:registration@ecrs.org)
+  **Pre-registration required for all attendees.** Questions: [registration@ecrs.org](mailto:registration@ecrs.org)
 highlights:
   intro: "**The 'Y' at Watson Woods.** The Y at Watson Woods (Watson Homestead) is a conference center on 600 beautiful acres near Corning, NY."
   items:
-    - text: 'The great hall is the center of activity: the dining room where we gather for meals and a newly renovated dance floor, all with great views of the fields beyond.'
+    - text: 'The great hall is the center of activity: the dining room where we gather for meals has a newly renovated dance floor and great views of the fields beyond.'
       image: '/images/events/2026-winter-adventure/great-hall.jpg'
       imageAlt: 'The empty great hall at the Y at Watson Woods, a long wood dance floor under arched beams and chandeliers'
-    - text: 'There are lots of other spaces to gather: a basement rec room, a craft room, and even a non-denominational chapel, all an easy (and mostly indoor) walk from your bedroom.'
+    - text: 'There are lots of other spaces to gather: a downstairs rec room, a craft room, and even a non-denominational chapel, all an easy (and mostly indoor) walk from your bedroom.'
       image: '/images/events/2026-winter-adventure/great-hall-fireplace.jpg'
       imageAlt: 'The great hall seen from its stone fireplace end, with blue armchairs around a coffee table'
     - text: 'You could stay in your pajamas the whole time and still get more exercise than you do in a week at home. And if you get antsy being inside, the Y at Watson Woods is ideally situated for winter sports and local attractions, including sledding, hiking, and the nearby Corning Museum of Glass.'
@@ -103,7 +103,7 @@ accommodations:
         childAmount: '$410'
     note: '*Subject to availability. Contact [registration@ecrs.org](mailto:registration@ecrs.org) for more information.'
 mealsIncluded: 'A hearty breakfast, lunch, and dinner are provided every day, starting with dinner on December 27 and wrapping up with breakfast on January 1.'
-mealsNote: 'All meals are served buffet-style in the “dining room” (part of the great hall). Coffee, tea and hot chocolate are available all day. Snacks are a Winter Adventure Tradition (with a capital “T”). Served after Evening Program, the spread takes up a twelve-foot table and often includes yogurt, hummus, fruit, veggies, cheese, and chips with dip. Vegetarian or gluten-free? Watson supplies limited vegetarian and gluten free options (you must specify when you register). If you have significant dietary restrictions and want to bring your own food to supplement the buffet-style offerings, there is a refrigerator and microwave available.'
+mealsNote: 'All meals are served buffet-style in the dining room part of the great hall. Coffee, tea, and hot chocolate are available all day. Snacks are a Winter Adventure Tradition (with a capital “T”). Served after Evening Program, the spread takes up a twelve-foot table and often includes yogurt, hummus, fruit, veggies, cheese, and chips with dip. Watson will supply vegetarian and gluten-free options if you request this in the Food Preference section on your registration form. If you have significant dietary restrictions and want to bring your own food to supplement the buffet-style offerings, there is a refrigerator and microwave available.'
 mealsImage: '/images/events/2026-winter-adventure/dining-room.jpg'
 mealsImageAlt: 'People talking around round tables in the great hall at Winter Adventure 2021, with string lights in the windows behind them'
 newcomerNote: 'Is this your first multi-day ECRS event? Newcomers get free tuition!'
@@ -111,7 +111,7 @@ financialAidNote: 'We ask that you consider a donation to help keep costs from r
 showCancellationPolicy: true
 cancellationCutoffDate: 2026-12-06
 cancellationPolicy: |
-  We understand that plans can change. Cancellations before the refund cutoff receive a refund of Room & Board fees; tuition is non-refundable. Cancellations after the cutoff are not eligible for a refund, since ECRS has already committed to the Y at Watson Woods based on final attendance numbers.
+  We understand that plans can change. Cancellations before the refund cutoff receive a refund of Room & Board fees; Tuition is non-refundable. Cancellations after the December 6 cutoff are not eligible for a refund, since ECRS has already committed to the Y at Watson Woods based on final attendance numbers.
 
   The exception is a communicable illness (such as COVID-19, flu, or other contagious conditions), which qualifies for a 50% refund of the total registration. Please contact us as soon as possible if this situation arises.
 showHealthPolicy: true
@@ -190,7 +190,7 @@ classesIntro: |
 
   **December 28 to December 31** (see schedule below)
 
-  You'll be able to register for classes after you complete the event registration. Note that you will be able to swap classes the first night after orientation.
+  You'll be able to register for classes after you complete the event registration. NOTE: You will be able to swap classes the first night after orientation.
 
   **Last Day: Friday, January 1**
 
@@ -213,7 +213,7 @@ classes:
     days: 'Days 1–2'
     room: 'Martin Room'
     restriction: 'Ages 12+'
-    description: 'Stretch your body, relax and feel renewed with Chair Yoga. Yoga poses and exercises done in a chair or standing next to a chair. Wear comfortable clothes and bring a water bottle. Ages 12+.'
+    description: 'Stretch your body, relax, and feel renewed with Chair Yoga. Yoga poses and exercises done in a chair or standing next to a chair. Wear comfortable clothes and bring a water bottle. Ages 12+.'
   - name: 'Joy of Movement: Moving to Heal'
     leaderId: judi-powers
     period: 'Morning class, first period'
@@ -231,11 +231,7 @@ classes:
     restriction: 'Ages 12+'
     limitedCapacity: true
     description: |
-      Join Toby and Crow to make art and swap stories! Storytelling has always helped us make sense of the world and understand each other.
-
-      In this class we will explore the art of spoken word while making art out of paper. We will talk about the fundamentals of storytelling and how stories are crafted.
-
-      Join us if you want to catch up with friends and paste cut out pictures from magazines together into fun art! It's going to be a blast!
+      Join Toby and Crow to make art and swap stories! Storytelling has always helped us make sense of the world and understand each other. In this class we will explore the art of spoken word while making art out of paper. We will talk about the fundamentals of storytelling and how stories are crafted. Join us if you want to catch up with friends and paste cut-out pictures from magazines together into fun art! It's going to be a blast!
 
       Ages 12+.
     callout: 'Class size is limited. Please register in advance. We will keep a wait list once we have reached capacity.'
@@ -249,7 +245,7 @@ classes:
     description: |
       What does "facilitating" mean to you? How can you engage group participants to contribute to the extent they themselves might choose? What mindset or actions will help you achieve a meeting's purpose?
 
-      This course will raise self awareness while offering insights and skills for you to become (more) effective when leading group discussions among friends, at ECRS or at work.
+      This course will raise self awareness while offering insights and skills for you to become (more) effective when leading group discussions among friends, at ECRS, or at work.
 
       Ages 15+.
     callout: 'Class size is limited. Please register in advance. We will keep a wait list once we have reached capacity.'
@@ -267,7 +263,7 @@ classes:
 
       Children's Program is during the first and second morning class periods only. A cooperatively-led Children's Program staffed by parents and volunteers is during the afternoon class.
 
-      Note: Children are expected to stay for the entire program, and are the responsibility of their guardians at all other times.
+      Guardians may drop off and pick up children before and after, and children are required to stay for the entire program. Children are the responsibility of their guardians at all other times.
 
       Ages 2-11.
 
@@ -278,7 +274,7 @@ classes:
     days: 'Days 1–2'
     room: 'Martin Room'
     restriction: 'Ages 12+'
-    description: 'Come sing with us! If you play a musical instrument, please play along with us. Our ECRS songbook has the lyrics and chords to a wide variety of songs: folk, rock, parodies, pop, country, ballads, show tunes and more. We will take turns selecting songs and leading. Extra ukuleles available. Ages 12+.'
+    description: 'Come sing with us! If you play a musical instrument, please play along with us. Our ECRS songbook has the lyrics and chords to a wide variety of songs: folk, rock, parodies, pop, country, ballads, show tunes, and more. We will take turns selecting songs and leading. Extra ukuleles available. Ages 12+.'
   - name: 'ECRS Game Favorites'
     leaders:
       - id: isaac-lebwohl-steiner
@@ -295,7 +291,7 @@ classes:
     room: 'Library'
     restriction: 'Ages 15+'
     limitedCapacity: true
-    description: 'If you can write you can WRITE!! Through fun original writing exercises we will stimulate creativity and break through writing blocks. After some playful warmups you will be given a series of prompts to write what you know best — the stories of your lives. In a safe, supportive, and confidential environment you will share these stories with the group. Ages 15+.'
+    description: 'If you can write you can WRITE!! Through fun original writing exercises, we will stimulate creativity and break through writing blocks. After some playful warmups, you will be given a series of prompts to write what you know best — the stories of your lives. In a safe, supportive, and confidential environment, you will share these stories with the group. Ages 15+.'
     callout: 'Class size is limited. Please register in advance. We will keep a wait list once we have reached capacity.'
   - name: 'Improv Games'
     leaders:
@@ -312,7 +308,7 @@ classes:
     days: 'All 4 days'
     room: 'Dining Room'
     restriction: 'Ages 12+'
-    description: 'Connect with cultures from around the world in body, mind and spirit. Learn a variety of dances, fast and slow, in circles and in lines, serene, joyful and everything in between. Great music, great exercise, great fun, great community! No partner necessary, and absolutely no need to do them "right"! Ages 12+.'
+    description: 'Connect with cultures from around the world in body, mind, and spirit. Learn a variety of dances: fast and slow, in circles and in lines, serene, joyful, and everything in between. Great music, great exercise, great fun, great community! No partner necessary, and absolutely no need to do them "right"! Ages 12+.'
   - name: "Children's Program"
     leaders:
       - id: lisa-natale
@@ -329,7 +325,7 @@ classes:
 
       Children's Program is during the first and second morning class periods only. A cooperatively-led Children's Program staffed by parents and volunteers is during the afternoon class.
 
-      Note: Children are expected to stay for the entire program, and are the responsibility of their guardians at all other times.
+      Guardians may drop off and pick up children before and after, and children are required to stay for the entire program. Children are the responsibility of their guardians at all other times.
 
       Ages 2-11.
 
@@ -341,7 +337,7 @@ classes:
     room: 'Dining Room'
     restriction: 'Ages 12+'
     description: |
-      Join us to learn a variety of fun line dances, done to all types of music that will make you want to move: Pop, Latin, Swing, and more.
+      Join us to learn a variety of fun line dances done to all types of music that will make you want to move: Pop, Latin, Swing, and more.
 
       With a two-day class, we'll have time to work on one or two slightly more challenging dances, and we'll also repeat some favorites on the second day. All dances will be taught, no experience required.
 
@@ -354,7 +350,7 @@ classes:
     restriction: 'Ages 12+'
     limitedCapacity: true
     description: |
-      The year is 1933 and you've got a job to do. A stranger has called you and several others together to secure an object they need, no questions answered and cash on delivery. They're not saying much more.
+      The year is 1933 and you've got a job to do. A stranger has called you together with several others to secure an object they need, no questions answered and cash on delivery. They're not saying much more.
 
       You'll each play a character making their way through the story with the rest of this unlikely crew, and I'll bring the world and whatever is waiting in it.
 
@@ -374,11 +370,7 @@ classes:
     description: |
       Join Toby and Crow to make art and swap stories! Storytelling has always helped us make sense of the world and understand each other.
 
-      In this class Crow and Toby will lead a story swap while crafting using fabric.
-
-      On the first day everyone will learn how to loom knit. On the second day, stories will be shared with knitting continuing.
-
-      Join us if you've ever wanted to learn how to knit. With loom knitting you can make hats, scarves, blankets, and so much more! All other types of knitting are welcome or other fabric crafting. Crafting supplies will be supplied but feel free to bring your own.
+      In this class, Crow and Toby will lead a story swap while crafting using fabric. On the first day everyone will learn how to loom knit. On the second day, stories will be shared with knitting continuing. Join us if you've ever wanted to learn how to knit. With loom knitting you can make hats, scarves, blankets, and so much more! All other types of knitting and fabric crafting are welcome. Crafting supplies will be supplied, but feel free to bring your own.
 
       Ages 12+.
     callout: 'Class size is limited. Please register in advance. We will keep a wait list once we have reached capacity.'
@@ -403,11 +395,9 @@ classes:
     room: 'Rec Hall'
     restriction: 'Ages 12+'
     description: |
-      Have you ever wanted to experience being someone (or something!) other than yourself — perhaps an animal or an inanimate object. Use your imagination to bring to life whatever you choose to be. Be prepared to think outside of the box, laugh, experiment and most of all have fun!
+      Have you ever wanted to experience being someone (or something!) other than yourself — perhaps an animal or an inanimate object. Use your imagination to bring to life whatever you choose to be. Be prepared to think outside of the box, laugh, experiment, and most of all have fun!
 
-      This course will consist of structured creative dramatic games, warm ups, and exercises structured to promote positive interaction.
-
-      Each day will culminate in small skits for the participants' and audience's enjoyment.
+      This course will consist of structured creative dramatic games, warm ups, and exercises structured to promote positive interaction. Each day will culminate in small skits for the participants' and audience's enjoyment.
 
       Ages 12+.
   - name: 'Small Scenes'
