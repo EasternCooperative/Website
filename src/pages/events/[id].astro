@@ -922,6 +922,9 @@ const breadcrumbJsonLd = {
       {scheduleGroups.length > 0 && (
         <div id="schedule" class="mt-10 scroll-mt-24">
           <h2 class="font-heading text-2xl font-bold text-heading mb-6">Schedule</h2>
+          {data.classesNote && (
+            <p class="mb-4 text-sm font-semibold text-default bg-primary/5 rounded-xl px-4 py-3">{data.classesNote}</p>
+          )}
           {data.classesIntro && (
             <div class="mb-6 text-muted prose dark:prose-invert max-w-none" set:html={renderProse(data.classesIntro)} />
           )}

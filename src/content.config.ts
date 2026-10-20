@@ -228,6 +228,7 @@ const eventCollection = defineCollection({
 
     // Classes / program
     // Markdown shown under the Schedule heading, above the class list.
+    classesNote: z.string().optional(),
     classesIntro: z.string().optional(),
     classes: z
       .array(

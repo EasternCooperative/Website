@@ -180,9 +180,8 @@ schedule:
       start: '21:15'
       isBreak: true
 
+classesNote: 'No experience is necessary for any class.'
 classesIntro: |
-  No experience is necessary for any class.
-
   **First Day: Sunday, December 27**
 
   4:00 pm Check-in & Room Assignments
@@ -392,7 +391,7 @@ classes:
     room: 'Martin Room'
     restriction: 'Ages 12+'
     description: |
-      In this mini, we will teach a handful of rounds, songs with melodies that when staggered, overlap to create beautiful harmonies! We have been collecting and learning rounds over the years and are excited to share them with YOU!
+      In this mini, we will teach a handful of rounds — songs with melodies that when staggered, overlap to create beautiful harmonies! We have been collecting and learning rounds over the years and are excited to share them with YOU!
 
       You may recognize a few (or not!). No previous experience required. Our hope is for you to find joy, have fun, and maybe even find a round you want to bring home and teach around your own circles.
 
