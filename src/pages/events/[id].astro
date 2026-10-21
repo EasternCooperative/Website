@@ -513,7 +513,9 @@ const breadcrumbJsonLd = {
             <div>
               <p class="text-xs font-bold uppercase tracking-widest text-muted">Early-bird deadline</p>
               <p class="text-secondary font-semibold">{formatDate(data.earlyBirdDeadline)}</p>
-              {data.earlyBirdFeeNote && <p class="text-sm text-muted">{data.earlyBirdFeeNote}</p>}
+              {data.earlyBirdFeeNote && (
+                <p class="text-sm text-muted" set:html={annotateTerms(escapeHtml(data.earlyBirdFeeNote), glossary)} />
+              )}
             </div>
           </div>
         )}
