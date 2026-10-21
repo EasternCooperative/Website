@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import type { FeatureCollection } from 'geojson';
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from '@vnedyalk0v/react19-simple-maps';
 import geoData from '~/data/us-ca-admin1.json';
 import { BAND_COLORS } from './SiteEvaluator';
@@ -126,10 +127,11 @@ export default function MemberHeatmap({ cities, activeSite, maskSmallCounts = fa
         style={{ width: '100%', height: 'auto' }}
       >
         <ZoomableGroup>
-          <Geographies geography={geoData}>
+          <Geographies geography={geoData as unknown as FeatureCollection}>
             {({ geographies }) =>
               geographies.map((geo) => {
-                const key = `${geo.properties.iso_a2}-${geo.properties.postal}`;
+                const props = geo.properties ?? {};
+                const key = `${props.iso_a2}-${props.postal}`;
                 const count = regionCounts[key] ?? 0;
                 const t = count > 0 ? Math.sqrt(count / maxCount) : 0;
 
@@ -165,15 +167,15 @@ export default function MemberHeatmap({ cities, activeSite, maskSmallCounts = fa
                       if (activeSite && count > 0) {
                         const inRange = stateInRangeCount.get(key) ?? 0;
                         if (inRange > 0) {
-                          label = `${geo.properties.name}: ${inRange} of ${count} attendees within ${activeSite.maxMiles} mi`;
+                          label = `${props.name}: ${inRange} of ${count} attendees within ${activeSite.maxMiles} mi`;
                         } else {
-                          label = `${geo.properties.name}: no attendees within ${activeSite.maxMiles} mi`;
+                          label = `${props.name}: no attendees within ${activeSite.maxMiles} mi`;
                         }
                       } else if (count > 0) {
                         const masked = maskSmallCounts && count < 5;
-                        label = `${geo.properties.name}: ${masked ? '<5' : count} attendee${masked || count !== 1 ? 's' : ''}`;
+                        label = `${props.name}: ${masked ? '<5' : count} attendee${masked || count !== 1 ? 's' : ''}`;
                       } else {
-                        label = geo.properties.name;
+                        label = props.name;
                       }
                       setTooltip({ text: label, x: e.clientX, y: e.clientY });
                     }}

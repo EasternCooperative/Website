@@ -304,3 +304,12 @@
   max-width: 48rem;
   margin: 0 auto;
 }
+.embed-form-fallback {
+  max-width: 48rem;
+  margin: 1rem auto 0;
+  font-size: 0.875rem;
+  text-align: center;
+}
+.embed-form-fallback a {
+  text-decoration: underline;
+}
