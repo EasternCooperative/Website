@@ -6,6 +6,8 @@ import ActivityCard from '~/components/widgets/ActivityCard.astro';
 import RollingLabel from '~/components/common/RollingLabel.astro';
 import RangeSlider from '~/components/ui/RangeSlider.astro';
 import { Icon } from 'astro-icon/components';
+import { Image } from 'astro:assets';
+import heroPhoto from '~/assets/images/activities/wa-2024-table-game.jpg';
 import activitiesListSettings from '~/data/settings/activities-list.json';
 import siteSettings from '~/data/settings/site.json';
 import { sentenceCase } from '~/utils/activityDisplay';
@@ -93,6 +95,18 @@ const itemListJsonLd = {
     title={activitiesListSettings.heroTitle}
     subtitle={renderInlineMarkdown(activitiesListSettings.heroSubtitle)}
   />
+
+  <figure class="px-4 max-w-5xl mx-auto mt-8">
+    <Image
+      src={heroPhoto}
+      alt="Winter Adventure attendees of all ages sitting along both sides of a long table with their hands flat on it, playing a game in the lodge."
+      widths={[640, 1024, 1600]}
+      sizes="(max-width: 1024px) 100vw, 1024px"
+      format="webp"
+      class="w-full h-auto rounded-2xl shadow-md"
+    />
+    <figcaption class="mt-2 text-center text-sm text-muted">Winter Adventure 2024. Photo by David G-N.</figcaption>
+  </figure>
 
   <section class="pt-6 md:pt-8 pb-12 md:pb-16 px-4 max-w-7xl mx-auto" aria-labelledby="activities-heading">
     <h2 id="activities-heading" class="sr-only">
