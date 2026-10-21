@@ -16,7 +16,7 @@ const photos = await Promise.all(
     const isLocal = resolved && typeof resolved === 'object';
 
     const thumb = isLocal ? await getImage({ src: resolved, width: 480, format: 'webp' }) : null;
-    const full = isLocal ? await getImage({ src: resolved, width: 1600, format: 'jpeg' }) : null;
+    const full = isLocal ? await getImage({ src: resolved, width: 1600, format: 'webp', quality: 85 }) : null;
 
     const fallbackSrc = typeof resolved === 'string' ? resolved : photo.data.image;
 
@@ -24,6 +24,7 @@ const photos = await Promise.all(
       id: photo.id,
       src: thumb?.src ?? fallbackSrc,
       full: full?.src ?? thumb?.src ?? fallbackSrc,
+      originalSrc: isLocal && photo.data.image.startsWith('/images/') ? photo.data.image : undefined,
       width: full ? Number(full.attributes.width) : isLocal ? resolved.width : 0,
       height: full ? Number(full.attributes.height) : isLocal ? resolved.height : 0,
       alt: photo.data.alt,
