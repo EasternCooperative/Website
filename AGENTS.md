@@ -8,15 +8,20 @@ The ECRS website — a fully static site built with **Astro v7** and **Tailwind 
 
 ## Quick Reference
 
-| Command           | Purpose                             |
-| ----------------- | ----------------------------------- |
-| `npm run dev`     | Start dev server at localhost:4321  |
-| `npm run build`   | Production build to `./dist/`       |
-| `npm run preview` | Preview production build locally    |
-| `npm run check`   | Run astro check + ESLint + Prettier |
-| `npm run fix`     | Auto-fix ESLint + Prettier issues   |
+| Command                    | Purpose                                                |
+| -------------------------- | ------------------------------------------------------ |
+| `npm run dev`              | Start dev server at localhost:4321                     |
+| `npm run build`            | Production build to `./dist/`                          |
+| `npm run preview`          | Preview production build locally                       |
+| `npm run check`            | Run YAML + astro check + ESLint + Prettier             |
+| `npm run fix`              | Auto-fix ESLint + Prettier issues                      |
+| `npm test`                 | Unit tests (Vitest); `test:e2e` runs Playwright        |
+| `npm run render:schedules` | Re-render master-schedule PDFs (CI normally does this) |
+| `npm run audit:bios`       | List leader/staff bios that may be stale               |
 
 **Node.js requirement:** >= 22.12.0
+
+**Git hooks (lefthook):** pre-commit runs `prettier --check`; pre-push runs `npm run check` and `npm run test:coverage`.
 
 ## Architecture
 
@@ -32,17 +37,21 @@ src/
     schedule/      # React schedule-generator island
     CustomStyles.astro  # CSS variables for colors and fonts
   content.config.ts    # Content Collections schema (zod — validates CMS content)
-  data/                # CMS-managed content: events/, leaders/, sites/,
-                       # testimonials/, settings/, pages/
+  data/                # CMS-managed content: events/, leaders/, staff/, sites/,
+                       # testimonials/, activities/, gallery/, settings/, pages/
   layouts/             # Layout.astro, PageLayout.astro, MarkdownLayout.astro
-  pages/               # File-based routing (events/, og/, internal/, …)
+  pages/               # File-based routing (events/, activities/, gallery/, og/, internal/, …)
+  __tests__/           # Vitest suites (utils and components also colocate *.test.ts)
   utils/               # images.ts, permalinks.ts, dates.ts, eventSections.ts
   config.yaml          # Site configuration (loaded as virtual module)
   navigation.ts        # Navigation structure
   types.d.ts           # TypeScript type definitions
 public/admin/          # Sveltia CMS (config.yml + admin page)
 scripts/               # Prebuild: Sveltia copy, image copy, member locations
-functions/             # Cloudflare Pages Functions (edge middleware)
+functions/             # Cloudflare Pages Functions (edge middleware, api/track-purchase webhooks)
+e2e/                   # Playwright specs (event page, hero badge, accessibility)
+docs/                  # Deployment/CMS, disaster recovery, design audit
+.claude/skills/        # Repeatable chores (see Skills below)
 vendor/integration/    # Custom Astro integration for config loading
 ```
 
@@ -79,7 +88,13 @@ Components use `twMerge` from `tailwind-merge` v3 for conditional class composit
 
 ## Content Collections
 
-Defined in `src/content.config.ts` using the Astro Content Layer API with `glob()` loaders: `event` (`src/data/events/`), `leader`, `site` (venues), `testimonial`, and `landingSettings` (`src/data/settings/landing.md`). The zod schemas double as validation for CMS commits — a build fails on invalid content. The full CMS ↔ collection mapping is in [docs/deployment-and-cms.md](./docs/deployment-and-cms.md); when adding a field, update `public/admin/config.yml` and the zod schema together.
+Defined in `src/content.config.ts` using the Astro Content Layer API with `glob()` loaders: `event`, `leader`, `staff` (git-only, not in the CMS), `site` (venues), `testimonial`, `landingSettings` (`src/data/settings/landing.md`), `activity` (games/dances/songs in `src/data/activities/`), and `galleryPhoto` (`src/data/gallery/`). The zod schemas double as validation for CMS commits — a build fails on invalid content. The full CMS ↔ collection mapping is in [docs/deployment-and-cms.md](./docs/deployment-and-cms.md); when adding a field, update `public/admin/config.yml` and the zod schema together.
+
+Gotcha: in dev, a new schema field can be silently stripped from cached data. Clear `node_modules/.astro` and `.astro/data-store.json`, then run `astro sync`.
+
+## Skills
+
+Check `.claude/skills/` before improvising a recurring chore: `add-cms-field`, `new-page`, `new-event`, `update-bio`, `audit-bios`, `content-audit`, `optimise-images`.
 
 ## Component Patterns
 
@@ -88,6 +103,8 @@ Defined in `src/content.config.ts` using the Astro Content Layer API with `glob(
 - Use `twMerge()` when accepting className overrides
 - Use named slots for layout composition
 - Widget components accept standardized props (see `~/types`)
+- With `ClientRouter` view transitions, page-level `<script>` handlers don't re-run after navigation; use document-level event delegation
+- Don't put `not-prose` on a wrapper around `.prose` blocks: it silently disables every nested one
 
 ## Image Handling
 
@@ -108,33 +125,18 @@ After changes, always verify:
 3. `npm test` passes (Vitest); `npm run test:e2e` for event-page/UI changes
 4. Visual check in browser: homepage, events listing, an event detail page, dark mode, mobile menu
 
-## Known Issues / Resolved Upgrade Holds
+## Known Issues
 
-### Astro 7 upgrade — CSS breakpoint regression (RESOLVED 2026-07-23)
+### CSS minifier must be `lightningcss`, not `csso`
 
-The site is now on **Astro 7** (`astro@7.1.3`, `vite@8.1.5`, `@tailwindcss/vite@4.3.3`). This upgrade was held back for about a month after early Astro 7 versions appeared to silently drop every responsive Tailwind breakpoint (`md:`, `lg:`, `sm:`, `xl:`, custom breakpoints like `nav:`) from the production build only — `astro dev` looked fine because it uses a different CSS pipeline than `astro build`.
+Tailwind v4 emits modern range media queries (`@media (width>=1110px)`). `astro-compress`'s default `csso` minifier can't parse them and **silently drops the whole rule**, deleting every `md:`/`lg:`/`nav:` utility from the production build (`astro dev` looks fine because it uses a different CSS pipeline). `astro.config.ts` therefore sets `compress({ CSS: { csso: false, lightningcss: {} } })`. Keep it that way.
 
-**Actual root cause (not what was originally suspected):** it was never Vite 8/Rolldown resolving `@import 'tailwindcss'` incorrectly, despite that being the initial working theory. Tailwind v4 compiles some breakpoints using the modern CSS range syntax `@media (width>=1110px)` instead of the older `@media (min-width:1110px)`. `astro-compress`'s default CSS minifier (`csso`) can't parse that syntax and **silently drops the entire rule** — deleting every utility class inside it — rather than erroring. Astro 6→7 didn't cause this directly; it just happened to coincide with a Tailwind version that emits the modern syntax.
-
-**Fix:** `astro.config.ts`'s `compress()` CSS option was switched from `csso` to `lightningcss`, which understands the modern range syntax and leaves it intact:
-
-```ts
-compress({
-  CSS: { csso: false, lightningcss: {} },
-  // ...
-});
-```
-
-**How to verify this doesn't regress:** don't judge by build CSS file size or `@media` query count alone — a broken build can still produce a large file with plenty of _non-breakpoint_ media queries (`hover`, `prefers-reduced-motion`, `print`, etc.) and look superficially fine. Check for the actual utility prefixes instead:
+To check for a regression, don't trust file size or `@media` counts (non-breakpoint queries pad them). Count the actual prefixes and compare against a known-good build:
 
 ```bash
 python3 -c "print(open('dist/_astro/PageLayout.<hash>.css').read().count('md\\:'))"
 ```
 
-Compare `md:`/`lg:`/`sm:`/`xl:`/`nav:` counts against a known-good baseline build — they should be non-zero and roughly stable across builds of the same source tree.
-
-**If this regresses again:** check whether `astro-compress`'s CSS step is still configured with `lightningcss` in `astro.config.ts`, and whether a newer Tailwind/astro-compress release changed how CSS range syntax is handled, before assuming it's another Rolldown/Vite issue.
-
 ### Dependabot: stale major-version PRs can bypass the ignore list
 
-`.github/dependabot.yml` ignores `semver-major` updates for `astro`/`@astrojs/*`, but that only stops _new_ PRs from being opened — it does not auto-close PRs opened before the ignore rule existed or before it was last updated. A stale `dependabot/npm_and_yarn/astro-7.1.3` PR sat open for two days and was merged on 2026-07-23, initially appearing to break production (before the CSS fix above was identified and folded into that same PR). When updating `dependabot.yml`'s ignore rules, also check `gh pr list --author app/dependabot` for stale open PRs that predate the change and close/re-evaluate them explicitly.
+`.github/dependabot.yml` ignores `semver-major` updates for `astro`/`@astrojs/*`, but that only stops _new_ PRs; it doesn't close ones opened earlier. When changing the ignore rules, check `gh pr list --author app/dependabot` for stale open PRs and close or re-evaluate them.
