@@ -20,6 +20,10 @@ function onGalleryOpen(pswp: PhotoSwipe) {
   pswp.on('destroy', () => document.removeEventListener('keydown', handleKeydown));
 }
 
+const ORIGINAL_ICON_PATH =
+  'M23 23H9V9h7V7H9a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM18 7v2h3.59l-9.83 9.83 1.41 1.41L23 10.41V14h2V7h-7z';
+const ORIGINAL_ICON = `<svg aria-hidden="true" class="pswp__icn" viewBox="0 0 32 32" width="32" height="32"><path class="pswp__icn-shadow" d="${ORIGINAL_ICON_PATH}"/><path d="${ORIGINAL_ICON_PATH}"/></svg>`;
+
 const yearLabelPhrasing: RangeLabelPhrasing = {
   all: (l) => l.text('All years'),
   minOnly: (l, min) => {
@@ -41,6 +45,8 @@ export interface GalleryPhoto {
   id: string;
   src: string;
   full: string;
+  /** Untouched source file under /images/, offered via the lightbox's "original" button. */
+  originalSrc?: string;
   width: number;
   height: number;
   alt: string;
@@ -67,6 +73,33 @@ const UNKNOWN = '__unknown__';
 export default function GalleryBrowser({ photos, years, photographers, events }: Props) {
   const yearBoundMin = years.length ? Math.min(...years) : 0;
   const yearBoundMax = years.length ? Math.max(...years) : 0;
+
+  // Lightbox button that opens the untouched source file in a new tab. Slides
+  // are keyed by their optimized `full` URL (PhotoSwipe's `src`), so look the
+  // original up from that. Hidden for photos with no local original.
+  const lightboxUiElements = useMemo(() => {
+    const originals = new Map(photos.map((p) => [p.full, p.originalSrc]));
+    const current = (pswp: PhotoSwipe) => originals.get(pswp.currSlide?.data.src ?? '');
+    return [
+      {
+        name: 'original-link',
+        order: 9,
+        isButton: true,
+        html: ORIGINAL_ICON,
+        onInit: (el: HTMLElement, pswp: PhotoSwipe) => {
+          el.setAttribute('title', 'Open original');
+          el.setAttribute('aria-label', 'Open original photo in a new tab');
+          pswp.on('change', () => {
+            el.style.display = current(pswp) ? '' : 'none';
+          });
+        },
+        onClick: (_e: MouseEvent, _el: HTMLElement, pswp: PhotoSwipe) => {
+          const url = current(pswp);
+          if (url) window.open(url, '_blank', 'noopener');
+        },
+      },
+    ];
+  }, [photos]);
 
   const [search, setSearch] = useState('');
   const [yearRange, setYearRange] = useState<[number, number]>([yearBoundMin, yearBoundMax]);
@@ -198,7 +231,7 @@ export default function GalleryBrowser({ photos, years, photographers, events }:
         {filtered.length} {filtered.length === 1 ? 'photo' : 'photos'}
       </p>
 
-      <Gallery withCaption options={{ arrowKeys: false }} onOpen={onGalleryOpen}>
+      <Gallery withCaption options={{ arrowKeys: false }} onOpen={onGalleryOpen} uiElements={lightboxUiElements}>
         <ul
           className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 list-none p-0 m-0"
           role="list"
