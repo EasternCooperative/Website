@@ -24,6 +24,10 @@ changing CI, the CMS config, or anything touching `main`.
   edit) run just the fast validators (`check` + `build`). Code changes also
   run unit tests, Playwright e2e (against the built site), and Lighthouse
   (accessibility/best-practices/SEO enforced at ≥ 0.9).
+- **Schedule PDFs** (`.github/workflows/schedule-pdfs.yml`): when schedule
+  code or event data changes, headless Chrome renders each
+  `/events/<id>/schedule` page to `public/schedules/<id>.pdf` and commits it
+  to `main` (the `chore(schedule): regenerate master-schedule PDFs` commits).
 - `functions/_middleware.js` is a Cloudflare Pages Function that stamps a
   consent region onto the HTML at the edge for GA4 gating. It deploys
   automatically because it lives in `functions/`.
@@ -92,15 +96,19 @@ in this site's code.
 
 ## Content model
 
-| CMS collection | Target                                                   | Consumed via                                   |
-| -------------- | -------------------------------------------------------- | ---------------------------------------------- |
-| Events         | `src/data/events/*.md`                                   | `event` content collection                     |
-| Leaders        | `src/data/leaders/*.md`                                  | `leader` content collection                    |
-| Venues         | `src/data/sites/*.md`                                    | `site` content collection                      |
-| Testimonials   | `src/data/testimonials/*.md`                             | `testimonial` content collection               |
-| Pages → Home   | `src/data/settings/landing.md`                           | `landingSettings` content collection           |
-| Pages → others | `src/data/settings/*.json`, `src/data/pages/people.json` | direct ESM import by the page                  |
-| Site Settings  | `src/data/settings/{site,navigation,footer}.json`        | direct ESM import by header/footer/event pages |
+| CMS collection | Target                                                                                                                                                         | Consumed via                                   |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| Events         | `src/data/events/*.md`                                                                                                                                         | `event` content collection                     |
+| Leaders        | `src/data/leaders/*.md`                                                                                                                                        | `leader` content collection                    |
+| Venues         | `src/data/sites/*.md`                                                                                                                                          | `site` content collection                      |
+| Testimonials   | `src/data/testimonials/*.md`                                                                                                                                   | `testimonial` content collection               |
+| Activities     | `src/data/activities/*.md` (game, dance, song entries)                                                                                                         | `activity` content collection                  |
+| Gallery        | `src/data/gallery/*.md`, media in `public/images/gallery`                                                                                                      | `galleryPhoto` content collection              |
+| Pages → Home   | `src/data/settings/landing.md`                                                                                                                                 | `landingSettings` content collection           |
+| Pages → others | `src/data/settings/*.json` (about, connections, events-list, activities-list, gallery, contact, donation, membership, not-found), `src/data/pages/people.json` | direct ESM import by the page                  |
+| Site Settings  | `src/data/settings/{site,navigation,footer}.json`                                                                                                              | direct ESM import by header/footer/event pages |
+
+`src/data/staff/*.md` (`staff` collection) is edited in git only; it has no CMS collection.
 
 When adding or changing a CMS field, update **both** sides: the field in
 `public/admin/config.yml` and the zod schema in `src/content.config.ts`
