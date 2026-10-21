@@ -6,10 +6,23 @@ interface Props {
 }
 
 const { formId, formName, id } = Astro.props;
+const COGNITO_KEY = 'tdXs_w0YA0KlSRyaghpLKw';
+const hostedUrl = `https://www.cognitoforms.com/f/${COGNITO_KEY}/${formId}`;
 ---
 
 <section id={id} class="embed-form-section">
-  <div class="embed-form-container" data-cognito-form={formId} data-cognito-form-name={formName}></div>
+  <div
+    class="embed-form-container"
+    data-cognito-form={formId}
+    data-cognito-form-name={formName}
+    data-cognito-key={COGNITO_KEY}
+  ></div>
+  <p class="embed-form-fallback">
+    Form not loading?{' '}
+    <a href={hostedUrl} target="_blank" rel="noopener noreferrer">
+      Open it in a new tab
+    </a>
+  </p>
 </section>
 
 <script is:inline data-astro-rerun>
@@ -52,7 +65,7 @@ const { formId, formName, id } = Astro.props;
       container.innerHTML = '';
       const s = document.createElement('script');
       s.src = 'https://www.cognitoforms.com/f/seamless.js';
-      s.dataset.key = 'tdXs_w0YA0KlSRyaghpLKw';
+      s.dataset.key = container.dataset.cognitoKey;
       s.dataset.form = container.dataset.cognitoForm;
       container.appendChild(s);
 
