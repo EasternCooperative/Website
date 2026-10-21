@@ -216,6 +216,15 @@
   box-shadow: 0 0 0 2px rgb(from var(--aw-color-primary) r g b / 25%) !important;
 }
 
+/* Cognito's "section background" theme option paints attendee and payment
+   sections as gray slabs; swap the fill for a hairline outline so the form
+   sits on the page background like the rest of the site. */
+.cog-cognito .cog-section__inner--background {
+  background-color: transparent !important;
+  border: 1px solid rgb(152 152 152 / 40%) !important;
+  border-radius: 0.5rem !important;
+}
+
 /* Dark mode */
 html.dark .cog-cognito {
   background-color: var(--aw-color-bg-page) !important;
