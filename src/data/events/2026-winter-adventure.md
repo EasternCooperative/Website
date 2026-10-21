@@ -11,7 +11,7 @@ phone: '607-962-0541 (on-site, Dec 27 to Jan 1 only)'
 accessibilityNote: 'The Y at Watson Woods is wheelchair accessible.'
 excerpt: 'ECRS Winter Adventure offers a joyful alternative holiday with diverse classes, free time for relaxation, and three delicious buffet meals daily.'
 description: |
-  **A new way to connect.** ECRS Winter Adventure is a creative and joyous alternative holiday experience. Grownups will forget work, and frolic like they're kids again. Kids will leave their phones in their rooms to join a pop-up game of Mafia in the library. Young and old will be thoroughly engaged in four days filled with dancing, crafts, games, singing, drama, and more: classes and unstructured free time during the day and group activities at night, with lots of room for conversation and connection in between.
+  **A new way to connect.** ECRS Winter Adventure is a creative and joyous alternative holiday experience. Grownups will forget work, and frolic like they're kids again. Kids will leave their phones in their rooms to join a pop-up game in the library. Young and old will be thoroughly engaged in four days filled with dancing, crafts, games, singing, drama, and more: classes and unstructured free time during the day and group activities at night, with lots of room for conversation and connection in between.
 
   **It's about community.** Each evening, all ages gather in the great hall for a smorgasbord of group activities. After an evening snack, there are a variety of “late-night activities.” Celebrate New Year's Eve the uniquely ECRS way, with fun around the fireplace and a circle ceremony to ring in the new year with enough warmth, light, and fun to last through next year.
 
@@ -21,7 +21,7 @@ description: |
 
   **Pre-registration required for all attendees.** Questions: [registration@ecrs.org](mailto:registration@ecrs.org)
 highlights:
-  intro: "**The 'Y' at Watson Woods.** The Y at Watson Woods (Watson Homestead) is a conference center on 600 beautiful acres near Corning, NY."
+  intro: "**The 'Y' at Watson Woods.** The Y at Watson Woods (Watson Homestead) is a conference center on 400 beautiful acres near Corning, NY."
   items:
     - text: 'The great hall is the center of activity: the dining room where we gather for meals has a newly renovated dance floor and great views of the fields beyond.'
       image: '/images/events/2026-winter-adventure/great-hall.jpg'
@@ -36,13 +36,13 @@ highlights:
 cognitoFormId: '128'
 registrationDeadline: 2026-12-06
 earlyBirdDeadline: 2026-11-15
-earlyBirdFeeNote: 'Register by this date to avoid a late fee ($50 per adult, $25 per child).'
+earlyBirdFeeNote: 'Register by this date to save $50 per adult, $25 per child!'
 
 costsLabel: 'Costs (Tuition plus Room & Board)'
 costsIntro: |
   There are two separate charges for attending Winter Adventure: (1) Room and Board, and (2) Tuition (to cover programming costs). All room rates are per person/occupant. Housing options are limited, and available on a first come, first served basis (single occupancy is restricted to age 18 and above).
 
-  - Avoid a late fee: Register by November 15, 2026 ($50 per adult, $25 per child)
+  - Register by November 15, 2026 to save! ($50 per adult, $25 per child)
   - Final day to register is December 6, 2026
   - Pre-registration is required for all attendees
 
@@ -196,7 +196,7 @@ classesIntro: |
 
   8 am Breakfast, followed by a short closing program
 
-  **Free time activities.** Every afternoon from 1:30 to 3:45 there are no classes, so you can join in or do your own thing. Some years that means a sledding run, a hike, a trip to the Corning Museum of Glass, a long game of Mafia that nobody wants to end, or sometimes even axe throwing. There's always someone working on a jigsaw puzzle by the fireplace, and always someone up for a board game. And if you'd rather take a nap, that counts too.
+  **Free time activities.** Every afternoon from 1:30 to 3:45 there are no classes, so you can join in or do your own thing. Some years that means a sledding run, a hike, a trip to the Corning Museum of Glass, or sometimes even axe throwing. There's always someone working on a jigsaw puzzle by the fireplace, and always someone up for a board game. Anyone can add an activity to the free-time schedule, so bring an idea to share and write it in. And if you'd rather take a nap, that counts too.
 
 classes:
   # ── Morning class, first period ──
@@ -283,7 +283,7 @@ classes:
     days: 'Days 1–2'
     room: 'Rec Hall'
     restriction: 'Ages 12+'
-    description: 'Mafia, the Dictionary Game, Thumper, Up Jenkins, Catch Phrase! These are the ECRS favorites, and free periods never seem long enough to get to them all. This class is where you finally do. Ages 12+.'
+    description: 'The Dictionary Game, Thumper, Up Jenkins, Catch Phrase! These are the ECRS favorites, and free periods never seem long enough to get to them all. This class is where you finally do. Ages 12+.'
   - name: 'The Write Stuff'
     leaderId: beverly-pincus
     period: 'Morning class, second period'
