@@ -20,8 +20,9 @@ function onGalleryOpen(pswp: PhotoSwipe) {
   pswp.on('destroy', () => document.removeEventListener('keydown', handleKeydown));
 }
 
-const ORIGINAL_ICON =
-  '<svg aria-hidden="true" class="pswp__icn" viewBox="0 0 32 32" width="32" height="32"><path d="M20.5 9H23v2.5M23 9l-5 5M11.5 23H9v-2.5M9 23l5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const ORIGINAL_ICON_PATH =
+  'M23 23H9V9h7V7H9a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM18 7v2h3.59l-9.83 9.83 1.41 1.41L23 10.41V14h2V7h-7z';
+const ORIGINAL_ICON = `<svg aria-hidden="true" class="pswp__icn" viewBox="0 0 32 32" width="32" height="32"><path class="pswp__icn-shadow" d="${ORIGINAL_ICON_PATH}"/><path d="${ORIGINAL_ICON_PATH}"/></svg>`;
 
 const yearLabelPhrasing: RangeLabelPhrasing = {
   all: (l) => l.text('All years'),
@@ -89,7 +90,7 @@ export default function GalleryBrowser({ photos, years, photographers, events }:
           el.setAttribute('title', 'Open original');
           el.setAttribute('aria-label', 'Open original photo in a new tab');
           pswp.on('change', () => {
-            el.hidden = !current(pswp);
+            el.style.display = current(pswp) ? '' : 'none';
           });
         },
         onClick: (_e: MouseEvent, _el: HTMLElement, pswp: PhotoSwipe) => {
