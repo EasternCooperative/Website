@@ -68,6 +68,8 @@ glossary:
 accommodations:
   - name: 'Main Lodge'
     description: 'South Wing and North Wing, located off the central dining room. Dorm-style rooms with twin or bunk beds, and shared bath; guests must bring sheets and towels.'
+    image: '/images/events/2026-winter-adventure/main-lodge-room.jpg'
+    imageAlt: 'A dorm-style bedroom with two sets of wooden bunk beds on either side of a window'
     tiers:
       - label: '2 per room'
         amount: '$540'
