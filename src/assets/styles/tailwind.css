@@ -68,7 +68,15 @@
      white label. The "-strong" tokens (see custom-styles.css :root) are the
      saturated light-mode values, kept constant across themes for exactly
      this — same fill the Cognito submit button uses. */
-  @apply btn font-semibold bg-primary text-white border-primary hover:bg-secondary hover:border-secondary hover:text-white dark:text-white dark:bg-(--aw-color-primary-strong) dark:border-(--aw-color-primary-strong) dark:hover:border-(--aw-color-secondary-strong) dark:hover:bg-(--aw-color-secondary-strong);
+  @apply btn font-semibold;
+
+  /* Doubled selector: markup pairs this with a bare `btn`, whose transparent
+     fill and gray hover have the same specificity as these colors. Tailwind
+     decides which of the two is emitted last, so without the extra class the
+     button silently loses its pink fill (and gets white text on gray hover). */
+  &.btn-primary {
+    @apply bg-primary text-white border-primary hover:bg-secondary hover:border-secondary hover:text-white dark:text-white dark:bg-(--aw-color-primary-strong) dark:border-(--aw-color-primary-strong) dark:hover:border-(--aw-color-secondary-strong) dark:hover:bg-(--aw-color-secondary-strong);
+  }
 }
 
 @utility btn-secondary {
