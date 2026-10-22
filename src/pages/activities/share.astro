@@ -1,0 +1,56 @@
+---
+import CognitoForm from '~/components/widgets/CognitoForm.astro';
+import HeroText from '~/components/widgets/HeroText.astro';
+import Layout from '~/layouts/PageLayout.astro';
+import shareSettings from '~/data/settings/activities-share.json';
+import { renderMarkdown } from '~/utils/markdown';
+
+const metadata = {
+  title: shareSettings.heroTitle,
+  description: shareSettings.metaDescription,
+  // Meant for our leaders, so keep it out of search results (less spam), but
+  // let crawlers follow its links. noIndex also keeps it out of Pagefind.
+  robots: { index: false, follow: true },
+  openGraph: { images: [{ url: '/og/default.jpg', width: 1200, height: 630 }] },
+};
+---
+
+<Layout metadata={metadata} noIndex>
+  <HeroText tagline={shareSettings.heroTagline} title={shareSettings.heroTitle} />
+
+  <section class="pt-6 md:pt-8 px-4 max-w-3xl mx-auto">
+    <nav aria-label="Breadcrumb" class="mb-6">
+      <ol class="flex items-center gap-2 text-sm text-muted list-none p-0 m-0">
+        <li>
+          <a href="/" class="hover:text-primary transition-colors">
+            Home
+          </a>
+        </li>
+        <li aria-hidden="true" class="text-muted/50">
+          ›
+        </li>
+        <li>
+          <a href="/activities" class="hover:text-primary transition-colors">
+            Activities
+          </a>
+        </li>
+        <li aria-hidden="true" class="text-muted/50">
+          ›
+        </li>
+        <li aria-current="page" class="text-default min-w-0 truncate">
+          {shareSettings.heroTitle}
+        </li>
+      </ol>
+    </nav>
+
+    <div class="text-muted [&_p+p]:mt-4" set:html={renderMarkdown(shareSettings.introText)} />
+  </section>
+
+  <CognitoForm formId={shareSettings.cognitoFormId} formName="share-activity" hideTitle id="share-activity-form" />
+
+  <div class="px-4 max-w-3xl mx-auto pb-12 md:pb-16">
+    <a href="/activities" class="btn btn-secondary">
+      ← All Activities
+    </a>
+  </div>
+</Layout>

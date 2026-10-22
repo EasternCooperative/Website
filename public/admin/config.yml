@@ -170,11 +170,38 @@ collections:
           - { label: 'Hero Subtitle', name: 'heroSubtitle', widget: 'markdown' }
           - { label: 'No Activities Message', name: 'emptyStateText', widget: 'string' }
           - {
+              label: 'Share Prompt',
+              name: 'shareCtaText',
+              widget: 'string',
+              hint: 'Short question shown above the link to the Share an Activity form.',
+            }
+          - { label: 'Share Link Text', name: 'shareCtaLinkText', widget: 'string' }
+          - {
               label: 'Card Style',
               name: 'cardStyle',
               widget: 'select',
               options: ['rich', 'lean'],
               hint: 'Rich shows images/excerpts on cards — fine for a small library. Switch to Lean if the catalog grows into the hundreds, to keep the list page light.',
+            }
+
+      - name: 'activities-share'
+        label: 'Share an Activity'
+        file: 'src/data/settings/activities-share.json'
+        fields:
+          - { label: 'Hero Tagline', name: 'heroTagline', widget: 'string' }
+          - { label: 'Hero Title', name: 'heroTitle', widget: 'string' }
+          - { label: 'Intro Text', name: 'introText', widget: 'markdown' }
+          - {
+              label: 'Search Engine Description',
+              name: 'metaDescription',
+              widget: 'text',
+              hint: 'Plain text shown in link previews. Aim for one sentence.',
+            }
+          - {
+              label: 'Cognito Form ID',
+              name: 'cognitoFormId',
+              widget: 'string',
+              hint: 'Number from the Cognito Forms embed URL',
             }
 
       # Copy only — the photos themselves live in the "Photo Gallery" collection.

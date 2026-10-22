@@ -96,6 +96,13 @@ const itemListJsonLd = {
     subtitle={renderInlineMarkdown(activitiesListSettings.heroSubtitle)}
   />
 
+  <p class="px-4 mt-4 text-center text-sm text-muted">
+    {activitiesListSettings.shareCtaText}{' '}
+    <a href="/activities/share" class="text-link underline underline-offset-2">
+      {activitiesListSettings.shareCtaLinkText} →
+    </a>
+  </p>
+
   <figure class="px-4 max-w-5xl mx-auto mt-8">
     <Image
       src={heroPhoto}

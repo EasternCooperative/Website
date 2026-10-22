@@ -2,6 +2,11 @@ import type { CollectionEntry } from 'astro:content';
 
 type ActivityData = CollectionEntry<'activity'>['data'];
 
+// Static routes under /activities/ that the [id] route would otherwise shadow
+// (or be shadowed by). getStaticPaths in [id].astro fails the build if an
+// activity is ever given one of these ids.
+export const RESERVED_ACTIVITY_IDS = ['share'];
+
 export const sentenceCase = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export const activityLevelLabel: Record<NonNullable<ActivityData['activityLevel']>, string> = {

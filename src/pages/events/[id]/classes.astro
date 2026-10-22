@@ -33,7 +33,12 @@ const metadata = {
 <Layout metadata={metadata} noIndex>
   <HeroText tagline={eventLabel} title="Class Registration" />
 
-  <CognitoForm formId={data.classRegistrationFormId!} formName="class-registration" id="class-registration-form" />
+  <CognitoForm
+    formId={data.classRegistrationFormId!}
+    formName="class-registration"
+    hideTitle
+    id="class-registration-form"
+  />
 
   <div class="px-4 max-w-3xl mx-auto pb-12 md:pb-16">
     <a href={`/events/${event.id}`} class="btn btn-secondary">

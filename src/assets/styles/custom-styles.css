@@ -226,6 +226,12 @@
   background-color: transparent !important;
 }
 
+/* Opt-in via <CognitoForm hideTitle>: drops Cognito's own title header when
+   the page already supplies the h1. */
+[data-cognito-hide-title] .cog-cognito .cog-header {
+  display: none !important;
+}
+
 /* Dark mode */
 html.dark .cog-cognito {
   background-color: var(--aw-color-bg-page) !important;
