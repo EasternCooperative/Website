@@ -46,7 +46,7 @@ const metadata = {
     <div class="text-muted [&_p+p]:mt-4" set:html={renderMarkdown(shareSettings.introText)} />
   </section>
 
-  <CognitoForm formId={shareSettings.cognitoFormId} formName="share-activity" id="share-activity-form" />
+  <CognitoForm formId={shareSettings.cognitoFormId} formName="share-activity" hideTitle id="share-activity-form" />
 
   <div class="px-4 max-w-3xl mx-auto pb-12 md:pb-16">
     <a href="/activities" class="btn btn-secondary">

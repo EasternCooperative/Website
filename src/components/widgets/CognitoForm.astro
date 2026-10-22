@@ -3,9 +3,11 @@ interface Props {
   formId: string;
   formName?: string;
   id?: string;
+  /** Hide the form's own title header, for pages that already have an h1. Off by default. */
+  hideTitle?: boolean;
 }
 
-const { formId, formName, id } = Astro.props;
+const { formId, formName, id, hideTitle = false } = Astro.props;
 const COGNITO_KEY = 'tdXs_w0YA0KlSRyaghpLKw';
 const hostedUrl = `https://www.cognitoforms.com/f/${COGNITO_KEY}/${formId}`;
 ---
@@ -16,6 +18,7 @@ const hostedUrl = `https://www.cognitoforms.com/f/${COGNITO_KEY}/${formId}`;
     data-cognito-form={formId}
     data-cognito-form-name={formName}
     data-cognito-key={COGNITO_KEY}
+    data-cognito-hide-title={hideTitle ? '' : undefined}
   ></div>
   <p class="embed-form-fallback">
     Form not loading?{' '}
