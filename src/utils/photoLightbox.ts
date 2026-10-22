@@ -1,6 +1,6 @@
 declare global {
   interface Window {
-    __personPhotoLightboxInit?: boolean;
+    __photoLightboxInit?: boolean;
   }
 }
 
@@ -8,10 +8,19 @@ declare global {
 // preview (RES-style hover popover, real-hover + precise-pointer devices only)
 // and a click-to-open `<dialog data-photo-dialog>`. Delegated at the document
 // level and guarded so calling this from multiple components (PersonCard,
-// PersonPhoto) on the same page only wires listeners once.
-export function initPersonPhotoLightbox() {
-  if (window.__personPhotoLightboxInit) return;
-  window.__personPhotoLightboxInit = true;
+// ZoomablePhoto) on the same page only wires listeners once.
+//
+// The preview is square by default; a trigger with `data-preview-aspect`
+// (width / height, e.g. a landscape room photo) gets a preview of that shape.
+const PREVIEW_SIZE = 220;
+const PREVIEW_MAX_WIDTH = 400;
+// A preview has to be noticeably bigger than the thumbnail it zooms, so larger
+// thumbnails (room and venue photos) scale their preview off their own width.
+const PREVIEW_SCALE = 1.6;
+
+export function initPhotoLightbox() {
+  if (window.__photoLightboxInit) return;
+  window.__photoLightboxInit = true;
 
   let activeTrigger: HTMLElement | null = null;
   let previewEl: HTMLDivElement | null = null;
@@ -24,7 +33,7 @@ export function initPersonPhotoLightbox() {
     // showPopover() call, so check isConnected rather than just truthiness.
     if (previewEl?.isConnected) return previewEl;
     previewEl = document.createElement('div');
-    previewEl.className = 'person-photo-preview';
+    previewEl.className = 'photo-preview';
     previewEl.setAttribute('aria-hidden', 'true');
     // A plain fixed-position element always renders behind a native popover
     // (e.g. the leader/staff bio popover) regardless of z-index, since popovers
@@ -43,11 +52,12 @@ export function initPersonPhotoLightbox() {
   const positionPreview = (x: number, y: number) => {
     if (!previewEl) return;
     const offset = 18;
-    const size = previewEl.offsetWidth || 220;
+    const width = previewEl.offsetWidth || PREVIEW_SIZE;
+    const height = previewEl.offsetHeight || PREVIEW_SIZE;
     let left = x + offset;
     let top = y + offset;
-    if (left + size > window.innerWidth) left = x - offset - size;
-    if (top + size > window.innerHeight) top = y - offset - size;
+    if (left + width > window.innerWidth) left = x - offset - width;
+    if (top + height > window.innerHeight) top = y - offset - height;
     previewEl.style.left = `${Math.max(4, left)}px`;
     previewEl.style.top = `${Math.max(4, top)}px`;
   };
@@ -64,6 +74,18 @@ export function initPersonPhotoLightbox() {
 
     const preview = ensurePreview();
     const previewImg = preview.querySelector('img') as HTMLImageElement;
+
+    // Small thumbnails get a fixed-size preview: square, or for landscape photos
+    // the same height budget widened (capped so it isn't banner-sized). Larger
+    // thumbnails scale up from their rendered width instead. Either way the
+    // preview stays within half the viewport width and 70% of its height.
+    const aspect = Number(trigger.dataset.previewAspect) || 1;
+    const baseWidth = Math.min(PREVIEW_SIZE * aspect, PREVIEW_MAX_WIDTH);
+    const scaledWidth = trigger.getBoundingClientRect().width * PREVIEW_SCALE;
+    const maxWidth = Math.min(window.innerWidth * 0.5, window.innerHeight * 0.7 * aspect);
+    const width = Math.round(Math.min(Math.max(baseWidth, scaledWidth), maxWidth));
+    preview.style.width = `${width}px`;
+    preview.style.height = `${Math.round(width / aspect)}px`;
 
     if (previewImg.dataset.forId !== dialogId) {
       previewImg.dataset.forId = dialogId;

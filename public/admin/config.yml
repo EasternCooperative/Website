@@ -463,6 +463,28 @@ collections:
         }
       - { label: 'Short Description (excerpt)', name: 'excerpt', widget: 'string', required: false }
       - { label: 'Full Description', name: 'description', widget: 'markdown', required: false }
+      - label: 'Photo Highlights'
+        name: 'highlights'
+        widget: 'object'
+        required: false
+        collapsed: true
+        hint: 'Optional text-and-photo rows shown after the description (e.g. a tour of the venue). Photos alternate sides on wider screens. Use landscape photos of the same shape (3:2 works well).'
+        fields:
+          - { label: 'Intro', name: 'intro', widget: 'markdown', required: false }
+          - label: 'Rows'
+            name: 'items'
+            widget: 'list'
+            required: false
+            fields:
+              - { label: 'Text', name: 'text', widget: 'markdown' }
+              - { label: 'Photo', name: 'image', widget: 'image' }
+              - {
+                  label: 'Photo Alt Text',
+                  name: 'imageAlt',
+                  widget: 'string',
+                  hint: 'Describe the photo for screen readers.',
+                }
+          - { label: 'Outro', name: 'outro', widget: 'markdown', required: false }
       - {
           label: 'Event Image Override',
           name: 'image',
@@ -517,6 +539,13 @@ collections:
           required: false,
           hint: 'Number at the end of the Cognito Forms embed URL (e.g. 17)',
         }
+      - {
+          label: 'Class Registration Cognito Form ID',
+          name: 'classRegistrationFormId',
+          widget: 'string',
+          required: false,
+          hint: 'Optional second form for choosing classes. Shown at /events/<event>/classes, which is not linked from the site, so give that address to whoever builds the event form.',
+        }
 
       # ── Pricing ───────────────────────────────────────────────────
       - {
@@ -525,6 +554,20 @@ collections:
           widget: 'string',
           required: false,
           hint: 'For day events with a single price, e.g. "Free / $25 adults". Leave blank for multi-tier pricing below.',
+        }
+      - {
+          label: 'Costs Heading',
+          name: 'costsLabel',
+          widget: 'string',
+          required: false,
+          hint: 'Heading for the costs overview shown above tuition, e.g. Costs (Tuition plus Room & Board)',
+        }
+      - {
+          label: 'Costs Overview',
+          name: 'costsIntro',
+          widget: 'markdown',
+          required: false,
+          hint: 'Optional overview of the separate charges, late-fee and deadline bullets.',
         }
       - {
           label: 'Tuition Section Heading',
@@ -542,6 +585,15 @@ collections:
           - { label: 'Label', name: 'label', widget: 'string', required: false, hint: 'e.g. Ages 18+' }
           - { label: 'Amount', name: 'amount', widget: 'string', hint: 'e.g. $110' }
           - { label: 'Note', name: 'note', widget: 'string', required: false }
+      - label: 'Glossary (Room & Board terms)'
+        name: 'glossary'
+        widget: 'list'
+        required: false
+        hint: 'Terms such as Adult and Child. Shown as an age key under Room & Board and as a popover wherever the word appears in the cost text and table headings.'
+        fields:
+          - { label: 'Term', name: 'term', widget: 'string', hint: 'e.g. Adult' }
+          - { label: 'Short Form', name: 'short', widget: 'string', required: false, hint: 'e.g. 13+' }
+          - { label: 'Definition', name: 'definition', widget: 'string', hint: 'e.g. Ages 13 and up.' }
       - label: 'Accommodations'
         name: 'accommodations'
         widget: 'list'
@@ -556,12 +608,45 @@ collections:
               required: false,
               hint: 'e.g. Dorm-style, shared bath, bring linens',
             }
+          - {
+              label: 'Photo',
+              name: 'image',
+              widget: 'image',
+              required: false,
+              hint: 'Optional. A photo of a typical room, shown above the description.',
+            }
+          - {
+              label: 'Photo Alt Text',
+              name: 'imageAlt',
+              widget: 'string',
+              required: false,
+              hint: 'Describe the photo for screen readers, e.g. Hotel-style room with two double beds',
+            }
           - label: 'Pricing Tiers'
             name: 'tiers'
             widget: 'list'
             fields:
               - { label: 'Label', name: 'label', widget: 'string', hint: 'e.g. Adults, 2/room' }
-              - { label: 'Amount', name: 'amount', widget: 'string', hint: 'e.g. $430' }
+              - {
+                  label: 'Amount (Adult)',
+                  name: 'amount',
+                  widget: 'string',
+                  hint: 'e.g. $430. Used as the price when no Child amount is set.',
+                }
+              - {
+                  label: 'Child Amount',
+                  name: 'childAmount',
+                  widget: 'string',
+                  required: false,
+                  hint: 'e.g. $375. Setting this switches the table to Adult / Child columns; leave blank for adult-only rooms.',
+                }
+          - {
+              label: 'Footnote',
+              name: 'note',
+              widget: 'markdown',
+              required: false,
+              hint: 'Shown under the price table for this housing type, e.g. an asterisk explanation.',
+            }
 
       # ── Logistics ─────────────────────────────────────────────────
       - {
@@ -577,6 +662,20 @@ collections:
           widget: 'markdown',
           required: false,
           hint: 'Dietary accommodations, beverage info, etc.',
+        }
+      - {
+          label: 'Meals Photo',
+          name: 'mealsImage',
+          widget: 'image',
+          required: false,
+          hint: 'Optional. A landscape photo shown beside the meals text.',
+        }
+      - {
+          label: 'Meals Photo Alt Text',
+          name: 'mealsImageAlt',
+          widget: 'string',
+          required: false,
+          hint: 'Describe the photo for screen readers.',
         }
 
       # ── Policies ──────────────────────────────────────────────────
@@ -615,6 +714,11 @@ collections:
         default: 'We welcome community photography at ECRS events! If you have event photos you would like to share for use on our website or social media, please email [photos@ecrs.org](mailto:photos@ecrs.org). If you are not comfortable with your likeness being used for this purpose and would like to opt out, please email [no-photos@ecrs.org](mailto:no-photos@ecrs.org).'
 
       # ── Classes / Program ─────────────────────────────────────────
+      - label: 'Classes Intro'
+        name: 'classesIntro'
+        widget: 'markdown'
+        required: false
+        hint: 'Shown under the Schedule heading, above the class list.'
       - label: 'Classes'
         name: 'classes'
         widget: 'list'

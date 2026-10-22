@@ -99,6 +99,46 @@ describe('initEventPageInteractions — leader popovers', () => {
     expect(pop.hidePopover).not.toHaveBeenCalled();
   });
 
+  it('keeps the popover open after a touch tap even if a synthetic mouseleave follows', async () => {
+    const btn = document.createElement('button');
+    btn.dataset.popoverTarget = 'pop-1';
+    const pop = makePopover('pop-1');
+    document.body.append(btn, pop);
+
+    const { initEventPageInteractions } = await import('./eventPageInteractions');
+    initEventPageInteractions();
+
+    const down = new Event('pointerdown');
+    Object.defineProperty(down, 'pointerType', { value: 'touch' });
+    btn.dispatchEvent(down);
+    btn.dispatchEvent(new MouseEvent('mouseenter'));
+    btn.dispatchEvent(new MouseEvent('click'));
+    btn.dispatchEvent(new MouseEvent('mouseleave'));
+    vi.advanceTimersByTime(500);
+
+    expect(pop.hidePopover).not.toHaveBeenCalled();
+    expect(btn.getAttribute('aria-expanded')).toBe('true');
+  });
+
+  it('still hides on mouseleave after a mouse pointerdown', async () => {
+    const btn = document.createElement('button');
+    btn.dataset.popoverTarget = 'pop-1';
+    const pop = makePopover('pop-1');
+    document.body.append(btn, pop);
+
+    const { initEventPageInteractions } = await import('./eventPageInteractions');
+    initEventPageInteractions();
+
+    const down = new Event('pointerdown');
+    Object.defineProperty(down, 'pointerType', { value: 'mouse' });
+    btn.dispatchEvent(down);
+    btn.dispatchEvent(new MouseEvent('mouseenter'));
+    btn.dispatchEvent(new MouseEvent('mouseleave'));
+    vi.advanceTimersByTime(120);
+
+    expect(pop.hidePopover).toHaveBeenCalledTimes(1);
+  });
+
   it('hides the popover after leaving it too', async () => {
     const btn = document.createElement('button');
     btn.dataset.popoverTarget = 'pop-1';

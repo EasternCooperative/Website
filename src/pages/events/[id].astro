@@ -8,12 +8,15 @@ import CognitoForm from '~/components/widgets/CognitoForm.astro';
 import ZeffyForm from '~/components/widgets/ZeffyForm.astro';
 import Image from '~/components/common/Image.astro';
 import PersonPhoto from '~/components/ui/PersonPhoto.astro';
+import ZoomablePhoto from '~/components/ui/ZoomablePhoto.astro';
+import PhotoBeside from '~/components/ui/PhotoBeside.astro';
 import { findImage } from '~/utils/images';
-import { resolveVenue } from '~/utils/resolveEvent';
+import { resolveVenue, splitPhone } from '~/utils/resolveEvent';
 import siteSettings from '~/data/settings/site.json';
 import { resolveClassLeaderNames } from '~/utils/classes';
 import { hasMasterSchedule, buildScheduleGroups } from '~/utils/eventSchedule';
 import { renderProse, renderInlineMarkdown, stripMarkdown } from '~/utils/markdown';
+import { annotateTerms, escapeHtml, glossaryId, glossaryTrigger } from '~/utils/glossary';
 
 type ResolvedLeader = {
   name: string;
@@ -22,7 +25,7 @@ type ResolvedLeader = {
   role: 'assistant' | undefined;
 };
 import { computeEventSections } from '~/utils/eventSections';
-import { formatEventDateRange } from '~/utils/dates';
+import { formatEventDateRange, formatEventDayShort } from '~/utils/dates';
 
 export async function getStaticPaths() {
   const events = await getCollection('event');
@@ -42,6 +45,7 @@ interface Props {
 const { event, siteData } = Astro.props;
 const { data } = event;
 const venue = resolveVenue(data, siteData);
+const phone = venue.phone ? splitPhone(venue.phone) : undefined;
 const mapQuery =
   venue.lat != null && venue.lng != null
     ? `${venue.lat},${venue.lng}`
@@ -69,28 +73,37 @@ if (import.meta.env.DEV && data.schedule?.timeslots?.length && !masterSchedule.o
 const isMultiDay = !!data.endDate;
 const scheduleGroups = buildScheduleGroups(data);
 
+const glossary = data.glossary ?? [];
 const allStaff = await getCollection('staff');
 const staffMap = new Map<string, CollectionEntry<'staff'>['data']>(allStaff.map((s) => [s.id, s.data]));
 const resolvedStaff = (data.staff ?? [])
   .map((s) => {
-    const record = s.id ? staffMap.get(s.id) : undefined;
+    const staffRecord = s.id ? staffMap.get(s.id) : undefined;
+    const leaderRecord = s.leaderId ? leaderMap.get(s.leaderId) : undefined;
+    const record = staffRecord ?? leaderRecord;
     const name = s.name ?? record?.name;
     if (!name) return null;
+    const popover = staffRecord
+      ? { kind: 'staff' as const, id: s.id! }
+      : leaderRecord
+        ? { kind: 'leader' as const, id: s.leaderId! }
+        : null;
     return {
-      id: s.id,
+      popover,
       name,
-      role: s.role ?? record?.role,
+      role: s.role ?? staffRecord?.role ?? leaderRecord?.title,
       photo: record?.photo,
       bio: record?.bio,
     };
   })
   .filter((s): s is NonNullable<typeof s> => s !== null);
-const linkedStaffIds = [...new Set(resolvedStaff.map((s) => s.id).filter((id): id is string => !!id))];
+const linkedStaffIds = [...new Set(resolvedStaff.filter((s) => s.popover?.kind === 'staff').map((s) => s.popover!.id))];
 
 const linkedLeaderIds = [
   ...new Set([
     ...(data.classes ?? []).map((c) => c.leaderId).filter((id): id is string => !!id),
     ...(data.classes ?? []).flatMap((c) => (c.leaders ?? []).map((l) => l.id).filter((id): id is string => !!id)),
+    ...resolvedStaff.filter((s) => s.popover?.kind === 'leader').map((s) => s.popover!.id),
   ]),
 ];
 
@@ -129,7 +142,6 @@ function buildISODateTime(date: Date, timeStr: string | undefined): string {
   if (m[3].toUpperCase() === 'AM' && h === 12) h = 0;
   return `${datePart}T${String(h).padStart(2, '0')}:${m[2]}:00`;
 }
-const eventTags: string[] = data.tags ?? [];
 
 // Keep draft events and e2e test fixtures out of the search index, mirroring
 // the sitemap (astro.config.ts) and listing exclusions.
@@ -372,9 +384,10 @@ const breadcrumbJsonLd = {
             </p>
             {(data.startTime || data.endTime) && (
               <p class="text-sm text-muted">
-                {data.startTime && `Starts ${data.startTime}`}
+                {data.startTime && `Starts ${isMultiDay ? `${formatEventDayShort(data.date)}, ` : ''}${data.startTime}`}
                 {data.startTime && data.endTime && ' · '}
-                {data.endTime && `Ends ${data.endTime}`}
+                {data.endTime &&
+                  `Ends ${isMultiDay && data.endDate ? `${formatEventDayShort(data.endDate)}, ` : ''}${data.endTime}`}
               </p>
             )}
             {!data.startTime && !data.endTime && !isPast && <p class="text-sm text-muted">Time TBD</p>}
@@ -406,7 +419,6 @@ const breadcrumbJsonLd = {
               <p class="text-xs font-bold uppercase tracking-widest text-muted">Location</p>
               <p class="text-default font-semibold group-hover:underline">{venue.location}</p>
               <p class="text-sm text-muted">{venue.address}</p>
-              {venue.phone && <p class="text-sm text-muted">{venue.phone}</p>}
             </div>
           </a>
         ) : (
@@ -433,6 +445,51 @@ const breadcrumbJsonLd = {
           </div>
         )}
 
+        {phone &&
+          (() => {
+            const icon = (
+              <span class="text-primary mt-0.5 flex-shrink-0" aria-hidden="true">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M5 4h4l2 5l-2.5 1.5a11 11 0 0 0 5 5l1.5 -2.5l5 2v4a2 2 0 0 1 -2 2a16 16 0 0 1 -15 -15a2 2 0 0 1 2 -2" />
+                </svg>
+              </span>
+            );
+            const text = (
+              <div>
+                <p class="text-xs font-bold uppercase tracking-widest text-muted">Phone</p>
+                {phone.number && (
+                  <p class:list={['text-default font-semibold', { 'group-hover:underline': phone.tel }]}>
+                    {phone.number}
+                  </p>
+                )}
+                {phone.note && <p class="text-sm text-muted">{phone.note}</p>}
+              </div>
+            );
+            return phone.tel ? (
+              <a
+                href={`tel:${phone.tel}`}
+                class="flex gap-3 items-start rounded-xl p-2 -m-2 hover:bg-primary/5 transition-colors group"
+              >
+                {icon}
+                {text}
+              </a>
+            ) : (
+              <div class="flex gap-3 items-start p-2 -m-2">
+                {icon}
+                {text}
+              </div>
+            );
+          })()}
+
         {data.earlyBirdDeadline && !isPast && (
           <div class="flex gap-3 items-start">
             <span class="text-secondary mt-0.5 flex-shrink-0" aria-hidden="true">
@@ -456,7 +513,9 @@ const breadcrumbJsonLd = {
             <div>
               <p class="text-xs font-bold uppercase tracking-widest text-muted">Early-bird deadline</p>
               <p class="text-secondary font-semibold">{formatDate(data.earlyBirdDeadline)}</p>
-              {data.earlyBirdFeeNote && <p class="text-sm text-muted">{data.earlyBirdFeeNote}</p>}
+              {data.earlyBirdFeeNote && (
+                <p class="text-sm text-muted" set:html={annotateTerms(escapeHtml(data.earlyBirdFeeNote), glossary)} />
+              )}
             </div>
           </div>
         )}
@@ -592,6 +651,51 @@ const breadcrumbJsonLd = {
         </div>
       )}
 
+      <!-- ── Photo highlights: text/photo rows, alternating sides from md up ── -->
+      {data.highlights && (
+        <div class="mt-8">
+          {data.highlights.intro && (
+            <div class="prose prose-lg dark:prose-invert max-w-none">
+              <Fragment set:html={renderProse(data.highlights.intro)} />
+            </div>
+          )}
+          <div class="mt-6 space-y-8 md:space-y-10">
+            {data.highlights.items.map((item, i) => (
+              <div
+                class:list={[
+                  'md:grid md:gap-8 md:items-center',
+                  i % 2 === 0 ? 'md:grid-cols-[11fr_9fr]' : 'md:grid-cols-[9fr_11fr]',
+                ]}
+              >
+                <div class="prose prose-lg dark:prose-invert max-w-none mb-4 md:mb-0 [&>:first-child]:mt-0 [&>:last-child]:mb-0">
+                  <Fragment set:html={renderProse(item.text)} />
+                </div>
+                <div class:list={[i % 2 === 1 && 'md:order-first']}>
+                  <ZoomablePhoto
+                    src={item.image}
+                    alt={item.imageAlt}
+                    label={`View larger photo: ${item.imageAlt}`}
+                    width={640}
+                    height={427}
+                    widths={[400, 640, 960]}
+                    sizes="(min-width: 768px) 380px, 100vw"
+                    class="block w-full rounded-xl"
+                    imgClass="w-full h-auto"
+                    dialogWidth={960}
+                    dialogHeight={640}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+          {data.highlights.outro && (
+            <div class="prose prose-lg dark:prose-invert max-w-none mt-8">
+              <Fragment set:html={renderProse(data.highlights.outro)} />
+            </div>
+          )}
+        </div>
+      )}
+
       <!-- ── Simple fee ── -->
       {data.fee && (
         <div id="costs" class="mt-10 scroll-mt-24">
@@ -600,9 +704,23 @@ const breadcrumbJsonLd = {
         </div>
       )}
 
+      <!-- ── Costs overview ── -->
+      {data.costsIntro && (
+        <div id={!data.fee ? 'costs' : undefined} class={!data.fee ? 'mt-10 scroll-mt-24' : 'mt-10'}>
+          {data.costsLabel && <h2 class="font-heading text-2xl font-bold text-heading mb-4">{data.costsLabel}</h2>}
+          <div
+            class="prose dark:prose-invert max-w-none"
+            set:html={annotateTerms(renderProse(data.costsIntro), glossary)}
+          />
+        </div>
+      )}
+
       <!-- ── Tuition ── -->
       {data.tuition && data.tuition.length > 0 && (
-        <div id={!data.fee ? 'costs' : undefined} class={!data.fee ? 'mt-10 scroll-mt-24' : 'mt-10'}>
+        <div
+          id={!data.fee && !data.costsIntro ? 'costs' : undefined}
+          class={!data.fee && !data.costsIntro ? 'mt-10 scroll-mt-24' : 'mt-10'}
+        >
           <h2 class="font-heading text-2xl font-bold text-heading mb-4">{data.tuitionLabel ?? 'Tuition'}</h2>
           {data.tuition.length === 1 ? (
             <div class="inline-flex flex-col gap-0.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-6 py-4">
@@ -651,6 +769,12 @@ const breadcrumbJsonLd = {
               );
             })()
           )}
+          {data.newcomerNote && (
+            <p class="mt-4 text-sm text-default bg-primary/5 rounded-xl px-4 py-3 md-links">
+              <span class="font-semibold">New to ECRS?</span>{' '}
+              <Fragment set:html={renderInlineMarkdown(data.newcomerNote)} />
+            </p>
+          )}
         </div>
       )}
 
@@ -658,40 +782,88 @@ const breadcrumbJsonLd = {
       {data.accommodations && data.accommodations.length > 0 && (
         <div class="mt-10">
           <h2 class="font-heading text-2xl font-bold text-heading mb-6">Room &amp; Board</h2>
+          {glossary.length > 0 && (
+            <div class="mb-6 flex flex-wrap items-center gap-2 text-sm" role="group" aria-label="Age groups">
+              {glossary.map((g) => (
+                <span class="inline-flex items-center gap-1.5 rounded-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-3 py-1">
+                  <span class="font-semibold text-heading">
+                    <Fragment set:html={glossaryTrigger(g)} />
+                  </span>
+                  {g.short && <span class="text-muted">{g.short}</span>}
+                </span>
+              ))}
+            </div>
+          )}
           <div class="space-y-8">
             {data.accommodations.map((accom) => (
               <div>
-                <h3 class="font-heading text-lg font-bold text-heading mb-1">{accom.name}</h3>
-                {accom.description && (
-                  <p class="text-sm text-muted mb-3 md-links" set:html={renderInlineMarkdown(accom.description)} />
+                <PhotoBeside image={accom.image} imageAlt={accom.imageAlt ?? accom.name} caption={accom.name}>
+                  <h3 class="font-heading text-lg font-bold text-heading mb-1">{accom.name}</h3>
+                  {accom.description && (
+                    <p class="text-sm text-muted mb-3 md-links" set:html={renderInlineMarkdown(accom.description)} />
+                  )}
+                </PhotoBeside>
+                {/* Rooms can be listed before prices are set; skip the empty table until then. */}
+                {accom.tiers.length > 0 &&
+                  (() => {
+                    const isMatrix = accom.tiers.some((t) => t.childAmount);
+                    const termHeader = (name: string) => {
+                      const g = glossary.find((e) => e.term === name);
+                      return g
+                        ? `${glossaryTrigger(g, name)}${g.short ? ` <span class="font-normal text-muted">(${g.short})</span>` : ''}`
+                        : name;
+                    };
+                    return (
+                      <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
+                        <table class="w-full text-sm">
+                          <thead>
+                            <tr class="bg-gray-50 dark:bg-gray-800">
+                              <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
+                                Occupancy
+                              </th>
+                              {isMatrix ? (
+                                <>
+                                  <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
+                                    <Fragment set:html={termHeader('Adult')} />
+                                  </th>
+                                  <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
+                                    <Fragment set:html={termHeader('Child')} />
+                                  </th>
+                                </>
+                              ) : (
+                                <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
+                                  Per Person
+                                </th>
+                              )}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {accom.tiers.map((tier, i) => (
+                              <tr
+                                class:list={[
+                                  'border-t border-gray-200 dark:border-gray-700',
+                                  { 'bg-gray-50 dark:bg-gray-900': i % 2 === 0 },
+                                ]}
+                              >
+                                <td class="px-4 py-3">
+                                  <Fragment set:html={annotateTerms(escapeHtml(tier.label), glossary)} />
+                                </td>
+                                <td class="px-4 py-3 font-semibold">{tier.amount}</td>
+                                {isMatrix && (
+                                  <td class="px-4 py-3 font-semibold">
+                                    {tier.childAmount ?? <span class="font-normal text-muted">n/a</span>}
+                                  </td>
+                                )}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    );
+                  })()}
+                {accom.note && (
+                  <p class="mt-2 text-xs text-muted md-links" set:html={renderInlineMarkdown(accom.note)} />
                 )}
-                <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
-                  <table class="w-full text-sm">
-                    <thead>
-                      <tr class="bg-gray-50 dark:bg-gray-800">
-                        <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
-                          Occupancy
-                        </th>
-                        <th scope="col" class="text-left px-4 py-3 font-semibold text-heading">
-                          Per Person
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {accom.tiers.map((tier, i) => (
-                        <tr
-                          class:list={[
-                            'border-t border-gray-200 dark:border-gray-700',
-                            { 'bg-gray-50 dark:bg-gray-900': i % 2 === 0 },
-                          ]}
-                        >
-                          <td class="px-4 py-3">{tier.label}</td>
-                          <td class="px-4 py-3 font-semibold">{tier.amount}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
               </div>
             ))}
           </div>
@@ -739,10 +911,12 @@ const breadcrumbJsonLd = {
       {(data.mealsIncluded || data.mealsNote) && (
         <div class="mt-10">
           <h2 class="font-heading text-2xl font-bold text-heading mb-3">Meals</h2>
-          {data.mealsIncluded && <p class="text-default font-semibold">{data.mealsIncluded}</p>}
-          {data.mealsNote && (
-            <p class="text-sm text-muted mt-1 md-links" set:html={renderInlineMarkdown(data.mealsNote)} />
-          )}
+          <PhotoBeside image={data.mealsImage} imageAlt={data.mealsImageAlt ?? 'Meals'} caption="Meals">
+            {data.mealsIncluded && <p class="text-default font-semibold">{data.mealsIncluded}</p>}
+            {data.mealsNote && (
+              <p class="text-sm text-muted mt-1 md-links" set:html={renderInlineMarkdown(data.mealsNote)} />
+            )}
+          </PhotoBeside>
         </div>
       )}
 
@@ -750,6 +924,12 @@ const breadcrumbJsonLd = {
       {scheduleGroups.length > 0 && (
         <div id="schedule" class="mt-10 scroll-mt-24">
           <h2 class="font-heading text-2xl font-bold text-heading mb-6">Schedule</h2>
+          {data.classesNote && (
+            <p class="mb-4 text-sm font-semibold text-default bg-primary/5 rounded-xl px-4 py-3">{data.classesNote}</p>
+          )}
+          {data.classesIntro && (
+            <div class="mb-6 text-muted prose dark:prose-invert max-w-none" set:html={renderProse(data.classesIntro)} />
+          )}
           {masterSchedule.ok && (
             <div class="mb-6 flex flex-wrap gap-3">
               <a href={`/events/${event.id}/schedule`} class="btn btn-secondary">
@@ -816,6 +996,11 @@ const breadcrumbJsonLd = {
                               data-scroll-reveal="up-light"
                             >
                               <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                                {isMultiDay && cls.days && (
+                                  <span class="text-xs font-semibold text-primary bg-primary/10 rounded-full px-2 py-0.5 whitespace-nowrap">
+                                    {cls.days}
+                                  </span>
+                                )}
                                 <span class="font-semibold text-heading">{cls.name}</span>
                                 {(() => {
                                   const resolved: ResolvedLeader[] = cls.leaders?.length
@@ -893,7 +1078,6 @@ const breadcrumbJsonLd = {
                                     {cls.restriction}
                                   </span>
                                 )}
-                                {isMultiDay && cls.days && <span class="text-xs text-muted">{cls.days}</span>}
                                 {cls.limitedCapacity && (
                                   <span class="text-xs font-semibold text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-600 rounded-full px-2 py-0.5">
                                     Limited capacity
@@ -989,41 +1173,32 @@ const breadcrumbJsonLd = {
       {resolvedStaff.length > 0 && (
         <div class="mt-10">
           <h2 class="font-heading text-2xl font-bold text-heading mb-6">Event Staff</h2>
-          <ul class="grid sm:grid-cols-2 gap-x-8 gap-y-2 list-none p-0 m-0">
+          <ul class="sm:columns-2 sm:gap-x-8 list-none p-0 m-0">
             {resolvedStaff.map((s) => {
               const hasBio = siteSettings.featureFlags.peopleWithoutPhotoOrBio || !!s.bio;
               return (
-                <li class="flex items-center gap-2 text-sm">
+                <li class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm mb-2 break-inside-avoid">
                   {s.role && <span class="text-muted">{s.role}:</span>}
-                  {s.photo && <PersonPhoto name={s.name} photo={s.photo} size={20} />}
-                  {s.id && hasBio ? (
-                    <button
-                      type="button"
-                      data-popover-target={`staff-${s.id}`}
-                      aria-controls={`staff-${s.id}`}
-                      aria-expanded="false"
-                      class="font-semibold text-heading underline decoration-dotted underline-offset-2 cursor-pointer hover:text-primary transition-colors"
-                    >
-                      {s.name}
-                    </button>
-                  ) : (
-                    <span class="font-semibold text-heading">{s.name}</span>
-                  )}
+                  <span class="inline-flex items-center gap-2 whitespace-nowrap">
+                    {s.photo && <PersonPhoto name={s.name} photo={s.photo} size={20} />}
+                    {s.popover && hasBio ? (
+                      <button
+                        type="button"
+                        data-popover-target={`${s.popover.kind}-${s.popover.id}`}
+                        aria-controls={`${s.popover.kind}-${s.popover.id}`}
+                        aria-expanded="false"
+                        class="font-semibold text-heading underline decoration-dotted underline-offset-2 cursor-pointer hover:text-primary transition-colors"
+                      >
+                        {s.name}
+                      </button>
+                    ) : (
+                      <span class="font-semibold text-heading">{s.name}</span>
+                    )}
+                  </span>
                 </li>
               );
             })}
           </ul>
-        </div>
-      )}
-
-      <!-- Tags -->
-      {eventTags.length > 0 && (
-        <div class="mt-8 flex flex-wrap gap-2" aria-label="Event tags">
-          {eventTags.map((tag) => (
-            <span class="px-3 py-1 text-xs font-semibold rounded-full bg-accent/10 text-accent dark:bg-accent/20">
-              {tag}
-            </span>
-          ))}
         </div>
       )}
     </div>
@@ -1122,6 +1297,23 @@ const breadcrumbJsonLd = {
     );
   })}
 
+  <!-- ── Glossary popovers ── -->
+  {glossary.map((g) => (
+    <div
+      id={glossaryId(g.term)}
+      popover="auto"
+      class="m-0 p-0 border-0 bg-transparent shadow-none [&::backdrop]:bg-black/20"
+    >
+      <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl px-4 py-3 w-56 max-w-[calc(100vw-2rem)]">
+        <p class="font-semibold text-gray-900 dark:text-white leading-snug">
+          {g.term}
+          {g.short && <span class="font-normal text-gray-500 dark:text-gray-400"> ({g.short})</span>}
+        </p>
+        <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">{g.definition}</p>
+      </div>
+    </div>
+  ))}
+
   <!-- ── Staff popovers ── -->
   {linkedStaffIds.map((id) => {
     const staffMember = staffMap.get(id);
@@ -1162,8 +1354,8 @@ const breadcrumbJsonLd = {
 
 <script>
   import { initEventPageInteractions } from '~/utils/eventPageInteractions';
-  import { initPersonPhotoLightbox } from '~/utils/personPhotoLightbox';
+  import { initPhotoLightbox } from '~/utils/photoLightbox';
 
   initEventPageInteractions();
-  initPersonPhotoLightbox();
+  initPhotoLightbox();
 </script>

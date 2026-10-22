@@ -22,6 +22,7 @@ const makeEvent = (
     fee: string | undefined;
     tuition: { label?: string; amount: string; note?: string }[] | undefined;
     pricing: { label?: string; fullWeekend?: string; note?: string }[] | undefined;
+    classesIntro: string | undefined;
     classes: unknown[] | undefined;
     schedule: { timeslots: { label: string; start?: string; end?: string; isBreak?: boolean }[] } | undefined;
     showCancellationPolicy: boolean | undefined;
@@ -44,6 +45,7 @@ const makeEvent = (
     fee: undefined as string | undefined,
     tuition: undefined as { label?: string; amount: string; note?: string }[] | undefined,
     pricing: undefined as { label?: string; fullWeekend?: string; note?: string }[] | undefined,
+    classesIntro: undefined as string | undefined,
     classes: undefined as unknown[] | undefined,
     schedule: undefined as
       { timeslots: { label: string; start?: string; end?: string; isBreak?: boolean }[] } | undefined,
@@ -175,6 +177,18 @@ describe('GET /events/[id].txt', () => {
     expect(text).toContain('A fun intro class');
   });
 
+  it('includes the classes intro under the schedule heading', async () => {
+    const text = await callGet(
+      makeEvent({
+        classesIntro: 'Classes may **change**.',
+        classes: [{ name: 'Beginner Contra' }],
+      })
+    );
+    expect(text).toContain('Classes may change.');
+    expect(text.indexOf('Classes may change.')).toBeGreaterThan(text.indexOf('SCHEDULE'));
+    expect(text.indexOf('Classes may change.')).toBeLessThan(text.indexOf('Beginner Contra'));
+  });
+
   it('composes schedule headings from a matched timeslot', async () => {
     const text = await callGet(
       makeEvent({
@@ -263,6 +277,15 @@ describe('GET /events/[id].txt', () => {
     expect(text).toContain('Per person: $100');
   });
 
+  it('lists accommodations that have no price tiers yet', async () => {
+    const text = await callGet(
+      makeEvent({ accommodations: [{ name: 'Main Lodge', description: 'Dorm-style rooms', tiers: [] }] } as never)
+    );
+    expect(text).toContain('ROOM & BOARD');
+    expect(text).toContain('Main Lodge');
+    expect(text).toContain('Dorm-style rooms');
+  });
+
   it('includes mealsIncluded and mealsNote', async () => {
     const text = await callGet(
       makeEvent({ mealsIncluded: 'All meals provided', mealsNote: 'Let us know about *allergies*' } as never)
@@ -339,5 +362,114 @@ describe('GET /events/[id].txt', () => {
     const text = await callGet(makeEvent({ staff: [{ id: 'jane-staff', role: 'Registrar' }] } as never));
     expect(text).toContain('EVENT STAFF');
     expect(text).toContain('Registrar: Jane Registrar');
+  });
+
+  it('resolves event staff via leaderId when they only have a leader record', async () => {
+    vi.mocked(getCollection).mockImplementation(async (name: string) => {
+      if (name === 'leader') {
+        return [{ id: 'joe-leader', data: { name: 'Joe Leader', title: 'Games' } }] as never;
+      }
+      return [] as never;
+    });
+    const text = await callGet(
+      makeEvent({ staff: [{ leaderId: 'joe-leader', role: 'Late Night Coordinator' }] } as never)
+    );
+    expect(text).toContain('EVENT STAFF');
+    expect(text).toContain('Late Night Coordinator: Joe Leader');
+  });
+
+  it('falls back to the staff/leader record role when no per-event role is given', async () => {
+    vi.mocked(getCollection).mockImplementation(async (name: string) => {
+      if (name === 'staff') {
+        return [{ id: 'jane-staff', data: { name: 'Jane Registrar', role: 'Registrar' } }] as never;
+      }
+      if (name === 'leader') {
+        return [{ id: 'joe-leader', data: { name: 'Joe Leader', title: 'Games' } }] as never;
+      }
+      return [] as never;
+    });
+    const text = await callGet(makeEvent({ staff: [{ id: 'jane-staff' }, { leaderId: 'joe-leader' }] } as never));
+    expect(text).toContain('Registrar: Jane Registrar');
+    expect(text).toContain('Games: Joe Leader');
+  });
+
+  it('omits an event staff row that resolves to no name', async () => {
+    const text = await callGet(makeEvent({ staff: [{ id: 'missing-staff', role: 'Registrar' }] } as never));
+    expect(text).not.toContain('EVENT STAFF');
+  });
+
+  it('prints an event staff name with no role as a bare line', async () => {
+    const text = await callGet(makeEvent({ staff: [{ name: 'Volunteer Crew' }] } as never));
+    expect(text).toContain('EVENT STAFF');
+    expect(text).toContain('Volunteer Crew');
+    expect(text).not.toContain(': Volunteer Crew');
+  });
+
+  it('prints the costs intro, with its label heading when one is set', async () => {
+    const text = await callGet(makeEvent({ costsLabel: 'Costs', costsIntro: 'Prices cover **everything**.' } as never));
+    expect(text).toContain('COSTS');
+    expect(text).toContain('Prices cover everything.');
+  });
+
+  it('prints the costs intro without a heading when no label is set', async () => {
+    const text = await callGet(makeEvent({ costsIntro: 'Prices cover everything.' } as never));
+    expect(text).toContain('Prices cover everything.');
+    expect(text).not.toContain('COSTS');
+  });
+
+  it('uses a custom tuition label as the heading', async () => {
+    const text = await callGet(makeEvent({ tuitionLabel: 'Class Fees', tuition: [{ amount: '$50' }] } as never));
+    expect(text).toContain('CLASS FEES');
+    expect(text).toContain('$50');
+  });
+
+  it('lists glossary terms (with and without a short form) under Room & Board', async () => {
+    const text = await callGet(
+      makeEvent({
+        glossary: [
+          { term: 'Adult', short: '13+', definition: 'Ages 13 and up.' },
+          { term: 'Dorm', definition: 'Shared sleeping room.' },
+        ],
+        accommodations: [{ name: 'Lodge', tiers: [] }],
+      } as never)
+    );
+    expect(text).toContain('Adult (13+): Ages 13 and up.');
+    expect(text).toContain('Dorm: Shared sleeping room.');
+  });
+
+  it('shows adult and child amounts for a tier with a child price, plus the accommodation note', async () => {
+    const text = await callGet(
+      makeEvent({
+        accommodations: [
+          {
+            name: 'Cabin',
+            note: 'Bring a **sleeping bag**',
+            tiers: [{ label: 'Per night', amount: '$40', childAmount: '$20' }],
+          },
+        ],
+      } as never)
+    );
+    expect(text).toContain('Per night: Adult $40, Child $20');
+    expect(text).toContain('Bring a sleeping bag');
+  });
+
+  it('notes online registration when a Zeffy form is embedded', async () => {
+    const text = await callGet(makeEvent({ id: 'zeffy-event', zeffyFormUrl: 'https://zeffy.com/embed/x' } as never));
+    expect(text).toContain('Register online at https://ecrs.org/events/zeffy-event#registration');
+  });
+
+  it('prints a class with a restriction and no leaders or period', async () => {
+    const text = await callGet(makeEvent({ classes: [{ name: 'Youth Dance', restriction: 'Ages 8-12' }] }));
+    expect(text).toContain('Youth Dance (Ages 8-12)');
+  });
+
+  it('prints a bare tuition tier amount when it has no label', async () => {
+    const text = await callGet(makeEvent({ tuition: [{ amount: '$75' }] }));
+    expect(text).toContain('$75');
+  });
+
+  it('falls back to TBD when the event has no location', async () => {
+    const text = await callGet(makeEvent());
+    expect(text).toContain('TBD');
   });
 });

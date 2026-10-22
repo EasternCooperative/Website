@@ -72,6 +72,11 @@ export const GET: APIRoute = async ({ props }) => {
     lines.push(data.fee);
   }
 
+  if (data.costsIntro) {
+    if (data.costsLabel) heading(data.costsLabel);
+    lines.push(stripMarkdown(data.costsIntro));
+  }
+
   if (data.tuition && data.tuition.length > 0) {
     heading(data.tuitionLabel ?? 'Tuition');
     for (const tier of data.tuition) {
@@ -82,12 +87,20 @@ export const GET: APIRoute = async ({ props }) => {
 
   if (data.accommodations && data.accommodations.length > 0) {
     heading('Room & Board');
+    for (const g of data.glossary ?? []) {
+      lines.push(`${g.term}${g.short ? ` (${g.short})` : ''}: ${g.definition}`);
+    }
     for (const accom of data.accommodations) {
       lines.push(accom.name);
       if (accom.description) lines.push(`  ${stripMarkdown(accom.description)}`);
       for (const tier of accom.tiers) {
-        lines.push(`  ${tier.label}: ${tier.amount}`);
+        lines.push(
+          tier.childAmount
+            ? `  ${tier.label}: Adult ${tier.amount}, Child ${tier.childAmount}`
+            : `  ${tier.label}: ${tier.amount}`
+        );
       }
+      if (accom.note) lines.push(`  ${stripMarkdown(accom.note)}`);
     }
   }
 
@@ -107,6 +120,7 @@ export const GET: APIRoute = async ({ props }) => {
 
   if (data.classes && data.classes.length > 0) {
     heading('Schedule');
+    if (data.classesIntro) lines.push(stripMarkdown(data.classesIntro));
     const slotByPeriod = new Map(
       (data.schedule?.timeslots ?? []).filter((ts) => !ts.isBreak).map((ts) => [slugifyPeriod(ts.label), ts])
     );
@@ -148,10 +162,11 @@ export const GET: APIRoute = async ({ props }) => {
 
   const resolvedStaff: { name: string; role?: string }[] = [];
   for (const s of data.staff ?? []) {
-    const record = s.id ? staffMap.get(s.id) : undefined;
-    const name = s.name ?? record?.name;
+    const staffRecord = s.id ? staffMap.get(s.id) : undefined;
+    const leaderRecord = s.leaderId ? leaderMap.get(s.leaderId) : undefined;
+    const name = s.name ?? staffRecord?.name ?? leaderRecord?.name;
     if (!name) continue;
-    resolvedStaff.push({ name, role: s.role ?? record?.role });
+    resolvedStaff.push({ name, role: s.role ?? staffRecord?.role ?? leaderRecord?.title });
   }
 
   if (resolvedStaff.length > 0) {

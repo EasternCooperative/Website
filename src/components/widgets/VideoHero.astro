@@ -189,12 +189,20 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
                   />
                 )}
                 <div class="flex flex-col sm:flex-row items-start gap-6 p-5 sm:p-8 lg:p-10">
-                  <div class="flex-1 min-w-0">
+                  <div class="flex-1 min-w-0 w-full sm:w-auto [container-type:inline-size]">
                     <p class="text-xs font-bold uppercase tracking-widest text-white/90 mb-3">{eventCard.label}</p>
-                    <p class="font-heading text-2xl lg:text-3xl font-bold text-white leading-snug mb-2 group-hover:underline">
+                    <p
+                      class="font-heading font-bold text-white leading-snug mb-2 group-hover:underline [--max:1.5rem] lg:[--max:1.875rem] [font-size:max(1.125rem,min(var(--max),calc(100cqw/(var(--chars)*0.47))))]"
+                      style={`--chars:${eventCard.title.length}`}
+                    >
                       {eventCard.title}
                     </p>
-                    <p class="text-white/90 text-base lg:text-lg mt-1">{eventCard.date}</p>
+                    <p
+                      class="text-white/90 mt-1 [--max:1rem] lg:[--max:1.125rem] [font-size:max(0.8125rem,min(var(--max),calc(100cqw/(var(--chars)*0.54))))]"
+                      style={`--chars:${eventCard.date.length}`}
+                    >
+                      {eventCard.date}
+                    </p>
                     {eventCard.location && (
                       <p class="text-white/85 text-sm mt-1 flex items-center gap-1.5">
                         <svg
@@ -279,12 +287,20 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
                 )}
                 <div class="flex flex-col p-8 lg:p-10">
                   <div class="flex items-start gap-6">
-                    <div class="flex-1 min-w-0">
+                    <div class="flex-1 min-w-0 [container-type:inline-size]">
                       <p class="text-xs font-bold uppercase tracking-widest text-white/90 mb-3">{eventCard.label}</p>
-                      <p class="font-heading text-2xl lg:text-3xl font-bold text-white leading-snug mb-2">
+                      <p
+                        class="font-heading font-bold text-white leading-snug mb-2 [--max:1.5rem] lg:[--max:1.875rem] [font-size:max(1.125rem,min(var(--max),calc(100cqw/(var(--chars)*0.47))))]"
+                        style={`--chars:${eventCard.title.length}`}
+                      >
                         {eventCard.title}
                       </p>
-                      <p class="text-white/90 text-base lg:text-lg mt-1">{eventCard.date}</p>
+                      <p
+                        class="text-white/90 mt-1 [--max:1rem] lg:[--max:1.125rem] [font-size:max(0.8125rem,min(var(--max),calc(100cqw/(var(--chars)*0.54))))]"
+                        style={`--chars:${eventCard.date.length}`}
+                      >
+                        {eventCard.date}
+                      </p>
                       {eventCard.location && <p class="text-white/85 text-sm mt-1">{eventCard.location}</p>}
                       {eventCard.deadline && (
                         <p class="text-amber-300 text-sm font-semibold mt-4">{eventCard.deadline}</p>

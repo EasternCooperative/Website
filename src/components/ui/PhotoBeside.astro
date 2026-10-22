@@ -1,0 +1,37 @@
+---
+import ZoomablePhoto from '~/components/ui/ZoomablePhoto.astro';
+
+// A small zoomable landscape photo beside its text (stacked above it on
+// mobile), as used by the Room & Board and Meals sections. Without an image
+// the slot renders on its own. The page must call initPhotoLightbox().
+interface Props {
+  image?: string;
+  imageAlt: string;
+  /** Names the photo in the zoom button's label and the dialog caption. */
+  caption: string;
+}
+
+const { image, imageAlt, caption } = Astro.props;
+---
+
+<div class={image ? 'sm:grid sm:grid-cols-[16rem_1fr] sm:gap-5 sm:items-start' : undefined}>
+  {image && (
+    <ZoomablePhoto
+      src={image}
+      alt={imageAlt}
+      label={`View larger photo of ${caption}`}
+      caption={caption}
+      width={512}
+      height={266}
+      widths={[256, 512, 768]}
+      sizes="(min-width: 640px) 256px, 100vw"
+      class="block w-full rounded-xl mb-3"
+      imgClass="w-full h-auto"
+      dialogWidth={800}
+      dialogHeight={416}
+    />
+  )}
+  <div>
+    <slot />
+  </div>
+</div>

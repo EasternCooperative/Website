@@ -20,3 +20,8 @@ export function formatEventDateRange(date: Date, endDate?: Date, monthStyle: 'lo
   }
   return `${start} – ${endDate.toLocaleDateString('en-US', opts)}`;
 }
+
+/** "Dec 27": month and day only, for labelling a start or end time on a multi-day event. */
+export function formatEventDayShort(date: Date): string {
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', ...UTC });
+}

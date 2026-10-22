@@ -96,6 +96,10 @@ Gotcha: in dev, a new schema field can be silently stripped from cached data. Cl
 
 Check `.claude/skills/` before improvising a recurring chore: `add-cms-field`, `new-page`, `new-event`, `update-bio`, `audit-bios`, `content-audit`, `optimise-images`.
 
+### Copy style
+
+Use the Oxford (serial) comma in site copy: "breakfast, lunch, and dinner". Leave it out when only two items are joined ("friend or family"). Applied to the Winter Adventure page first; leader and staff bios keep each person's own voice and are exempt, and other pages get it as they are touched.
+
 ## Component Patterns
 
 - Props extend interfaces from `~/types`

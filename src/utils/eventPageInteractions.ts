@@ -3,6 +3,9 @@ export function initLeaderPopovers() {
     const pop = document.getElementById(btn.dataset.popoverTarget!);
     if (!pop) return;
     let hideTimer: ReturnType<typeof setTimeout>;
+    // Touch browsers emit a synthetic mouseleave right after a tap, which would close the popover
+    // we just opened. For touch input, rely on popover="auto" light-dismiss instead of hover-out.
+    let touchInput = false;
 
     function position() {
       const rect = btn.getBoundingClientRect();
@@ -28,6 +31,7 @@ export function initLeaderPopovers() {
     }
 
     function hide() {
+      if (touchInput) return;
       hideTimer = setTimeout(() => {
         if (pop!.matches(':popover-open')) {
           pop!.hidePopover();
@@ -36,6 +40,9 @@ export function initLeaderPopovers() {
       }, 120);
     }
 
+    btn.addEventListener('pointerdown', (e) => {
+      touchInput = e.pointerType === 'touch';
+    });
     btn.addEventListener('mouseenter', show);
     btn.addEventListener('mouseleave', hide);
     // Click always shows; outside-click auto-dismisses via popover="auto"
