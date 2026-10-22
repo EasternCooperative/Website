@@ -512,6 +512,13 @@ collections:
           required: false,
           hint: 'Number at the end of the Cognito Forms embed URL (e.g. 17)',
         }
+      - {
+          label: 'Class Registration Cognito Form ID',
+          name: 'classRegistrationFormId',
+          widget: 'string',
+          required: false,
+          hint: 'Optional second form for choosing classes. Shown at /events/<event>/classes, which is not linked from the site, so give that address to whoever builds the event form.',
+        }
 
       # ── Pricing ───────────────────────────────────────────────────
       - {

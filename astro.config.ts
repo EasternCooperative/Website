@@ -67,6 +67,7 @@ export default defineConfig({
       filter: (page) =>
         !page.includes('/events/e2e-') &&
         !page.includes('/internal/') &&
+        !/\/events\/[^/]+\/classes\/?$/.test(page) &&
         (siteSettings.featureFlags.connectionsPage || !/\/connections\/?$/.test(page)) &&
         (siteSettings.featureFlags.activitiesLibrary || !/\/activities(?:\/|$)/.test(page)) &&
         !isDraftPage(page, '/events/', draftEventSlugs) &&

@@ -194,6 +194,9 @@ const eventCollection = defineCollection({
     earlyBirdDeadline: optionalDate,
     earlyBirdFeeNote: z.string().optional(),
     cognitoFormId: z.string().optional(),
+    // Separate Cognito form people fill out after event registration. Serves a
+    // noindex page at /events/<id>/classes for the form's confirmation to link to.
+    classRegistrationFormId: z.string().optional(),
     zeffyFormUrl: optionalString,
     // Set only for events that never require signup (free drop-in events). When no
     // registration mechanism is set and this is false/unset, the page assumes

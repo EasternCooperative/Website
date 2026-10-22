@@ -34,6 +34,7 @@ highlights:
       imageAlt: 'People playing on the climbing wall, swings, and slide on the lawn at Watson Woods during Winter Adventure 2021'
   outro: 'See more photos of the Y at Watson Woods [on their website](https://rochesterymca.org/y-watson-woods-facilities).'
 cognitoFormId: '131'
+classRegistrationFormId: '133'
 registrationDeadline: 2026-12-06
 earlyBirdDeadline: 2026-11-15
 earlyBirdFeeNote: 'Register by this date to save $50 per adult, $25 per child!'

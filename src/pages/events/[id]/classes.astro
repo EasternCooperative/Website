@@ -1,0 +1,43 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import CognitoForm from '~/components/widgets/CognitoForm.astro';
+import HeroText from '~/components/widgets/HeroText.astro';
+import Layout from '~/layouts/PageLayout.astro';
+import { baseEventTitle } from '~/utils/eventSchedule';
+
+export async function getStaticPaths() {
+  const events = await getCollection('event');
+  return events
+    .filter((event) => event.data.classRegistrationFormId)
+    .map((event) => ({ params: { id: event.id }, props: { event } }));
+}
+
+interface Props {
+  event: CollectionEntry<'event'>;
+}
+
+const { event } = Astro.props;
+const { data } = event;
+const eventLabel = `${baseEventTitle(data.title)} ${data.date.getUTCFullYear()}`;
+
+const metadata = {
+  title: `${eventLabel} Class Registration`,
+  description: `Choose your classes for ${eventLabel}.`,
+  // Reached from the event registration confirmation, not from search. noIndex
+  // also keeps it out of Pagefind.
+  robots: { index: false, follow: true },
+  openGraph: { images: [{ url: '/og/default.jpg', width: 1200, height: 630 }] },
+};
+---
+
+<Layout metadata={metadata} noIndex>
+  <HeroText tagline={eventLabel} title="Class Registration" />
+
+  <CognitoForm formId={data.classRegistrationFormId!} formName="class-registration" id="class-registration-form" />
+
+  <div class="px-4 max-w-3xl mx-auto pb-12 md:pb-16">
+    <a href={`/events/${event.id}`} class="btn btn-secondary">
+      ← Back to {baseEventTitle(data.title)}
+    </a>
+  </div>
+</Layout>
