@@ -216,9 +216,25 @@
   box-shadow: 0 0 0 2px rgb(from var(--aw-color-primary) r g b / 25%) !important;
 }
 
+/* Opt-in via <CognitoForm hideTitle>: drops Cognito's own title header when
+   the page already supplies the h1. */
+[data-cognito-hide-title] .cog-cognito .cog-header {
+  display: none !important;
+}
+
 /* Dark mode */
 html.dark .cog-cognito {
   background-color: var(--aw-color-bg-page) !important;
+}
+/* Multi-section forms (e.g. Share an Activity): Cognito paints the form
+   container white and each section/repeating item with a translucent gray
+   meant for a white page, which leaves our light dark-mode text on a light
+   fill. Single-section forms never showed either. */
+html.dark .cog-cognito .cog-form__container {
+  background-color: transparent !important;
+}
+html.dark .cog-cognito .cog-section__inner--background {
+  background-color: rgb(255 255 255 / 0.05) !important;
 }
 html.dark .cog-cognito .cog-label,
 html.dark .cog-cognito .el-radio__label,

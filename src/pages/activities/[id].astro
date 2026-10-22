@@ -7,7 +7,9 @@ import Image from '~/components/common/Image.astro';
 import { Icon } from 'astro-icon/components';
 import { renderMarkdown, renderProse, stripMarkdown } from '~/utils/markdown';
 import siteSettings from '~/data/settings/site.json';
+import activitiesListSettings from '~/data/settings/activities-list.json';
 import {
+  RESERVED_ACTIVITY_IDS,
   activityLevelLabel,
   formatGroupSize,
   getBadges,
@@ -18,6 +20,12 @@ import {
 
 export async function getStaticPaths() {
   const activities = await getCollection('activity');
+  const clash = activities.find((a) => RESERVED_ACTIVITY_IDS.includes(a.id));
+  if (clash) {
+    throw new Error(
+      `Activity id "${clash.id}" collides with the static route /activities/${clash.id}. Rename the activity file.`
+    );
+  }
   return activities.map((activity) => ({
     params: { id: activity.id },
     props: { activity },
@@ -502,9 +510,12 @@ const breadcrumbJsonLd = {
         rights holders.
       </p>
 
-      <div class="mt-8 print:hidden">
+      <div class="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 print:hidden">
         <a href="/activities" class="btn btn-secondary">
           ← All Activities
+        </a>
+        <a href="/activities/share" class="text-sm text-muted hover:text-primary underline underline-offset-2">
+          {activitiesListSettings.shareCtaText} {activitiesListSettings.shareCtaLinkText}
         </a>
       </div>
     </div>
