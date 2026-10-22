@@ -3,5 +3,7 @@
   "heroTitle": "Games, Dances & Songs",
   "heroSubtitle": "A growing library of activities our leaders use — with steps, leading tips, and everything you need to try them yourself.",
   "emptyStateText": "No activities are published yet. Check back soon!",
-  "cardStyle": "rich"
+  "cardStyle": "rich",
+  "shareCtaText": "Lead something that isn't here?",
+  "shareCtaLinkText": "Share it with us"
 }
