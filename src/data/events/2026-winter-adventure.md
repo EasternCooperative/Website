@@ -82,15 +82,16 @@ accommodations:
         amount: '$435'
         childAmount: '$380'
   - name: 'Hillside'
-    description: "A short walk up a hill from Main Lodge. There's a limited number of rooms with shared baths in this two-story house; guests must bring sheets and towels. Single occupancy is restricted to age 18 and above."
+    description: "A short walk up a hill from Main Lodge. There's a limited number of rooms with shared baths in this two-story house; guests must bring sheets and towels."
     image: '/images/events/2026-winter-adventure/hillside-room.jpg'
     imageAlt: 'A Hillside bedroom with two twin beds made up with green covers and plaid blankets'
     tiers:
       - label: 'Single'
-        amount: '$575'
+        amount: '$575*'
       - label: '2 per room'
         amount: '$540'
         childAmount: 'n/a'
+    note: '*Single occupancy is restricted to age 18 and above.'
   - name: 'West Wing'
     description: 'Attached to Main Lodge. Hotel-style rooms with two double beds, private bath, and carpeting; all linens (blankets, sheets, towels, and pillows) are supplied.'
     image: '/images/events/2026-winter-adventure/west-wing-room.jpg'
