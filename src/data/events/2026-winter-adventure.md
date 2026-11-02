@@ -106,9 +106,12 @@ accommodations:
         childAmount: '$410'
     note: '*Subject to availability. Contact [registration@ecrs.org](mailto:registration@ecrs.org) for more information.'
 mealsIncluded: 'A hearty breakfast, lunch, and dinner are provided every day, starting with dinner on December 27 and wrapping up with breakfast on January 1.'
-mealsNote: 'All meals are served buffet-style in the dining room part of the great hall. Coffee, tea, and hot chocolate are available all day. Snacks are a Winter Adventure Tradition (with a capital “T”). Served after Evening Program, the spread takes up a twelve-foot table and often includes yogurt, hummus, fruit, veggies, cheese, and chips with dip. Watson will supply vegetarian and gluten-free options if you request this in the Food Preference section on your registration form. If you have significant dietary restrictions and want to bring your own food to supplement the buffet-style offerings, there is a refrigerator and microwave available.'
+mealsNote: 'All meals are served buffet-style in the dining room part of the great hall. Coffee, tea, and hot chocolate are available all day. Watson will supply vegetarian and gluten-free options if you request this in the Food Preference section on your registration form. If you have significant dietary restrictions and want to bring your own food to supplement the buffet-style offerings, there is a refrigerator and microwave available.'
 mealsImage: '/images/events/2026-winter-adventure/dining-room.jpg'
 mealsImageAlt: 'People talking around round tables in the great hall at Winter Adventure 2021, with string lights in the windows behind them'
+snacksNote: 'Snacks are a Winter Adventure Tradition (with a capital “T”). Served after Evening Program, the spread takes up a twelve-foot table and often includes yogurt, hummus, fruit, veggies, cheese, and chips with dip.'
+snacksImage: '/images/events/2026-winter-adventure/snacks-table.jpg'
+snacksImageAlt: 'A long table of snacks at Winter Adventure 2019: bowls of grapes, broccoli, carrots, and cherry tomatoes, celery sticks, hummus, yogurt, granola, applesauce, tortilla chips, and a jar of peanut butter'
 newcomerNote: 'Is this your first multi-day ECRS event? Newcomers get free tuition!'
 financialAidNote: 'We ask that you consider a donation to help keep costs from rising and to support those who need financial assistance due to hardship.'
 showCancellationPolicy: true

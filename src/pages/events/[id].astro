@@ -908,7 +908,7 @@ const breadcrumbJsonLd = {
       )}
 
       <!-- ── Meals ── -->
-      {(data.mealsIncluded || data.mealsNote) && (
+      {(data.mealsIncluded || data.mealsNote || data.snacksNote) && (
         <div class="mt-10">
           <h2 class="font-heading text-2xl font-bold text-heading mb-3">Meals</h2>
           <PhotoBeside image={data.mealsImage} imageAlt={data.mealsImageAlt ?? 'Meals'} caption="Meals">
@@ -917,6 +917,14 @@ const breadcrumbJsonLd = {
               <p class="text-sm text-muted mt-1 md-links" set:html={renderInlineMarkdown(data.mealsNote)} />
             )}
           </PhotoBeside>
+          {data.snacksNote && (
+            <div class="mt-5">
+              <PhotoBeside image={data.snacksImage} imageAlt={data.snacksImageAlt ?? 'Snacks'} caption="Snacks">
+                <h3 class="font-heading text-lg font-bold text-heading">Snacks</h3>
+                <p class="text-sm text-muted mt-1 md-links" set:html={renderInlineMarkdown(data.snacksNote)} />
+              </PhotoBeside>
+            </div>
+          )}
         </div>
       )}
 
