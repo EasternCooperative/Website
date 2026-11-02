@@ -851,7 +851,11 @@ const breadcrumbJsonLd = {
                                 <td class="px-4 py-3 font-semibold">{tier.amount}</td>
                                 {isMatrix && (
                                   <td class="px-4 py-3 font-semibold">
-                                    {tier.childAmount ?? <span class="font-normal text-muted">n/a</span>}
+                                    {tier.childAmount && tier.childAmount.toLowerCase() !== 'n/a' ? (
+                                      tier.childAmount
+                                    ) : (
+                                      <span class="font-normal text-muted">n/a</span>
+                                    )}
                                   </td>
                                 )}
                               </tr>
