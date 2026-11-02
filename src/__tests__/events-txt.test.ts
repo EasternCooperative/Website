@@ -295,6 +295,12 @@ describe('GET /events/[id].txt', () => {
     expect(text).toContain('Let us know about allergies');
   });
 
+  it('includes snacksNote under Meals, even without other meal fields', async () => {
+    const text = await callGet(makeEvent({ snacksNote: 'Snacks are a *Tradition*' } as never));
+    expect(text).toContain('MEALS');
+    expect(text).toContain('Snacks are a Tradition');
+  });
+
   it('includes health policy when shown', async () => {
     const text = await callGet(makeEvent({ showHealthPolicy: true, healthPolicy: 'Masks optional.' } as never));
     expect(text).toContain('HEALTH POLICY');
