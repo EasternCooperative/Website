@@ -112,10 +112,11 @@ export const GET: APIRoute = async ({ props }) => {
     }
   }
 
-  if (data.mealsIncluded || data.mealsNote) {
+  if (data.mealsIncluded || data.mealsNote || data.snacksNote) {
     heading('Meals');
     if (data.mealsIncluded) lines.push(data.mealsIncluded);
     if (data.mealsNote) lines.push(stripMarkdown(data.mealsNote));
+    if (data.snacksNote) lines.push(stripMarkdown(data.snacksNote));
   }
 
   if (data.classes && data.classes.length > 0) {

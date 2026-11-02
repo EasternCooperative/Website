@@ -219,6 +219,9 @@ const eventCollection = defineCollection({
     mealsNote: z.string().optional(),
     mealsImage: z.string().optional(),
     mealsImageAlt: z.string().optional(),
+    snacksNote: z.string().optional(), // shown under Meals with its own photo
+    snacksImage: z.string().optional(),
+    snacksImageAlt: z.string().optional(),
 
     // Policies (shown when toggled on; text editable per event)
     showCancellationPolicy: z.boolean().optional(),
