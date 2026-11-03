@@ -87,10 +87,7 @@ accommodations:
     imageAlt: 'A Hillside bedroom with two twin beds made up with green covers and plaid blankets'
     tiers:
       - label: 'Single (18+ only)'
-        amount: '$575'
-      - label: '2 per room'
-        amount: '$540'
-        childAmount: 'n/a'
+        amount: '$610'
   - name: 'West Wing'
     description: 'Attached to Main Lodge. Hotel-style rooms with two double beds, private bath, and carpeting; all linens (blankets, sheets, towels, and pillows) are supplied.'
     image: '/images/events/2026-winter-adventure/west-wing-room.jpg'
