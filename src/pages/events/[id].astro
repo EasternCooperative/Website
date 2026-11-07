@@ -214,6 +214,9 @@ const jsonLd = {
           priceCurrency: 'USD',
           availability: isPast ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
           url: data.registrationUrl || String(Astro.url),
+          ...(data.registrationDeadline && {
+            priceValidUntil: data.registrationDeadline.toISOString().split('T')[0],
+          }),
         }))
       : undefined,
 };
