@@ -1,4 +1,6 @@
 ---
+import { ANALYTICS } from 'astrowind:config';
+
 interface Props {
   formId: string;
   formName?: string;
@@ -10,6 +12,9 @@ interface Props {
 const { formId, formName, id, hideTitle = false } = Astro.props;
 const COGNITO_KEY = 'tdXs_w0YA0KlSRyaghpLKw';
 const hostedUrl = `https://www.cognitoforms.com/f/${COGNITO_KEY}/${formId}`;
+// GA4 keeps the current session in a per-stream cookie: _ga_<id without "G-">.
+const gaId = ANALYTICS?.vendors?.googleAnalytics?.id ? String(ANALYTICS.vendors.googleAnalytics.id) : '';
+const gaSessionCookie = gaId ? `_ga_${gaId.replace(/^G-/, '')}` : undefined;
 ---
 
 <section id={id} class="embed-form-section">
@@ -19,6 +24,7 @@ const hostedUrl = `https://www.cognitoforms.com/f/${COGNITO_KEY}/${formId}`;
     data-cognito-form-name={formName}
     data-cognito-key={COGNITO_KEY}
     data-cognito-hide-title={hideTitle ? '' : undefined}
+    data-ga-session-cookie={gaSessionCookie}
   ></div>
   <p class="embed-form-fallback">
     Form not loading?{' '}
@@ -35,19 +41,38 @@ const hostedUrl = `https://www.cognitoforms.com/f/${COGNITO_KEY}/${formId}`;
     delete window.Vue;
     delete window.cfWebpackJsonp;
 
-    // For Ads attribution: the GA4 _ga cookie's client_id already carries any
-    // gclid GA4's own gtag.js associated with this visitor, so passing it
-    // through the webhook (see functions/api/track-purchase/cognito.js) lets
-    // Google Ads attribute a donation back to the ad campaign that drove it.
-    // Requires a hidden "GAClientId" field on the Cognito form with a
-    // matching JSON name.
+    // For Ads attribution: the webhook (functions/api/track-purchase/cognito.js)
+    // sends the payment to GA4 with this visitor's client_id (from _ga) and
+    // session_id (from _ga_<stream>). Together they let GA4 join the purchase
+    // to the session the ad click started, instead of "Unassigned". Requires
+    // hidden "GAClientId" and "GASessionId" fields on the Cognito form.
+    function readCookie(name) {
+      const m = document.cookie.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]+)'));
+      return m ? decodeURIComponent(m[1]) : '';
+    }
     function getGaClientId() {
-      const m = document.cookie.match(/(?:^|;\s*)_ga=([^;]+)/);
-      if (!m) return '';
-      const parts = decodeURIComponent(m[1]).split('.');
+      const parts = readCookie('_ga').split('.');
       return parts.length >= 4 ? parts[2] + '.' + parts[3] : '';
     }
-    const gaClientId = getGaClientId();
+    // ga-session-parser:start
+    // Older format: GS1.1.<session_id>.<session_number>.…
+    // Newer format: GS2.1.s<session_id>$o<n>$g<n>$t<ts>…
+    function parseGaSessionId(value) {
+      if (!value) return '';
+      if (value.indexOf('GS2.') === 0) {
+        const fields = value.split('.').slice(2).join('.').split('$');
+        for (let i = 0; i < fields.length; i++) {
+          if (/^s\d+$/.test(fields[i])) return fields[i].slice(1);
+        }
+        return '';
+      }
+      if (value.indexOf('GS1.') === 0) {
+        const id = value.split('.')[2] || '';
+        return /^\d+$/.test(id) ? id : '';
+      }
+      return '';
+    }
+    // ga-session-parser:end
 
     document.querySelectorAll('[data-cognito-form]').forEach(function (container) {
       // data-astro-rerun means this whole IIFE re-runs on every client-side
@@ -72,17 +97,28 @@ const hostedUrl = `https://www.cognitoforms.com/f/${COGNITO_KEY}/${formId}`;
       s.dataset.form = container.dataset.cognitoForm;
       container.appendChild(s);
 
+      const gaClientId = getGaClientId();
       if (gaClientId) {
+        const sessionCookie = container.dataset.gaSessionCookie;
+        const gaSessionId = sessionCookie ? parseGaSessionId(readCookie(sessionCookie)) : '';
         let attempts = 0;
         container.__ecrsPrefillTimer = setInterval(function () {
           attempts++;
           if (window.Cognito && typeof window.Cognito.prefill === 'function') {
             clearInterval(container.__ecrsPrefillTimer);
             container.__ecrsPrefillTimer = null;
+            const data = { GAClientId: gaClientId };
+            if (gaSessionId) data.GASessionId = gaSessionId;
             try {
-              window.Cognito.prefill({ GAClientId: gaClientId });
+              window.Cognito.prefill(data);
             } catch {
-              /* form may not have a matching hidden field defined */
+              // A form without a GASessionId field may reject the unknown
+              // key: still pass the client id on its own.
+              try {
+                if (data.GASessionId) window.Cognito.prefill({ GAClientId: gaClientId });
+              } catch {
+                /* form may not have a matching hidden field defined */
+              }
             }
           } else if (attempts > 40) {
             // ~4s: seamless.js likely failed to load, or Cognito.prefill
