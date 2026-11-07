@@ -190,6 +190,9 @@ const eventCollection = defineCollection({
 
     // Registration
     registrationUrl: optionalString,
+    // Date registration first opened (when the form or link went live). Emitted as
+    // schema.org Offer validFrom; Google flags offers without it.
+    registrationOpenDate: optionalDate,
     registrationDeadline: optionalDate,
     earlyBirdDeadline: optionalDate,
     earlyBirdFeeNote: z.string().optional(),

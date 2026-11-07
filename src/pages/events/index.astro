@@ -104,6 +104,9 @@ const itemListJsonLd = {
             priceCurrency: 'USD',
             availability: isPast ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
             url: event.data.registrationUrl || eventUrl,
+            ...(event.data.registrationOpenDate && {
+              validFrom: event.data.registrationOpenDate.toISOString().split('T')[0],
+            }),
             ...(event.data.registrationDeadline && {
               priceValidUntil: event.data.registrationDeadline.toISOString().split('T')[0],
             }),
