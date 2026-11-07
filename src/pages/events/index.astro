@@ -91,19 +91,22 @@ const itemListJsonLd = {
       },
       url: Astro.site ? new URL(`/events/${event.id}`, Astro.site).href : `https://ecrs.org/events/${event.id}`,
       ...(() => {
-        const { pricingRows, isPast } = computeEventSections(event.data, now);
-        if (pricingRows.length === 0) return {};
+        const { offerRows, isPast } = computeEventSections(event.data, now);
+        if (offerRows.length === 0) return {};
         const eventUrl = Astro.site
           ? new URL(`/events/${event.id}`, Astro.site).href
           : `https://ecrs.org/events/${event.id}`;
         return {
-          offers: pricingRows.map((p) => ({
+          offers: offerRows.map((p) => ({
             '@type': 'Offer',
             name: p.label,
             price: p.fullWeekend === 'Free' ? '0' : (p.fullWeekend?.replace(/,/g, '').match(/\d+(\.\d+)?/)?.[0] ?? '0'),
             priceCurrency: 'USD',
             availability: isPast ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
             url: event.data.registrationUrl || eventUrl,
+            ...(event.data.registrationDeadline && {
+              priceValidUntil: event.data.registrationDeadline.toISOString().split('T')[0],
+            }),
           })),
         };
       })(),

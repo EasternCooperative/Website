@@ -1,6 +1,10 @@
 export type TuitionTier = { label?: string; amount: string; note?: string };
 export type PricingTier = { label?: string; fullWeekend?: string; note?: string };
-export type Accommodation = { name: string; description?: string; tiers: { label: string; amount: string }[] };
+export type Accommodation = {
+  name: string;
+  description?: string;
+  tiers: { label: string; amount: string; childAmount?: string }[];
+};
 
 export type EventSectionsInput = {
   date: Date;
@@ -36,6 +40,17 @@ export type EventSections = {
   cancellationCutoff: Date | null;
 };
 
+// "Free" and non-numeric amounts count as 0; "$1,200" → 1200; "$885*" → 885;
+// ranges like "$50–75" take the first number.
+function parsePrice(amount: string | undefined): number {
+  const m = amount?.replace(/,/g, '').match(/\d+(\.\d+)?/);
+  return m ? Number(m[0]) : 0;
+}
+
+function formatPrice(n: number): string {
+  return n === 0 ? 'Free' : `$${n.toLocaleString('en-US')}`;
+}
+
 export function computeEventSections(data: EventSectionsInput, now = new Date()): EventSections {
   const isPast = (data.endDate ?? data.date) < now;
 
@@ -45,14 +60,35 @@ export function computeEventSections(data: EventSectionsInput, now = new Date())
   // accommodations breakdown don't need a second, redundant `pricing` array just to
   // feed structured data — derive offer rows from whichever of those is present
   // instead, so there's exactly one place each event's price lives.
+  // Residential events charge tuition AND room & board, so each offer is a room tier
+  // plus tuition: adults pay the highest tuition row, children the lowest.
+  const tuitionValues = (data.tuition ?? []).map((t) => parsePrice(t.amount));
   const offerRows: PricingTier[] =
     pricingRows.length > 0
       ? pricingRows
-      : data.tuition?.length
-        ? data.tuition.map((t) => ({ label: t.label ?? 'Tuition', fullWeekend: t.amount, note: t.note }))
-        : (data.accommodations ?? []).flatMap((a) =>
-            a.tiers.map((t) => ({ label: `${a.name} — ${t.label}`, fullWeekend: t.amount }))
-          );
+      : data.tuition?.length && data.accommodations?.length
+        ? data.accommodations.flatMap((a) =>
+            a.tiers.flatMap((t) => {
+              const rows: PricingTier[] = [
+                {
+                  label: `${a.name}, ${t.label}`,
+                  fullWeekend: formatPrice(parsePrice(t.amount) + Math.max(...tuitionValues)),
+                },
+              ];
+              if (t.childAmount) {
+                rows.push({
+                  label: `${a.name}, ${t.label} (child)`,
+                  fullWeekend: formatPrice(parsePrice(t.childAmount) + Math.min(...tuitionValues)),
+                });
+              }
+              return rows;
+            })
+          )
+        : data.tuition?.length
+          ? data.tuition.map((t) => ({ label: t.label ?? 'Tuition', fullWeekend: t.amount, note: t.note }))
+          : (data.accommodations ?? []).flatMap((a) =>
+              a.tiers.map((t) => ({ label: `${a.name} — ${t.label}`, fullWeekend: t.amount }))
+            );
 
   const hasCosts = !!(data.fee || data.tuition?.length || data.accommodations?.length || pricingRows.length);
   const hasClasses = !!data.classes?.length;

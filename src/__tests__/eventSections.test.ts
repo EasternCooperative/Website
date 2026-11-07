@@ -290,3 +290,58 @@ describe('pricingRows', () => {
     expect(r.pricingRows[0].label).toBe('18+');
   });
 });
+
+// ─── offerRows ───────────────────────────────────────────────────────────────
+
+describe('offerRows', () => {
+  it('uses simple pricing rows when present', () => {
+    const r = computeEventSections(base({ pricing: [{ label: 'Adults', fullWeekend: '$25' }] }), NOW);
+    expect(r.offerRows).toEqual([{ label: 'Adults', fullWeekend: '$25' }]);
+  });
+
+  it('uses tuition alone when there are no accommodations', () => {
+    const r = computeEventSections(base({ tuition: [{ label: 'Adults', amount: '$110' }] }), NOW);
+    expect(r.offerRows).toEqual([{ label: 'Adults', fullWeekend: '$110', note: undefined }]);
+  });
+
+  it('combines each room tier with tuition when both are present', () => {
+    const r = computeEventSections(
+      base({
+        tuition: [
+          { label: 'Ages 18 and up', amount: '$110' },
+          { label: 'Ages 0-17', amount: 'Free' },
+        ],
+        accommodations: [
+          {
+            name: 'Main Lodge',
+            tiers: [{ label: '2 per room', amount: '$540', childAmount: '$480' }],
+          },
+          { name: 'West Wing', tiers: [{ label: 'Single', amount: '$1,885*' }] },
+        ],
+      }),
+      NOW
+    );
+    expect(r.offerRows).toEqual([
+      { label: 'Main Lodge, 2 per room', fullWeekend: '$650' },
+      { label: 'Main Lodge, 2 per room (child)', fullWeekend: '$480' },
+      { label: 'West Wing, Single', fullWeekend: '$1,995' },
+    ]);
+  });
+
+  it('labels a combined offer Free when both room and tuition are free', () => {
+    const r = computeEventSections(
+      base({
+        tuition: [
+          { label: 'Adults', amount: '$110' },
+          { label: 'Children', amount: 'Free' },
+        ],
+        accommodations: [{ name: 'Cabin', tiers: [{ label: 'Bunk', amount: '$300', childAmount: 'Free' }] }],
+      }),
+      NOW
+    );
+    expect(r.offerRows).toEqual([
+      { label: 'Cabin, Bunk', fullWeekend: '$410' },
+      { label: 'Cabin, Bunk (child)', fullWeekend: 'Free' },
+    ]);
+  });
+});
