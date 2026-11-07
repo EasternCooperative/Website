@@ -168,6 +168,10 @@ const metadata = {
   openGraph: { images: [{ url: `/og/${event.id}.jpg`, width: 1200, height: 630 }] },
 };
 
+// Astro.url is the build server's origin (http://localhost:4321) during a static
+// build, so absolute URLs for structured data must be built from Astro.site.
+const pageUrl = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : String(Astro.url);
+
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Event',
@@ -186,11 +190,11 @@ const jsonLd = {
       }
     : {
         '@type': 'VirtualLocation',
-        url: String(Astro.url),
+        url: pageUrl,
       },
   description: data.excerpt ?? (data.description ? stripMarkdown(data.description) : undefined),
   image: socialImageUrl ? [socialImageUrl] : undefined,
-  url: String(Astro.url),
+  url: pageUrl,
   organizer: {
     '@type': 'Organization',
     name: 'ECRS',
@@ -213,7 +217,7 @@ const jsonLd = {
           price: p.fullWeekend === 'Free' ? '0' : (p.fullWeekend?.replace(/,/g, '').match(/\d+(\.\d+)?/)?.[0] ?? '0'),
           priceCurrency: 'USD',
           availability: isPast ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
-          url: data.registrationUrl || String(Astro.url),
+          url: data.registrationUrl || pageUrl,
           ...(data.registrationDeadline && {
             priceValidUntil: data.registrationDeadline.toISOString().split('T')[0],
           }),

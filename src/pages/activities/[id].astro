@@ -105,7 +105,8 @@ const howToJsonLd = data.instructions
         .map((p) => stripMarkdown(p))
         .filter(Boolean)
         .map((text, i) => ({ '@type': 'HowToStep', position: i + 1, text })),
-      url: String(Astro.url),
+      // Astro.url is localhost during a static build; use the configured site origin.
+      url: Astro.site ? new URL(Astro.url.pathname, Astro.site).href : String(Astro.url),
     }
   : undefined;
 
