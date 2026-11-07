@@ -1,7 +1,7 @@
 {
   "name": "ecrs-website",
   "version": "1.0.0-beta.63",
-  "description": "ECRS website — built with Astro and Tailwind CSS.",
+  "description": "ECRS website \u2014 built with Astro and Tailwind CSS.",
   "type": "module",
   "private": true,
   "license": "UNLICENSED",
@@ -66,7 +66,7 @@
     "@eslint/js": "^10.0.1",
     "@iconify-json/flat-color-icons": "^1.2.3",
     "@iconify-json/tabler": "^1.2.42",
-    "@lhci/cli": "^0.15.1",
+    "@lhci/cli": "^0.16.0",
     "@playwright/test": "^1.61.1",
     "@sveltia/cms": "^0.256.1",
     "@tailwindcss/typography": "^0.5.20",
@@ -110,6 +110,18 @@
     },
     "@tailwindcss/typography": {
       "postcss-selector-parser": "^6.1.5"
+    },
+    "get-uri": {
+      "basic-ftp": "^6.2.1"
+    },
+    "eslint": {
+      "minimatch": "^11.0.1"
+    },
+    "@eslint/config-array": {
+      "minimatch": "^11.0.1"
+    },
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^11.0.1"
     }
   },
   "allowScripts": {
