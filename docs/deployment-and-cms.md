@@ -52,13 +52,30 @@ Preview, never committed to the repo):
 | `GA4_API_SECRET`       | GA4 Measurement Protocol API secret, nicknamed "server-side-webhooks (Cognito, Zeffy)" in GA4 admin (Data Streams → www.ecrs.org → Measurement Protocol API secrets)                                                                                                                                                                                                                                            |
 | `TRACK_PURCHASE_KEY`   | Shared secret required as a `?key=` query param on both webhook URLs — without it, the endpoint is a public POST that can inject fake conversions into the Ads account's Primary bidding goal                                                                                                                                                                                                                   |
 | `ZEFFY_WEBHOOK_SECRET` | Zeffy's webhook signing secret (`whsec_...`, from Zeffy account → Settings → Integrations → Webhooks). Used to verify the `zeffy-signature` header on every request — Zeffy's webhook is account-wide (not per-form), so this is the only source-authenticity check on that endpoint beyond the shared `?key=`. Cognito has no equivalent (it doesn't sign requests), so `TRACK_PURCHASE_KEY` is its only gate. |
+| `WA_FORM_IDS`          | Comma-separated Cognito form ids that also send a `wa_purchase` event alongside `purchase` (e.g. `131`). Update it when next year's Winter Adventure registration form is created. Unset means no `wa_purchase`.                                                                                                                                                                                                |
+| `GA4_DEBUG`            | Optional. `true` sends to GA4's validation endpoint (`/debug/mp/collect`) instead of the live one and logs the validation messages. Nothing reaches GA4. Never leave it on in Production.                                                                                                                                                                                                                       |
+
+**KV binding** (Pages dashboard → project → Settings → Bindings → KV
+namespace): bind a namespace as `TRACK_DEDUPE`. `cognito.js` records each
+reported payment there, so a webhook retry, a submit plus a later update,
+or a staff edit can't send `wa_purchase` twice (GA4 dedupes `purchase` by
+`transaction_id`, but not custom events). Without the binding, the handler
+falls back to a heuristic: it skips staff actions and payments older than
+an hour before the update.
 
 **Webhook setup (external, done by whoever administers each platform):**
 
-- **Cognito Forms** — per form (Donate, Contact, future registration forms):
-  Settings → Webhooks & Notifications → "Post JSON Data to a Website" →
-  `https://ecrs.org/api/track-purchase/cognito?key=<TRACK_PURCHASE_KEY>`,
-  firing on entry submission/payment completion.
+- **Cognito Forms** — per form: Settings → Webhooks → **Submit Endpoint** →
+  `https://ecrs.org/api/track-purchase/cognito?key=<TRACK_PURCHASE_KEY>`.
+  On forms with a pay-later workflow (WA's "Register!" then "Pay"), set
+  the **Update Endpoint** to the same URL too, so the later payment is
+  reported. Staff "Update" and "Request Payment" actions are ignored by
+  the handler, and the `TRACK_DEDUPE` KV binding stops repeats. Leave
+  Delete blank. Each paid form also needs hidden Text fields named exactly
+  `GAClientId` and `GASessionId` (Visible: Never) for ad-click attribution
+  (see below). Wired up so far: Tax Deductible Donation (#24), 2026 Winter
+  Adventure Event Registration (#131). Each year's new registration form
+  needs these settings again, plus a `WA_FORM_IDS` update.
 - **Zeffy** — account-wide, not per form: Settings → Integrations →
   Webhooks → subscribe to `payment.completed` →
   `https://ecrs.org/api/track-purchase/zeffy?key=<TRACK_PURCHASE_KEY>`.
@@ -70,11 +87,24 @@ unverified for both (only donation campaigns have been tested); re-check
 `item_category` detection once a real ticketed event goes through either
 platform.
 
-**No per-campaign ad-click attribution:** every conversion is sent with a
-random GA4 client_id, so donations count toward the Ads "Donation Completed"
-goal but can't be traced back to a specific campaign/keyword. Attribution
-(gclid capture, etc.) is being handled separately, directly in Cognito, not
-in this site's code.
+**Ad-click attribution:** `CognitoForm.astro` prefills the hidden
+`GAClientId` field from the visitor's `_ga` cookie and `GASessionId` from
+the `_ga_TMYSFB9B9J` session cookie. `cognito.js` sends them as the GA4
+`client_id` and `session_id`, so GA4 credits the purchase to the session
+(and the ad click) that started it. Without `session_id`, GA4 reports
+server-side purchases as "Unassigned" and Ads never imports them. If a
+field is missing or empty
+(consent declined, ad blocker, or a form without the field), a random
+client_id is used: the conversion still counts but won't attribute. Zeffy
+runs in a cross-origin iframe and can't read the cookie, so Zeffy purchases
+always use a random client_id.
+
+**Ads conversion goals:** the GA4-imported `purchase` action is the
+**Primary** (bidding) conversion for both donations and event
+registrations. `wa_purchase` (only forms in `WA_FORM_IDS`) is available
+for a WA-only conversion action. The browser-side `form_submit_event` conversion
+(`EventTracker.astro`) is **Secondary**, kept for reporting only, so one
+registration isn't counted twice.
 
 ## CMS (Sveltia)
 

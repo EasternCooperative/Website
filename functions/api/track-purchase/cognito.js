@@ -1,65 +1,50 @@
 // Cloudflare Pages Function — POST /api/track-purchase/cognito?key=<TRACK_PURCHASE_KEY>
 //
-// Receives Cognito Forms' "Post JSON Data to a Website" webhook on entry
-// submission and forwards it to GA4 Measurement Protocol as a `purchase`
-// event (see ../../_lib/ga4.js).
+// Receives Cognito Forms' webhook (Submit endpoint, and on forms with a
+// pay-later workflow also the Update endpoint) and forwards completed
+// payments to GA4 Measurement Protocol (see ../../_lib/ga4.js):
+//
+//   - `purchase` for every completed payment (donations and registrations)
+//   - `wa_purchase` in the same request, only when the form is listed in the
+//     WA_FORM_IDS env var (comma-separated Cognito form ids, e.g. "131")
 //
 // Field mapping verified 2026-08-25 against a real $1 test submission on the
 // "Tax Deductible Donation to ECRS" form (PayPal). `Order.AmountPaid` and
 // `Order.PaymentStatus` are Cognito's system fields for any form with a
-// payment component (not custom field names), so this should generalize to
-// other Cognito payment forms — but confirm against a real submission
-// before trusting a newly added form, same as this one was confirmed.
-// item_category detection (donation vs. event_registration) is UNVERIFIED —
-// see KNOWN_DONATION_FORMS below.
+// payment component, so they generalize to other payment forms. The WA
+// registration payload (form 131) has NOT been seen yet; the field names
+// below come from its schema (Entry.Action, Entry.DateUpdated,
+// Order.PaymentDate), so check the first real WA delivery.
 //
-// Ad-click attribution: CognitoForm.astro prefills a hidden "GAClientId"
-// field from the visitor's real GA4 _ga cookie before submission (that
-// cookie's client_id already carries any gclid GA4's own gtag.js associated
-// with the visit). If that field is present on the entry, its value is used
-// as the GA4 client_id here instead of a random one, so Ads can attribute
-// the donation to the ad campaign that drove it. Falls back to a random
-// client_id if the field is missing/empty (e.g. consent declined, ad
-// blocker, or a form that hasn't had the hidden field added yet) — the
-// conversion still counts, it just won't attribute.
+// Attribution: CognitoForm.astro prefills hidden "GAClientId" and
+// "GASessionId" fields from the visitor's _ga and _ga_<stream> cookies.
+// client_id + session_id let GA4 join the purchase to the visitor's session
+// (and so to the ad click); without session_id GA4 reports the purchase as
+// "Unassigned" and Ads never imports it. Missing fields fall back to a
+// random client_id with no session: the purchase still counts, unattributed.
+//
+// "Did a payment complete in THIS delivery?" (see paymentSkipReason in _lib/cognitoPurchase.js):
+//   1. Order.PaymentStatus === "Paid" and Order.AmountPaid > 0.
+//   2. Entry.Action is not a non-payment action ("Update" is staff editing,
+//      "Request Payment" only moves the entry to Awaiting Payment).
+//      "Register!" (unpaid path) is already excluded by rule 1.
+//   3. If the Update endpoint is on, a staff edit of an already-paid entry
+//      could arrive with a stale payment-ish action. Guard: when both
+//      Order.PaymentDate and Entry.DateUpdated are present, the payment must
+//      have happened within PAYMENT_FRESH_MS of this update.
+//
+// Dedupe: GA4 dedupes `purchase` by transaction_id but not custom events.
+// When a KV namespace is bound as TRACK_DEDUPE, each payment is recorded
+// under `cognito:<transaction_id>` after a successful send, and any later
+// delivery for the same payment (webhook retry, submit + update both
+// firing, staff edit) sends nothing. Without the binding, rules 2 and 3
+// above are the only guard, and a Cognito retry of a delivery we already
+// accepted could double-send wa_purchase.
 
-import { sendPurchaseEvent, randomClientId, isAuthorized } from '../../_lib/ga4.js';
+import { sendMpEvents, randomClientId, isAuthorized } from '../../_lib/ga4.js';
+import { planCognitoEvents, parseFormIds } from '../../_lib/cognitoPurchase.js';
 
-function extractAmount(entry) {
-  const candidates = [entry.Order?.AmountPaid, entry.Order?.SubTotal, entry.AmountToDonate];
-  const found = candidates.find((v) => typeof v === 'number' && !Number.isNaN(v));
-  return found ?? null;
-}
-
-function extractTransactionId(entry) {
-  const id = entry.Id ?? entry.Order?.OrderId;
-  return id == null ? null : String(id);
-}
-
-function isPaid(entry) {
-  const status = entry.Order?.PaymentStatus;
-  // No PaymentStatus at all means this form has no payment component (or the
-  // webhook fired on a non-payment event) — let extractAmount's null case
-  // catch that. A present-but-non-"Paid" status means payment hasn't
-  // completed (pending, failed, refunded) — don't report those.
-  return status == null || status === 'Paid';
-}
-
-// Cognito has no built-in "this form is a donation" signal (unlike Zeffy's
-// campaign_category) — forms are just forms. The only Cognito form wired to
-// this webhook as of 2026-08-25 is the donation form; every other form
-// added later is assumed to be an event/ticket registration per the
-// original tracking brief. Add a form's InternalName here if that
-// assumption stops holding.
-const KNOWN_DONATION_FORMS = new Set(['TaxDeductibleDonationToECRS']);
-
-function extractItemCategory(entry) {
-  return KNOWN_DONATION_FORMS.has(entry.Form?.InternalName) ? 'donation' : 'event_registration';
-}
-
-function extractClientId(entry) {
-  return typeof entry.GAClientId === 'string' && entry.GAClientId ? entry.GAClientId : null;
-}
+const DEDUPE_TTL_SECONDS = 400 * 24 * 60 * 60;
 
 export const onRequestPost = async (context) => {
   const { request, env } = context;
@@ -75,36 +60,31 @@ export const onRequestPost = async (context) => {
     return new Response('Invalid JSON', { status: 400 });
   }
 
-  const transactionId = extractTransactionId(entry);
-  if (!transactionId) {
-    // Can't dedupe without a stable id — a wrong/missing key here is a
-    // mapping bug, not a legitimate "nothing to report" case. Fail loud
-    // rather than silently 200'ing on a payload we can't actually process.
-    return new Response('Could not extract a transaction id from payload — check field mapping', { status: 422 });
+  const plan = planCognitoEvents(entry, { waFormIds: parseFormIds(env.WA_FORM_IDS) });
+  // A wrong/missing key is a mapping bug, not a legitimate "nothing to
+  // report" case, so fail loud rather than silently 200.
+  if (plan.error) return new Response(plan.error, { status: 422 });
+  if (plan.skip) return new Response(`Skipped: ${plan.skip}`, { status: 200 });
+
+  const dedupe = env.TRACK_DEDUPE;
+  const dedupeKey = `cognito:${plan.transactionId}`;
+  if (dedupe && (await dedupe.get(dedupeKey))) {
+    return new Response('Already reported, skipped', { status: 200 });
   }
 
-  const value = extractAmount(entry);
-  if (value === null) {
-    // Distinct from a genuine $0 entry: none of the candidate amount keys
-    // were present at all, which almost always means the mapping is wrong
-    // rather than that this entry has no charge.
-    return new Response('Could not extract a payment amount from payload — check field mapping', { status: 422 });
-  }
-  if (value === 0 || !isPaid(entry)) {
-    // Genuinely free entry, or payment not yet completed (pending/failed) —
-    // nothing to report.
-    return new Response('No completed payment, skipped', { status: 200 });
-  }
-
-  const purchaseResponse = await sendPurchaseEvent(env, {
-    clientId: extractClientId(entry) || randomClientId(),
-    transactionId,
-    value,
-    currency: 'USD',
-    itemName: entry.Form?.Name || 'Donation',
-    itemCategory: extractItemCategory(entry),
-    itemVariant: 'cognito_forms',
+  const response = await sendMpEvents(env, {
+    clientId: plan.clientId || randomClientId(),
+    events: plan.events,
+    timestampMicros: plan.timestampMicros,
   });
 
-  return new Response('OK', { status: purchaseResponse.ok ? 200 : 502 });
+  if (!response.ok) return new Response('GA4 rejected the request', { status: 502 });
+
+  // Debug mode posts to the validation endpoint, so nothing was really sent:
+  // don't burn the dedupe key.
+  if (dedupe && env.GA4_DEBUG !== 'true') {
+    await dedupe.put(dedupeKey, new Date().toISOString(), { expirationTtl: DEDUPE_TTL_SECONDS });
+  }
+
+  return new Response('OK', { status: 200 });
 };
