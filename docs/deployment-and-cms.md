@@ -55,10 +55,14 @@ Preview, never committed to the repo):
 
 **Webhook setup (external, done by whoever administers each platform):**
 
-- **Cognito Forms** — per form (Donate, Contact, future registration forms):
-  Settings → Webhooks & Notifications → "Post JSON Data to a Website" →
-  `https://ecrs.org/api/track-purchase/cognito?key=<TRACK_PURCHASE_KEY>`,
-  firing on entry submission/payment completion.
+- **Cognito Forms** — per form: Settings → Webhooks → **Submit Endpoint** →
+  `https://ecrs.org/api/track-purchase/cognito?key=<TRACK_PURCHASE_KEY>`.
+  Leave the Update and Delete endpoints blank, since staff edits and the
+  later "Pay" workflow step would otherwise re-send the conversion. Each
+  paid form also needs a hidden Text field named exactly `GAClientId`
+  (Visible: Never) for ad-click attribution (see below). Wired up so far:
+  Tax Deductible Donation (#24), 2026 Winter Adventure Event Registration
+  (#131). Each year's new registration form needs both settings again.
 - **Zeffy** — account-wide, not per form: Settings → Integrations →
   Webhooks → subscribe to `payment.completed` →
   `https://ecrs.org/api/track-purchase/zeffy?key=<TRACK_PURCHASE_KEY>`.
@@ -70,11 +74,20 @@ unverified for both (only donation campaigns have been tested); re-check
 `item_category` detection once a real ticketed event goes through either
 platform.
 
-**No per-campaign ad-click attribution:** every conversion is sent with a
-random GA4 client_id, so donations count toward the Ads "Donation Completed"
-goal but can't be traced back to a specific campaign/keyword. Attribution
-(gclid capture, etc.) is being handled separately, directly in Cognito, not
-in this site's code.
+**Ad-click attribution:** `CognitoForm.astro` prefills the hidden
+`GAClientId` field from the visitor's `_ga` cookie, and `cognito.js` sends
+that value as the GA4 client_id, so Ads can tie the purchase back to the
+campaign and keyword that drove it. If the field is missing or empty
+(consent declined, ad blocker, or a form without the field), a random
+client_id is used: the conversion still counts but won't attribute. Zeffy
+runs in a cross-origin iframe and can't read the cookie, so Zeffy purchases
+always use a random client_id.
+
+**Ads conversion goals:** the GA4-imported `purchase` action is the
+**Primary** (bidding) conversion for both donations and event
+registrations. The browser-side `form_submit_event` conversion
+(`EventTracker.astro`) is **Secondary**, kept for reporting only, so one
+registration isn't counted twice.
 
 ## CMS (Sveltia)
 
