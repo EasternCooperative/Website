@@ -327,4 +327,21 @@ describe('offerRows', () => {
       { label: 'West Wing, Single', fullWeekend: '$1,995' },
     ]);
   });
+
+  it('labels a combined offer Free when both room and tuition are free', () => {
+    const r = computeEventSections(
+      base({
+        tuition: [
+          { label: 'Adults', amount: '$110' },
+          { label: 'Children', amount: 'Free' },
+        ],
+        accommodations: [{ name: 'Cabin', tiers: [{ label: 'Bunk', amount: '$300', childAmount: 'Free' }] }],
+      }),
+      NOW
+    );
+    expect(r.offerRows).toEqual([
+      { label: 'Cabin, Bunk', fullWeekend: '$410' },
+      { label: 'Cabin, Bunk (child)', fullWeekend: 'Free' },
+    ]);
+  });
 });
