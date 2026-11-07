@@ -510,6 +510,15 @@ collections:
       # ── Registration ──────────────────────────────────────────────
       - { label: 'Registration URL', name: 'registrationUrl', widget: 'string', required: false }
       - {
+          label: 'Registration Opened',
+          name: 'registrationOpenDate',
+          widget: 'datetime',
+          date_format: 'YYYY-MM-DD',
+          time_format: false,
+          required: false,
+          hint: 'The date the registration form or link went live. Used by search engines.',
+        }
+      - {
           label: 'Registration Deadline',
           name: 'registrationDeadline',
           widget: 'datetime',

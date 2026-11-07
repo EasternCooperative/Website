@@ -218,6 +218,9 @@ const jsonLd = {
           priceCurrency: 'USD',
           availability: isPast ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
           url: data.registrationUrl || pageUrl,
+          ...(data.registrationOpenDate && {
+            validFrom: data.registrationOpenDate.toISOString().split('T')[0],
+          }),
           ...(data.registrationDeadline && {
             priceValidUntil: data.registrationDeadline.toISOString().split('T')[0],
           }),
