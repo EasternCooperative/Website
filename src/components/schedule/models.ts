@@ -51,7 +51,7 @@ export interface TimeSlot {
 // --- Schema types (mirrors WinterAdventureSchema.json) ---
 
 export interface WorkshopColumnConfig {
-  columnName: string;
+  columnName: string | string[];
   startDay: number;
   endDay: number;
 }

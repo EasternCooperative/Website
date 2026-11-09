@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const { mockCreatePdf, mockDownload, mockCompositeMap } = vi.hoisted(() => {
   const mockDownload = vi.fn();
   const mockCreatePdf = vi.fn().mockReturnValue({ download: mockDownload });
-  const mockCompositeMap = vi.fn().mockResolvedValue('data:image/png;base64,MOCK');
+  const mockCompositeMap = vi.fn().mockResolvedValue('<svg>MOCK</svg>');
   return { mockCreatePdf, mockDownload, mockCompositeMap };
 });
 
@@ -141,6 +141,27 @@ describe('downloadIndividualSchedules', () => {
     expect(mockCompositeMap).toHaveBeenCalledOnce();
   });
 
+  it('adds a legend under the map only when rooms are highlighted', async () => {
+    const entry = {
+      periodKey: 'MorningFirstPeriod',
+      periodDisplay: 'Morning First Period',
+      workshopName: 'Woodworking',
+      leader: '',
+      startDay: 1,
+      endDay: 4,
+    };
+    const schedules: IndividualSchedule[] = [
+      { fullName: 'With Rooms', email: '', age: '', entries: [{ ...entry, location: 'Chapel A' }] },
+      { fullName: 'No Rooms', email: '', age: '', entries: [{ ...entry, location: '(No Location)' }] },
+    ];
+    await downloadIndividualSchedules(schedules, timeslots, 'Winter Adventure');
+    const doc = mockCreatePdf.mock.calls[0][0];
+    const hasLegend = (i: number) => doc.content[i].stack.some((n: { columns?: unknown }) => n.columns);
+    expect(hasLegend(0)).toBe(true);
+    expect(hasLegend(1)).toBe(false);
+    expect(doc.content[0].stack.some((n: { svg?: string }) => n.svg === '<svg>MOCK</svg>')).toBe(true);
+  });
+
   it('renders Free rows for regular timeslots with no entry', async () => {
     const schedules: IndividualSchedule[] = [{ fullName: 'Alice Johnson', email: '', age: '', entries: [] }];
     await downloadIndividualSchedules(schedules, timeslots, 'Winter Adventure');
@@ -155,6 +176,26 @@ describe('downloadIndividualSchedules', () => {
     ];
     await downloadIndividualSchedules(schedules, slotsWithVariety, 'Winter Adventure');
     expect(mockCreatePdf).toHaveBeenCalledOnce();
+  });
+
+  it('uses tighter row padding for split-period schedules so the map stays on the page', async () => {
+    const entry = (startDay: number, endDay: number) => ({
+      periodKey: 'MorningFirstPeriod',
+      periodDisplay: 'Morning First Period',
+      workshopName: 'Woodworking',
+      leader: 'John Smith',
+      location: 'Chapel A',
+      startDay,
+      endDay,
+    });
+    const schedules: IndividualSchedule[] = [
+      { fullName: 'Whole Week', email: '', age: '', entries: [entry(1, 4)] },
+      { fullName: 'Split Week', email: '', age: '', entries: [entry(1, 2), entry(3, 4)] },
+    ];
+    await downloadIndividualSchedules(schedules, timeslots, 'Winter Adventure');
+    const doc = mockCreatePdf.mock.calls[0][0];
+    const padding = (i: number) => doc.content[i].stack.find((n: { table?: object }) => n.table).layout.paddingTop();
+    expect(padding(1)).toBeLessThan(padding(0));
   });
 
   it('renders split-day workshop entries (days 1-2 and 3-4 in same period)', async () => {

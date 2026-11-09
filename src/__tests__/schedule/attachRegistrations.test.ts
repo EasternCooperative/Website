@@ -161,4 +161,63 @@ describe('attachRegistrations', () => {
     attachRegistrations(buffer, existing);
     expect(existing[0].selections).toHaveLength(0);
   });
+  describe('2026 export shape', () => {
+    const headers2026 = [
+      'ClassSelection_Id',
+      'AttendeeName',
+      'ChoiceNumber',
+      '_2dayClassesDays12',
+      '_2dayClassesDays34',
+      '_4dayClasses',
+    ];
+    const half = (name: string, startDay: number, endDay: number): Workshop => ({
+      ...ws(name),
+      duration: { startDay, endDay },
+    });
+
+    it('reads the renamed 2-day columns (_2dayClassesDays12 / _2dayClassesDays34)', () => {
+      const buffer = buildWorkbook({
+        ClassSelection: makeClassSelectionSheet([attendeeRow('SEL001', 'Alice', 'Johnson')]),
+        MorningFirstPeriod: [headers2026, ['SEL001', 'Alice Johnson', 1, 'Chair Yoga - Judi', 'Collage - Kim', '']],
+      });
+      const { workshops, unmatched } = attachRegistrations(buffer, [half('Chair Yoga', 1, 2), half('Collage', 3, 4)]);
+      expect(unmatched).toEqual([]);
+      expect(workshops.map((w) => w.selections.length)).toEqual([1, 1]);
+    });
+
+    it('matches shortened or reworded labels when exactly one class on the same days fits', () => {
+      const buffer = buildWorkbook({
+        ClassSelection: makeClassSelectionSheet([attendeeRow('SEL001', 'Alice', 'Johnson')]),
+        AfternoonPeriod: [
+          headers2026,
+          ['SEL001', 'Alice Johnson', 1, 'Line Dance - Debbie', 'Joy of Movement - Judi', ''],
+        ],
+      });
+      const { workshops, unmatched } = attachRegistrations(buffer, [
+        half('Line Dancing', 1, 2),
+        half('Joy of Movement: Moving to Heal', 3, 4),
+      ]);
+      expect(unmatched).toEqual([]);
+      expect(workshops.map((w) => w.selections.length)).toEqual([1, 1]);
+    });
+
+    it('ignores a label that is empty once stemmed', () => {
+      const buffer = buildWorkbook({
+        ClassSelection: makeClassSelectionSheet([attendeeRow('SEL001', 'Alice', 'Johnson')]),
+        AfternoonPeriod: [headers2026, ['SEL001', 'Alice Johnson', 1, 'S', '', '']],
+      });
+      const { workshops, unmatched } = attachRegistrations(buffer, [half('Sing Along', 1, 2)]);
+      expect(unmatched).toEqual(['S']);
+      expect(workshops[0].selections).toHaveLength(0);
+    });
+
+    it('does not guess when a loose label fits two classes', () => {
+      const buffer = buildWorkbook({
+        ClassSelection: makeClassSelectionSheet([attendeeRow('SEL001', 'Alice', 'Johnson')]),
+        AfternoonPeriod: [headers2026, ['SEL001', 'Alice Johnson', 1, 'Dance - Pat', '', '']],
+      });
+      const { unmatched } = attachRegistrations(buffer, [half('Dance Basics', 1, 2), half('Dance Advanced', 1, 2)]);
+      expect(unmatched).toEqual(['Dance']);
+    });
+  });
 });

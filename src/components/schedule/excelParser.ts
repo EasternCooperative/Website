@@ -29,8 +29,8 @@ const WINTER_ADVENTURE_SCHEMA: EventSchema = {
       },
       workshopColumns: [
         { columnName: '_4dayClasses', startDay: 1, endDay: 4 },
-        { columnName: '_2dayClassesFirst2Days', startDay: 1, endDay: 2 },
-        { columnName: '_2dayClassesSecond2Days', startDay: 3, endDay: 4 },
+        { columnName: ['_2dayClassesFirst2Days', '_2dayClassesDays12'], startDay: 1, endDay: 2 },
+        { columnName: ['_2dayClassesSecond2Days', '_2dayClassesDays34'], startDay: 3, endDay: 4 },
       ],
     },
     {
@@ -46,8 +46,8 @@ const WINTER_ADVENTURE_SCHEMA: EventSchema = {
       },
       workshopColumns: [
         { columnName: '_4dayClasses', startDay: 1, endDay: 4 },
-        { columnName: '_2dayClassesFirst2Days', startDay: 1, endDay: 2 },
-        { columnName: '_2dayClassesSecond2Days', startDay: 3, endDay: 4 },
+        { columnName: ['_2dayClassesFirst2Days', '_2dayClassesDays12'], startDay: 1, endDay: 2 },
+        { columnName: ['_2dayClassesSecond2Days', '_2dayClassesDays34'], startDay: 3, endDay: 4 },
       ],
     },
     {
@@ -63,8 +63,8 @@ const WINTER_ADVENTURE_SCHEMA: EventSchema = {
       },
       workshopColumns: [
         { columnName: '_4dayClasses', startDay: 1, endDay: 4 },
-        { columnName: '_2dayClassesFirst2Days', startDay: 1, endDay: 2 },
-        { columnName: '_2dayClassesSecond2Days', startDay: 3, endDay: 4 },
+        { columnName: ['_2dayClassesFirst2Days', '_2dayClassesDays12'], startDay: 1, endDay: 2 },
+        { columnName: ['_2dayClassesSecond2Days', '_2dayClassesDays34'], startDay: 3, endDay: 4 },
       ],
     },
   ],
@@ -125,6 +125,15 @@ function findColumnByPattern(headers: Record<string, string>, pattern: string): 
 function findColumn(headers: Record<string, string>, name: string): string | null {
   for (const [key, value] of Object.entries(headers)) {
     if (value === name) return key;
+  }
+  return null;
+}
+
+/** Cognito renames columns between years, so a workshop column may list several accepted headers. */
+function findFirstColumn(headers: Record<string, string>, names: string | string[]): string | null {
+  for (const name of Array.isArray(names) ? names : [names]) {
+    const key = findColumn(headers, name);
+    if (key !== null) return key;
   }
   return null;
 }
@@ -228,7 +237,7 @@ function collectWorkshops(
   const workshopColIndices = periodConfig.workshopColumns.map((wc) => ({
     config: wc,
     colIndex: (() => {
-      const key = findColumn(headers, wc.columnName);
+      const key = findFirstColumn(headers, wc.columnName);
       return key !== null ? XLSX.utils.decode_col(key) : -1;
     })(),
   }));
@@ -302,6 +311,33 @@ function collectWorkshops(
   return Array.from(workshops.values());
 }
 
+/**
+ * Fallback when a form's class label is a shortened or reworded version of the
+ * event's class name ("Joy of Movement" vs "Joy of Movement: Moving to Heal",
+ * "Line Dance" vs "Line Dancing"). Only accepts a prefix match on the same days
+ * and only when exactly one class qualifies, so it never guesses between two.
+ */
+function findLooseMatch(
+  workshops: Workshop[],
+  label: string,
+  duration: { startDay: number; endDay: number }
+): Workshop | undefined {
+  const stem = (v: string) =>
+    v
+      .trim()
+      .toLowerCase()
+      .replace(/(ing|es|e|s)$/, '');
+  const n = stem(label);
+  if (!n) return undefined;
+  const candidates = workshops.filter((w) => {
+    if (w.duration.startDay !== duration.startDay || w.duration.endDay !== duration.endDay) return false;
+    const wn = stem(w.name);
+    return wn.startsWith(n) || n.startsWith(wn);
+  });
+  const distinct = new Set(candidates.map((w) => w.name.trim().toLowerCase()));
+  return distinct.size === 1 ? candidates[0] : undefined;
+}
+
 export interface AttachResult {
   workshops: Workshop[];
   unmatched: string[];
@@ -350,7 +386,7 @@ export function attachRegistrations(file: ArrayBuffer, existingWorkshops: Worksh
     const workshopColIndices = periodConfig.workshopColumns.map((wc) => ({
       config: wc,
       colIndex: (() => {
-        const key = findColumn(headers, wc.columnName);
+        const key = findFirstColumn(headers, wc.columnName);
         return key !== null ? XLSX.utils.decode_col(key) : -1;
       })(),
     }));
@@ -387,7 +423,9 @@ export function attachRegistrations(file: ArrayBuffer, existingWorkshops: Worksh
         const { name: workshopName } = parseWorkshopCell(cellValue);
         if (!workshopName) continue;
 
-        const target = byName.get(workshopName.trim().toLowerCase());
+        const duration = { startDay: wc.startDay, endDay: wc.endDay };
+        const target =
+          byName.get(workshopName.trim().toLowerCase()) ?? findLooseMatch(workshops, workshopName, duration);
         if (!target) {
           unmatched.add(workshopName);
           continue;
@@ -400,7 +438,7 @@ export function attachRegistrations(file: ArrayBuffer, existingWorkshops: Worksh
           firstName: attendee.firstName,
           lastName: attendee.lastName,
           choiceNumber,
-          duration: { startDay: wc.startDay, endDay: wc.endDay },
+          duration,
           registrationId: 0,
         });
       }

@@ -117,18 +117,22 @@ export async function downloadIndividualSchedules(
   const content: object[] = [];
   const year = new Date().getFullYear();
 
+  // Split periods (days 1-2 / days 3-4) add a second activity block to a row. Tighten the
+  // row padding for those schedules so the facility map still fits on the same page.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const indvLayout: any = {
+  const makeLayout = (pad: number): any => ({
     paddingLeft: () => 10,
     paddingRight: () => 10,
-    paddingTop: () => 10,
-    paddingBottom: () => 10,
+    paddingTop: () => pad,
+    paddingBottom: () => pad,
     hLineWidth: (i: number, node: { table: { body: unknown[] } }) =>
       i === 0 || i === node.table.body.length ? 1 : 0.5,
     hLineColor: () => '#bbbbbb',
     vLineWidth: () => 0.5,
     vLineColor: () => '#cccccc',
-  };
+  });
+  const normalLayout = makeLayout(10);
+  const compactLayout = makeLayout(4);
 
   for (const [idx, s] of schedules.entries()) {
     // Group entries by period — a period may have two half-block entries (days 1-2 and 3-4)
@@ -181,7 +185,7 @@ export async function downloadIndividualSchedules(
     // Collect unique locations for this attendee (exclude placeholder)
     const locations = Array.from(new Set(s.entries.map((e) => e.location).filter((l) => l && l !== '(No Location)')));
 
-    const mapDataUrl = await compositeMap(locations);
+    const mapSvg = await compositeMap(locations);
 
     content.push({
       stack: [
@@ -189,14 +193,26 @@ export async function downloadIndividualSchedules(
         { text: `Schedule for ${s.fullName}`, fontSize: 22, bold: true, marginBottom: 14 },
         {
           table: { headerRows: 1, widths: ['auto', '*'], body: tableBody },
-          layout: indvLayout,
+          layout: [...entryMap.values()].some((e) => e.length > 1) ? compactLayout : normalLayout,
         },
         {
-          image: mapDataUrl,
+          svg: mapSvg,
           width: 504,
           alignment: 'center',
-          margin: [0, 12, 0, 0],
+          margin: [0, 6, 0, 0],
         },
+        // Legend: every evacuation-style map explains its symbols. Only shown when rooms are highlighted.
+        ...(locations.length > 0
+          ? [
+              {
+                columns: [
+                  { canvas: [{ type: 'rect', x: 0, y: 1, w: 11, h: 11, color: '#222222' }], width: 17 },
+                  { text: 'Rooms where your classes meet', fontSize: 10, color: META_COLOR },
+                ],
+                margin: [0, 2, 0, 0],
+              },
+            ]
+          : []),
       ],
       ...(idx > 0 ? { pageBreak: 'before' } : {}),
     });
