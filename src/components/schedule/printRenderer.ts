@@ -132,7 +132,7 @@ export async function downloadIndividualSchedules(
     vLineColor: () => '#cccccc',
   });
   const normalLayout = makeLayout(10);
-  const compactLayout = makeLayout(5);
+  const compactLayout = makeLayout(4);
 
   for (const [idx, s] of schedules.entries()) {
     // Group entries by period — a period may have two half-block entries (days 1-2 and 3-4)
@@ -185,7 +185,7 @@ export async function downloadIndividualSchedules(
     // Collect unique locations for this attendee (exclude placeholder)
     const locations = Array.from(new Set(s.entries.map((e) => e.location).filter((l) => l && l !== '(No Location)')));
 
-    const mapDataUrl = await compositeMap(locations);
+    const mapSvg = await compositeMap(locations);
 
     content.push({
       stack: [
@@ -196,11 +196,23 @@ export async function downloadIndividualSchedules(
           layout: [...entryMap.values()].some((e) => e.length > 1) ? compactLayout : normalLayout,
         },
         {
-          image: mapDataUrl,
+          svg: mapSvg,
           width: 504,
           alignment: 'center',
-          margin: [0, 12, 0, 0],
+          margin: [0, 6, 0, 0],
         },
+        // Legend: every evacuation-style map explains its symbols. Only shown when rooms are highlighted.
+        ...(locations.length > 0
+          ? [
+              {
+                columns: [
+                  { canvas: [{ type: 'rect', x: 0, y: 1, w: 11, h: 11, color: '#222222' }], width: 17 },
+                  { text: 'Rooms where your classes meet', fontSize: 10, color: META_COLOR },
+                ],
+                margin: [0, 2, 0, 0],
+              },
+            ]
+          : []),
       ],
       ...(idx > 0 ? { pageBreak: 'before' } : {}),
     });

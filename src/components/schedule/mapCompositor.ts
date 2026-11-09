@@ -11,9 +11,6 @@ const OVERLAY_MAP: Record<string, string> = {
 };
 
 const BASE_MAP_URL = '/maps/watson_layout.svg';
-// The maps are vector, so rasterize well above their 565x206 user-unit size: at 504pt
-// wide on the printed page, 4x is roughly 320 dpi.
-const RASTER_SCALE = 4;
 const MAP_DIR = '/maps/';
 
 // Locations that don't have their own overlay but require the Stairs indicator.
@@ -42,30 +39,32 @@ export function resolveOverlays(locations: string[]): string[] {
   return Array.from(overlayKeys).map((key) => OVERLAY_MAP[key]);
 }
 
-// Image cache: URL → loaded HTMLImageElement (decoded, ready to draw)
-const imageCache = new Map<string, HTMLImageElement>();
+// Fetched SVG text cache: URL → markup
+const svgCache = new Map<string, string>();
 
-function loadImage(url: string): Promise<HTMLImageElement> {
-  const cached = imageCache.get(url);
-  if (cached) return Promise.resolve(cached);
-
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      imageCache.set(url, img);
-      resolve(img);
-    };
-    img.onerror = () => reject(new Error(`Failed to load map image: ${url}`));
-    img.src = url;
-  });
+async function loadSvg(url: string): Promise<string> {
+  const cached = svgCache.get(url);
+  if (cached) return cached;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Failed to load map image: ${url}`);
+  const text = await res.text();
+  svgCache.set(url, text);
+  return text;
 }
 
-// Result cache: sorted-location-key → base64 data URL
+/** The markup between the outer <svg ...> and </svg> tags. */
+function innerSvg(svg: string): string {
+  return svg.replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
+}
+
+// Result cache: sorted-overlay key → merged SVG markup
 const compositeCache = new Map<string, string>();
 
 /**
- * Composites a personalized facility map as a base64 PNG data URL.
- * Falls back to the base layout if no overlay matches.
+ * Builds a personalized facility map as a single SVG string (base map plus one overlay
+ * per room the attendee visits). It stays vector, so pdfmake embeds it as lines and
+ * outlined lettering that stay sharp at any zoom. Falls back to the base layout when
+ * no overlay matches.
  */
 export async function compositeMap(locations: string[]): Promise<string> {
   const overlayFiles = resolveOverlays(locations);
@@ -74,26 +73,20 @@ export async function compositeMap(locations: string[]): Promise<string> {
   const cached = compositeCache.get(cacheKey);
   if (cached) return cached;
 
-  const baseImg = await loadImage(BASE_MAP_URL);
-
-  const canvas = document.createElement('canvas');
-  const width = baseImg.naturalWidth * RASTER_SCALE;
-  const height = baseImg.naturalHeight * RASTER_SCALE;
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d')!;
-  ctx.drawImage(baseImg, 0, 0, width, height);
+  const base = await loadSvg(BASE_MAP_URL);
+  const viewBox = base.match(/viewBox="([^"]+)"/)?.[1] ?? '0 0 565 206';
+  let body = innerSvg(base);
 
   for (const file of overlayFiles) {
     try {
-      const overlay = await loadImage(`${MAP_DIR}${file}`);
-      ctx.drawImage(overlay, 0, 0, width, height);
+      body += innerSvg(await loadSvg(`${MAP_DIR}${file}`));
     } catch {
       // Silently skip missing overlays — same behavior as C# reference
     }
   }
 
-  const result = canvas.toDataURL('image/png');
+  const [, , w, h] = viewBox.split(/\s+/);
+  const result = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="${viewBox}">${body}</svg>`;
   compositeCache.set(cacheKey, result);
   return result;
 }

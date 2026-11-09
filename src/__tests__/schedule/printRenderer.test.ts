@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const { mockCreatePdf, mockDownload, mockCompositeMap } = vi.hoisted(() => {
   const mockDownload = vi.fn();
   const mockCreatePdf = vi.fn().mockReturnValue({ download: mockDownload });
-  const mockCompositeMap = vi.fn().mockResolvedValue('data:image/png;base64,MOCK');
+  const mockCompositeMap = vi.fn().mockResolvedValue('<svg>MOCK</svg>');
   return { mockCreatePdf, mockDownload, mockCompositeMap };
 });
 
@@ -139,6 +139,27 @@ describe('downloadIndividualSchedules', () => {
     expect(mockCreatePdf).toHaveBeenCalledOnce();
     expect(mockDownload).toHaveBeenCalledOnce();
     expect(mockCompositeMap).toHaveBeenCalledOnce();
+  });
+
+  it('adds a legend under the map only when rooms are highlighted', async () => {
+    const entry = {
+      periodKey: 'MorningFirstPeriod',
+      periodDisplay: 'Morning First Period',
+      workshopName: 'Woodworking',
+      leader: '',
+      startDay: 1,
+      endDay: 4,
+    };
+    const schedules: IndividualSchedule[] = [
+      { fullName: 'With Rooms', email: '', age: '', entries: [{ ...entry, location: 'Chapel A' }] },
+      { fullName: 'No Rooms', email: '', age: '', entries: [{ ...entry, location: '(No Location)' }] },
+    ];
+    await downloadIndividualSchedules(schedules, timeslots, 'Winter Adventure');
+    const doc = mockCreatePdf.mock.calls[0][0];
+    const hasLegend = (i: number) => doc.content[i].stack.some((n: { columns?: unknown }) => n.columns);
+    expect(hasLegend(0)).toBe(true);
+    expect(hasLegend(1)).toBe(false);
+    expect(doc.content[0].stack.some((n: { svg?: string }) => n.svg === '<svg>MOCK</svg>')).toBe(true);
   });
 
   it('renders Free rows for regular timeslots with no entry', async () => {
