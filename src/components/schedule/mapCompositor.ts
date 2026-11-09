@@ -1,16 +1,19 @@
 // Location → overlay filename (mirrors LocationMapConfiguration.json from the C# reference).
 // Keys are matched case-insensitively + trimmed at call time.
 const OVERLAY_MAP: Record<string, string> = {
-  'Chapel A': 'watson_layout_chapel_a.png',
-  Chapel: 'watson_layout_chapel.png',
-  'Dining Room': 'watson_layout_dining_room.png',
-  'Elm Room': 'watson_layout_elm_room.png',
-  Library: 'watson_layout_library.png',
-  'Martin Room': 'watson_layout_martin_room.png',
-  Stairs: 'watson_layout_stairs.png',
+  'Chapel A': 'watson_layout_chapel_a.svg',
+  Chapel: 'watson_layout_chapel.svg',
+  'Dining Room': 'watson_layout_dining_room.svg',
+  'Elm Room': 'watson_layout_elm_room.svg',
+  Library: 'watson_layout_library.svg',
+  'Martin Room': 'watson_layout_martin_room.svg',
+  Stairs: 'watson_layout_stairs.svg',
 };
 
-const BASE_MAP_URL = '/maps/watson_layout.png';
+const BASE_MAP_URL = '/maps/watson_layout.svg';
+// The maps are vector, so rasterize well above their 565x206 user-unit size: at 504pt
+// wide on the printed page, 4x is roughly 320 dpi.
+const RASTER_SCALE = 4;
 const MAP_DIR = '/maps/';
 
 // Locations that don't have their own overlay but require the Stairs indicator.
@@ -74,15 +77,17 @@ export async function compositeMap(locations: string[]): Promise<string> {
   const baseImg = await loadImage(BASE_MAP_URL);
 
   const canvas = document.createElement('canvas');
-  canvas.width = baseImg.naturalWidth;
-  canvas.height = baseImg.naturalHeight;
+  const width = baseImg.naturalWidth * RASTER_SCALE;
+  const height = baseImg.naturalHeight * RASTER_SCALE;
+  canvas.width = width;
+  canvas.height = height;
   const ctx = canvas.getContext('2d')!;
-  ctx.drawImage(baseImg, 0, 0);
+  ctx.drawImage(baseImg, 0, 0, width, height);
 
   for (const file of overlayFiles) {
     try {
       const overlay = await loadImage(`${MAP_DIR}${file}`);
-      ctx.drawImage(overlay, 0, 0);
+      ctx.drawImage(overlay, 0, 0, width, height);
     } catch {
       // Silently skip missing overlays — same behavior as C# reference
     }

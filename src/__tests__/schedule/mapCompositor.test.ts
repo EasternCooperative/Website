@@ -3,16 +3,16 @@ import { resolveOverlays, compositeMap } from '~/components/schedule/mapComposit
 
 describe('resolveOverlays', () => {
   it('returns the correct overlay filename for a known location', () => {
-    expect(resolveOverlays(['Chapel A'])).toEqual(['watson_layout_chapel_a.png']);
+    expect(resolveOverlays(['Chapel A'])).toEqual(['watson_layout_chapel_a.svg']);
   });
 
   it('matches case-insensitively', () => {
-    expect(resolveOverlays(['chapel a'])).toEqual(['watson_layout_chapel_a.png']);
-    expect(resolveOverlays(['LIBRARY'])).toEqual(['watson_layout_library.png']);
+    expect(resolveOverlays(['chapel a'])).toEqual(['watson_layout_chapel_a.svg']);
+    expect(resolveOverlays(['LIBRARY'])).toEqual(['watson_layout_library.svg']);
   });
 
   it('trims whitespace before matching', () => {
-    expect(resolveOverlays(['  Elm Room  '])).toEqual(['watson_layout_elm_room.png']);
+    expect(resolveOverlays(['  Elm Room  '])).toEqual(['watson_layout_elm_room.svg']);
   });
 
   it('returns empty array for unknown location', () => {
@@ -25,28 +25,28 @@ describe('resolveOverlays', () => {
 
   it('adds Stairs overlay when Rec Hall is in locations', () => {
     const overlays = resolveOverlays(['Rec Hall']);
-    expect(overlays).toContain('watson_layout_stairs.png');
+    expect(overlays).toContain('watson_layout_stairs.svg');
   });
 
   it('adds Stairs overlay when Craft Room is in locations', () => {
     const overlays = resolveOverlays(['Craft Room']);
-    expect(overlays).toContain('watson_layout_stairs.png');
+    expect(overlays).toContain('watson_layout_stairs.svg');
   });
 
   it('does not duplicate Stairs when already mapped via name', () => {
     const overlays = resolveOverlays(['Rec Hall', 'Craft Room']);
-    expect(overlays.filter((f) => f === 'watson_layout_stairs.png')).toHaveLength(1);
+    expect(overlays.filter((f) => f === 'watson_layout_stairs.svg')).toHaveLength(1);
   });
 
   it('handles multiple locations and deduplicates', () => {
     const overlays = resolveOverlays(['Library', 'Martin Room', 'Library']);
-    expect(overlays).toContain('watson_layout_library.png');
-    expect(overlays).toContain('watson_layout_martin_room.png');
-    expect(overlays.filter((f) => f === 'watson_layout_library.png')).toHaveLength(1);
+    expect(overlays).toContain('watson_layout_library.svg');
+    expect(overlays).toContain('watson_layout_martin_room.svg');
+    expect(overlays.filter((f) => f === 'watson_layout_library.svg')).toHaveLength(1);
   });
 
   it('includes Chapel overlay for Chapel location', () => {
-    expect(resolveOverlays(['Chapel'])).toEqual(['watson_layout_chapel.png']);
+    expect(resolveOverlays(['Chapel'])).toEqual(['watson_layout_chapel.svg']);
   });
 });
 
@@ -99,6 +99,13 @@ describe('compositeMap', () => {
   it('returns a data URL for an unknown location', async () => {
     const result = await compositeMap(['Unknown Place']);
     expect(result).toMatch(/^data:/);
+  });
+
+  it('rasterizes the vector maps at 4x their natural size', async () => {
+    await compositeMap(['Elm Room']);
+    expect(mockCanvas.width).toBe(800 * 4);
+    expect(mockCanvas.height).toBe(600 * 4);
+    expect(mockCtx.drawImage).toHaveBeenCalledWith(expect.anything(), 0, 0, 3200, 2400);
   });
 
   it('uses the cached result for the same location set', async () => {
