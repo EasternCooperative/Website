@@ -117,18 +117,22 @@ export async function downloadIndividualSchedules(
   const content: object[] = [];
   const year = new Date().getFullYear();
 
+  // Split periods (days 1-2 / days 3-4) add a second activity block to a row. Tighten the
+  // row padding for those schedules so the facility map still fits on the same page.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const indvLayout: any = {
+  const makeLayout = (pad: number): any => ({
     paddingLeft: () => 10,
     paddingRight: () => 10,
-    paddingTop: () => 10,
-    paddingBottom: () => 10,
+    paddingTop: () => pad,
+    paddingBottom: () => pad,
     hLineWidth: (i: number, node: { table: { body: unknown[] } }) =>
       i === 0 || i === node.table.body.length ? 1 : 0.5,
     hLineColor: () => '#bbbbbb',
     vLineWidth: () => 0.5,
     vLineColor: () => '#cccccc',
-  };
+  });
+  const normalLayout = makeLayout(10);
+  const compactLayout = makeLayout(5);
 
   for (const [idx, s] of schedules.entries()) {
     // Group entries by period — a period may have two half-block entries (days 1-2 and 3-4)
@@ -189,7 +193,7 @@ export async function downloadIndividualSchedules(
         { text: `Schedule for ${s.fullName}`, fontSize: 22, bold: true, marginBottom: 14 },
         {
           table: { headerRows: 1, widths: ['auto', '*'], body: tableBody },
-          layout: indvLayout,
+          layout: [...entryMap.values()].some((e) => e.length > 1) ? compactLayout : normalLayout,
         },
         {
           image: mapDataUrl,

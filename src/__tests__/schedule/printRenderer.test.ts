@@ -157,6 +157,26 @@ describe('downloadIndividualSchedules', () => {
     expect(mockCreatePdf).toHaveBeenCalledOnce();
   });
 
+  it('uses tighter row padding for split-period schedules so the map stays on the page', async () => {
+    const entry = (startDay: number, endDay: number) => ({
+      periodKey: 'MorningFirstPeriod',
+      periodDisplay: 'Morning First Period',
+      workshopName: 'Woodworking',
+      leader: 'John Smith',
+      location: 'Chapel A',
+      startDay,
+      endDay,
+    });
+    const schedules: IndividualSchedule[] = [
+      { fullName: 'Whole Week', email: '', age: '', entries: [entry(1, 4)] },
+      { fullName: 'Split Week', email: '', age: '', entries: [entry(1, 2), entry(3, 4)] },
+    ];
+    await downloadIndividualSchedules(schedules, timeslots, 'Winter Adventure');
+    const doc = mockCreatePdf.mock.calls[0][0];
+    const padding = (i: number) => doc.content[i].stack.find((n: { table?: object }) => n.table).layout.paddingTop();
+    expect(padding(1)).toBeLessThan(padding(0));
+  });
+
   it('renders split-day workshop entries (days 1-2 and 3-4 in same period)', async () => {
     const schedules: IndividualSchedule[] = [
       {
