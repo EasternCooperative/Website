@@ -201,6 +201,16 @@ describe('attachRegistrations', () => {
       expect(workshops.map((w) => w.selections.length)).toEqual([1, 1]);
     });
 
+    it('ignores a label that is empty once stemmed', () => {
+      const buffer = buildWorkbook({
+        ClassSelection: makeClassSelectionSheet([attendeeRow('SEL001', 'Alice', 'Johnson')]),
+        AfternoonPeriod: [headers2026, ['SEL001', 'Alice Johnson', 1, 'S', '', '']],
+      });
+      const { workshops, unmatched } = attachRegistrations(buffer, [half('Sing Along', 1, 2)]);
+      expect(unmatched).toEqual(['S']);
+      expect(workshops[0].selections).toHaveLength(0);
+    });
+
     it('does not guess when a loose label fits two classes', () => {
       const buffer = buildWorkbook({
         ClassSelection: makeClassSelectionSheet([attendeeRow('SEL001', 'Alice', 'Johnson')]),
