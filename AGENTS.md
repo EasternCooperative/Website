@@ -88,7 +88,7 @@ Components use `twMerge` from `tailwind-merge` v3 for conditional class composit
 
 ## Content Collections
 
-Defined in `src/content.config.ts` using the Astro Content Layer API with `glob()` loaders: `event`, `leader`, `staff` (git-only, not in the CMS), `site` (venues), `testimonial`, `landingSettings` (`src/data/settings/landing.md`), `activity` (games/dances/songs in `src/data/activities/`), and `galleryPhoto` (`src/data/gallery/`). The zod schemas double as validation for CMS commits — a build fails on invalid content. The full CMS ↔ collection mapping is in [docs/deployment-and-cms.md](./docs/deployment-and-cms.md); when adding a field, update `public/admin/config.yml` and the zod schema together.
+Defined in `src/content.config.ts` using the Astro Content Layer API with `glob()` loaders: `event`, `leader`, `staff` (git-only, not in the CMS), `site` (venues), `testimonial`, `landingSettings` (`src/data/settings/landing.md`), `activity` (games/dances/songs in `src/data/activities/`), and `galleryPhoto` (`src/data/gallery/`). The zod schemas double as validation for CMS commits — a build fails on invalid content. A class's room comes from its own `room` field or, failing that, the event's `schedule.rooms` list (what the `/internal/schedule` tool exports); always read it with `resolveClassRoom()` in `~/utils/eventSchedule`. The full CMS ↔ collection mapping is in [docs/deployment-and-cms.md](./docs/deployment-and-cms.md); when adding a field, update `public/admin/config.yml` and the zod schema together.
 
 Gotcha: in dev, a new schema field can be silently stripped from cached data. Clear `node_modules/.astro` and `.astro/data-store.json`, then run `astro sync`.
 
@@ -128,6 +128,17 @@ After changes, always verify:
 2. `npm run check` passes (astro check + ESLint + Prettier)
 3. `npm test` passes (Vitest); `npm run test:e2e` for event-page/UI changes
 4. Visual check in browser: homepage, events listing, an event detail page, dark mode, mobile menu
+
+## URLs and build format
+
+`astro.config.ts` sets `build.format: 'file'`, so pages emit as `about.html` and Cloudflare Pages serves them at `/about` with no redirect (directory output made every slash-less link cost a 308). Two things follow:
+
+- During a build `Astro.url.pathname` is the file (`/about.html`). Read the page path through `pagePathname()` in `~/utils/permalinks` for canonicals, nav state, or structured data.
+- The Cloudflare Access login for staff tools covers `/internal/*`, which does not match a bare `/internal`. Keep every staff page under a sub-path (the index is `/internal/tools`).
+
+## Printing
+
+Printable pages (activity sheets, the master schedule) import `~/assets/styles/print-base.css`, and the schedule tool's PDFs use the gray palette in `src/components/schedule/printRenderer.ts`. Print output is black and gray on white only: it is run off on black-and-white printers, so never rely on a color to carry meaning.
 
 ## Known Issues
 
