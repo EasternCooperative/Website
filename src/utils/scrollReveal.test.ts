@@ -44,7 +44,7 @@ describe('initScrollReveal', () => {
     document.body.innerHTML = '<div data-scroll-reveal="up"></div>';
     const { initScrollReveal } = await import('./scrollReveal');
 
-    initScrollReveal();
+    await initScrollReveal();
 
     expect(scrollMock).not.toHaveBeenCalled();
     expect(document.querySelector('[data-scroll-reveal]')?.hasAttribute('data-scroll-reveal-ready')).toBe(false);
@@ -55,7 +55,7 @@ describe('initScrollReveal', () => {
     document.body.innerHTML = '<div data-scroll-reveal="up"></div>';
     const { initScrollReveal } = await import('./scrollReveal');
 
-    initScrollReveal();
+    await initScrollReveal();
 
     expect(scrollMock).not.toHaveBeenCalled();
   });
@@ -64,7 +64,7 @@ describe('initScrollReveal', () => {
     document.body.innerHTML = '<div data-scroll-reveal="up"></div>';
     const { initScrollReveal } = await import('./scrollReveal');
 
-    initScrollReveal();
+    await initScrollReveal();
 
     const el = document.querySelector('[data-scroll-reveal]') as HTMLElement;
     expect(el.dataset.scrollRevealReady).toBe('true');
@@ -80,7 +80,7 @@ describe('initScrollReveal', () => {
     document.body.innerHTML = '<div data-scroll-reveal="up" data-scroll-reveal-ready="true"></div>';
     const { initScrollReveal } = await import('./scrollReveal');
 
-    initScrollReveal();
+    await initScrollReveal();
 
     expect(scrollMock).not.toHaveBeenCalled();
   });
@@ -89,7 +89,7 @@ describe('initScrollReveal', () => {
     document.body.innerHTML = '<div data-scroll-reveal="up" hidden></div>';
     const { initScrollReveal } = await import('./scrollReveal');
 
-    initScrollReveal();
+    await initScrollReveal();
 
     expect(scrollMock).not.toHaveBeenCalled();
     expect(document.querySelector('[data-scroll-reveal]')?.hasAttribute('data-scroll-reveal-ready')).toBe(false);
@@ -100,7 +100,7 @@ describe('initScrollReveal', () => {
     document.body.innerHTML = '<div data-scroll-reveal="up"></div>';
     const { initScrollReveal } = await import('./scrollReveal');
 
-    initScrollReveal();
+    await initScrollReveal();
 
     const el = document.querySelector('[data-scroll-reveal]') as HTMLElement;
     expect(el.dataset.scrollRevealReady).toBe('true');
@@ -116,7 +116,7 @@ describe('initScrollReveal', () => {
     `;
     const { initScrollReveal } = await import('./scrollReveal');
 
-    initScrollReveal();
+    await initScrollReveal();
 
     expect(animateMock).toHaveBeenCalledTimes(3);
     const transforms = animateMock.mock.calls.map((call) => (call[1] as { transform: string[] }).transform[0]);
@@ -127,7 +127,7 @@ describe('initScrollReveal', () => {
     document.body.innerHTML = '<div data-scroll-reveal="up-light"></div>';
     const { initScrollReveal } = await import('./scrollReveal');
 
-    initScrollReveal();
+    await initScrollReveal();
 
     expect(animateMock).toHaveBeenCalledTimes(1);
     const [, keyframes, options] = animateMock.mock.calls[0] as [
@@ -144,7 +144,7 @@ describe('initScrollReveal', () => {
     document.body.innerHTML = '<div data-scroll-reveal="sideways"></div>';
     const { initScrollReveal } = await import('./scrollReveal');
 
-    initScrollReveal();
+    await initScrollReveal();
 
     expect(animateMock).toHaveBeenCalledTimes(1);
     const transform = (animateMock.mock.calls[0][1] as { transform: string[] }).transform[0];
@@ -156,7 +156,7 @@ describe('initScrollReveal', () => {
       '<div id="a" data-scroll-reveal="up"></div><div id="scope"><div id="b" data-scroll-reveal="up"></div></div>';
     const { initScrollReveal } = await import('./scrollReveal');
 
-    initScrollReveal(document.getElementById('scope')!);
+    await initScrollReveal(document.getElementById('scope')!);
 
     expect(document.getElementById('a')?.hasAttribute('data-scroll-reveal-ready')).toBe(false);
     expect(document.getElementById('b')?.hasAttribute('data-scroll-reveal-ready')).toBe(true);
