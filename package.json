@@ -1,7 +1,7 @@
 {
   "name": "ecrs-website",
   "version": "1.0.0-beta.63",
-  "description": "ECRS website \u2014 built with Astro and Tailwind CSS.",
+  "description": "ECRS website — built with Astro and Tailwind CSS.",
   "type": "module",
   "private": true,
   "license": "UNLICENSED",
@@ -122,6 +122,9 @@
     },
     "@typescript-eslint/typescript-estree": {
       "minimatch": "^11.0.1"
+    },
+    "@puppeteer/browsers": {
+      "proxy-agent": "6.5.0"
     }
   },
   "allowScripts": {
