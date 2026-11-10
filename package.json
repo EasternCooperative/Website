@@ -1,7 +1,7 @@
 {
   "name": "ecrs-website",
   "version": "1.0.0-beta.63",
-  "description": "ECRS website — built with Astro and Tailwind CSS.",
+  "description": "ECRS website \u2014 built with Astro and Tailwind CSS.",
   "type": "module",
   "private": true,
   "license": "UNLICENSED",
