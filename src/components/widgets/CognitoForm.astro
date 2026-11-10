@@ -46,6 +46,7 @@ const gaSessionCookie = gaId ? `_ga_${gaId.replace(/^G-/, '')}` : undefined;
     // session_id (from _ga_<stream>). Together they let GA4 join the purchase
     // to the session the ad click started, instead of "Unassigned". Requires
     // hidden "GAClientId" and "GASessionId" fields on the Cognito form.
+    // Hidden "FBP" and "FBC" fields do the same job for Meta.
     function readCookie(name) {
       const m = document.cookie.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]+)'));
       return m ? decodeURIComponent(m[1]) : '';
@@ -97,30 +98,53 @@ const gaSessionCookie = gaId ? `_ga_${gaId.replace(/^G-/, '')}` : undefined;
       s.dataset.form = container.dataset.cognitoForm;
       container.appendChild(s);
 
+      // Hidden-field prefill, tried from most to least complete: a form that
+      // lacks some of these fields may reject the unknown keys, so fall back
+      // to the smaller sets rather than lose the GA ids it does have.
       const gaClientId = getGaClientId();
-      if (gaClientId) {
-        const sessionCookie = container.dataset.gaSessionCookie;
-        const gaSessionId = sessionCookie ? parseGaSessionId(readCookie(sessionCookie)) : '';
-        let attempts = 0;
+      const sessionCookie = container.dataset.gaSessionCookie;
+      const gaSessionId = gaClientId && sessionCookie ? parseGaSessionId(readCookie(sessionCookie)) : '';
+      // Meta browser id / click id, for the Conversions API purchase the
+      // webhook sends (functions/_lib/meta.js). Present only when the pixel
+      // has loaded, i.e. the visitor is allowed to be measured.
+      const fbp = readCookie('_fbp');
+      const fbc = readCookie('_fbc');
+
+      const ga = {};
+      if (gaClientId) ga.GAClientId = gaClientId;
+      if (gaSessionId) ga.GASessionId = gaSessionId;
+      const meta = {};
+      if (fbp) meta.FBP = fbp;
+      if (fbc) meta.FBC = fbc;
+
+      const attempts = [Object.assign({}, ga, meta), ga, gaClientId ? { GAClientId: gaClientId } : {}].filter(
+        function (data, i, all) {
+          const key = JSON.stringify(data);
+          return (
+            key !== '{}' &&
+            all.findIndex(function (d) {
+              return JSON.stringify(d) === key;
+            }) === i
+          );
+        }
+      );
+
+      if (attempts.length > 0) {
+        let polls = 0;
         container.__ecrsPrefillTimer = setInterval(function () {
-          attempts++;
+          polls++;
           if (window.Cognito && typeof window.Cognito.prefill === 'function') {
             clearInterval(container.__ecrsPrefillTimer);
             container.__ecrsPrefillTimer = null;
-            const data = { GAClientId: gaClientId };
-            if (gaSessionId) data.GASessionId = gaSessionId;
-            try {
-              window.Cognito.prefill(data);
-            } catch {
-              // A form without a GASessionId field may reject the unknown
-              // key: still pass the client id on its own.
+            for (let i = 0; i < attempts.length; i++) {
               try {
-                if (data.GASessionId) window.Cognito.prefill({ GAClientId: gaClientId });
+                window.Cognito.prefill(attempts[i]);
+                break;
               } catch {
-                /* form may not have a matching hidden field defined */
+                /* this form has no matching hidden field for one of the keys: try the next, smaller set */
               }
             }
-          } else if (attempts > 40) {
+          } else if (polls > 40) {
             // ~4s: seamless.js likely failed to load, or Cognito.prefill
             // isn't available for this embed — stop polling.
             clearInterval(container.__ecrsPrefillTimer);

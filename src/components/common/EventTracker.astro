@@ -6,12 +6,17 @@
       // send_to tag — the generic event above lands in GA4 but Ads doesn't
       // treat it as a conversion on its own. Map event names to Ads
       // conversion labels (Google Ads > Goals > Conversions) here.
+      //
+      // No value is sent. What a registration is worth reaches Ads through the
+      // GA4 `purchase` the payment webhooks send (functions/api/track-purchase),
+      // so a value here would count that revenue a second time and feed
+      // value-based bidding a made-up number.
       const adsConversionMap = {
         form_submit_event: 'AW-964636937/yRj5CMSu0PccEIni_MsD',
       };
       const adsLabel = adsConversionMap[eventName];
       if (adsLabel) {
-        window.gtag('event', 'conversion', { send_to: adsLabel, value: 1.0, currency: 'USD' });
+        window.gtag('event', 'conversion', { send_to: adsLabel });
       }
     }
     if (window.fbq) {
@@ -22,7 +27,9 @@
         form_submit_event: 'CompleteRegistration',
         form_submit_donation: 'Donate',
         form_view_event: 'ViewContent',
-        event_view_conversion: 'CompleteRegistration',
+        // Opening the page of an event with no signup form is interest, not a
+        // registration: reporting it as one teaches Meta to find page openers.
+        event_view_conversion: 'ViewContent',
       };
       const metaEvent = metaMap[eventName];
       if (metaEvent) window.fbq('track', metaEvent, params);

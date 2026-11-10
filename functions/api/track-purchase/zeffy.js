@@ -21,6 +21,10 @@
 // client_id, so the conversion counts but never attributes to an ad
 // campaign.
 //
+// For the same reason nothing is sent to Meta's Conversions API from here
+// (compare cognito.js): there is no _fbp / _fbc to attach the payment to,
+// and without one of those _lib/meta.js sends nothing by design.
+//
 // SIGNATURE VERIFICATION: Zeffy sends a `zeffy-signature: t=<unix seconds>,
 // v1=<hex hmac>` header, captured from a real delivery on 2026-08-25. That
 // `t=...,v1=...` shape is Stripe's webhook signature format exactly (not

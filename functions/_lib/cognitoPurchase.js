@@ -91,6 +91,20 @@ export function planCognitoEvents(entry, { waFormIds, now = Date.now() }) {
 
   return {
     transactionId,
+    // For Meta's Conversions API (see _lib/meta.js). FBP / FBC are hidden
+    // fields CognitoForm.astro prefills from the visitor's _fbp / _fbc
+    // cookies; a form without them simply sends nothing to Meta.
+    meta: {
+      transactionId,
+      value,
+      currency: 'USD',
+      itemName: params.items[0].item_name,
+      itemCategory: params.items[0].item_category,
+      fbp: nonEmptyString(entry.FBP),
+      fbc: nonEmptyString(entry.FBC),
+      email: nonEmptyString(entry.Email),
+      paidAt: entry.Order?.PaymentDate ?? null,
+    },
     clientId: nonEmptyString(entry.GAClientId),
     timestampMicros: toTimestampMicros(entry.Order?.PaymentDate, now),
     events,

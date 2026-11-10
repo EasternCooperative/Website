@@ -33,6 +33,12 @@
 //      Order.PaymentDate and Entry.DateUpdated are present, the payment must
 //      have happened within PAYMENT_FRESH_MS of this update.
 //
+// Meta: the same payment is also sent to Meta's Conversions API as a
+// `Purchase` with its value (see ../../_lib/meta.js), when META_PIXEL_ID and
+// META_CAPI_TOKEN are set and the form carries the hidden "FBP" / "FBC"
+// fields that CognitoForm.astro prefills. Without those the Meta step is a
+// silent no-op.
+//
 // Dedupe: GA4 dedupes `purchase` by transaction_id but not custom events.
 // When a KV namespace is bound as TRACK_DEDUPE, each payment is recorded
 // under `cognito:<transaction_id>` after a successful send, and any later
@@ -43,6 +49,7 @@
 
 import { sendMpEvents, randomClientId, isAuthorized } from '../../_lib/ga4.js';
 import { planCognitoEvents, parseFormIds } from '../../_lib/cognitoPurchase.js';
+import { sendMetaPurchase } from '../../_lib/meta.js';
 
 const DEDUPE_TTL_SECONDS = 400 * 24 * 60 * 60;
 
@@ -85,6 +92,11 @@ export const onRequestPost = async (context) => {
   if (dedupe && env.GA4_DEBUG !== 'true') {
     await dedupe.put(dedupeKey, new Date().toISOString(), { expirationTtl: DEDUPE_TTL_SECONDS });
   }
+
+  // Meta gets the same payment through its Conversions API. Runs after the
+  // dedupe key is written, so a retried delivery never reaches this line, and
+  // its outcome never changes the response: GA4 is the system of record.
+  if (env.GA4_DEBUG !== 'true') await sendMetaPurchase(env, plan.meta);
 
   return new Response('OK', { status: 200 });
 };
