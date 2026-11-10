@@ -1,0 +1,152 @@
+---
+// Member map for the About page, drawn into the HTML at build time as plain SVG.
+//
+// It used to be the React heatmap (MemberHeatmap.tsx) hydrated in the browser:
+// an 876 KB script that re-drew a map the server had already drawn, from 1.2 MB
+// of geometry. Now the paths are computed once here, thinned to sub-pixel
+// precision, and shipped as markup; the only script is a small tooltip handler
+// below. The interactive version, with site-distance bands, stays on the staff
+// member-map tool.
+import geoData from '~/data/us-ca-admin1.json';
+import {
+  ABOUT_VIEW,
+  geometryToPath,
+  lerpColor,
+  regionLabel,
+  summarizeCities,
+  toFlag,
+  type MemberCity,
+} from '~/utils/memberMap';
+
+interface Props {
+  cities: MemberCity[];
+  /** Show "<5" instead of exact counts under five, so a small town can't be picked out. */
+  maskSmallCounts?: boolean;
+}
+
+const { cities, maskSmallCounts = false } = Astro.props;
+const view = ABOUT_VIEW;
+
+const { regionCounts, maxCount, intlCountries } = summarizeCities(cities);
+
+interface AdminFeature {
+  properties: Record<string, string>;
+  geometry: Parameters<typeof geometryToPath>[0];
+}
+
+const regions = (geoData as unknown as { features: AdminFeature[] }).features
+  .map((feature) => {
+    const { iso_a2, postal, name } = feature.properties;
+    const count = regionCounts[`${iso_a2}-${postal}`] ?? 0;
+    return {
+      name,
+      d: geometryToPath(feature.geometry, view),
+      fill: count > 0 ? lerpColor('#fed7aa', '#c2410c', Math.sqrt(count / maxCount)) : '#e2e8f0',
+      label: regionLabel(name, count, maskSmallCounts),
+    };
+  })
+  .filter((region) => region.d);
+
+const memberRegions = Object.keys(regionCounts).length;
+
+// Legend for members outside North America, anchored to the bottom-right corner.
+const ROW_H = 20;
+const LEGEND_X = 14;
+const legendWidth = intlCountries.reduce((max, c) => Math.max(max, c.name.length * 6 + 32), 120);
+const legendY = view.height - 12 - intlCountries.length * ROW_H - 22;
+---
+
+<div class="member-map relative overflow-hidden rounded-xl border border-gray-200 bg-slate-100 dark:border-gray-700 dark:bg-slate-800">
+  <svg
+    viewBox={`0 0 ${view.width} ${view.height}`}
+    class="block h-auto w-full"
+    role="img"
+    aria-label={`Map of ECRS members across ${memberRegions} states and provinces${intlCountries.length ? `, and ${intlCountries.length} other ${intlCountries.length === 1 ? 'country' : 'countries'}` : ''}`}
+  >
+    <g stroke="#ffffff" stroke-width="0.5" stroke-linejoin="round">
+      {regions.map((region) => (
+        <path class="member-map-region" d={region.d} fill={region.fill} data-tip={region.label} />
+      ))}
+    </g>
+
+    {intlCountries.length > 0 && (
+      <g transform={`translate(${view.width - LEGEND_X}, ${legendY})`} pointer-events="none">
+        <rect
+          x={-legendWidth}
+          y={-4}
+          width={legendWidth}
+          height={22 + intlCountries.length * ROW_H + 4}
+          rx="6"
+          fill="white"
+          fill-opacity="0.75"
+        />
+        <text font-size="8" font-weight="700" fill="#64748b" letter-spacing="1" text-anchor="end" x="-4" y="8">
+          Outside North America
+        </text>
+        {intlCountries.map((c, i) => (
+          <text
+            font-size="10"
+            fill="#1e293b"
+            dominant-baseline="middle"
+            font-family="system-ui, sans-serif"
+            text-anchor="end"
+            x="-4"
+            y={24 + i * ROW_H}
+          >
+            {toFlag(c.code)} {c.name}
+          </text>
+        ))}
+      </g>
+    )}
+  </svg>
+
+  <div
+    class="member-map-tip pointer-events-none fixed z-50 hidden rounded bg-gray-900 px-2 py-1 text-xs text-white shadow"
+    role="presentation"
+  ></div>
+</div>
+
+<style>
+  .member-map-region:hover {
+    filter: brightness(0.9);
+  }
+</style>
+
+<script>
+  // Hover / tap tooltip. Delegated on the document so it keeps working after
+  // View Transition swaps replace the map's DOM (a page <script> only runs once).
+  const OFFSET_X = 12;
+  const OFFSET_Y = -8;
+
+  function tipFor(target: EventTarget | null) {
+    const region = target instanceof Element ? target.closest<SVGElement>('.member-map-region') : null;
+    const tip = region?.closest('.member-map')?.querySelector<HTMLElement>('.member-map-tip');
+    return region && tip ? { region, tip } : null;
+  }
+
+  function place(tip: HTMLElement, x: number, y: number) {
+    const left = Math.min(x + OFFSET_X, window.innerWidth - tip.offsetWidth - 8);
+    tip.style.left = `${Math.max(8, left)}px`;
+    tip.style.top = `${y + OFFSET_Y}px`;
+  }
+
+  function hideAll() {
+    document.querySelectorAll<HTMLElement>('.member-map-tip').forEach((tip) => tip.classList.add('hidden'));
+  }
+
+  function show(e: PointerEvent) {
+    const hit = tipFor(e.target);
+    if (!hit) return hideAll();
+    hit.tip.textContent = hit.region.getAttribute('data-tip');
+    hit.tip.classList.remove('hidden');
+    place(hit.tip, e.clientX, e.clientY);
+  }
+
+  document.addEventListener('pointerover', show);
+  document.addEventListener('pointermove', show);
+  document.addEventListener('pointerout', (e) => {
+    if (tipFor(e.target)) hideAll();
+  });
+  document.addEventListener('scroll', hideAll, { passive: true });
+  document.addEventListener('astro:before-swap', hideAll);
+</script>

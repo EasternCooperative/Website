@@ -6,13 +6,13 @@ Measurements come from a production build on 2026-11-09 and from requests to the
 
 ## Summary
 
-| Area               | Fixed on this branch                                                                                     | Left as a recommendation                                      |
-| ------------------ | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| SEO                | Redirect on every page URL, staff page in the sitemap, robots rules, `llms.txt`                          | `www` duplicate host (dashboard change, steps below)          |
-| Performance        | HTML served without a Function, animation library not downloaded on mobile, unused font file             | About page map weight, search script, hero video, hero poster |
-| Leftover code      | Template skill files, unused icon set, dead share handler, `.pnpmrc`                                     | Local-only folders                                            |
-| Tracking           | Consent signals, pixel opt-out, mailing list signups, Ads conversion value, Meta mapping, Meta purchases | Zeffy attribution                                             |
-| Schedule generator | Tool screens, attendee PDFs, master schedule print, one-paste publishing, black and white                | Nothing outstanding                                           |
+| Area               | Fixed on this branch                                                                                                             | Left as a recommendation                             |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| SEO                | Redirect on every page URL, staff page in the sitemap, robots rules, `llms.txt`                                                  | `www` duplicate host (dashboard change, steps below) |
+| Performance        | HTML served without a Function, About page map built at build time, animation library not downloaded on mobile, unused font file | Search script, hero video, hero poster               |
+| Leftover code      | Template skill files, unused icon set, dead share handler, `.pnpmrc`                                                             | Local-only folders                                   |
+| Tracking           | Consent signals, pixel opt-out, mailing list signups, Ads conversion value, Meta mapping, Meta purchases                         | Zeffy attribution                                    |
+| Schedule generator | Tool screens, attendee PDFs, master schedule print, one-paste publishing, black and white                                        | Nothing outstanding                                  |
 
 ## Check after this deploys
 
@@ -72,13 +72,31 @@ The index page is now `/internal/tools`, inside the protected pattern, and `/int
 
 The middleware is gone. `public/_routes.json` now sends only `/api/*` to Functions, so pages are served as static assets. The consent script asks Cloudflare's own `/cdn-cgi/trace` endpoint for the country, once per browser session. The policy is unchanged: the banner shows everywhere except the US, and an unknown country is treated as gated. A returning visitor who already accepted is measured immediately without waiting for the lookup.
 
+### Fixed: the About page map was blank, and 474 KB
+
+The member map on the About page was the interactive React heatmap, hydrated in the browser. It had two problems.
+
+**It drew nothing.** The map library's zoom wrapper recenters on its own default point (latitude 0, longitude 0), while the projection was already centered on North America, so the whole map was panned far off screen. Every state's markup was present and the box was empty. This has been the case on the live site since the library bump in #321. The staff version at `/internal/member-map` had the same fault.
+
+**It was the heaviest page on the site.** The server rendered all 64 states and provinces as full-precision paths (about 400 KB of HTML), and then an 876 KB script redrew them in the browser from 1.2 MB of geometry.
+
+The About page map is now plain SVG written into the HTML at build time (`MemberMap.astro`, with the projection and path simplification in `src/utils/memberMap.ts`). Paths are thinned to sub-pixel precision, and rings entirely off the visible area (Alaska's far islands, the Canadian Arctic) and specks too small to see are dropped. It matches the old map's projection exactly, which a unit test pins to d3's own output. The visible result is the map the page was always meant to show.
+
+| About page    | Before | After  |
+| ------------- | ------ | ------ |
+| HTML          | 474 KB | 117 KB |
+| HTML, gzipped | 177 KB | 40 KB  |
+| Map script    | 876 KB | none   |
+| Map visible   | no     | yes    |
+
+Hover tooltips are kept (a small delegated handler, which survives page transitions), counts under five are still masked, and dark mode and phone widths were checked in a browser. Zoom and pan are gone; they never worked on the page. The staff map keeps the interactive version, now correctly centered.
+
 ### Fixed: unused font file
 
 The hero font shipped a 105 KB `.ttf` fallback behind the `.woff2`. Every browser the site supports uses the `.woff2`, so the fallback is removed.
 
 ### Recommended
 
-- **The About page is the heaviest page on the site.** Its HTML is 474 KB (177 KB gzipped) against 56 KB for the homepage. About 400 KB of that is the member map, rendered on the server as 74 SVG paths and then rendered again in the browser by an 876 KB script chunk. The source geometry, `src/data/us-ca-admin1.json`, is 1.2 MB. Options, in order of effort: simplify the geometry (a map this size does not need that precision), or draw the map once at build time as a static SVG and keep the script for the interactive staff version only.
 - **The search script loads eagerly on every page**: 155 KB, 38 KB gzipped. It could load on first use of the search button. Not attempted because of the known fragile interaction between Pagefind and view transitions.
 - **`toss-game.webm` is larger than its `.mp4`** (9.0 MB against 8.8 MB) and is offered to browsers first. Re-encode it or drop it. The hero videos total 39 MB in the repo, though they are fetched lazily.
 - **The homepage hero poster** is the likely largest paint and has no preload or `fetchpriority`. Measure with Lighthouse before changing it.

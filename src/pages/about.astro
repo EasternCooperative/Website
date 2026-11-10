@@ -3,7 +3,7 @@ import Content from '~/components/widgets/Content.astro';
 import Features2 from '~/components/widgets/Features2.astro';
 import CallToAction from '~/components/widgets/CallToAction.astro';
 import HeroText from '~/components/widgets/HeroText.astro';
-import MemberHeatmap from '~/components/widgets/MemberHeatmap';
+import MemberMap from '~/components/widgets/MemberMap.astro';
 import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
 import Layout from '~/layouts/PageLayout.astro';
 import aboutSettings from '~/data/settings/about.json';
@@ -44,7 +44,7 @@ const pillars = aboutSettings.pillars.map((pillar) => ({
       />
 
       <WidgetWrapper containerClass="py-8 max-w-4xl">
-        <MemberHeatmap cities={memberLocations.cities} maskSmallCounts client:visible />
+        <MemberMap cities={memberLocations.cities} maskSmallCounts />
       </WidgetWrapper>
     </>
   )}
