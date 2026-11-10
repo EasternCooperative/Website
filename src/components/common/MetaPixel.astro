@@ -51,8 +51,10 @@ const id = ANALYTICS?.vendors?.metaPixel?.id ? String(ANALYTICS.vendors.metaPixe
       window.fbq('track', 'PageView');
     }
 
+    // Analytics.astro owns the region lookup (see resolveRegion there) and
+    // exposes the answer; until it is known this reports "gated".
     function consentRequired() {
-      return document.documentElement.getAttribute('data-consent-region') !== 'false';
+      return !window.__ecrsConsent || window.__ecrsConsent.required();
     }
 
     function apply() {
@@ -74,6 +76,8 @@ const id = ANALYTICS?.vendors?.metaPixel?.id ? String(ANALYTICS.vendors.metaPixe
     // Usually the pixel was never loaded when the visitor declines. It can be,
     // though: someone who accepted earlier (or a US visitor) reopening "Cookie
     // settings" and declining. Tell the loaded pixel to stop sending.
+    // The region lookup finished: a US visitor can now get the pixel.
+    window.addEventListener('ecrs:consent-region', () => apply());
     window.addEventListener('ecrs:consent-denied', () => {
       if (loaded && window.fbq) window.fbq('consent', 'revoke');
     });

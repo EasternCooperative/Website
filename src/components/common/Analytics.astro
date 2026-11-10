@@ -99,9 +99,56 @@ const id = ANALYTICS?.vendors?.googleAnalytics?.id ? String(ANALYTICS.vendors.go
       });
     }
 
-    // Gated unless the edge explicitly marked this request as US ("false").
+    // Consent region. Policy: the banner gates analytics everywhere except the
+    // US. The country comes from Cloudflare's own /cdn-cgi/trace endpoint (a
+    // tiny text response with a `loc=XX` line), asked for once per browser
+    // session. It used to be stamped into the HTML by an edge function, which
+    // meant every page request ran a Function and no HTML could be cached.
+    // Unknown (lookup pending, failed, or blocked) is treated as gated: the
+    // privacy-safe default.
+    var REGION_KEY = 'ecrs-consent-region';
+    var regionGated = null; // null until known
+    try {
+      var cachedRegion = sessionStorage.getItem(REGION_KEY);
+      if (cachedRegion === 'open') regionGated = false;
+      else if (cachedRegion === 'gated') regionGated = true;
+    } catch {
+      /* sessionStorage may be unavailable (private mode) */
+    }
+
     function consentRequired() {
-      return document.documentElement.getAttribute('data-consent-region') !== 'false';
+      return regionGated !== false;
+    }
+
+    var regionLookup = null;
+    function resolveRegion() {
+      if (regionGated !== null) return Promise.resolve();
+      if (!regionLookup) {
+        regionLookup = fetch('/cdn-cgi/trace', { cache: 'no-store' })
+          .then(function (res) {
+            return res.ok ? res.text() : '';
+          })
+          .then(function (text) {
+            var match = /^loc=([A-Z]{2})\s*$/m.exec(text);
+            regionGated = !(match && match[1] === 'US');
+            // Only remember a real answer; a failed lookup is retried on the next full page load.
+            if (match) {
+              try {
+                sessionStorage.setItem(REGION_KEY, regionGated ? 'gated' : 'open');
+              } catch {
+                /* best effort */
+              }
+            }
+          })
+          .catch(function () {
+            regionGated = true;
+          })
+          .then(function () {
+            regionLookup = null;
+            window.dispatchEvent(new CustomEvent('ecrs:consent-region'));
+          });
+      }
+      return regionLookup;
     }
 
     function banner() {
@@ -136,11 +183,21 @@ const id = ANALYTICS?.vendors?.googleAnalytics?.id ? String(ANALYTICS.vendors.go
     }
 
     // Exposed for any external trigger (e.g. the footer "Cookie settings" link).
-    window.__ecrsConsent = { grant: grant, deny: deny, show: showBanner };
+    // `required` is how MetaPixel.astro reads the region, so both scripts
+    // always agree on it.
+    window.__ecrsConsent = { grant: grant, deny: deny, show: showBanner, required: consentRequired };
 
     // Decide what to do on each page render.
     function apply() {
       var stored = getStored();
+      if (regionGated === null) {
+        // Region not known yet. An earlier "Accept" is valid anywhere, so act
+        // on it now; otherwise wait for the lookup rather than flash a banner
+        // at a US visitor. resolveRegion() calls back into apply().
+        if (stored === 'granted') loadGA();
+        resolveRegion().then(apply);
+        return;
+      }
       if (!consentRequired()) {
         // US: load immediately unless the visitor previously opted out.
         if (stored !== 'denied') loadGA();
