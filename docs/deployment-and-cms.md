@@ -127,6 +127,17 @@ for a WA-only conversion action. The browser-side `form_submit_event` conversion
 (`EventTracker.astro`) is **Secondary**, kept for reporting only, so one
 registration isn't counted twice.
 
+### Setting up a new paid Cognito form
+
+Nothing in the repo does this; it is configured in Cognito Forms for each form that takes payment, before registration opens. Without it the form's revenue never reaches Google Ads or Meta.
+
+1. **Submit webhook:** add `https://ecrs.org/api/track-purchase/cognito?key=<TRACK_PURCHASE_KEY>` as a Submit endpoint (the key is the `TRACK_PURCHASE_KEY` Pages variable). A form with a pay-later workflow also needs it as an Update endpoint.
+2. **One hidden field named exactly `GAClientId`** (single line of text). The site fills it in from the visitor's GA cookie; the webhook uses it to attribute the purchase to the ad click and to look up the visitor's Meta ids. No other hidden fields are needed, and `GASessionId` is optional on new forms.
+3. **Winter Adventure registration only:** add the new form's numeric id to the `WA_FORM_IDS` Pages variable (comma-separated), so it also sends the `wa_purchase` event.
+4. **Check it:** after the first real payment, a `purchase` event should appear in GA4 (and in Meta Events Manager if the Meta variables are set).
+
+A Zeffy form needs none of this: Zeffy's webhook is account-wide, so its payments are reported without per-event setup, though they cannot be attributed to a campaign.
+
 ## CMS (Sveltia)
 
 - Editors use **Sveltia CMS** at `/admin`. Configuration lives in
