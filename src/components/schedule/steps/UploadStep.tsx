@@ -64,13 +64,13 @@ export default function UploadStep({ attachTo, onParsed, onAttached, onSkip }: P
   );
 
   return (
-    <div className="mx-auto max-w-xl py-12">
+    <div className="mx-auto max-w-xl py-4">
       <h2 className="font-heading mb-2 text-2xl font-bold text-default">
         {attachTo ? 'Add Registrations (optional)' : 'Upload Registration Export'}
       </h2>
       <p className="mb-6 text-sm text-muted">
         {attachTo
-          ? 'Only needed for workshop rosters and individual schedules. Upload the Cognito Forms Excel export to match sign-ups to the classes already loaded from the event page.'
+          ? 'Only needed to print class rosters and individual schedules. Upload the Cognito Forms Excel export to match sign-ups to the classes already loaded from the event page. The file is read in this browser and never uploaded.'
           : 'Export the Winter Adventure registration from Cognito Forms as an Excel file and upload it here.'}
       </p>
 
@@ -121,6 +121,7 @@ export default function UploadStep({ attachTo, onParsed, onAttached, onSkip }: P
 
       {onSkip && (
         <button
+          type="button"
           onClick={onSkip}
           className="mt-6 text-sm font-medium text-primary transition-colors hover:text-secondary hover:underline"
         >

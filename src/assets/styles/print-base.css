@@ -1,0 +1,31 @@
+/* Shared rules for every page that offers printing (activity sheets, the master
+   schedule). These get run off on whatever printer is to hand, usually a
+   black-and-white laser, so print is ink-on-white regardless of the on-screen
+   theme: no page tint, no site chrome, and black text even when the visitor is
+   browsing in dark mode (whose light text colours would otherwise print
+   near-invisible on white paper). */
+@media print {
+  header,
+  footer,
+  #consent-banner,
+  [data-back-to-top] {
+    display: none !important;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  main,
+  main * {
+    color: #000 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    /* Scroll-reveal leaves below-the-fold content transparent and offset until scrolled to. */
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+  }
+}

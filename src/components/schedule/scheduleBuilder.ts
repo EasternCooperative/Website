@@ -11,6 +11,9 @@ export interface RosterEntry {
   leader: string;
   location: string;
   period: string;
+  /** Day span, so a roster for a half-block class can say which half. Optional for older callers. */
+  startDay?: number;
+  endDay?: number;
   attendees: { fullName: string; age: string }[];
 }
 
@@ -50,6 +53,8 @@ export function buildRosters(workshops: Workshop[]): RosterEntry[] {
         leader: w.leader,
         location: w.location || '(No Location)',
         period: w.period.displayName,
+        startDay: w.duration.startDay,
+        endDay: w.duration.endDay,
         attendees: sorted.map((s) => ({ fullName: s.fullName, age: '' })),
       };
     })

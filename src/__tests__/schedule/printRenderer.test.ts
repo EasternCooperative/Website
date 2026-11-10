@@ -306,3 +306,121 @@ describe('downloadIndividualSchedules', () => {
     expect(mockCreatePdf).toHaveBeenCalledOnce();
   });
 });
+
+describe('document content', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockCreatePdf.mockReturnValue({ download: mockDownload });
+  });
+
+  const text = (doc: unknown) => JSON.stringify(doc);
+
+  it('prints the label it is given and never appends the current year', async () => {
+    const schedules: IndividualSchedule[] = [{ fullName: 'Alice Johnson', email: '', age: '', entries: [] }];
+    await downloadIndividualSchedules(schedules, timeslots, 'Winter Adventure 2026');
+    const doc = mockCreatePdf.mock.calls[0][0];
+    expect(text(doc.content)).toContain('WINTER ADVENTURE 2026');
+    expect(text(doc.content)).not.toContain(`2026 ${new Date().getFullYear()}`);
+    expect(mockDownload).toHaveBeenCalledWith('Winter Adventure 2026_IndividualSchedules.pdf');
+  });
+
+  it('labels a lone half-event class with its days and marks the other half free', async () => {
+    const schedules: IndividualSchedule[] = [
+      {
+        fullName: 'Half Timer',
+        email: '',
+        age: '',
+        entries: [
+          {
+            periodKey: 'MorningFirstPeriod',
+            periodDisplay: 'Morning First Period',
+            workshopName: 'Chair Yoga',
+            leader: '',
+            location: 'Elm Room',
+            startDay: 1,
+            endDay: 2,
+          },
+        ],
+      },
+    ];
+    await downloadIndividualSchedules(schedules, timeslots, 'Winter Adventure 2026');
+    const table = mockCreatePdf.mock.calls[0][0].content[0].stack.find((n: { table?: object }) => n.table).table;
+    const morning = text(table.body.slice(1, 3));
+    expect(morning).toContain('DAYS 1–2');
+    expect(morning).toContain('Chair Yoga');
+    expect(morning).toContain('DAYS 3–4');
+    expect(morning).toContain('Free');
+    // the time cell spans both sub-rows
+    expect(table.body[1][0].rowSpan).toBe(2);
+  });
+
+  it('keeps time ranges on one line and puts the room in its own column', async () => {
+    const schedules: IndividualSchedule[] = [
+      {
+        fullName: 'Alice Johnson',
+        email: '',
+        age: '',
+        entries: [
+          {
+            periodKey: 'MorningFirstPeriod',
+            periodDisplay: 'Morning First Period',
+            workshopName: 'Woodworking',
+            leader: 'John Smith',
+            location: 'Chapel A',
+            startDay: 1,
+            endDay: 4,
+          },
+        ],
+      },
+    ];
+    await downloadIndividualSchedules(schedules, timeslots, 'Winter Adventure 2026');
+    const table = mockCreatePdf.mock.calls[0][0].content[0].stack.find((n: { table?: object }) => n.table).table;
+    expect(table.body[1][0]).toMatchObject({ text: '9:00 AM - 10:40 AM', noWrap: true });
+    expect(table.body[1][2]).toMatchObject({ text: 'Chapel A' });
+  });
+
+  it('uses only black and gray, so nothing depends on a colour printer', async () => {
+    const schedules: IndividualSchedule[] = [{ fullName: 'Alice Johnson', email: '', age: '', entries: [] }];
+    await downloadIndividualSchedules(schedules, timeslots, 'Winter Adventure 2026');
+    downloadRosters(
+      [
+        {
+          workshopName: 'Woodworking',
+          leader: 'John Smith',
+          location: 'Chapel A',
+          period: 'Morning First Period',
+          attendees: [{ fullName: 'Alice Johnson', age: '' }],
+        },
+      ],
+      'Winter Adventure 2026'
+    );
+    const colours = mockCreatePdf.mock.calls.flatMap((call) => text(call[0]).match(/#[0-9a-fA-F]{6}/g) ?? []);
+    expect(colours.length).toBeGreaterThan(0);
+    for (const c of colours) {
+      const [r, g, b] = [c.slice(1, 3), c.slice(3, 5), c.slice(5, 7)];
+      expect(r === g && g === b, `${c} is not a gray`).toBe(true);
+    }
+  });
+
+  it('draws roster check boxes and shows the day span of a half-event class, without the no-room placeholder', () => {
+    downloadRosters(
+      [
+        {
+          workshopName: 'Chair Yoga',
+          leader: 'Judi',
+          location: '(No Location)',
+          period: 'Morning First Period',
+          startDay: 3,
+          endDay: 4,
+          attendees: [{ fullName: 'Alice Johnson', age: '' }],
+        },
+      ],
+      'Winter Adventure 2026'
+    );
+    const doc = text(mockCreatePdf.mock.calls[0][0].content);
+    expect(doc).toContain('"type":"rect"');
+    expect(doc).not.toContain('[      ]');
+    expect(doc).toContain('Days 3–4');
+    expect(doc).not.toContain('(No Location)');
+  });
+});

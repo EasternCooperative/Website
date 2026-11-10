@@ -7,20 +7,29 @@ import ScheduleCellItem from '~/components/schedule/ScheduleCellItem.astro';
 import { buildEventMasterSchedule, hasMasterSchedule, baseEventTitle } from '~/utils/eventSchedule';
 import { buildScheduleGrid } from '~/components/schedule/scheduleGrid';
 import { renderInlineMarkdown } from '~/utils/markdown';
+import { formatEventDateRange } from '~/utils/dates';
+import { resolveVenue } from '~/utils/resolveEvent';
 import siteSettings from '~/data/settings/site.json';
+import '~/assets/styles/print-base.css';
 
 export async function getStaticPaths() {
   const events = await getCollection('event');
+  const sites = await getCollection('site');
+  const siteMap = new Map(sites.map((s) => [s.id, s.data]));
   return events
     .filter((event) => hasMasterSchedule(event.data).ok)
-    .map((event) => ({ params: { id: event.id }, props: { event } }));
+    .map((event) => ({
+      params: { id: event.id },
+      props: { event, siteData: event.data.siteId ? siteMap.get(event.data.siteId) : undefined },
+    }));
 }
 
 interface Props {
   event: CollectionEntry<'event'>;
+  siteData?: CollectionEntry<'site'>['data'];
 }
 
-const { event } = Astro.props;
+const { event, siteData } = Astro.props;
 const { data } = event;
 const classes = data.classes ?? [];
 
@@ -31,6 +40,21 @@ const peopleFlag = siteSettings.featureFlags.peopleWithoutPhotoOrBio;
 const grid = buildScheduleGrid(buildEventMasterSchedule(data, leaderMap));
 const year = data.date.getUTCFullYear();
 const eventLabel = `${baseEventTitle(data.title)} ${year}`;
+
+// Dates and venue under the title, so a printed sheet says which event it is for.
+const whenWhere = [formatEventDateRange(data.date, data.endDate), resolveVenue(data, siteData).location]
+  .filter(Boolean)
+  .join(' · ');
+
+// The site rebuilds daily and the PDF re-renders whenever schedule data changes,
+// so the build date is a fair "as of" stamp for telling two printouts apart.
+const asOf = new Date().toLocaleDateString('en-US', {
+  month: 'long',
+  day: 'numeric',
+  year: 'numeric',
+  timeZone: 'America/New_York',
+});
+const publicUrl = `${new URL(Astro.site ?? 'https://ecrs.org').host}/events/${event.id}/schedule`;
 
 const metadata = {
   title: `${eventLabel} Schedule`,
@@ -80,7 +104,8 @@ const leaderPopoverIds = [
     </div>
 
     <h1 class="font-heading mb-1 text-3xl font-bold text-heading">{eventLabel} Schedule</h1>
-    <p class="mb-6 text-sm text-muted">Class times and rooms. Tap a class or leader for details.</p>
+    <p class="schedule-when mb-1 text-sm font-semibold text-default">{whenWhere}</p>
+    <p class="no-print mb-6 text-sm text-muted">Class times and rooms. Tap a class or leader for details.</p>
 
     <div class="overflow-x-auto">
       <table class="schedule-grid w-full border-collapse text-sm">
@@ -103,9 +128,18 @@ const leaderPopoverIds = [
               </tr>
             ) : (
               <>
-                <tr>
-                  <td class="border px-3 py-2 align-middle font-semibold" rowspan={2}>
-                    {row.timeText || row.displayName}
+                <tr class="schedule-period-start">
+                  <td class="schedule-time border px-3 py-2 align-middle font-semibold" rowspan={2}>
+                    {row.startText ? (
+                      <>
+                        <span class="block whitespace-nowrap">
+                          {row.endText ? `${row.startText} -` : row.startText}
+                        </span>
+                        {row.endText && <span class="block whitespace-nowrap">{row.endText}</span>}
+                      </>
+                    ) : (
+                      row.displayName
+                    )}
                   </td>
                   <td class="border px-3 py-2 text-xs text-muted whitespace-nowrap">
                     Days
@@ -163,6 +197,9 @@ const leaderPopoverIds = [
         </tbody>
       </table>
     </div>
+    <p class="print-only mt-2 text-xs">
+      As of {asOf}. Latest version: {publicUrl}
+    </p>
   </section>
 
   <div class="schedule-popovers no-print">
@@ -250,6 +287,9 @@ const leaderPopoverIds = [
   .schedule-grid tr {
     page-break-inside: avoid;
   }
+  .print-only {
+    display: none;
+  }
   /* Dark mode on screen only; printing always uses the light fills above. Uses the site's warm dark surface tokens. */
   @media screen {
     :global(html.dark) .schedule-grid th,
@@ -263,11 +303,12 @@ const leaderPopoverIds = [
   }
 
   @media print {
-    :global(header),
-    :global(footer),
-    :global(#consent-banner),
+    /* Site chrome, the page tint, and theme text colours are handled by print-base.css. */
     .no-print {
       display: none !important;
+    }
+    .print-only {
+      display: block;
     }
     :global(main) {
       padding: 0 !important;
@@ -284,8 +325,9 @@ const leaderPopoverIds = [
       margin-bottom: 0.6rem !important;
       font-size: 1.4rem !important;
     }
-    section > p {
-      display: none !important;
+    .schedule-when {
+      margin-bottom: 0.4rem !important;
+      font-size: 0.8rem !important;
     }
     /* With border-collapse, the shared line between two adjacent filled break rows (Lunch / Free Time) gets painted over by the cell backgrounds in some print engines. Switch to separate borders for print — never covered by a background. The outer frame lives on the <table> itself (a cell's right/bottom edge can get clipped at the printable area); cells draw the internal right + bottom lines. */
     .schedule-grid {
@@ -297,6 +339,23 @@ const leaderPopoverIds = [
     .schedule-grid td {
       border-width: 0 1px 1px 0 !important;
       border-color: #9ca3af !important;
+    }
+    /* Black-and-white printers: the rows are told apart by rules and weight, not
+       tint. A heavier black line starts each class period and each meal/break
+       band, and the fills are one light gray that survives a draft-mode laser. */
+    .schedule-grid {
+      border-color: #000 !important;
+    }
+    .schedule-grid thead th {
+      border-bottom: 1.5pt solid #000 !important;
+    }
+    .schedule-grid tbody tr.schedule-period-start > td,
+    .schedule-grid tbody tr.schedule-break > td {
+      border-top: 1pt solid #000 !important;
+    }
+    .schedule-grid thead th,
+    .schedule-break td {
+      background: #e5e5e5 !important;
     }
     /* Compact cells so a full day (meals, classes, evening) fits one page. */
     .schedule-grid {

@@ -1,4 +1,4 @@
-import { formatTimeRange } from './timeUtils';
+import { formatTime, formatTimeRange } from './timeUtils';
 import type { MasterScheduleData } from './scheduleBuilder';
 
 // Pure master-schedule model consumed by the printable HTML page
@@ -20,7 +20,15 @@ export interface GridPeriodCell {
 
 export type ScheduleGridRow =
   | { kind: 'break'; label: string; timeText: string }
-  | { kind: 'period'; timeText: string; displayName: string; cells: GridPeriodCell[] };
+  | {
+      kind: 'period';
+      timeText: string;
+      /** Start and end as separate strings so the time column can stack them instead of wrapping mid-time. */
+      startText: string;
+      endText: string;
+      displayName: string;
+      cells: GridPeriodCell[];
+    };
 
 export interface ScheduleGridModel {
   locations: string[];
@@ -59,7 +67,14 @@ export function buildScheduleGrid(data: MasterScheduleData): ScheduleGridModel {
       };
     });
 
-    return { kind: 'period', timeText, displayName: ts.displayName, cells };
+    return {
+      kind: 'period',
+      timeText,
+      startText: ts.startTime ? formatTime(ts.startTime) : '',
+      endText: ts.startTime && ts.endTime ? formatTime(ts.endTime) : '',
+      displayName: ts.displayName,
+      cells,
+    };
   });
 
   return { locations, landscape, rows };

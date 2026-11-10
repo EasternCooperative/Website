@@ -773,7 +773,7 @@ collections:
               name: 'room',
               widget: 'string',
               required: false,
-              hint: 'Room for the printable master schedule grid, e.g. "Rec Hall". Every class in a period needs one or the schedule download stays hidden. Usually set from the Schedule Generator tool.',
+              hint: 'Room for the printable master schedule grid, e.g. "Rec Hall". Every class in a period needs a room, here or in the Master Schedule rooms list, or the schedule download stays hidden. A value here overrides the rooms list.',
             }
           - { label: 'Limited Capacity', name: 'limitedCapacity', widget: 'boolean', required: false, default: false }
           - { label: 'Description', name: 'description', widget: 'markdown', required: false }
@@ -813,6 +813,23 @@ collections:
                   default: false,
                   hint: 'On = full-width band (meals, free time); never matched to classes.',
                 }
+          - label: 'Rooms'
+            name: 'rooms'
+            widget: 'list'
+            required: false
+            collapsed: true
+            summary: '{{fields.class}}: {{fields.room}}'
+            hint: 'Room for each class, usually pasted in from the Schedule Generator tool. A Room set on the class itself overrides its row here.'
+            fields:
+              - { label: 'Class', name: 'class', widget: 'string', hint: 'Must match the class Name.' }
+              - {
+                  label: 'Period',
+                  name: 'period',
+                  widget: 'string',
+                  required: false,
+                  hint: 'The class Period text. Needed only when two classes share a name.',
+                }
+              - { label: 'Room', name: 'room', widget: 'string', hint: 'e.g. Rec Hall' }
 
       # ── Additional Info ───────────────────────────────────────────
       - {

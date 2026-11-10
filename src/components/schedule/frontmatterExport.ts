@@ -1,10 +1,12 @@
 import type { Workshop, TimeSlot } from './models';
 
-// Turns the tool's edited state into a paste-ready `schedule:` frontmatter block
-// plus a class -> room table. The tool is the primary editor for this data; the
-// block is fully tool-owned and safe to paste over whatever is in the event file.
-// Room values are applied per class field (not as a `classes:` block) because the
-// markdown classes carry descriptions/callouts the tool never sees.
+// Turns the tool's edited state into a paste-ready `schedule:` frontmatter block:
+// the timeslot rows plus a `rooms:` list (class name -> room). The tool is the
+// primary editor for this data; the block is fully tool-owned and safe to paste
+// over whatever `schedule:` block is in the event file. Rooms live here rather
+// than on each class so the whole plan publishes in one paste: the markdown
+// classes carry descriptions/callouts the tool never sees, so it can't rewrite
+// the `classes:` block itself.
 
 function yamlString(value: string): string {
   return `'${value.replace(/'/g, "''")}'`;
@@ -12,6 +14,8 @@ function yamlString(value: string): string {
 
 export interface RoomRow {
   name: string;
+  /** The class's period text, so same-named classes in different periods stay distinct. */
+  period: string;
   room: string;
 }
 
@@ -32,8 +36,17 @@ export function buildScheduleFrontmatter(workshops: Workshop[], timeslots: TimeS
 
   const roomRows: RoomRow[] = workshops
     .filter((w) => w.location.trim())
-    .map((w) => ({ name: w.name, room: w.location.trim() }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+    .map((w) => ({ name: w.name, period: w.period.displayName, room: w.location.trim() }))
+    .sort((a, b) => a.name.localeCompare(b.name) || a.period.localeCompare(b.period));
+
+  if (roomRows.length > 0) {
+    lines.push('  rooms:');
+    for (const r of roomRows) {
+      lines.push(`    - class: ${yamlString(r.name)}`);
+      if (r.period) lines.push(`      period: ${yamlString(r.period)}`);
+      lines.push(`      room: ${yamlString(r.room)}`);
+    }
+  }
 
   return { yaml: `${lines.join('\n')}\n`, roomRows };
 }

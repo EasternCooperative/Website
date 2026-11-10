@@ -16,7 +16,44 @@ export interface EventScheduleData {
   date: Date;
   endDate?: Date;
   classes?: EventClass[];
-  schedule?: { timeslots: FrontmatterTimeslot[] };
+  schedule?: { timeslots: FrontmatterTimeslot[]; rooms?: ScheduleRoom[] };
+}
+
+/** One `schedule.rooms[]` entry: the room the schedule tool assigned to a class. */
+export interface ScheduleRoom {
+  class: string;
+  /** The class's `period` text; tells apart classes that share a name across periods. */
+  period?: string;
+  room: string;
+}
+
+/** Class names are matched ignoring case and surrounding whitespace. */
+export function normalizeClassName(name: string): string {
+  return name.trim().toLowerCase();
+}
+
+/** Identity of a class within an event: its period plus its name, both normalised. */
+export function classKey(cls: { name: string; period?: string }): string {
+  return `${slugifyPeriod(cls.period ?? '')}|${normalizeClassName(cls.name)}`;
+}
+
+/**
+ * The room a class meets in: its own `room` field when set, otherwise its entry
+ * in `schedule.rooms` (the block the /internal/schedule tool exports). An entry
+ * that names a period only matches the class in that period; one without a
+ * period matches by name alone. Returns '' when neither has a room.
+ */
+export function resolveClassRoom(
+  cls: Pick<EventClass, 'name' | 'room' | 'period'>,
+  schedule: { rooms?: ScheduleRoom[] } | undefined
+): string {
+  const own = cls.room?.trim();
+  if (own) return own;
+  const name = normalizeClassName(cls.name);
+  const period = slugifyPeriod(cls.period ?? '');
+  const sameName = (schedule?.rooms ?? []).filter((r) => normalizeClassName(r.class) === name);
+  const match = sameName.find((r) => r.period && slugifyPeriod(r.period) === period) ?? sameName.find((r) => !r.period);
+  return match?.room.trim() ?? '';
 }
 
 /** Strip a trailing year from an event title (titles vary: "Winter Adventure" vs "… 2026"). */
@@ -217,7 +254,7 @@ export function hasMasterSchedule(data: EventScheduleData): {
       if (cls.period) unmatchedPeriods.add(cls.period);
       continue;
     }
-    if (!cls.room || !cls.room.trim()) missingRooms.push(cls.name);
+    if (!resolveClassRoom(cls, data.schedule)) missingRooms.push(cls.name);
   }
 
   return {
@@ -250,7 +287,7 @@ export function buildEventMasterSchedule(
       leader: resolveClassLeaderNames(cls, leaderMap).join(', '),
       period: { sheetName, displayName: cls.period ?? '' },
       duration: parseDays(cls.days),
-      location: cls.room ?? '',
+      location: resolveClassRoom(cls, data.schedule),
       selections: [],
       classIndex,
     };

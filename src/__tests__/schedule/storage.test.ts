@@ -1,11 +1,16 @@
 import { describe, it, expect, vi, beforeAll, beforeEach, afterAll } from 'vitest';
 import {
-  saveLocations,
-  loadLocations,
+  applyDraft,
+  buildDraft,
+  clearDraft,
+  isEmptyDraft,
+  loadDraft,
+  saveDraft,
   saveLocationHistory,
   loadLocationHistory,
-  clearAll,
+  workshopKey,
 } from '~/components/schedule/storage';
+import type { Workshop, TimeSlot } from '~/components/schedule/models';
 
 let mockStore: Record<string, string> = {};
 
@@ -29,20 +34,117 @@ beforeEach(() => {
   mockStore = {};
 });
 
-describe('saveLocations / loadLocations', () => {
-  it('saves and loads a locations map', () => {
-    saveLocations({ 'Workshop A': 'Chapel A', 'Workshop B': 'Library' });
-    expect(loadLocations()).toEqual({ 'Workshop A': 'Chapel A', 'Workshop B': 'Library' });
+function ws(name: string, location: string): Workshop {
+  return {
+    name,
+    leader: '',
+    location,
+    period: { sheetName: 'morning', displayName: 'Morning' },
+    duration: { startDay: 1, endDay: 4 },
+    selections: [],
+  };
+}
+
+const slots: TimeSlot[] = [{ periodKey: 'morning', displayName: 'Morning', startTime: '09:00', endTime: '10:40' }];
+const published = { workshops: [ws('Folk Dance', 'Rec Hall'), ws('Chair Yoga', '')], timeslots: slots };
+
+describe('buildDraft', () => {
+  it('is empty when nothing differs from the published state', () => {
+    expect(isEmptyDraft(buildDraft(published, published))).toBe(true);
   });
 
-  it('loadLocations returns an empty object when nothing is saved', () => {
-    expect(loadLocations()).toEqual({});
+  it('records each changed room with the published value it replaced', () => {
+    const current = { workshops: [ws('Folk Dance', 'Chapel A'), ws('Chair Yoga', 'Library')], timeslots: slots };
+    const draft = buildDraft(published, current);
+    expect(draft.rooms[workshopKey(ws('Folk Dance', ''))]).toEqual({ value: 'Chapel A', base: 'Rec Hall' });
+    expect(draft.rooms[workshopKey(ws('Chair Yoga', ''))]).toEqual({ value: 'Library', base: '' });
+    expect(draft.timeslots).toBeUndefined();
   });
 
-  it('overwrites previously saved locations', () => {
-    saveLocations({ 'Workshop A': 'Chapel A' });
-    saveLocations({ 'Workshop A': 'Library' });
-    expect(loadLocations()).toEqual({ 'Workshop A': 'Library' });
+  it('records edited timeslots', () => {
+    const edited = [{ ...slots[0], endTime: '10:30' }];
+    const draft = buildDraft(published, { workshops: published.workshops, timeslots: edited });
+    expect(draft.timeslots?.value).toEqual(edited);
+  });
+});
+
+describe('applyDraft', () => {
+  it('returns the published state untouched when there is no draft', () => {
+    const applied = applyDraft(published, null);
+    expect(applied.workshops).toBe(published.workshops);
+    expect(applied.restoredRooms).toBe(0);
+    expect(applied.restoredTimeslots).toBe(false);
+  });
+
+  it('restores rooms and timeslots edited against the current published state', () => {
+    const edited = [{ ...slots[0], endTime: '10:30' }];
+    const draft = buildDraft(published, {
+      workshops: [ws('Folk Dance', 'Chapel A'), ws('Chair Yoga', '')],
+      timeslots: edited,
+    });
+    const applied = applyDraft(published, draft);
+    expect(applied.workshops.map((w) => w.location)).toEqual(['Chapel A', '']);
+    expect(applied.timeslots).toEqual(edited);
+    expect(applied.restoredRooms).toBe(1);
+    expect(applied.restoredTimeslots).toBe(true);
+  });
+
+  it('lets a newly published room win over a stale edit', () => {
+    // Edit made while "Rec Hall" was published; someone has since published "Library".
+    const draft = buildDraft(published, {
+      workshops: [ws('Folk Dance', 'Chapel A'), ws('Chair Yoga', '')],
+      timeslots: slots,
+    });
+    const republished = { workshops: [ws('Folk Dance', 'Library'), ws('Chair Yoga', '')], timeslots: slots };
+    const applied = applyDraft(republished, draft);
+    expect(applied.workshops[0].location).toBe('Library');
+    expect(applied.restoredRooms).toBe(0);
+  });
+
+  it('drops edited timeslots once the published list has changed', () => {
+    const draft = buildDraft(published, {
+      workshops: published.workshops,
+      timeslots: [{ ...slots[0], endTime: '10:30' }],
+    });
+    const republished = { ...published, timeslots: [{ ...slots[0], startTime: '09:15' }] };
+    const applied = applyDraft(republished, draft);
+    expect(applied.timeslots).toBe(republished.timeslots);
+    expect(applied.restoredTimeslots).toBe(false);
+  });
+});
+
+describe('saveDraft / loadDraft / clearDraft', () => {
+  const draft = { rooms: { 'morning|folk dance': { value: 'Chapel A', base: 'Rec Hall' } } };
+
+  it('round-trips a draft, scoped per event', () => {
+    saveDraft('2026-winter-adventure', draft);
+    expect(loadDraft('2026-winter-adventure')).toEqual({ rooms: draft.rooms, timeslots: undefined });
+    expect(loadDraft('2027-winter-adventure')).toBeNull();
+  });
+
+  it('removes the entry when an empty draft is saved', () => {
+    saveDraft('wa', draft);
+    saveDraft('wa', { rooms: {} });
+    expect(loadDraft('wa')).toBeNull();
+  });
+
+  it('clearDraft removes the draft and the legacy unscoped room map', () => {
+    saveDraft('wa', draft);
+    mockStore['ecrs-schedule-locations'] = '{"old":"Chapel"}';
+    clearDraft('wa');
+    expect(loadDraft('wa')).toBeNull();
+    expect(mockStore['ecrs-schedule-locations']).toBeUndefined();
+  });
+
+  it('loadDraft returns null when storage throws or holds junk', () => {
+    mockStore['ecrs-schedule-draft:wa'] = '{not json';
+    expect(loadDraft('wa')).toBeNull();
+    const original = mockLocalStorage.getItem;
+    mockLocalStorage.getItem = () => {
+      throw new Error('SecurityError');
+    };
+    expect(loadDraft('wa')).toBeNull();
+    mockLocalStorage.getItem = original;
   });
 });
 
@@ -74,30 +176,13 @@ describe('saveLocationHistory / loadLocationHistory', () => {
   });
 });
 
-describe('clearAll', () => {
-  it('removes both saved locations and history', () => {
-    saveLocations({ 'Workshop A': 'Chapel A' });
-    saveLocationHistory(['Chapel A', 'Library']);
-    clearAll();
-    expect(loadLocations()).toEqual({});
-    expect(loadLocationHistory()).toEqual([]);
-  });
-});
-
 describe('localStorage error handling', () => {
-  it('loadLocations returns empty object when getItem throws', () => {
-    vi.spyOn(mockLocalStorage, 'getItem').mockImplementationOnce(() => {
-      throw new Error('storage unavailable');
-    });
-    expect(loadLocations()).toEqual({});
-    vi.restoreAllMocks();
-  });
-
   it('loadLocationHistory returns empty array when getItem throws', () => {
-    vi.spyOn(mockLocalStorage, 'getItem').mockImplementationOnce(() => {
-      throw new Error('storage unavailable');
-    });
+    const original = mockLocalStorage.getItem;
+    mockLocalStorage.getItem = () => {
+      throw new Error('SecurityError');
+    };
     expect(loadLocationHistory()).toEqual([]);
-    vi.restoreAllMocks();
+    mockLocalStorage.getItem = original;
   });
 });

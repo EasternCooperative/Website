@@ -4,6 +4,7 @@ import Layout from '~/layouts/PageLayout.astro';
 import { getCollection } from 'astro:content';
 import ScheduleGenerator, { type ClassesSource } from '~/components/schedule/ScheduleGenerator';
 import { resolveClassLeaderNames } from '~/utils/classes';
+import { classKey, resolveClassRoom } from '~/utils/eventSchedule';
 
 // Load the class list from the current (or most recent) Winter Adventure event so
 // the tool becomes a room/time editor over real classes, not a spreadsheet parser.
@@ -14,12 +15,17 @@ const wa = events
 const now = Date.now();
 const current = wa.find((e) => (e.data.endDate ?? e.data.date).getTime() >= now) ?? wa[0];
 
+// GitHub's web editor for the event file, for pasting the exported `schedule:`
+// block. Repo and branch match the Sveltia backend in public/admin/config.yml.
+const EDIT_BASE = 'https://github.com/EasternCooperative/Website/edit/main';
+
 let classesSource: ClassesSource | null = null;
 if (current?.data.classes?.length) {
   const leaders = await getCollection('leader');
   const leaderMap = new Map(leaders.map((l) => [l.id, l.data]));
   classesSource = {
     eventId: current.id,
+    editUrl: current.filePath ? `${EDIT_BASE}/${current.filePath}` : undefined,
     title: current.data.title,
     year: current.data.date.getUTCFullYear(),
     classes: current.data.classes.map((c) => ({
@@ -29,7 +35,12 @@ if (current?.data.classes?.length) {
       days: c.days ?? '',
     })),
     timeslots: current.data.schedule?.timeslots ?? null,
-    rooms: Object.fromEntries(current.data.classes.map((c) => [c.name.trim().toLowerCase(), c.room ?? ''])),
+    rooms: Object.fromEntries(
+      current.data.classes.map((c) => [classKey(c), resolveClassRoom(c, current.data.schedule)])
+    ),
+    classRooms: Object.fromEntries(
+      current.data.classes.filter((c) => c.room?.trim()).map((c) => [classKey(c), c.room!.trim()])
+    ),
   };
 }
 ---

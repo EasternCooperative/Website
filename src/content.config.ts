@@ -286,6 +286,13 @@ const eventCollection = defineCollection({
             isBreak: z.boolean().optional(), // meals / free time — full-width band, never matched to classes
           })
         ),
+        // Room per class, written by the /internal/schedule tool so a whole room
+        // plan publishes in one paste. `class` matches a class `name` (case and
+        // surrounding whitespace ignored); `period` tells apart classes that share
+        // a name across periods (e.g. "Children's Program"). A class's own `room`
+        // field, when set, overrides its entry here. See resolveClassRoom in
+        // utils/eventSchedule.ts.
+        rooms: z.array(z.object({ class: z.string(), period: optionalString, room: z.string() })).optional(),
       })
       .optional(),
 
