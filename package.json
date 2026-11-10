@@ -67,7 +67,7 @@
     "@iconify-json/tabler": "^1.2.42",
     "@lhci/cli": "^0.16.0",
     "@playwright/test": "^1.61.1",
-    "@sveltia/cms": "^0.256.1",
+    "@sveltia/cms": "^0.261.0",
     "@tailwindcss/typography": "^0.5.20",
     "@tailwindcss/vite": "^4.3.3",
     "@types/lodash.merge": "^4.6.9",
