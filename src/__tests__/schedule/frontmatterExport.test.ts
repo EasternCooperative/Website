@@ -68,6 +68,20 @@ describe('buildScheduleFrontmatter', () => {
     );
   });
 
+  it('lists same-named classes in different periods separately, ordered by period', () => {
+    const afternoon: Workshop = {
+      ...ws("Children's Program", 'Craft Room'),
+      period: { sheetName: 'afternoon', displayName: 'Afternoon' },
+    };
+    const morning = ws("Children's Program", 'Elm Room');
+    const { roomRows, yaml } = buildScheduleFrontmatter([morning, afternoon], timeslots);
+    expect(roomRows.map((r) => [r.period, r.room])).toEqual([
+      ['Afternoon', 'Craft Room'],
+      ['Morning, first period', 'Elm Room'],
+    ]);
+    expect(yaml).toContain("      period: 'Afternoon'\n      room: 'Craft Room'");
+  });
+
   it('round-trips: exported yaml + matching classes rebuild the same grid', () => {
     const { yaml } = buildScheduleFrontmatter(workshops, timeslots);
     // parse the tiny yaml back by hand into the frontmatter shape

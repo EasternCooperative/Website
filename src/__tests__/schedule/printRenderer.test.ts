@@ -19,7 +19,12 @@ vi.mock('~/components/schedule/mapCompositor', () => ({
   compositeMap: mockCompositeMap,
 }));
 
-import { downloadRosters, downloadIndividualSchedules } from '~/components/schedule/printRenderer';
+import {
+  downloadRosters,
+  downloadIndividualSchedules,
+  buildRostersDoc,
+  buildIndividualSchedulesDoc,
+} from '~/components/schedule/printRenderer';
 import type { RosterEntry, IndividualSchedule } from '~/components/schedule/scheduleBuilder';
 import type { TimeSlot } from '~/components/schedule/models';
 
@@ -422,5 +427,188 @@ describe('document content', () => {
     expect(doc).not.toContain('[      ]');
     expect(doc).toContain('Days 3–4');
     expect(doc).not.toContain('(No Location)');
+  });
+});
+
+// pdfmake calls the layout and footer callbacks itself while rendering; the mock
+// never does, so these tests call them the way it would.
+type Layout = Record<string, (...args: unknown[]) => unknown>;
+type Doc = { footer: (page: number, count: number) => { text: string }; content: { stack: object[] }[] };
+
+function findAll(node: unknown, pick: (n: Record<string, unknown>) => boolean, out: Record<string, unknown>[] = []) {
+  if (Array.isArray(node)) node.forEach((n) => findAll(n, pick, out));
+  else if (node && typeof node === 'object') {
+    const obj = node as Record<string, unknown>;
+    if (pick(obj)) out.push(obj);
+    Object.values(obj).forEach((v) => findAll(v, pick, out));
+  }
+  return out;
+}
+
+const entry = (over: Partial<IndividualSchedule['entries'][number]> = {}) => ({
+  periodKey: 'MorningFirstPeriod',
+  periodDisplay: 'Morning First Period',
+  workshopName: 'Woodworking',
+  leader: 'John Smith',
+  location: 'Chapel A',
+  startDay: 1,
+  endDay: 4,
+  ...over,
+});
+
+describe('rosters document', () => {
+  const roster = (names: string[], extra: Partial<RosterEntry> = {}): RosterEntry => ({
+    workshopName: 'Woodworking',
+    leader: 'John Smith',
+    location: 'Chapel A',
+    period: 'Morning First Period',
+    attendees: names.map((fullName) => ({ fullName, age: '' })),
+    ...extra,
+  });
+
+  it('numbers the footer pages with the event label', () => {
+    const doc = buildRostersDoc([roster(['Ali'])], 'Winter Adventure 2026') as Doc;
+    expect(doc.footer(2, 5).text).toBe('Winter Adventure 2026  |  Page 2 of 5');
+  });
+
+  it('shrinks long names so they stay on one line', () => {
+    const names = ['Al', 'A'.repeat(14), 'B'.repeat(22), 'C'.repeat(32), 'D'.repeat(45)];
+    const doc = buildRostersDoc([roster(names)], 'Winter Adventure 2026');
+    const sizeOf = (name: string) => findAll(doc, (n) => n.text === name)[0].fontSize;
+    // "<n>. <name>" plus the check box: under 29 characters is full size, then 12, 11, and 10 from 46
+    expect(names.map(sizeOf)).toEqual([14, 14, 12, 11, 10]);
+  });
+
+  it('lays out the name tables and the meta band with hairlines only between names', () => {
+    const doc = buildRostersDoc([roster(['Ali', 'Bo', 'Cy'])], 'WA');
+    const layouts = findAll(doc, (n) => !!n.layout && typeof n.layout === 'object').map((n) => n.layout as Layout);
+    expect(layouts.length).toBeGreaterThanOrEqual(3);
+    const names = layouts.find((l) => l.hLineWidth(0) === 0 && l.hLineWidth(1) === 0.5)!;
+    expect([
+      names.paddingLeft(0),
+      names.paddingLeft(1),
+      names.paddingRight(),
+      names.paddingTop(),
+      names.paddingBottom(),
+    ]).toEqual([0, 5, 5, 8, 8]);
+    expect([names.hLineColor(), names.vLineWidth()]).toEqual(['#bdbdbd', 0]);
+    const band = layouts.find((l) => l.hLineWidth(0) === 0 && l.paddingTop() === 6)!;
+    expect([band.paddingLeft(), band.paddingRight(), band.paddingBottom(), band.vLineWidth()]).toEqual([8, 8, 6, 0]);
+  });
+
+  it('names the day span only for part-event classes', () => {
+    const band = (extra: Partial<RosterEntry>) => JSON.stringify(buildRostersDoc([roster(['Ali'], extra)], 'WA'));
+    expect(band({ startDay: 1, endDay: 4 })).not.toContain('Days 1');
+    expect(band({ startDay: 3, endDay: 3 })).toContain('Day 3');
+    expect(band({})).not.toContain('Day ');
+  });
+
+  it('says so when nobody is signed up', () => {
+    const doc = buildRostersDoc([roster([])], 'WA');
+    expect(JSON.stringify(doc)).toContain('No attendees');
+  });
+});
+
+describe('individual schedules document', () => {
+  const schedule = (entries: IndividualSchedule['entries'], fullName = 'Alice Johnson'): IndividualSchedule => ({
+    fullName,
+    email: '',
+    age: '',
+    entries,
+  });
+  const tableOf = (doc: Doc) =>
+    findAll(doc.content[0], (n) => !!n.table && !!n.layout)[0] as {
+      table: { body: unknown[][]; widths: unknown[] };
+      layout: Layout;
+    };
+
+  it('numbers the footer pages with the event label', async () => {
+    const doc = (await buildIndividualSchedulesDoc([schedule([])], timeslots, 'Winter Adventure 2026')) as Doc;
+    expect(doc.footer(1, 3).text).toBe('Winter Adventure 2026  |  Page 1 of 3');
+  });
+
+  it('draws heavy outer rules and light inner rules on the schedule table', async () => {
+    const doc = (await buildIndividualSchedulesDoc([schedule([entry()])], timeslots, 'WA')) as Doc;
+    const { table, layout } = tableOf(doc);
+    const last = table.body.length;
+    const node = { table: { body: table.body, widths: table.widths } };
+    expect([layout.hLineWidth(0, node), layout.hLineWidth(1, node), layout.hLineWidth(last, node)]).toEqual([
+      1, 0.5, 1,
+    ]);
+    expect([layout.hLineColor(0, node), layout.hLineColor(1, node)]).toEqual(['#000000', '#8c8c8c']);
+    const edge = table.widths.length;
+    expect([layout.vLineWidth(0, node), layout.vLineWidth(1, node), layout.vLineWidth(edge, node)]).toEqual([
+      1, 0.5, 1,
+    ]);
+    expect([layout.vLineColor(0, node), layout.vLineColor(1, node)]).toEqual(['#000000', '#bdbdbd']);
+    expect([layout.paddingLeft(), layout.paddingRight()]).toEqual([8, 8]);
+  });
+
+  it('pads class rows more than break rows, and tightens as periods split', async () => {
+    const whole = (await buildIndividualSchedulesDoc([schedule([entry()])], timeslots, 'WA')) as Doc;
+    const wholeLayout = tableOf(whole).layout;
+    // body row 0 is the header, row 1 a class, row 2 a meal break
+    expect(wholeLayout.paddingTop(1)).toBe(8);
+    expect(wholeLayout.paddingTop(2)).toBe(4);
+    expect(wholeLayout.paddingBottom(1)).toBe(8);
+
+    // every non-break period split in two: more than five class rows, tightest packing
+    const manyPeriods: TimeSlot[] = ['a', 'b', 'c'].map((k, i) => ({
+      periodKey: `p${k}`,
+      displayName: `Period ${k}`,
+      startTime: `${9 + i * 2}:00`,
+      endTime: `${10 + i * 2}:30`,
+    }));
+    const split = schedule(
+      manyPeriods.flatMap((t) => [
+        entry({ periodKey: t.periodKey, startDay: 1, endDay: 2 }),
+        entry({ periodKey: t.periodKey, workshopName: 'Pottery', startDay: 3, endDay: 4 }),
+      ])
+    );
+    const tight = (await buildIndividualSchedulesDoc([split], manyPeriods, 'WA')) as Doc;
+    const tightLayout = tableOf(tight).layout;
+    expect(tightLayout.paddingTop(1)).toBe(3);
+    expect(tightLayout.paddingTop(7)).toBe(3);
+    const map = findAll(tight, (n) => typeof n.svg === 'string')[0];
+    expect(map.width).toBe(450);
+  });
+
+  it('lists non-standard day spans as they are instead of forcing two halves', async () => {
+    const odd = schedule([
+      entry({ startDay: 2, endDay: 3 }),
+      entry({ workshopName: 'Pottery', startDay: 4, endDay: 4 }),
+    ]);
+    const doc = (await buildIndividualSchedulesDoc([odd], timeslots, 'WA')) as Doc;
+    const text = JSON.stringify(tableOf(doc).table.body);
+    expect(text).toContain('DAYS 2–3');
+    expect(text).toContain('DAY 4');
+    expect(text).not.toContain('DAYS 1–2');
+  });
+
+  it('stacks two whole-event classes in one period under a single time cell', async () => {
+    const two = schedule([entry(), entry({ workshopName: 'Pottery' })]);
+    const doc = (await buildIndividualSchedulesDoc([two], timeslots, 'WA')) as Doc;
+    const body = tableOf(doc).table.body as { rowSpan?: number }[][];
+    expect(body[1][0].rowSpan).toBe(2);
+    expect(JSON.stringify(body)).toContain('Pottery');
+  });
+
+  it('shows the period name when a timeslot has no times', async () => {
+    const untimed: TimeSlot[] = [
+      { periodKey: 'MorningFirstPeriod', displayName: 'Morning First Period', startTime: '', endTime: '' },
+    ];
+    const doc = (await buildIndividualSchedulesDoc([schedule([])], untimed, 'WA')) as Doc;
+    const time = (tableOf(doc).table.body[1] as { text?: string; noWrap?: boolean }[])[0];
+    expect(time).toMatchObject({ text: 'Morning First Period', noWrap: false });
+  });
+
+  it('shrinks a long attendee name to stay on one line', async () => {
+    const name = 'Maximiliana Josephine Vandenberg-Castellanos';
+    const doc = (await buildIndividualSchedulesDoc([schedule([], name)], timeslots, 'WA')) as Doc;
+    const title = findAll(doc, (n) => n.text === name)[0];
+    expect(title.fontSize).toBeLessThan(24);
+    expect(title.fontSize as number).toBeGreaterThanOrEqual(15);
+    const short = (await buildIndividualSchedulesDoc([schedule([], 'Al')], timeslots, 'WA')) as Doc;
+    expect(findAll(short, (n) => n.text === 'Al')[0].fontSize).toBe(24);
   });
 });

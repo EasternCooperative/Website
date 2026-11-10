@@ -51,3 +51,31 @@ describe('buildScheduleGrid', () => {
     expect(buildScheduleGrid({ ...base, locations: ['a', 'b', 'c', 'd', 'e'] }).landscape).toBe(true);
   });
 });
+
+describe('buildScheduleGrid time text', () => {
+  const periodRow = (slot: TimeSlot) => {
+    const grid = buildScheduleGrid({ locations: ['Hall'], timeslots: [slot], workshops: [] });
+    const row = grid.rows[0];
+    if (row.kind !== 'period') throw new Error('expected period row');
+    return row;
+  };
+
+  it('splits a time range into start and end text', () => {
+    expect(periodRow(timeslots[1])).toMatchObject({ startText: '9:00 AM', endText: '10:40 AM' });
+  });
+
+  it('has a start but no end text when only a start time is set', () => {
+    expect(periodRow({ periodKey: 'am1', displayName: 'Morning', startTime: '09:00', endTime: '' })).toMatchObject({
+      startText: '9:00 AM',
+      endText: '',
+    });
+  });
+
+  it('has no time text at all when the slot has no times, so the label shows instead', () => {
+    expect(periodRow({ periodKey: 'am1', displayName: 'Morning', startTime: '', endTime: '' })).toMatchObject({
+      startText: '',
+      endText: '',
+      displayName: 'Morning',
+    });
+  });
+});

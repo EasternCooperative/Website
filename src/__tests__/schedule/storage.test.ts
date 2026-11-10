@@ -68,6 +68,13 @@ describe('buildDraft', () => {
   });
 });
 
+describe('buildDraft with an unknown class', () => {
+  it('treats a class missing from the published state as having had no room', () => {
+    const draft = buildDraft(published, { workshops: [ws('New Class', 'Library')], timeslots: slots });
+    expect(draft.rooms[workshopKey(ws('New Class', ''))]).toEqual({ value: 'Library', base: '' });
+  });
+});
+
 describe('applyDraft', () => {
   it('returns the published state untouched when there is no draft', () => {
     const applied = applyDraft(published, null);
@@ -134,6 +141,11 @@ describe('saveDraft / loadDraft / clearDraft', () => {
     clearDraft('wa');
     expect(loadDraft('wa')).toBeNull();
     expect(mockStore['ecrs-schedule-locations']).toBeUndefined();
+  });
+
+  it('loadDraft fills in an empty room map when an older draft has none', () => {
+    mockStore['ecrs-schedule-draft:wa'] = '{}';
+    expect(loadDraft('wa')).toEqual({ rooms: {}, timeslots: undefined });
   });
 
   it('loadDraft returns null when storage throws or holds junk', () => {

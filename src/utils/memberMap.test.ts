@@ -129,6 +129,27 @@ describe('geometryToPath', () => {
     expect(d.match(/[ML]/g)!.length).toBeLessThan(10);
   });
 
+  it('draws a ring that is not explicitly closed, and one whose ends coincide after thinning', () => {
+    const open = [
+      [-100, 40],
+      [-96, 40],
+      [-96, 44],
+      [-100, 44],
+    ];
+    expect(geometryToPath({ type: 'Polygon', coordinates: [open] }, ABOUT_VIEW)).toMatch(/^M.*Z$/);
+    // a doubled closing point leaves first and last equal: a zero-length chord for the simplifier
+    const doubled = [...open, open[0], open[0]];
+    expect(geometryToPath({ type: 'Polygon', coordinates: [doubled] }, ABOUT_VIEW)).toMatch(/^M.*Z$/);
+  });
+
+  it('drops a ring with too few points to be an area', () => {
+    const line = [
+      [-100, 40],
+      [-96, 44],
+    ];
+    expect(geometryToPath({ type: 'Polygon', coordinates: [line] }, ABOUT_VIEW)).toBe('');
+  });
+
   it('ignores geometry types it does not draw', () => {
     expect(geometryToPath({ type: 'Point', coordinates: [-96, 44] }, ABOUT_VIEW)).toBe('');
   });

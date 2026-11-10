@@ -37,6 +37,10 @@ describe('pagePathname', () => {
     expect(pagePathname('/events/2026-winter-adventure/schedule.html')).toBe('/events/2026-winter-adventure/schedule');
   });
 
+  it('falls back to the root for an empty path', () => {
+    expect(pagePathname('')).toBe('/');
+  });
+
   it('maps an index file to its directory', () => {
     expect(pagePathname('/index.html')).toBe('/');
   });
@@ -44,6 +48,13 @@ describe('pagePathname', () => {
   it('leaves an already-clean path alone', () => {
     expect(pagePathname('/about')).toBe('/about');
     expect(pagePathname('/')).toBe('/');
+  });
+});
+
+describe('getCanonical, slash-less site', () => {
+  it('leaves a path that already has no trailing slash alone, and keeps the bare origin', () => {
+    expect(getCanonical('/about')).toBe('https://ecrs.org/about');
+    expect(getCanonical('')).toBe('https://ecrs.org/');
   });
 });
 

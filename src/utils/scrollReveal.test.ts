@@ -162,3 +162,20 @@ describe('initScrollReveal', () => {
     expect(document.getElementById('b')?.hasAttribute('data-scroll-reveal-ready')).toBe(true);
   });
 });
+
+describe('initScrollReveal when the animation chunk cannot load', () => {
+  it('shows the content again instead of leaving it hidden', async () => {
+    vi.resetModules();
+    vi.doMock('./scrollRevealMotion', () => {
+      throw new Error('chunk failed to load');
+    });
+    document.body.innerHTML = '<div data-scroll-reveal="up"></div>';
+    const { initScrollReveal } = await import('./scrollReveal');
+
+    await initScrollReveal();
+
+    const el = document.querySelector<HTMLElement>('[data-scroll-reveal]')!;
+    expect(el.style.opacity).toBe('');
+    vi.doUnmock('./scrollRevealMotion');
+  });
+});

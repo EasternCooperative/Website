@@ -9,6 +9,8 @@ import {
   baseEventTitle,
   looksLikeTimeRange,
   resolveClassRoom,
+  classKey,
+  frontmatterToTimeslots,
   type EventScheduleData,
 } from '~/utils/eventSchedule';
 
@@ -145,6 +147,31 @@ describe('hasMasterSchedule', () => {
   });
 });
 
+describe('frontmatterToTimeslots', () => {
+  it('maps breaks and periods, defaulting missing times to empty strings', () => {
+    expect(
+      frontmatterToTimeslots([
+        { label: 'Lunch', isBreak: true },
+        { label: 'Morning, first period' },
+        { label: 'Afternoon', start: '15:45', end: '17:45' },
+      ])
+    ).toEqual([
+      { periodKey: 'custom-lunch', displayName: 'Lunch', startTime: '', endTime: '', isCustom: true },
+      { periodKey: 'morning-first-period', displayName: 'Morning, first period', startTime: '', endTime: '' },
+      { periodKey: 'afternoon', displayName: 'Afternoon', startTime: '15:45', endTime: '17:45' },
+    ]);
+  });
+});
+
+describe('classKey', () => {
+  it('joins the normalised period and class name, so the same class always has the same key', () => {
+    expect(classKey({ name: "  Children's PROGRAM ", period: 'Morning, First Period' })).toBe(
+      "morning-first-period|children's program"
+    );
+    expect(classKey({ name: 'Yoga' })).toBe('|yoga');
+  });
+});
+
 describe('resolveClassRoom', () => {
   const schedule = { rooms: [{ class: '  folk DANCE ', room: ' Rec Hall ' }] };
 
@@ -168,6 +195,16 @@ describe('resolveClassRoom', () => {
     );
     // an entry for another period is not a match
     expect(resolveClassRoom({ name: "Children's Program", period: 'Evening' }, { rooms })).toBe('');
+  });
+
+  it('uses a period-less entry for any period, but prefers an exact period match', () => {
+    const rooms = [
+      { class: 'Yoga', room: 'Library' },
+      { class: 'Yoga', period: 'Afternoon', room: 'Chapel A' },
+    ];
+    expect(resolveClassRoom({ name: 'Yoga', period: 'Morning' }, { rooms })).toBe('Library');
+    expect(resolveClassRoom({ name: 'Yoga', period: 'Afternoon' }, { rooms })).toBe('Chapel A');
+    expect(resolveClassRoom({ name: 'Yoga' }, { rooms })).toBe('Library');
   });
 
   it('returns an empty string when neither has a room', () => {
