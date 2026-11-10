@@ -43,22 +43,27 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],
-      include: ['src/**/*.ts'],
+      include: ['src/**/*.{ts,tsx}'],
       exclude: [
         'src/**/*.d.ts',
-        'src/**/*.test.ts',
+        'src/**/*.test.{ts,tsx}',
         'src/__tests__/**',
         'src/env.d.ts',
         'src/types.d.ts',
         'src/content.config.ts',
       ],
+      // Measured over every .ts and .tsx file under src/. .astro components and pages are
+      // not: Vitest cannot instrument them, so they are covered by the Playwright suite in
+      // e2e/ instead. React components are tested by mounting them in jsdom (see
+      // src/__tests__/react.ts).
+      //
       // Floors set just under the current baseline (see `npm run test:coverage`) —
       // failing here on push is what should catch a drop before Codecov flags the PR.
       thresholds: {
-        statements: 93,
-        branches: 85,
-        functions: 92,
-        lines: 94,
+        statements: 94,
+        branches: 86,
+        functions: 93,
+        lines: 95,
       },
     },
   },
