@@ -1,20 +1,28 @@
 # ECRS
 
-> An intergenerational organization providing creative and engaging activities that are fun, develop leadership, and build community. Come to Play. Play to Learn. Based in the greater Boston area.
+> ECRS (Eastern Cooperative Recreation School) is an intergenerational organization providing creative and engaging activities that are fun, develop leadership, and build community. Come to Play. Play to Learn.
 
-ECRS runs events open to all ages and experience levels. Newcomers receive 50% off their first event. The organization focuses on participant-led fun, creative expression, and genuine human connection — folk dance, music, drama, crafts, and more.
+ECRS events are open to all ages and all levels of experience. Programs include folk dance, music, drama, games, and crafts, led by participants for one another. Events are held at retreat centers and community venues in Pennsylvania, New York, New Jersey, and Delaware, and range from one-day Fun Days to multi-day residential weekends and the annual Winter Adventure. Newcomers receive free tuition at their first multi-day event. The mailing address is 323 Race St, Philadelphia, PA 19106.
 
 ## Pages
 
 - [Home](https://ecrs.org/): Overview of ECRS, its mission, and upcoming events.
-- [Events](https://ecrs.org/events): Browse and register for upcoming ECRS events.
-- [About](https://ecrs.org/about): The story, values, and history of ECRS.
-- [Our People](https://ecrs.org/our-people): Meet the ECRS board and community.
-- [Membership](https://ecrs.org/membership): Join ECRS for member discounts and voting rights.
+- [Events](https://ecrs.org/events): Upcoming events with registration, plus past events.
+- [About](https://ecrs.org/about): Who ECRS is, its values, and its history.
+- [Our People](https://ecrs.org/our-people): The board, staff, and class leaders.
+- [Gallery](https://ecrs.org/gallery): Photos from ECRS events.
+- [Membership](https://ecrs.org/membership): Become a member for event discounts and a say in the direction of ECRS.
+- [Activities](https://ecrs.org/activities): A library of games, dances, and songs with instructions for leading them.
+- [Connections](https://ecrs.org/connections): Related organizations and resources.
+- [Join the mailing list](https://ecrs.org/join-email-list): Get news about upcoming events by email.
 - [Contact](https://ecrs.org/contact): Send a question or message to ECRS.
-- [Donate](https://ecrs.org/donate): Support ECRS with a one-time or recurring donation.
+- [Donate](https://ecrs.org/donate): Support ECRS with a tax-deductible donation.
 - [Privacy Policy](https://ecrs.org/privacy): How ECRS handles personal data.
+
+## Event data
+
+Each event page has a plain-text version at the same address with `.txt` added, and a calendar file with `.ics` added, for example https://ecrs.org/events/2026-winter-adventure.txt.
 
 ## Feeds
 
-- [Sitemap](https://ecrs.org/sitemap-index.xml): Full sitemap for all pages.
+- [Sitemap](https://ecrs.org/sitemap-index.xml): Every public page.

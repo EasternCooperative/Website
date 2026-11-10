@@ -14,8 +14,8 @@ fully reproduces:
 - All page/content source and the Astro build pipeline.
 - `public/_redirects` and `public/_headers` — Cloudflare Pages config-as-code,
   committed to the repo.
-- `functions/` — the Pages Functions (donation webhook handlers,
-  `_middleware.js` consent-region stamping).
+- `functions/` — the Pages Functions (payment webhook handlers under
+  `api/track-purchase/`).
 - The Sveltia CMS config (`public/admin/config.yml`).
 
 Rebuilding the **code and content** is trivial and low-risk: worst case is

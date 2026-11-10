@@ -6,19 +6,22 @@ Measurements come from a production build on 2026-11-09 and from requests to the
 
 ## Summary
 
-| Area               | Fixed on this branch                                                                      | Left as a recommendation                                                              |
-| ------------------ | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| SEO                | Redirect on every page URL, staff page in the sitemap, robots rules                       | `www` duplicate host, `llms.txt` contents                                             |
-| Performance        | Animation library no longer downloaded on mobile, unused font file                        | About page map weight, HTML never edge cached, search script, hero video, hero poster |
-| Leftover code      | Template skill files, unused icon set, dead share handler, `.pnpmrc`                      | Local-only folders                                                                    |
-| Tracking           | Consent signals for Google, pixel opt-out, mailing list signups now counted               | Ads conversion value, Meta event mapping, Meta purchase value, Zeffy attribution      |
-| Schedule generator | Tool screens, attendee PDFs, master schedule print, one-paste publishing, black and white | Nothing outstanding                                                                   |
+| Area               | Fixed on this branch                                                                                     | Left as a recommendation                                      |
+| ------------------ | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| SEO                | Redirect on every page URL, staff page in the sitemap, robots rules, `llms.txt`                          | `www` duplicate host (dashboard change, steps below)          |
+| Performance        | HTML served without a Function, animation library not downloaded on mobile, unused font file             | About page map weight, search script, hero video, hero poster |
+| Leftover code      | Template skill files, unused icon set, dead share handler, `.pnpmrc`                                     | Local-only folders                                            |
+| Tracking           | Consent signals, pixel opt-out, mailing list signups, Ads conversion value, Meta mapping, Meta purchases | Zeffy attribution                                             |
+| Schedule generator | Tool screens, attendee PDFs, master schedule print, one-paste publishing, black and white                | Nothing outstanding                                           |
 
 ## Check after this deploys
 
 1. Open `https://ecrs.org/internal` in a private window. It should redirect to `/internal/tools` and then ask for a login. See "Staff tools index moved" below for why.
 2. In Google Search Console, resubmit `sitemap-index.xml` and spot check that `/about` reports as the canonical URL with no redirect.
 3. Load any page, open the site search, and confirm a result opens the right page.
+4. From a US connection, confirm no cookie banner appears and GA4 Realtime shows the visit. Through a VPN exit outside the US, confirm the banner appears.
+5. In Google Ads, set the "form submit" conversion action to Secondary (see Tracking below).
+6. To turn on Meta purchase values, follow "Meta purchase value" in `docs/deployment-and-cms.md`.
 
 ## SEO
 
@@ -48,10 +51,13 @@ The Cloudflare Access login for staff tools covers `/internal/*`. That pattern d
 
 The index page is now `/internal/tools`, inside the protected pattern, and `/internal` redirects to it. The two tools themselves were always covered. A cleaner long-term fix is to add `ecrs.org/internal` as a second path on the Access application.
 
+### Fixed: `llms.txt` was wrong
+
+`public/llms.txt` said ECRS was based in the greater Boston area and that newcomers get 50% off. It now gives the Philadelphia mailing address, the states where events are held, and the free first multi-day event that the site itself advertises. It also lists the pages it was missing (Activities, Gallery, Connections, the mailing list) and points to the `.txt` and `.ics` versions of event pages.
+
 ### Recommended
 
-- **`www.ecrs.org` serves a full copy of the site** with a 200 response. Canonical tags point search engines at the apex, so this is not harmful, but a Cloudflare redirect rule from `www` to the apex would be tidier and keeps analytics on one host.
-- **`public/llms.txt`** lists eight pages and omits Activities, Gallery, and Connections. It also describes ECRS as "based in the greater Boston area", which is worth a second look given where events are held. Not changed because it is content.
+- **`www.ecrs.org` serves a full copy of the site** with a 200 response. Canonical tags point search engines at the apex, so this is not harmful, but it splits analytics across two hosts. This cannot be fixed from the repo: Pages `_redirects` cannot match on hostname, and doing it in a Function would put a Function back in front of every page. In the Cloudflare dashboard for the ecrs.org zone: Rules, Redirect Rules, Create rule, choose the "Redirect from WWW to root" template, and deploy. It issues a 301 that keeps the path and query string.
 - Structured data is in good shape: event pages carry `Event` markup with offers, people pages carry `Person`, and activity pages carry `HowTo`. Running one event URL through Google's Rich Results Test after deploy is a worthwhile five minute check.
 
 ## Performance
@@ -60,6 +66,12 @@ The index page is now `/internal/tools`, inside the protected pattern, and `/int
 
 `src/utils/scrollReveal.ts` imported the `motion` library on every page (75 KB, 27 KB gzipped), then returned immediately on phones and for visitors who prefer reduced motion. It now loads the library only when there is something to animate. Mobile visitors no longer download it. On desktop it arrives as a separate 66 KB chunk, and content that is about to animate is hidden up front so nothing flashes while it loads.
 
+### Fixed: every page request ran a Function
+
+`functions/_middleware.js` ran on every page request to stamp the visitor's country into the HTML for the consent banner, and marked every page `Cache-Control: private, no-cache`. No page could be served from Cloudflare's static asset cache, and each page view counted against the Functions quota.
+
+The middleware is gone. `public/_routes.json` now sends only `/api/*` to Functions, so pages are served as static assets. The consent script asks Cloudflare's own `/cdn-cgi/trace` endpoint for the country, once per browser session. The policy is unchanged: the banner shows everywhere except the US, and an unknown country is treated as gated. A returning visitor who already accepted is measured immediately without waiting for the lookup.
+
 ### Fixed: unused font file
 
 The hero font shipped a 105 KB `.ttf` fallback behind the `.woff2`. Every browser the site supports uses the `.woff2`, so the fallback is removed.
@@ -67,7 +79,6 @@ The hero font shipped a 105 KB `.ttf` fallback behind the `.woff2`. Every browse
 ### Recommended
 
 - **The About page is the heaviest page on the site.** Its HTML is 474 KB (177 KB gzipped) against 56 KB for the homepage. About 400 KB of that is the member map, rendered on the server as 74 SVG paths and then rendered again in the browser by an 876 KB script chunk. The source geometry, `src/data/us-ca-admin1.json`, is 1.2 MB. Options, in order of effort: simplify the geometry (a map this size does not need that precision), or draw the map once at build time as a static SVG and keep the script for the interactive staff version only.
-- **No HTML is ever cached at the edge.** `functions/_middleware.js` runs on every page request to stamp the visitor's country for the consent banner, and sets `Cache-Control: private, no-cache`. Every page view is a Function invocation. The alternative is to serve plain static HTML and have the consent script ask Cloudflare for the country itself (`/cdn-cgi/trace` returns it). That changes how consent is decided, so it needs a deliberate test, not a drive-by edit.
 - **The search script loads eagerly on every page**: 155 KB, 38 KB gzipped. It could load on first use of the search button. Not attempted because of the known fragile interaction between Pagefind and view transitions.
 - **`toss-game.webm` is larger than its `.mp4`** (9.0 MB against 8.8 MB) and is offered to browsers first. Re-encode it or drop it. The hero videos total 39 MB in the repo, though they are fetched lazily.
 - **The homepage hero poster** is the likely largest paint and has no preload or `fetchpriority`. Measure with Lighthouse before changing it.
@@ -108,13 +119,14 @@ This is a sound setup. The gaps are at the edges.
 - **Google consent signals.** The site decided whether to load Google's tag but never told the tag what the visitor had agreed to. Google now requires those signals (Consent Mode v2) before it will use data from European visitors for conversions or audiences. `Analytics.astro` now sets them and updates them if a visitor changes their choice.
 - **Meta Pixel opt-out.** A visitor who accepted and later chose "No thanks" in cookie settings stopped GA but not the pixel. The pixel now receives a revoke.
 
+- **Ads conversion value.** `EventTracker.astro` sent a Google Ads conversion with a fixed value of 1.00 USD whenever an event form was submitted, on top of the real `purchase` from the webhook. The made-up value is removed, so Ads only ever sees real revenue. One dashboard step remains: if that conversion action and the GA4 purchase are both Primary goals, a paid registration still counts as two conversions. Set the form submit action to Secondary. It is still worth keeping, because it is the only signal for free events.
+- **Meta counted a page view as a registration.** For events with no signup form, opening the event page fired `event_view_conversion`, mapped to Meta's `CompleteRegistration`. It now maps to `ViewContent`. Expect the registration count in Meta to drop to the real figure.
+- **Meta now learns what a registration is worth.** The Cognito webhook sends each payment to Meta's Conversions API as a `Purchase` with its amount. It is dormant until a pixel id and access token are set in Cloudflare and two hidden fields (`FBP`, `FBC`) are added to each Cognito payment form. Setup is in `docs/deployment-and-cms.md`. It only sends for visitors who already have the pixel's cookie, so it follows the same consent rule as the pixel.
+
 ### Recommended
 
-- **Check the Ads conversion on form submit.** `EventTracker.astro` sends a Google Ads conversion with a fixed value of 1.00 USD whenever an event form is submitted, in addition to the real `purchase` that arrives from the webhook. If both are Primary goals in Ads, each registration is counted twice and the 1.00 distorts value-based bidding. Confirm the form submit conversion is Secondary, or remove its value.
-- **Meta counts a page view as a registration.** For events with no signup form, opening the event page fires `event_view_conversion`, which is mapped to Meta's `CompleteRegistration`. That teaches Meta's delivery to find people who open pages. `ViewContent` is the honest mapping.
-- **Meta never learns what a registration is worth.** Purchase values go to GA4 only. The same webhooks could send Meta's Conversions API a `Purchase` with the amount. It needs a Meta access token and two more hidden fields on the Cognito forms (`_fbp` and `_fbc`), following the pattern already used for the GA ids.
-- **Zeffy payments cannot be attributed.** The Zeffy form is a cross-origin iframe, so the site cannot pass it the visitor's GA id, and each Zeffy purchase is recorded against a random one. The revenue is counted but never tied to a campaign. Worth knowing when comparing campaigns that drive Zeffy events against those that drive Cognito events.
-- **Each new Cognito registration form** still needs the Submit webhook and the hidden `GAClientId` and `GASessionId` fields added by hand. A line in the `new-event` skill would make that harder to forget.
+- **Zeffy payments cannot be attributed.** The Zeffy form is a cross-origin iframe, so the site cannot pass it the visitor's GA or Meta id. Each Zeffy purchase is recorded in GA4 against a random id and is not sent to Meta at all. The revenue is counted but never tied to a campaign. Worth knowing when comparing campaigns that drive Zeffy events against those that drive Cognito events.
+- **Each new Cognito registration form** needs the Submit webhook and the hidden `GAClientId`, `GASessionId`, `FBP`, and `FBC` fields added by hand. A line in the `new-event` skill would make that harder to forget.
 
 ## Schedule generator
 
