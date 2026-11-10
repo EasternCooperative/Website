@@ -122,6 +122,9 @@
     },
     "@typescript-eslint/typescript-estree": {
       "minimatch": "^11.0.1"
+    },
+    "@puppeteer/browsers": {
+      "proxy-agent": "6.5.0"
     }
   },
   "allowScripts": {
