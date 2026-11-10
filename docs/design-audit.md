@@ -32,8 +32,8 @@ Vitals, real load times, no cookie banner) **and** GA4 (engagement events).
   consent. Covers page views + Core Web Vitals / load times. Token currently
   scoped to `website-alc.pages.dev`; add `ecrs.org` to the same CF site at cutover.
 - ✅ **DONE** — GA4 (`G-TMYSFB9B9J`) wired via `Analytics.astro`, consent-gated.
-  A Cloudflare Pages Function (`functions/_middleware.js`) stamps
-  `data-consent-region` on `<html>` at the edge; policy is **gate everywhere
+  The region is looked up in the browser from `/cdn-cgi/trace` (it was an edge
+  middleware until November 2026); policy is **gate everywhere
   except the US** (unknown country defaults to gated). `ConsentBanner.astro`
   shows only in gated regions until the visitor chooses; GA4 loads only after
   Accept (US loads immediately). Choice persisted in `localStorage`; page_view

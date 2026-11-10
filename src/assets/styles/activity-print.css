@@ -1,6 +1,13 @@
+@import './print-base.css';
+
+/* An activity sheet is running text: drop every fill so tinted cards and pills
+   cost no toner and can't end up as gray-on-gray. Structure comes from the
+   headings and borders. */
 @media print {
-  header,
-  footer {
-    display: none !important;
+  main,
+  main * {
+    background: transparent !important;
+    /* Card and pill outlines are pale tints on screen; make them a gray that prints. */
+    border-color: #999 !important;
   }
 }

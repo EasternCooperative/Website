@@ -56,6 +56,13 @@ export default defineConfig({
   // Astro 7 changed the default from `true` to `'jsx'`; keep `true` to preserve existing behavior.
   compressHTML: true,
 
+  // Emit `about.html` rather than `about/index.html`. Cloudflare Pages serves
+  // `about/index.html` at `/about/` and 308-redirects `/about` to it, but every
+  // canonical, sitemap entry, and internal link on this site is slash-less, so
+  // the directory format cost a redirect on every navigation. With `file`,
+  // `/about` is served directly and `/about/` redirects once.
+  build: { format: 'file' },
+
   integrations: [
     sitemap({
       // Exclude e2e fixtures, internal pages, and draft events/activities —
@@ -66,7 +73,7 @@ export default defineConfig({
       // both — while the library is dark there is no way into it from search.
       filter: (page) =>
         !page.includes('/events/e2e-') &&
-        !page.includes('/internal/') &&
+        !/\/internal(?:\/|$)/.test(page) &&
         !/\/events\/[^/]+\/classes\/?$/.test(page) &&
         !/\/activities\/share\/?$/.test(page) &&
         (siteSettings.featureFlags.connectionsPage || !/\/connections\/?$/.test(page)) &&
@@ -77,17 +84,6 @@ export default defineConfig({
     icon({
       include: {
         tabler: ['*'],
-        'flat-color-icons': [
-          'template',
-          'gallery',
-          'approval',
-          'document',
-          'advertising',
-          'currency-exchange',
-          'voice-presentation',
-          'business-contact',
-          'database',
-        ],
       },
     }),
     compress({

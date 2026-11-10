@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { normalizeResultPath } from './searchUrlFix';
 
 function flushMicrotasks() {
   return new Promise((resolve) => setTimeout(resolve, 0));
@@ -35,6 +36,16 @@ describe('initPagefindFixes — href normalization', () => {
     initPagefindFixes();
 
     expect(document.querySelector('a')?.getAttribute('href')).toBe('/our-people');
+  });
+
+  it('strips the .html extension pagefind derives from file-format output', async () => {
+    document.body.innerHTML = `<pagefind-modal><a href="/our-people.html#leader-x">Our People</a><a href="/index.html">Home</a></pagefind-modal>`;
+    const { initPagefindFixes } = await import('./searchUrlFix');
+
+    initPagefindFixes();
+
+    const hrefs = [...document.querySelectorAll('a')].map((a) => a.getAttribute('href'));
+    expect(hrefs).toEqual(['/our-people#leader-x', '/']);
   });
 
   it('preserves query and hash when stripping the trailing slash', async () => {
@@ -216,5 +227,28 @@ describe('initPagefindFixes — astro:after-swap', () => {
     document.dispatchEvent(new Event('astro:after-swap'));
 
     expect(document.querySelector('a')?.getAttribute('href')).toBe('/bar/');
+  });
+});
+
+describe('normalizeResultPath', () => {
+  it('maps file-format and directory-format paths to the extension-less path', () => {
+    expect(normalizeResultPath('/our-people.html')).toBe('/our-people');
+    expect(normalizeResultPath('/our-people/')).toBe('/our-people');
+    expect(normalizeResultPath('/events/x/index.html')).toBe('/events/x');
+    expect(normalizeResultPath('/index.html')).toBe('/');
+    expect(normalizeResultPath('/')).toBe('/');
+    expect(normalizeResultPath('')).toBe('/');
+  });
+});
+
+describe('initPagefindFixes: links it leaves alone', () => {
+  it('ignores external and empty hrefs', async () => {
+    document.body.innerHTML = `<pagefind-modal><a href="https://example.com/x.html">Ext</a><a href="">Empty</a></pagefind-modal>`;
+    const { initPagefindFixes } = await import('./searchUrlFix');
+
+    initPagefindFixes();
+
+    const hrefs = [...document.querySelectorAll('a')].map((a) => a.getAttribute('href'));
+    expect(hrefs).toEqual(['https://example.com/x.html', '']);
   });
 });

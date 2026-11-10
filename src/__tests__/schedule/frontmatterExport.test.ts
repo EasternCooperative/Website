@@ -48,9 +48,38 @@ describe('buildScheduleFrontmatter', () => {
   it('lists only workshops that have a room, sorted by name', () => {
     const { roomRows } = buildScheduleFrontmatter(workshops, timeslots);
     expect(roomRows).toEqual([
-      { name: 'Chair Yoga', room: 'Elm Room' },
-      { name: 'Folk Dance', room: 'Rec Hall' },
+      { name: 'Chair Yoga', period: 'Morning, first period', room: 'Elm Room' },
+      { name: 'Folk Dance', period: 'Morning, first period', room: 'Rec Hall' },
     ]);
+  });
+
+  it('emits the rooms inside the schedule block so one paste publishes them', () => {
+    const { yaml } = buildScheduleFrontmatter(workshops, timeslots);
+    expect(yaml).toContain(
+      "  rooms:\n    - class: 'Chair Yoga'\n      period: 'Morning, first period'\n      room: 'Elm Room'\n    - class: 'Folk Dance'\n      period: 'Morning, first period'\n      room: 'Rec Hall'\n"
+    );
+    expect(yaml).not.toContain('Roomless');
+  });
+
+  it('omits the rooms key when no class has a room, and escapes quotes in names', () => {
+    expect(buildScheduleFrontmatter([ws('Roomless', '')], timeslots).yaml).not.toContain('rooms:');
+    expect(buildScheduleFrontmatter([ws("Kids' Crafts", 'Craft Room')], timeslots).yaml).toContain(
+      "    - class: 'Kids'' Crafts'"
+    );
+  });
+
+  it('lists same-named classes in different periods separately, ordered by period', () => {
+    const afternoon: Workshop = {
+      ...ws("Children's Program", 'Craft Room'),
+      period: { sheetName: 'afternoon', displayName: 'Afternoon' },
+    };
+    const morning = ws("Children's Program", 'Elm Room');
+    const { roomRows, yaml } = buildScheduleFrontmatter([morning, afternoon], timeslots);
+    expect(roomRows.map((r) => [r.period, r.room])).toEqual([
+      ['Afternoon', 'Craft Room'],
+      ['Morning, first period', 'Elm Room'],
+    ]);
+    expect(yaml).toContain("      period: 'Afternoon'\n      room: 'Craft Room'");
   });
 
   it('round-trips: exported yaml + matching classes rebuild the same grid', () => {

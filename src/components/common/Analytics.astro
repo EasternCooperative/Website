@@ -11,6 +11,12 @@ const id = ANALYTICS?.vendors?.googleAnalytics?.id ? String(ANALYTICS.vendors.go
     var STORAGE_KEY = 'ecrs-ga-consent';
     var loaded = false;
 
+    function consentState(value) {
+      return { ad_storage: value, ad_user_data: value, ad_personalization: value, analytics_storage: value };
+    }
+    var CONSENT_GRANTED = consentState('granted');
+    var CONSENT_DENIED = consentState('denied');
+
     // Never load GA in local development.
     var host = location.hostname;
     var isLocal = host === 'localhost' || host === '127.0.0.1' || host === '';
@@ -41,6 +47,12 @@ const id = ANALYTICS?.vendors?.googleAnalytics?.id ? String(ANALYTICS.vendors.go
       window.gtag = function () {
         window.dataLayer.push(arguments);
       };
+      // Consent Mode v2. GA only ever loads once the visitor is allowed to be
+      // measured (US, or an accepted banner), so the default is "granted";
+      // stating it explicitly is what lets Google Ads use the data for
+      // conversions and audiences. deny() below flips these if the visitor
+      // later opts out in the same session.
+      window.gtag('consent', 'default', CONSENT_GRANTED);
       window.gtag('js', new Date());
       // page_view is sent manually so it also fires on View Transition navigations.
       window.gtag('config', GA_ID, { send_page_view: false });
@@ -87,9 +99,56 @@ const id = ANALYTICS?.vendors?.googleAnalytics?.id ? String(ANALYTICS.vendors.go
       });
     }
 
-    // Gated unless the edge explicitly marked this request as US ("false").
+    // Consent region. Policy: the banner gates analytics everywhere except the
+    // US. The country comes from Cloudflare's own /cdn-cgi/trace endpoint (a
+    // tiny text response with a `loc=XX` line), asked for once per browser
+    // session. It used to be stamped into the HTML by an edge function, which
+    // meant every page request ran a Function and no HTML could be cached.
+    // Unknown (lookup pending, failed, or blocked) is treated as gated: the
+    // privacy-safe default.
+    var REGION_KEY = 'ecrs-consent-region';
+    var regionGated = null; // null until known
+    try {
+      var cachedRegion = sessionStorage.getItem(REGION_KEY);
+      if (cachedRegion === 'open') regionGated = false;
+      else if (cachedRegion === 'gated') regionGated = true;
+    } catch {
+      /* sessionStorage may be unavailable (private mode) */
+    }
+
     function consentRequired() {
-      return document.documentElement.getAttribute('data-consent-region') !== 'false';
+      return regionGated !== false;
+    }
+
+    var regionLookup = null;
+    function resolveRegion() {
+      if (regionGated !== null) return Promise.resolve();
+      if (!regionLookup) {
+        regionLookup = fetch('/cdn-cgi/trace', { cache: 'no-store' })
+          .then(function (res) {
+            return res.ok ? res.text() : '';
+          })
+          .then(function (text) {
+            var match = /^loc=([A-Z]{2})\s*$/m.exec(text);
+            regionGated = !(match && match[1] === 'US');
+            // Only remember a real answer; a failed lookup is retried on the next full page load.
+            if (match) {
+              try {
+                sessionStorage.setItem(REGION_KEY, regionGated ? 'gated' : 'open');
+              } catch {
+                /* best effort */
+              }
+            }
+          })
+          .catch(function () {
+            regionGated = true;
+          })
+          .then(function () {
+            regionLookup = null;
+            window.dispatchEvent(new CustomEvent('ecrs:consent-region'));
+          });
+      }
+      return regionLookup;
     }
 
     function banner() {
@@ -108,6 +167,9 @@ const id = ANALYTICS?.vendors?.googleAnalytics?.id ? String(ANALYTICS.vendors.go
       setStored('granted');
       window['ga-disable-' + GA_ID] = false;
       hideBanner();
+      // Already loaded means the visitor declined earlier this session and is
+      // now changing their mind: lift the denial recorded by deny().
+      if (loaded && window.gtag) window.gtag('consent', 'update', CONSENT_GRANTED);
       loadGA();
       window.dispatchEvent(new CustomEvent('ecrs:consent-granted'));
     }
@@ -115,16 +177,27 @@ const id = ANALYTICS?.vendors?.googleAnalytics?.id ? String(ANALYTICS.vendors.go
       setStored('denied');
       // Stops GA immediately, even if it was already loaded this session.
       window['ga-disable-' + GA_ID] = true;
+      if (loaded && window.gtag) window.gtag('consent', 'update', CONSENT_DENIED);
       hideBanner();
       window.dispatchEvent(new CustomEvent('ecrs:consent-denied'));
     }
 
     // Exposed for any external trigger (e.g. the footer "Cookie settings" link).
-    window.__ecrsConsent = { grant: grant, deny: deny, show: showBanner };
+    // `required` is how MetaPixel.astro reads the region, so both scripts
+    // always agree on it.
+    window.__ecrsConsent = { grant: grant, deny: deny, show: showBanner, required: consentRequired };
 
     // Decide what to do on each page render.
     function apply() {
       var stored = getStored();
+      if (regionGated === null) {
+        // Region not known yet. An earlier "Accept" is valid anywhere, so act
+        // on it now; otherwise wait for the lookup rather than flash a banner
+        // at a US visitor. resolveRegion() calls back into apply().
+        if (stored === 'granted') loadGA();
+        resolveRegion().then(apply);
+        return;
+      }
       if (!consentRequired()) {
         // US: load immediately unless the visitor previously opted out.
         if (stored !== 'denied') loadGA();

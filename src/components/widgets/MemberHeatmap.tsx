@@ -1,17 +1,16 @@
 import { useMemo, useState } from 'react';
 import type { FeatureCollection } from 'geojson';
-import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from '@vnedyalk0v/react19-simple-maps';
+import {
+  ComposableMap,
+  Geographies,
+  Geography,
+  Marker,
+  ZoomableGroup,
+  createCoordinates,
+} from '@vnedyalk0v/react19-simple-maps';
 import geoData from '~/data/us-ca-admin1.json';
 import { BAND_COLORS } from './SiteEvaluator';
-
-interface MemberCity {
-  name: string;
-  country: string;
-  state: string | null;
-  lat: number | null;
-  lng: number | null;
-  count: number;
-}
+import { ISO2_NAME, lerpColor, toFlag, type MemberCity } from '~/utils/memberMap';
 
 interface ActiveSite {
   lat: number;
@@ -27,23 +26,6 @@ interface Props {
   maskSmallCounts?: boolean;
 }
 
-const ISO2_NAME: Record<string, string> = {
-  CH: 'Switzerland',
-  GB: 'United Kingdom',
-  DE: 'Germany',
-  FR: 'France',
-  AU: 'Australia',
-  NZ: 'New Zealand',
-  JP: 'Japan',
-  BR: 'Brazil',
-  MX: 'Mexico',
-  IE: 'Ireland',
-  NL: 'Netherlands',
-  SE: 'Sweden',
-  NO: 'Norway',
-  DK: 'Denmark',
-};
-
 function haversineMiles(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 3958.8;
   const toRad = (d: number) => (d * Math.PI) / 180;
@@ -53,19 +35,10 @@ function haversineMiles(lat1: number, lng1: number, lat2: number, lng2: number):
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function toFlag(code: string): string {
-  return [...code.toUpperCase()].map((c) => String.fromCodePoint(0x1f1e6 + c.charCodeAt(0) - 65)).join('');
-}
-
-function lerpColor(a: string, b: string, t: number): string {
-  const hex = (s: string) => [parseInt(s.slice(1, 3), 16), parseInt(s.slice(3, 5), 16), parseInt(s.slice(5, 7), 16)];
-  const [ar, ag, ab] = hex(a);
-  const [br, bg, bb] = hex(b);
-  const r = Math.round(ar + (br - ar) * t);
-  const g = Math.round(ag + (bg - ag) * t);
-  const bl = Math.round(ab + (bb - ab) * t);
-  return `rgb(${r},${g},${bl})`;
-}
+// The projection below is already centered here. ZoomableGroup recenters on its own
+// `center` (default [0, 0], the Gulf of Guinea), so it has to be told the same
+// point or it pans the whole map out of view: with 2.0.12 the map rendered blank.
+const MAP_CENTER = createCoordinates(-96, 44);
 
 export default function MemberHeatmap({ cities, activeSite, maskSmallCounts = false }: Props) {
   const [tooltip, setTooltip] = useState<{ text: string; x: number; y: number } | null>(null);
@@ -122,11 +95,11 @@ export default function MemberHeatmap({ cities, activeSite, maskSmallCounts = fa
     <div className="relative border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800">
       <ComposableMap
         projection="geoMercator"
-        projectionConfig={{ center: [-96, 44] as [number, number], scale: 520 } as never}
+        projectionConfig={{ center: MAP_CENTER, scale: 520 } as never}
         viewBox="0 0 800 560"
         style={{ width: '100%', height: 'auto' }}
       >
-        <ZoomableGroup>
+        <ZoomableGroup center={MAP_CENTER}>
           <Geographies geography={geoData as unknown as FeatureCollection}>
             {({ geographies }) =>
               geographies.map((geo) => {

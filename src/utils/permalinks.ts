@@ -13,6 +13,15 @@ const createPath = (...params: string[]) => {
 
 const BASE_PATHNAME = SITE.base || '/';
 
+/**
+ * The public path of the page being rendered. With `build.format: 'file'`
+ * (astro.config.ts) `Astro.url.pathname` is the emitted file, e.g. "/about.html"
+ * or "/index.html", during a build, while the dev server reports "/about". The
+ * site is served and linked extension-less, so always read the path through this.
+ */
+export const pagePathname = (pathname: string): string =>
+  pathname.replace(/\/index\.html$/, '/').replace(/\.html$/, '') || '/';
+
 /** */
 export const getCanonical = (path = ''): string | URL => {
   const url = String(new URL(path, SITE.site));

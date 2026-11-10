@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { trimSlash, getPermalink, getCanonical, getHomePermalink, getAsset, applyGetPermalinks } from './permalinks';
+import {
+  trimSlash,
+  getPermalink,
+  getCanonical,
+  getHomePermalink,
+  getAsset,
+  applyGetPermalinks,
+  pagePathname,
+} from './permalinks';
 
 // Config loaded from src/config.yaml via vitest.config.ts virtual module:
 //   SITE.site = 'https://ecrs.org', SITE.base = '/', SITE.trailingSlash = false
@@ -20,6 +28,33 @@ describe('trimSlash', () => {
   it('returns empty string for slash-only input', () => {
     expect(trimSlash('/')).toBe('');
     expect(trimSlash('')).toBe('');
+  });
+});
+
+describe('pagePathname', () => {
+  it('strips the .html that build.format "file" adds to Astro.url.pathname', () => {
+    expect(pagePathname('/about.html')).toBe('/about');
+    expect(pagePathname('/events/2026-winter-adventure/schedule.html')).toBe('/events/2026-winter-adventure/schedule');
+  });
+
+  it('falls back to the root for an empty path', () => {
+    expect(pagePathname('')).toBe('/');
+  });
+
+  it('maps an index file to its directory', () => {
+    expect(pagePathname('/index.html')).toBe('/');
+  });
+
+  it('leaves an already-clean path alone', () => {
+    expect(pagePathname('/about')).toBe('/about');
+    expect(pagePathname('/')).toBe('/');
+  });
+});
+
+describe('getCanonical, slash-less site', () => {
+  it('leaves a path that already has no trailing slash alone, and keeps the bare origin', () => {
+    expect(getCanonical('/about')).toBe('https://ecrs.org/about');
+    expect(getCanonical('')).toBe('https://ecrs.org/');
   });
 });
 

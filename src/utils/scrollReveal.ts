@@ -1,4 +1,8 @@
-import { animate, scroll } from 'motion';
+// `motion` (about 27 KB gzipped) is only needed once there is something to
+// animate: never on mobile or under reduced motion, where this module returns
+// before touching it. Loaded on demand so those visitors don't download it.
+let motionModule: Promise<typeof import('./scrollRevealMotion')> | undefined;
+const loadMotion = () => (motionModule ??= import('./scrollRevealMotion'));
 
 type Direction = 'up' | 'left' | 'right' | 'up-light';
 
@@ -27,8 +31,11 @@ const END_PERCENT = 65;
  * the site's animation conventions. Elements that are `[hidden]` are skipped so callers
  * (e.g. Testimonials' shuffle-and-reveal) can call this again after unhiding content —
  * already-wired elements are never re-processed.
+ *
+ * Marking and measuring happen synchronously; the returned promise resolves once the
+ * animations are wired (callers don't need to await it).
  */
-export function initScrollReveal(root: ParentNode = document): void {
+export async function initScrollReveal(root: ParentNode = document): Promise<void> {
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const isDesktop = window.matchMedia('(min-width: 768px)').matches;
   if (prefersReduced || !isDesktop) return;
@@ -52,6 +59,26 @@ export function initScrollReveal(root: ParentNode = document): void {
     // reads as a rendering glitch, not an animation. Just show it fully revealed.
     if (el.getBoundingClientRect().top > startPx) toReveal.push(el);
   });
+
+  if (toReveal.length === 0) return;
+
+  // Hide them now, at the state the animation starts from, so nothing in the bottom
+  // strip of the viewport flashes visible while the animation library loads.
+  toReveal.forEach((el) => {
+    el.style.opacity = '0';
+  });
+
+  let motion: typeof import('./scrollRevealMotion');
+  try {
+    motion = await loadMotion();
+  } catch {
+    // Chunk failed to load (offline, blocked): show the content rather than leave it hidden.
+    toReveal.forEach((el) => {
+      el.style.opacity = '';
+    });
+    return;
+  }
+  const { animate, scroll } = motion;
 
   // Write phase: wire up the scroll-linked animations now that all geometry has been read.
   toReveal.forEach((el) => {

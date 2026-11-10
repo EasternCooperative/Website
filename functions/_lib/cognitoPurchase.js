@@ -91,8 +91,41 @@ export function planCognitoEvents(entry, { waFormIds, now = Date.now() }) {
 
   return {
     transactionId,
+    // For Meta's Conversions API (see _lib/meta.js). The browser ids are not
+    // in the entry: applyVisitorIds() below adds them from what the page
+    // stored under this entry's GAClientId.
+    meta: {
+      transactionId,
+      value,
+      currency: 'USD',
+      itemName: params.items[0].item_name,
+      itemCategory: params.items[0].item_category,
+      fbp: null,
+      fbc: null,
+      email: nonEmptyString(entry.Email),
+      paidAt: entry.Order?.PaymentDate ?? null,
+    },
     clientId: nonEmptyString(entry.GAClientId),
     timestampMicros: toTimestampMicros(entry.Order?.PaymentDate, now),
     events,
+  };
+}
+
+/**
+ * Fill in what the form itself didn't carry, from the ids the page stored for
+ * this visitor (see _lib/visitorIds.js): Meta's browser / click ids, and the
+ * GA session id for a form that has no GASessionId field. A value that came
+ * with the entry always wins.
+ * @param {ReturnType<typeof planCognitoEvents>} plan
+ * @param {{sid?: string, fbp?: string, fbc?: string}} ids
+ */
+export function applyVisitorIds(plan, ids) {
+  if (!plan.events) return plan;
+  return {
+    ...plan,
+    meta: { ...plan.meta, fbp: plan.meta.fbp ?? ids.fbp ?? null, fbc: plan.meta.fbc ?? ids.fbc ?? null },
+    events: plan.events.map((event) =>
+      ids.sid && !event.params.session_id ? { ...event, params: { ...event.params, session_id: ids.sid } } : event
+    ),
   };
 }

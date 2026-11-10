@@ -8,6 +8,9 @@ import {
   buildScheduleGroups,
   baseEventTitle,
   looksLikeTimeRange,
+  resolveClassRoom,
+  classKey,
+  frontmatterToTimeslots,
   type EventScheduleData,
 } from '~/utils/eventSchedule';
 
@@ -141,6 +144,93 @@ describe('hasMasterSchedule', () => {
 
   it('is true with a timeslot block and no classes at all', () => {
     expect(hasMasterSchedule(makeEvent({ classes: undefined })).ok).toBe(true);
+  });
+});
+
+describe('frontmatterToTimeslots', () => {
+  it('maps breaks and periods, defaulting missing times to empty strings', () => {
+    expect(
+      frontmatterToTimeslots([
+        { label: 'Lunch', isBreak: true },
+        { label: 'Morning, first period' },
+        { label: 'Afternoon', start: '15:45', end: '17:45' },
+      ])
+    ).toEqual([
+      { periodKey: 'custom-lunch', displayName: 'Lunch', startTime: '', endTime: '', isCustom: true },
+      { periodKey: 'morning-first-period', displayName: 'Morning, first period', startTime: '', endTime: '' },
+      { periodKey: 'afternoon', displayName: 'Afternoon', startTime: '15:45', endTime: '17:45' },
+    ]);
+  });
+});
+
+describe('classKey', () => {
+  it('joins the normalised period and class name, so the same class always has the same key', () => {
+    expect(classKey({ name: "  Children's PROGRAM ", period: 'Morning, First Period' })).toBe(
+      "morning-first-period|children's program"
+    );
+    expect(classKey({ name: 'Yoga' })).toBe('|yoga');
+  });
+});
+
+describe('resolveClassRoom', () => {
+  const schedule = { rooms: [{ class: '  folk DANCE ', room: ' Rec Hall ' }] };
+
+  it("prefers the class's own room", () => {
+    expect(resolveClassRoom({ name: 'Folk Dance', room: 'Chapel A' }, schedule)).toBe('Chapel A');
+  });
+
+  it('falls back to the schedule.rooms entry, matching the name loosely', () => {
+    expect(resolveClassRoom({ name: 'Folk Dance' }, schedule)).toBe('Rec Hall');
+    expect(resolveClassRoom({ name: 'Folk Dance', room: '  ' }, schedule)).toBe('Rec Hall');
+  });
+
+  it('uses the period to tell apart classes that share a name', () => {
+    const rooms = [
+      { class: "Children's Program", period: 'Morning, first period', room: 'Elm Room' },
+      { class: "Children's Program", period: 'Afternoon', room: 'Craft Room' },
+    ];
+    expect(resolveClassRoom({ name: "Children's Program", period: 'Afternoon' }, { rooms })).toBe('Craft Room');
+    expect(resolveClassRoom({ name: "Children's Program", period: 'morning, FIRST period' }, { rooms })).toBe(
+      'Elm Room'
+    );
+    // an entry for another period is not a match
+    expect(resolveClassRoom({ name: "Children's Program", period: 'Evening' }, { rooms })).toBe('');
+  });
+
+  it('uses a period-less entry for any period, but prefers an exact period match', () => {
+    const rooms = [
+      { class: 'Yoga', room: 'Library' },
+      { class: 'Yoga', period: 'Afternoon', room: 'Chapel A' },
+    ];
+    expect(resolveClassRoom({ name: 'Yoga', period: 'Morning' }, { rooms })).toBe('Library');
+    expect(resolveClassRoom({ name: 'Yoga', period: 'Afternoon' }, { rooms })).toBe('Chapel A');
+    expect(resolveClassRoom({ name: 'Yoga' }, { rooms })).toBe('Library');
+  });
+
+  it('returns an empty string when neither has a room', () => {
+    expect(resolveClassRoom({ name: 'Chair Yoga' }, schedule)).toBe('');
+    expect(resolveClassRoom({ name: 'Chair Yoga' }, undefined)).toBe('');
+  });
+});
+
+describe('rooms published through schedule.rooms', () => {
+  const ev: EventScheduleData = {
+    date: new Date('2026-12-27T00:00:00Z'),
+    schedule: {
+      timeslots: [{ label: 'Morning', start: '09:00', end: '10:40' }],
+      rooms: [{ class: 'Folk Dance', room: 'Rec Hall' }],
+    },
+    classes: [{ name: 'Folk Dance', period: 'Morning' }],
+  };
+
+  it('counts as a room for hasMasterSchedule', () => {
+    expect(hasMasterSchedule(ev).ok).toBe(true);
+  });
+
+  it('places the class in that room on the master schedule', () => {
+    const data = buildEventMasterSchedule(ev, leaderMap);
+    expect(data.locations).toEqual(['Rec Hall']);
+    expect(data.workshops[0].location).toBe('Rec Hall');
   });
 });
 

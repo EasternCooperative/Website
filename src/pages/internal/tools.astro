@@ -2,6 +2,11 @@
 import Layout from '~/layouts/PageLayout.astro';
 
 // Not linked from public nav — landing page for staff/board tools.
+//
+// Lives at /internal/tools, not /internal: the Cloudflare Access rule that puts
+// these pages behind a login covers `/internal/*`, which does not match a bare
+// `/internal`. (With directory-style URLs the index was reached as `/internal/`
+// and so was covered.) public/_redirects sends /internal here.
 // `noIndex` keeps this and its children out of the on-site Pagefind index as
 // well as out of search engines — the `robots` metadata alone only does the latter.
 

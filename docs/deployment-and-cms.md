@@ -28,9 +28,12 @@ changing CI, the CMS config, or anything touching `main`.
   code or event data changes, headless Chrome renders each
   `/events/<id>/schedule` page to `public/schedules/<id>.pdf` and commits it
   to `main` (the `chore(schedule): regenerate master-schedule PDFs` commits).
-- `functions/_middleware.js` is a Cloudflare Pages Function that stamps a
-  consent region onto the HTML at the edge for GA4 gating. It deploys
-  automatically because it lives in `functions/`.
+- Pages are plain static HTML: `public/_routes.json` sends only `/api/*` to
+  Pages Functions. The consent banner's region check runs in the browser
+  (`Analytics.astro` asks Cloudflare's `/cdn-cgi/trace` for the visitor's
+  country once per session). An edge middleware used to stamp the region into
+  every page, which ran a Function on each request and made HTML uncacheable;
+  do not reintroduce a catch-all `functions/_middleware.js`.
 
 ## Donation conversion tracking (Google Ads / GA4)
 
@@ -54,6 +57,24 @@ Preview, never committed to the repo):
 | `ZEFFY_WEBHOOK_SECRET` | Zeffy's webhook signing secret (`whsec_...`, from Zeffy account → Settings → Integrations → Webhooks). Used to verify the `zeffy-signature` header on every request — Zeffy's webhook is account-wide (not per-form), so this is the only source-authenticity check on that endpoint beyond the shared `?key=`. Cognito has no equivalent (it doesn't sign requests), so `TRACK_PURCHASE_KEY` is its only gate. |
 | `WA_FORM_IDS`          | Comma-separated Cognito form ids that also send a `wa_purchase` event alongside `purchase` (e.g. `131`). Update it when next year's Winter Adventure registration form is created. Unset means no `wa_purchase`.                                                                                                                                                                                                |
 | `GA4_DEBUG`            | Optional. `true` sends to GA4's validation endpoint (`/debug/mp/collect`) instead of the live one and logs the validation messages. Nothing reaches GA4. Never leave it on in Production.                                                                                                                                                                                                                       |
+
+**Meta purchase value** (optional): the Cognito webhook also sends each payment
+to Meta's Conversions API as a `Purchase` with its amount
+(`functions/_lib/meta.js`). It stays off until both variables below are set and
+the `TRACK_DEDUPE` KV namespace (below) is bound. No form changes are needed:
+the page showing a form posts the visitor's Meta ids to `/api/track-ids`, which
+stores them in that KV namespace under the visitor's GA client id, and the
+webhook looks them up by the entry's `GAClientId`
+(`functions/_lib/visitorIds.js`). The GA session id travels the same way, so a
+new payment form needs only the one hidden `GAClientId` field. Zeffy payments
+cannot be sent: its form is a cross-origin iframe.
+
+| Variable               | Purpose                                                                                                        |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `META_PIXEL_ID`        | The pixel (dataset) id, same as `analytics.vendors.metaPixel.id` in `src/config.yaml`                          |
+| `META_CAPI_TOKEN`      | Conversions API access token (Events Manager → the pixel → Settings → Conversions API → Generate access token) |
+| `META_TEST_EVENT_CODE` | Optional. Sends events to Events Manager → Test events while checking the setup. Remove it afterwards.         |
+| `META_API_VERSION`     | Optional. Overrides the Graph API version in `meta.js` if Meta retires it before the code is updated.          |
 
 **KV binding** (Pages dashboard → project → Settings → Bindings → KV
 namespace): bind a namespace as `TRACK_DEDUPE`. `cognito.js` records each

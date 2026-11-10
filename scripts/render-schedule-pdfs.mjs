@@ -93,8 +93,12 @@ await new Promise((resolve) => server.listen(PORT, resolve));
 // to events with a complete `schedule` block + rooms).
 const eventsDir = join(DIST, 'events');
 const ids = [];
+// Covers both build formats: `<id>/schedule.html` (build.format: 'file') and
+// `<id>/schedule/index.html` (directory).
 for (const entry of await readdir(eventsDir, { withFileTypes: true })) {
-  if (entry.isDirectory() && existsSync(join(eventsDir, entry.name, 'schedule', 'index.html'))) {
+  if (!entry.isDirectory()) continue;
+  const dir = join(eventsDir, entry.name);
+  if (existsSync(join(dir, 'schedule.html')) || existsSync(join(dir, 'schedule', 'index.html'))) {
     ids.push(entry.name);
   }
 }

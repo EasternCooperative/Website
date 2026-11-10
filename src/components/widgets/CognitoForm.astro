@@ -45,7 +45,8 @@ const gaSessionCookie = gaId ? `_ga_${gaId.replace(/^G-/, '')}` : undefined;
     // sends the payment to GA4 with this visitor's client_id (from _ga) and
     // session_id (from _ga_<stream>). Together they let GA4 join the purchase
     // to the session the ad click started, instead of "Unassigned". Requires
-    // hidden "GAClientId" and "GASessionId" fields on the Cognito form.
+    // one hidden "GAClientId" field on the Cognito form ("GASessionId" too
+    // on older forms; newer ones don't need it, see sendVisitorIds below).
     function readCookie(name) {
       const m = document.cookie.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]+)'));
       return m ? decodeURIComponent(m[1]) : '';
@@ -98,9 +99,48 @@ const gaSessionCookie = gaId ? `_ga_${gaId.replace(/^G-/, '')}` : undefined;
       container.appendChild(s);
 
       const gaClientId = getGaClientId();
+      const sessionCookie = container.dataset.gaSessionCookie;
+      const gaSessionId = gaClientId && sessionCookie ? parseGaSessionId(readCookie(sessionCookie)) : '';
+
+      // The form carries one id, GAClientId. Everything else the purchase
+      // webhook wants (the GA session id, Meta's _fbp / _fbc) is posted to
+      // /api/track-ids keyed by that client id and read back server-side, so
+      // no form needs a hidden field per id. See functions/_lib/visitorIds.js.
+      // Sent shortly after the form appears and again when the visitor first
+      // touches it, since the Meta cookies can land after the page renders;
+      // an unchanged payload is not re-sent.
+      function sendVisitorIds() {
+        const cid = getGaClientId();
+        if (!cid) return;
+        const payload = { cid: cid };
+        const sid = sessionCookie ? parseGaSessionId(readCookie(sessionCookie)) : '';
+        const fbp = readCookie('_fbp');
+        const fbc = readCookie('_fbc');
+        if (sid) payload.sid = sid;
+        if (fbp) payload.fbp = fbp;
+        if (fbc) payload.fbc = fbc;
+        const body = JSON.stringify(payload);
+        if (body === container.__ecrsIdsSent) return;
+        container.__ecrsIdsSent = body;
+        try {
+          fetch('/api/track-ids', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: body,
+            keepalive: true,
+          }).catch(function () {});
+        } catch {
+          /* best effort */
+        }
+      }
+      if (container.__ecrsIdsTimer) clearTimeout(container.__ecrsIdsTimer);
+      container.__ecrsIdsTimer = setTimeout(sendVisitorIds, 1500);
+      if (!container.__ecrsIdsListening) {
+        container.__ecrsIdsListening = true;
+        container.addEventListener('focusin', sendVisitorIds);
+      }
+
       if (gaClientId) {
-        const sessionCookie = container.dataset.gaSessionCookie;
-        const gaSessionId = sessionCookie ? parseGaSessionId(readCookie(sessionCookie)) : '';
         let attempts = 0;
         container.__ecrsPrefillTimer = setInterval(function () {
           attempts++;

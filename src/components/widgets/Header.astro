@@ -8,7 +8,7 @@ import Button from '~/components/ui/Button.astro';
 import PagefindConfig from 'astro-pagefind/components/PagefindConfig.astro';
 
 import { getHomePermalink } from '~/utils/permalinks';
-import { trimSlash } from '~/utils/permalinks';
+import { trimSlash, pagePathname } from '~/utils/permalinks';
 import siteData from '~/data/settings/site.json';
 import type { CallToAction } from '~/types';
 
@@ -47,7 +47,7 @@ const {
   position = 'center',
 } = Astro.props;
 
-const currentPath = `/${trimSlash(new URL(Astro.url).pathname)}`;
+const currentPath = `/${trimSlash(pagePathname(Astro.url.pathname))}`;
 ---
 
 <header

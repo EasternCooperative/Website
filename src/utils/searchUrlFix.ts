@@ -1,8 +1,8 @@
-// Pagefind derives result URLs from the dist/<page>/index.html file path, so
-// it emits trailing-slash URLs (e.g. "/our-people/"). The site runs
-// trailingSlash: 'never' and links slash-less everywhere else (navigation.json,
-// permalinks.ts), so those URLs trigger Astro's redirect interstitial. Rewrite
-// result hrefs (which render live as the user types) to the slash-less form the
+// Pagefind derives result URLs from the file path in dist/, so it emits
+// "/our-people.html" (build.format: 'file') or "/our-people/" (directory
+// format). The site links slash-less and extension-less everywhere else
+// (navigation.json, permalinks.ts), and either other form costs a redirect.
+// Rewrite result hrefs (which render live as the user types) to the form the
 // rest of the site already uses. Editing the href attribute also covers
 // middle-click / cmd-click / open-in-new-tab, which a click handler would miss.
 function normalizeHref(a: Element) {
@@ -10,12 +10,16 @@ function normalizeHref(a: Element) {
   if (!href || !href.startsWith('/')) return;
   const match = href.match(/^([^?#]*)(.*)$/);
   if (!match) return;
-  let path = match[1];
   const rest = match[2];
-  if (path.length > 1 && path.endsWith('/')) {
-    path = path.slice(0, -1);
-    a.setAttribute('href', path + rest);
-  }
+  const path = normalizeResultPath(match[1]);
+  if (path !== match[1]) a.setAttribute('href', path + rest);
+}
+
+/** "/our-people.html" and "/our-people/" both become "/our-people"; "/" stays. */
+export function normalizeResultPath(path: string): string {
+  let out = path.replace(/\/index\.html$/, '/').replace(/\.html$/, '');
+  if (out.length > 1 && out.endsWith('/')) out = out.slice(0, -1);
+  return out || '/';
 }
 
 const observers = new WeakMap<Element, MutationObserver>();
