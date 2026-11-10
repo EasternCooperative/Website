@@ -83,7 +83,10 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
   style="min-height: max(600px, 100svh);"
   aria-label={title}
 >
-  <!-- Video backgrounds (only first is visible initially) -->
+  <!-- Video backgrounds (only first is visible initially). Only the first carries a poster
+       at load: the others sit at opacity 0 and fetching their posters up front shares the
+       connection with the visible one, which on a slow phone delays the largest paint.
+       They hold it in data-poster until videoHero.ts applies it once the page has loaded. -->
   <div class="absolute inset-0" aria-hidden="true">
     {videos.map((v, i) => (
       <video
@@ -95,7 +98,8 @@ const ssrCountdown = eventCard?.dateISO ? countdownUnits(eventCard.dateISO) : []
         muted
         playsinline
         preload="none"
-        poster={v.poster}
+        poster={i === 0 ? v.poster : undefined}
+        data-poster={i > 0 ? v.poster : undefined}
       >
         <source src={v.webm} type='video/webm; codecs="av01.0.08M.08"' />
         <source src={v.mp4} type="video/mp4" />

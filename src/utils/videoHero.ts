@@ -4,6 +4,24 @@ function applyHeaderOffset(header: HTMLElement, section: HTMLElement, content: H
   if (content) content.style.paddingTop = `${h + 32}px`;
 }
 
+/**
+ * Moves a video's deferred poster (data-poster) onto the poster attribute. Only
+ * the first hero video has its poster at load; see VideoHero.astro.
+ */
+export function applyDeferredPoster(video: HTMLVideoElement) {
+  const poster = video.dataset.poster;
+  if (!poster) return;
+  video.poster = poster;
+  delete video.dataset.poster;
+}
+
+/** Applies every deferred poster once the page (and so the visible poster) has finished loading. */
+function applyDeferredPostersAfterLoad(videos: HTMLVideoElement[]) {
+  const apply = () => videos.forEach(applyDeferredPoster);
+  if (document.readyState === 'complete') apply();
+  else window.addEventListener('load', apply, { once: true });
+}
+
 function initVideoHero() {
   const header = document.querySelector<HTMLElement>('#header');
   const section = document.querySelector<HTMLElement>('[data-video-hero]');
@@ -102,6 +120,7 @@ function initVideoHero() {
     if (videos.length === 0) return;
     videos[0].preload = 'metadata';
     if (videos.length > 1) {
+      applyDeferredPostersAfterLoad(videos);
       let current = 0;
       let transitioning = false;
       let queued: number | null = null;
@@ -117,6 +136,8 @@ function initVideoHero() {
         const prev = videos[current];
         const next = videos[nextIndex];
 
+        // A slow page can reach the next clip before `load`; it needs its poster by now.
+        applyDeferredPoster(next);
         videos[(nextIndex + 1) % videos.length].preload = 'auto';
 
         next.currentTime = 0;

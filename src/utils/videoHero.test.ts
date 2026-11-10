@@ -315,6 +315,70 @@ describe('initVideoHero — multi-video crossfade', () => {
   });
 });
 
+describe('initVideoHero — deferred posters', () => {
+  function buildPosterFixture() {
+    document.body.innerHTML = `
+      <section data-video-hero>
+        <video data-hero-video poster="/videos/a-poster.webp"></video>
+        <video data-hero-video data-poster="/videos/b-poster.webp"></video>
+        <video data-hero-video data-poster="/videos/c-poster.webp"></video>
+      </section>
+    `;
+    return [...document.querySelectorAll<HTMLVideoElement>('[data-hero-video]')];
+  }
+  const readyState = (value: DocumentReadyState) => vi.spyOn(document, 'readyState', 'get').mockReturnValue(value);
+
+  it('leaves the other posters unset while the page is still loading', async () => {
+    readyState('loading');
+    const videos = buildPosterFixture();
+    await loadAndTrigger();
+
+    expect(videos[0].getAttribute('poster')).toBe('/videos/a-poster.webp');
+    expect(videos[1].hasAttribute('poster')).toBe(false);
+    expect(videos[1].dataset.poster).toBe('/videos/b-poster.webp');
+  });
+
+  it('applies them all once the page has loaded', async () => {
+    readyState('loading');
+    const videos = buildPosterFixture();
+    await loadAndTrigger();
+
+    window.dispatchEvent(new Event('load'));
+
+    expect(videos[1].getAttribute('poster')).toBe('/videos/b-poster.webp');
+    expect(videos[2].getAttribute('poster')).toBe('/videos/c-poster.webp');
+    expect(videos[1].dataset.poster).toBeUndefined();
+  });
+
+  it('applies them straight away when the page had already loaded', async () => {
+    readyState('complete');
+    const videos = buildPosterFixture();
+    await loadAndTrigger();
+
+    expect(videos[1].getAttribute('poster')).toBe('/videos/b-poster.webp');
+    expect(videos[2].getAttribute('poster')).toBe('/videos/c-poster.webp');
+  });
+
+  it('gives the next clip its poster when it is reached before the page has loaded', async () => {
+    readyState('loading');
+    const videos = buildPosterFixture();
+    await loadAndTrigger();
+
+    videos[0].dispatchEvent(new Event('ended'));
+
+    expect(videos[1].getAttribute('poster')).toBe('/videos/b-poster.webp');
+    expect(videos[2].hasAttribute('poster')).toBe(false);
+  });
+
+  it('applyDeferredPoster ignores a video with no deferred poster', async () => {
+    const { applyDeferredPoster } = await import('./videoHero');
+    const video = document.createElement('video');
+    video.setAttribute('poster', '/videos/a-poster.webp');
+    applyDeferredPoster(video);
+    expect(video.getAttribute('poster')).toBe('/videos/a-poster.webp');
+  });
+});
+
 describe('initVideoHero — auto-stop after repeated cycles', () => {
   it('auto-pauses a single video after two full ended-cycles', async () => {
     document.body.innerHTML = `
