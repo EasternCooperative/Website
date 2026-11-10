@@ -18,6 +18,7 @@
       const metaMap = {
         form_submit_membership: 'Lead',
         form_submit_contact: 'Lead',
+        form_submit_newsletter: 'Lead',
         form_submit_event: 'CompleteRegistration',
         form_submit_donation: 'Donate',
         form_view_event: 'ViewContent',
@@ -28,4 +29,14 @@
     }
     // Future destinations: add an `if (window.newSdk)` block here.
   };
+
+  // Plain HTML forms that post to a third party (the Mailchimp signup) have no
+  // success callback to hook, so count the submit itself: the browser only
+  // fires `submit` once its own validation has passed. Delegated on the
+  // document so it survives View Transition swaps; this head script runs once.
+  document.addEventListener('submit', function (e) {
+    const form = e.target;
+    const name = form && form.getAttribute && form.getAttribute('data-track-form');
+    if (name) window.ecrsTrack('form_submit_' + name, { form_name: name });
+  });
 </script>

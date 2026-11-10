@@ -66,8 +66,17 @@ const id = ANALYTICS?.vendors?.metaPixel?.id ? String(ANALYTICS.vendors.metaPixe
 
     // Listen for deterministic consent events dispatched by Analytics.astro.
     // This replaces the setTimeout race that existed in the click-handler approach.
-    window.addEventListener('ecrs:consent-granted', () => loadPixel());
-    // On deny the pixel was never loaded — nothing to undo.
+    window.addEventListener('ecrs:consent-granted', () => {
+      // Re-grant first in case the pixel was revoked by an earlier decline.
+      if (loaded && window.fbq) window.fbq('consent', 'grant');
+      loadPixel();
+    });
+    // Usually the pixel was never loaded when the visitor declines. It can be,
+    // though: someone who accepted earlier (or a US visitor) reopening "Cookie
+    // settings" and declining. Tell the loaded pixel to stop sending.
+    window.addEventListener('ecrs:consent-denied', () => {
+      if (loaded && window.fbq) window.fbq('consent', 'revoke');
+    });
 
     // Re-run after each View Transition navigation to fire PageView on new pages.
     // Skip the first astro:page-load since apply() below handles the initial render.

@@ -11,6 +11,12 @@ const id = ANALYTICS?.vendors?.googleAnalytics?.id ? String(ANALYTICS.vendors.go
     var STORAGE_KEY = 'ecrs-ga-consent';
     var loaded = false;
 
+    function consentState(value) {
+      return { ad_storage: value, ad_user_data: value, ad_personalization: value, analytics_storage: value };
+    }
+    var CONSENT_GRANTED = consentState('granted');
+    var CONSENT_DENIED = consentState('denied');
+
     // Never load GA in local development.
     var host = location.hostname;
     var isLocal = host === 'localhost' || host === '127.0.0.1' || host === '';
@@ -41,6 +47,12 @@ const id = ANALYTICS?.vendors?.googleAnalytics?.id ? String(ANALYTICS.vendors.go
       window.gtag = function () {
         window.dataLayer.push(arguments);
       };
+      // Consent Mode v2. GA only ever loads once the visitor is allowed to be
+      // measured (US, or an accepted banner), so the default is "granted";
+      // stating it explicitly is what lets Google Ads use the data for
+      // conversions and audiences. deny() below flips these if the visitor
+      // later opts out in the same session.
+      window.gtag('consent', 'default', CONSENT_GRANTED);
       window.gtag('js', new Date());
       // page_view is sent manually so it also fires on View Transition navigations.
       window.gtag('config', GA_ID, { send_page_view: false });
@@ -108,6 +120,9 @@ const id = ANALYTICS?.vendors?.googleAnalytics?.id ? String(ANALYTICS.vendors.go
       setStored('granted');
       window['ga-disable-' + GA_ID] = false;
       hideBanner();
+      // Already loaded means the visitor declined earlier this session and is
+      // now changing their mind: lift the denial recorded by deny().
+      if (loaded && window.gtag) window.gtag('consent', 'update', CONSENT_GRANTED);
       loadGA();
       window.dispatchEvent(new CustomEvent('ecrs:consent-granted'));
     }
@@ -115,6 +130,7 @@ const id = ANALYTICS?.vendors?.googleAnalytics?.id ? String(ANALYTICS.vendors.go
       setStored('denied');
       // Stops GA immediately, even if it was already loaded this session.
       window['ga-disable-' + GA_ID] = true;
+      if (loaded && window.gtag) window.gtag('consent', 'update', CONSENT_DENIED);
       hideBanner();
       window.dispatchEvent(new CustomEvent('ecrs:consent-denied'));
     }
