@@ -60,11 +60,14 @@ Preview, never committed to the repo):
 
 **Meta purchase value** (optional): the Cognito webhook also sends each payment
 to Meta's Conversions API as a `Purchase` with its amount
-(`functions/_lib/meta.js`). It stays off until both variables below are set,
-and it only sends for visitors whose form carried a Meta browser id, which
-needs two hidden text fields on each Cognito payment form named exactly `FBP`
-and `FBC` (`CognitoForm.astro` prefills them, the same way as `GAClientId`).
-Zeffy payments cannot be sent: its form is a cross-origin iframe.
+(`functions/_lib/meta.js`). It stays off until both variables below are set and
+the `TRACK_DEDUPE` KV namespace (below) is bound. No form changes are needed:
+the page showing a form posts the visitor's Meta ids to `/api/track-ids`, which
+stores them in that KV namespace under the visitor's GA client id, and the
+webhook looks them up by the entry's `GAClientId`
+(`functions/_lib/visitorIds.js`). The GA session id travels the same way, so a
+new payment form needs only the one hidden `GAClientId` field. Zeffy payments
+cannot be sent: its form is a cross-origin iframe.
 
 | Variable               | Purpose                                                                                                        |
 | ---------------------- | -------------------------------------------------------------------------------------------------------------- |

@@ -35,9 +35,13 @@
 //
 // Meta: the same payment is also sent to Meta's Conversions API as a
 // `Purchase` with its value (see ../../_lib/meta.js), when META_PIXEL_ID and
-// META_CAPI_TOKEN are set and the form carries the hidden "FBP" / "FBC"
-// fields that CognitoForm.astro prefills. Without those the Meta step is a
-// silent no-op.
+// META_CAPI_TOKEN are set. Meta's browser ids are not form fields: the page
+// stores them in the TRACK_DEDUPE KV namespace under the visitor's GA client
+// id (POST /api/track-ids, ../../_lib/visitorIds.js) and this handler reads
+// them back by the entry's GAClientId. The same lookup supplies the GA
+// session id, so a form needs only the one hidden "GAClientId" field;
+// "GASessionId" on older forms still works and takes precedence. Without the
+// KV binding the lookup, and so the Meta step, is a silent no-op.
 //
 // Dedupe: GA4 dedupes `purchase` by transaction_id but not custom events.
 // When a KV namespace is bound as TRACK_DEDUPE, each payment is recorded
@@ -48,7 +52,8 @@
 // accepted could double-send wa_purchase.
 
 import { sendMpEvents, randomClientId, isAuthorized } from '../../_lib/ga4.js';
-import { planCognitoEvents, parseFormIds } from '../../_lib/cognitoPurchase.js';
+import { planCognitoEvents, applyVisitorIds, parseFormIds } from '../../_lib/cognitoPurchase.js';
+import { loadVisitorIds } from '../../_lib/visitorIds.js';
 import { sendMetaPurchase } from '../../_lib/meta.js';
 
 const DEDUPE_TTL_SECONDS = 400 * 24 * 60 * 60;
@@ -67,13 +72,17 @@ export const onRequestPost = async (context) => {
     return new Response('Invalid JSON', { status: 400 });
   }
 
-  const plan = planCognitoEvents(entry, { waFormIds: parseFormIds(env.WA_FORM_IDS) });
+  const planned = planCognitoEvents(entry, { waFormIds: parseFormIds(env.WA_FORM_IDS) });
   // A wrong/missing key is a mapping bug, not a legitimate "nothing to
   // report" case, so fail loud rather than silently 200.
-  if (plan.error) return new Response(plan.error, { status: 422 });
-  if (plan.skip) return new Response(`Skipped: ${plan.skip}`, { status: 200 });
+  if (planned.error) return new Response(planned.error, { status: 422 });
+  if (planned.skip) return new Response(`Skipped: ${planned.skip}`, { status: 200 });
 
   const dedupe = env.TRACK_DEDUPE;
+  // Ids the visitor's browser stored under this GAClientId when the form was
+  // on screen (POST /api/track-ids): Meta's ids, and the GA session id for
+  // forms without a GASessionId field.
+  const plan = applyVisitorIds(planned, await loadVisitorIds(dedupe, planned.clientId));
   const dedupeKey = `cognito:${plan.transactionId}`;
   if (dedupe && (await dedupe.get(dedupeKey))) {
     return new Response('Already reported, skipped', { status: 200 });

@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { buildMetaPurchase, sendMetaPurchase, sha256Hex, toEventTime } from '../../functions/_lib/meta.js';
-import { planCognitoEvents } from '../../functions/_lib/cognitoPurchase.js';
+import { planCognitoEvents, applyVisitorIds } from '../../functions/_lib/cognitoPurchase.js';
+import { loadVisitorIds, sanitizeVisitorIds } from '../../functions/_lib/visitorIds.js';
+import { onRequestPost as trackIds } from '../../functions/api/track-ids.js';
 
 const NOW = Date.parse('2026-11-07T18:00:00Z');
 const PAID_AT = '2026-11-07T17:58:00Z';
@@ -94,26 +96,76 @@ describe('sendMetaPurchase', () => {
   });
 });
 
-describe('planCognitoEvents: Meta fields', () => {
-  it('passes the hidden FBP / FBC fields and the payment through', () => {
-    const plan = planCognitoEvents(
-      {
-        Id: '131-42',
-        FBP: 'fb.1.1.2',
-        FBC: 'fb.1.1.abc',
-        Form: { Id: '131', Name: 'WA' },
-        Entry: { Action: 'Register & Pay!', DateUpdated: PAID_AT },
-        Order: { AmountPaid: 1080, PaymentStatus: 'Paid', PaymentDate: PAID_AT },
-      },
-      { waFormIds: new Set(['131']), now: NOW }
-    );
-    expect(plan.meta).toMatchObject({
-      transactionId: '131-42',
-      value: 1080,
-      fbp: 'fb.1.1.2',
-      fbc: 'fb.1.1.abc',
-      itemCategory: 'event_registration',
-      paidAt: PAID_AT,
+describe('visitor ids handed over outside the form', () => {
+  const entry = {
+    Id: '131-42',
+    GAClientId: '1234567890.1700000000',
+    Form: { Id: '131', Name: 'WA' },
+    Entry: { Action: 'Register & Pay!', DateUpdated: PAID_AT },
+    Order: { AmountPaid: 1080, PaymentStatus: 'Paid', PaymentDate: PAID_AT },
+  };
+  const plan = () => planCognitoEvents(entry, { waFormIds: new Set(['131']), now: NOW });
+
+  it('sanitizeVisitorIds keeps well-formed ids and drops everything else', () => {
+    expect(
+      sanitizeVisitorIds({
+        cid: '123.456',
+        sid: '1762538000',
+        fbp: 'fb.1.1700000000000.1234567890',
+        fbc: 'fb.1.1700000000000.AbC_dEf-123',
+        extra: 'ignored',
+      })
+    ).toEqual({
+      clientId: '123.456',
+      ids: { sid: '1762538000', fbp: 'fb.1.1700000000000.1234567890', fbc: 'fb.1.1700000000000.AbC_dEf-123' },
     });
+    expect(sanitizeVisitorIds({ cid: '123.456', fbp: '<script>' })).toBeNull();
+    expect(sanitizeVisitorIds({ cid: 'not-an-id', fbp: 'fb.1.1.2' })).toBeNull();
+    expect(sanitizeVisitorIds({ cid: '123.456' })).toBeNull();
+    expect(sanitizeVisitorIds('nope')).toBeNull();
+  });
+
+  it('the plan carries no Meta ids of its own', () => {
+    expect(plan().meta).toMatchObject({ transactionId: '131-42', value: 1080, fbp: null, fbc: null });
+  });
+
+  it('applyVisitorIds adds the Meta ids and a missing GA session id', () => {
+    const merged = applyVisitorIds(plan(), { sid: '1762538000', fbp: 'fb.1.1.2', fbc: 'fb.1.1.abc' });
+    expect(merged.meta).toMatchObject({ fbp: 'fb.1.1.2', fbc: 'fb.1.1.abc' });
+    expect(merged.events!.map((e) => e.params.session_id)).toEqual(['1762538000', '1762538000']);
+  });
+
+  it('a session id that came with the entry wins over the stored one', () => {
+    const withField = planCognitoEvents({ ...entry, GASessionId: '111' }, { waFormIds: new Set(), now: NOW });
+    expect(applyVisitorIds(withField, { sid: '999' }).events![0].params.session_id).toBe('111');
+  });
+
+  it('track-ids stores under the GA client id and the webhook lookup reads it back', async () => {
+    const store = new Map<string, string>();
+    const kv = {
+      get: async (k: string) => store.get(k) ?? null,
+      put: async (k: string, v: string) => void store.set(k, v),
+    };
+    const post = (body: unknown, headers: Record<string, string> = {}) =>
+      trackIds({
+        request: new Request('https://ecrs.org/api/track-ids', {
+          method: 'POST',
+          headers,
+          body: typeof body === 'string' ? body : JSON.stringify(body),
+        }),
+        env: { TRACK_DEDUPE: kv },
+      } as never) as Promise<Response>;
+
+    expect((await post({ cid: '123.456', fbp: 'fb.1.1700000000000.99' })).status).toBe(204);
+    expect(await loadVisitorIds(kv, '123.456')).toEqual({ fbp: 'fb.1.1700000000000.99' });
+
+    // junk, another site's page, and an oversized body all store nothing, and answer the same
+    store.clear();
+    expect((await post('{not json')).status).toBe(204);
+    expect((await post({ cid: '123.456', fbp: 'fb.1.1.2' }, { origin: 'https://evil.example' })).status).toBe(204);
+    expect((await post({ cid: '123.456', fbp: 'fb.1.1.2', pad: 'x'.repeat(3000) })).status).toBe(204);
+    expect(store.size).toBe(0);
+    expect(await loadVisitorIds(kv, '123.456')).toEqual({});
+    expect(await loadVisitorIds(undefined, '123.456')).toEqual({});
   });
 });

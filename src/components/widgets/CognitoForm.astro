@@ -45,8 +45,8 @@ const gaSessionCookie = gaId ? `_ga_${gaId.replace(/^G-/, '')}` : undefined;
     // sends the payment to GA4 with this visitor's client_id (from _ga) and
     // session_id (from _ga_<stream>). Together they let GA4 join the purchase
     // to the session the ad click started, instead of "Unassigned". Requires
-    // hidden "GAClientId" and "GASessionId" fields on the Cognito form.
-    // Hidden "FBP" and "FBC" fields do the same job for Meta.
+    // one hidden "GAClientId" field on the Cognito form ("GASessionId" too
+    // on older forms; newer ones don't need it, see sendVisitorIds below).
     function readCookie(name) {
       const m = document.cookie.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]+)'));
       return m ? decodeURIComponent(m[1]) : '';
@@ -98,53 +98,69 @@ const gaSessionCookie = gaId ? `_ga_${gaId.replace(/^G-/, '')}` : undefined;
       s.dataset.form = container.dataset.cognitoForm;
       container.appendChild(s);
 
-      // Hidden-field prefill, tried from most to least complete: a form that
-      // lacks some of these fields may reject the unknown keys, so fall back
-      // to the smaller sets rather than lose the GA ids it does have.
       const gaClientId = getGaClientId();
       const sessionCookie = container.dataset.gaSessionCookie;
       const gaSessionId = gaClientId && sessionCookie ? parseGaSessionId(readCookie(sessionCookie)) : '';
-      // Meta browser id / click id, for the Conversions API purchase the
-      // webhook sends (functions/_lib/meta.js). Present only when the pixel
-      // has loaded, i.e. the visitor is allowed to be measured.
-      const fbp = readCookie('_fbp');
-      const fbc = readCookie('_fbc');
 
-      const ga = {};
-      if (gaClientId) ga.GAClientId = gaClientId;
-      if (gaSessionId) ga.GASessionId = gaSessionId;
-      const meta = {};
-      if (fbp) meta.FBP = fbp;
-      if (fbc) meta.FBC = fbc;
-
-      const attempts = [Object.assign({}, ga, meta), ga, gaClientId ? { GAClientId: gaClientId } : {}].filter(
-        function (data, i, all) {
-          const key = JSON.stringify(data);
-          return (
-            key !== '{}' &&
-            all.findIndex(function (d) {
-              return JSON.stringify(d) === key;
-            }) === i
-          );
+      // The form carries one id, GAClientId. Everything else the purchase
+      // webhook wants (the GA session id, Meta's _fbp / _fbc) is posted to
+      // /api/track-ids keyed by that client id and read back server-side, so
+      // no form needs a hidden field per id. See functions/_lib/visitorIds.js.
+      // Sent shortly after the form appears and again when the visitor first
+      // touches it, since the Meta cookies can land after the page renders;
+      // an unchanged payload is not re-sent.
+      function sendVisitorIds() {
+        const cid = getGaClientId();
+        if (!cid) return;
+        const payload = { cid: cid };
+        const sid = sessionCookie ? parseGaSessionId(readCookie(sessionCookie)) : '';
+        const fbp = readCookie('_fbp');
+        const fbc = readCookie('_fbc');
+        if (sid) payload.sid = sid;
+        if (fbp) payload.fbp = fbp;
+        if (fbc) payload.fbc = fbc;
+        const body = JSON.stringify(payload);
+        if (body === container.__ecrsIdsSent) return;
+        container.__ecrsIdsSent = body;
+        try {
+          fetch('/api/track-ids', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: body,
+            keepalive: true,
+          }).catch(function () {});
+        } catch {
+          /* best effort */
         }
-      );
+      }
+      if (container.__ecrsIdsTimer) clearTimeout(container.__ecrsIdsTimer);
+      container.__ecrsIdsTimer = setTimeout(sendVisitorIds, 1500);
+      if (!container.__ecrsIdsListening) {
+        container.__ecrsIdsListening = true;
+        container.addEventListener('focusin', sendVisitorIds);
+      }
 
-      if (attempts.length > 0) {
-        let polls = 0;
+      if (gaClientId) {
+        let attempts = 0;
         container.__ecrsPrefillTimer = setInterval(function () {
-          polls++;
+          attempts++;
           if (window.Cognito && typeof window.Cognito.prefill === 'function') {
             clearInterval(container.__ecrsPrefillTimer);
             container.__ecrsPrefillTimer = null;
-            for (let i = 0; i < attempts.length; i++) {
+            const data = { GAClientId: gaClientId };
+            if (gaSessionId) data.GASessionId = gaSessionId;
+            try {
+              window.Cognito.prefill(data);
+            } catch {
+              // A form without a GASessionId field may reject the unknown
+              // key: still pass the client id on its own.
               try {
-                window.Cognito.prefill(attempts[i]);
-                break;
+                if (data.GASessionId) window.Cognito.prefill({ GAClientId: gaClientId });
               } catch {
-                /* this form has no matching hidden field for one of the keys: try the next, smaller set */
+                /* form may not have a matching hidden field defined */
               }
             }
-          } else if (polls > 40) {
+          } else if (attempts > 40) {
             // ~4s: seamless.js likely failed to load, or Cognito.prefill
             // isn't available for this embed — stop polling.
             clearInterval(container.__ecrsPrefillTimer);

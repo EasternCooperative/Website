@@ -121,12 +121,12 @@ This is a sound setup. The gaps are at the edges.
 
 - **Ads conversion value.** `EventTracker.astro` sent a Google Ads conversion with a fixed value of 1.00 USD whenever an event form was submitted, on top of the real `purchase` from the webhook. The made-up value is removed, so Ads only ever sees real revenue. One dashboard step remains: if that conversion action and the GA4 purchase are both Primary goals, a paid registration still counts as two conversions. Set the form submit action to Secondary. It is still worth keeping, because it is the only signal for free events.
 - **Meta counted a page view as a registration.** For events with no signup form, opening the event page fired `event_view_conversion`, mapped to Meta's `CompleteRegistration`. It now maps to `ViewContent`. Expect the registration count in Meta to drop to the real figure.
-- **Meta now learns what a registration is worth.** The Cognito webhook sends each payment to Meta's Conversions API as a `Purchase` with its amount. It is dormant until a pixel id and access token are set in Cloudflare and two hidden fields (`FBP`, `FBC`) are added to each Cognito payment form. Setup is in `docs/deployment-and-cms.md`. It only sends for visitors who already have the pixel's cookie, so it follows the same consent rule as the pixel.
+- **Meta now learns what a registration is worth.** The Cognito webhook sends each payment to Meta's Conversions API as a `Purchase` with its amount. It is dormant until a pixel id and access token are set in Cloudflare; setup is in `docs/deployment-and-cms.md`. No form changes are needed: the page hands the visitor's Meta ids to the server directly, keyed by the GA client id the forms already carry. It only sends for visitors who already have the pixel's cookie, so it follows the same consent rule as the pixel.
 
 ### Recommended
 
 - **Zeffy payments cannot be attributed.** The Zeffy form is a cross-origin iframe, so the site cannot pass it the visitor's GA or Meta id. Each Zeffy purchase is recorded in GA4 against a random id and is not sent to Meta at all. The revenue is counted but never tied to a campaign. Worth knowing when comparing campaigns that drive Zeffy events against those that drive Cognito events.
-- **Each new Cognito registration form** needs the Submit webhook and the hidden `GAClientId`, `GASessionId`, `FBP`, and `FBC` fields added by hand. A line in the `new-event` skill would make that harder to forget.
+- **Each new Cognito registration form** needs the Submit webhook and one hidden `GAClientId` field added by hand. `GASessionId` is no longer required on new forms. A line in the `new-event` skill would make that harder to forget.
 
 ## Schedule generator
 

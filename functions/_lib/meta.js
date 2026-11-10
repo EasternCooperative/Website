@@ -8,9 +8,10 @@
 // Reference: https://developers.facebook.com/docs/marketing-api/conversions-api
 //
 // Consent: an event is only sent when the visitor's browser handed us a Meta
-// browser id (`_fbp`) or click id (`_fbc`). Those cookies exist only once the
-// pixel has loaded, and the pixel only loads for visitors who are allowed to
-// be measured (MetaPixel.astro). No cookie, no event.
+// browser id (`_fbp`) or click id (`_fbc`), which reach the webhook through
+// _lib/visitorIds.js rather than form fields. Those cookies exist only once
+// the pixel has loaded, and the pixel only loads for visitors who are allowed
+// to be measured (MetaPixel.astro). No cookie, no event.
 //
 // Env (Cloudflare Pages > Settings > Variables and Secrets):
 //   META_PIXEL_ID          the pixel / dataset id (same id as src/config.yaml)
