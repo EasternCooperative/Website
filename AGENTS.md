@@ -120,6 +120,10 @@ Use the Oxford (serial) comma in site copy: "breakfast, lunch, and dinner". Leav
 
 Hero images use `loading="eager"` and `fetchpriority="high"`.
 
+## Testing
+
+Vitest covers `src/**/*.ts` and `*.tsx` (`npm run test:coverage`, with floors in `vitest.config.ts`). React islands are tested by mounting them in jsdom with the helpers in `src/__tests__/react.ts` (no Testing Library): add `// @vitest-environment jsdom` to the file, mock heavy dependencies like pdfmake, and drive the UI with real DOM events. `.astro` files cannot be instrumented by Vitest; the Playwright suite in `e2e/` is what exercises them.
+
 ## Verification Checklist
 
 After changes, always verify:
