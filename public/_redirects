@@ -11,6 +11,12 @@
 # --- Short links for print and QR codes ---
 /join                                             /join-email-list   301
 
+# --- Staff tools index ---
+# The tools index is /internal/tools so that it sits inside the `/internal/*`
+# Cloudflare Access rule (a bare /internal is outside it).
+/internal                                         /internal/tools   302
+/internal/                                        /internal/tools   302
+
 # --- Core pages that moved ---
 /about-us-2/*                                    /about   301
 /our-organization-3/*                             /about   301

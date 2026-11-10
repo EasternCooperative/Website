@@ -1,4 +1,5 @@
 ---
+import { pagePathname } from '~/utils/permalinks';
 import { existsSync } from 'node:fs';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { getImage } from 'astro:assets';
@@ -170,7 +171,7 @@ const metadata = {
 
 // Astro.url is the build server's origin (http://localhost:4321) during a static
 // build, so absolute URLs for structured data must be built from Astro.site.
-const pageUrl = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : String(Astro.url);
+const pageUrl = Astro.site ? new URL(pagePathname(Astro.url.pathname), Astro.site).href : String(Astro.url);
 
 const jsonLd = {
   '@context': 'https://schema.org',

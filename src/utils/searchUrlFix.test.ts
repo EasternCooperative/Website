@@ -37,6 +37,16 @@ describe('initPagefindFixes — href normalization', () => {
     expect(document.querySelector('a')?.getAttribute('href')).toBe('/our-people');
   });
 
+  it('strips the .html extension pagefind derives from file-format output', async () => {
+    document.body.innerHTML = `<pagefind-modal><a href="/our-people.html#leader-x">Our People</a><a href="/index.html">Home</a></pagefind-modal>`;
+    const { initPagefindFixes } = await import('./searchUrlFix');
+
+    initPagefindFixes();
+
+    const hrefs = [...document.querySelectorAll('a')].map((a) => a.getAttribute('href'));
+    expect(hrefs).toEqual(['/our-people#leader-x', '/']);
+  });
+
   it('preserves query and hash when stripping the trailing slash', async () => {
     document.body.innerHTML = `
       <pagefind-modal>

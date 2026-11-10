@@ -1,5 +1,6 @@
 User-agent: *
-Disallow:
+Disallow: /admin/
+Disallow: /internal/
 
 # AI assistants and agentic browsers — explicitly welcome
 User-agent: GPTBot
