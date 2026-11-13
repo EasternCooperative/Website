@@ -15,6 +15,7 @@ import EventTracker from '~/components/common/EventTracker.astro';
 import MetaPixel from '~/components/common/MetaPixel.astro';
 import ConsentBanner from '~/components/common/ConsentBanner.astro';
 import BasicScripts from '~/components/common/BasicScripts.astro';
+import ConsoleGreeting from '~/components/common/ConsoleGreeting.astro';
 
 // Comment the line below to disable View Transitions
 import { ClientRouter } from 'astro:transitions';
@@ -77,5 +78,6 @@ const { language, textDirection } = I18N;
 
     <ConsentBanner />
     <BasicScripts />
+    <ConsoleGreeting />
   </body>
 </html>
