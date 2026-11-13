@@ -68,7 +68,7 @@ export default function GenerateStep({
   }
 
   function handleRosters() {
-    downloadRosters(buildRosters(workshops), eventLabel);
+    downloadRosters(buildRosters(workshops, timeslots), eventLabel);
   }
 
   async function handleIndividualSchedules() {

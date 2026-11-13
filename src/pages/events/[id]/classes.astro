@@ -4,6 +4,7 @@ import CognitoForm from '~/components/widgets/CognitoForm.astro';
 import HeroText from '~/components/widgets/HeroText.astro';
 import Layout from '~/layouts/PageLayout.astro';
 import { baseEventTitle } from '~/utils/eventSchedule';
+import { hasClassDescriptions } from '~/utils/classDescriptionsPdf';
 
 export async function getStaticPaths() {
   const events = await getCollection('event');
@@ -32,6 +33,20 @@ const metadata = {
 
 <Layout metadata={metadata} noIndex>
   <HeroText tagline={eventLabel} title="Class Registration" />
+
+  {hasClassDescriptions(data) && (
+    <p class="px-4 max-w-3xl mx-auto -mt-4 mb-6 text-center text-muted">
+      Want to read about the classes first?{' '}
+      <a
+        href={`/events/${event.id}/class-descriptions.pdf`}
+        class="font-semibold text-primary underline underline-offset-2 hover:text-secondary"
+        target="_blank"
+        rel="noopener"
+      >
+        Download the class descriptions (PDF)
+      </a>
+    </p>
+  )}
 
   <CognitoForm
     formId={data.classRegistrationFormId!}

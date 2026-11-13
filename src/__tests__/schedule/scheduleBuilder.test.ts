@@ -150,6 +150,29 @@ describe('buildRosters', () => {
     // tied "Morning First Period" pair, workshopName breaks the tie.
     expect(rosters.map((r) => r.workshopName)).toEqual(['Yoga', 'Dance', 'Pottery']);
   });
+
+  it('adds the formatted class time from the matching timeslot', () => {
+    const pottery = makeWorkshop('Pottery', 'J', 'Art Studio', 'MorningFirstPeriod', 'Morning First Period');
+    const yoga = makeWorkshop('Yoga', 'L', 'Elm Room', 'AfternoonFirstPeriod', 'Afternoon First Period');
+    const timeslots = [makeSlot('MorningFirstPeriod', 'Morning First Period', '09:15', '10:45')];
+    const rosters = buildRosters([pottery, yoga], timeslots);
+    expect(rosters.find((r) => r.workshopName === 'Pottery')?.time).toBe('9:15 AM - 10:45 AM');
+    // No timeslot for the afternoon period, so no time is shown.
+    expect(rosters.find((r) => r.workshopName === 'Yoga')?.time).toBe('');
+  });
+
+  it('puts classes with no attendees after all classes that have some', () => {
+    const morning = ['MorningFirstPeriod', 'Morning First Period', 1, 4] as const;
+    const afternoon = ['AfternoonFirstPeriod', 'Afternoon First Period', 1, 4] as const;
+    const pottery = makeWorkshop('Pottery', 'J', 'Art Studio', ...morning, [makeSelection('1', 'Alice Johnson', 1)]);
+    const dance = makeWorkshop('Dance', 'K', 'Rec Hall', ...morning);
+    const yoga = makeWorkshop('Yoga', 'L', 'Elm Room', ...afternoon, [makeSelection('2', 'Bob Williams', 1)]);
+    // Backup choices only, so the roster itself is empty.
+    const archery = makeWorkshop('Archery', 'M', 'Field', ...afternoon, [makeSelection('3', 'Carol Adams', 2)]);
+    const rosters = buildRosters([dance, pottery, archery, yoga]);
+    // Filled classes first (period, then name), then the empty ones in the same order.
+    expect(rosters.map((r) => r.workshopName)).toEqual(['Yoga', 'Pottery', 'Archery', 'Dance']);
+  });
 });
 
 // ---------------------------------------------------------------------------

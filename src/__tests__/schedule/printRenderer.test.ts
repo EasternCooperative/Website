@@ -113,6 +113,14 @@ describe('downloadRosters', () => {
     downloadRosters(noLeader, 'Winter Adventure');
     expect(mockCreatePdf).toHaveBeenCalledOnce();
   });
+
+  it('shows the class time next to the period name when one is set', () => {
+    downloadRosters([{ ...rosters[0], time: '9:15 AM - 10:45 AM' }, rosters[0]], 'Winter Adventure');
+    const doc = JSON.stringify(mockCreatePdf.mock.calls[0][0]);
+    expect(doc).toContain('Morning First Period (9:15 AM - 10:45 AM)   •   Chapel A');
+    // Without a time the header keeps the period name alone.
+    expect(doc).toContain('Morning First Period   •   Chapel A');
+  });
 });
 
 describe('downloadIndividualSchedules', () => {

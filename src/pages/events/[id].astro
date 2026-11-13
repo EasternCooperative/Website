@@ -16,6 +16,7 @@ import { resolveVenue, splitPhone } from '~/utils/resolveEvent';
 import siteSettings from '~/data/settings/site.json';
 import { resolveClassLeaderNames } from '~/utils/classes';
 import { hasMasterSchedule, buildScheduleGroups } from '~/utils/eventSchedule';
+import { hasClassDescriptions } from '~/utils/classDescriptionsPdf';
 import { renderProse, renderInlineMarkdown, stripMarkdown } from '~/utils/markdown';
 import { annotateTerms, escapeHtml, glossaryId, glossaryTrigger } from '~/utils/glossary';
 
@@ -60,6 +61,8 @@ const masterSchedule = hasMasterSchedule(data);
 // public/schedules/. Show the download link only once it exists.
 const schedulePdfPath = `/schedules/${event.id}.pdf`;
 const schedulePdfExists = existsSync(`public${schedulePdfPath}`);
+// Built with the site (src/pages/events/[id]/class-descriptions.pdf.ts).
+const classDescriptionsPdf = hasClassDescriptions(data);
 if (import.meta.env.DEV && data.schedule?.timeslots?.length && !masterSchedule.ok) {
   console.warn(
     `[${event.id}] master schedule not offered — missing rooms: ${masterSchedule.missingRooms.join(', ') || 'none'}` +
@@ -953,14 +956,26 @@ const breadcrumbJsonLd = {
           {data.classesIntro && (
             <div class="mb-6 text-muted prose dark:prose-invert max-w-none" set:html={renderProse(data.classesIntro)} />
           )}
-          {masterSchedule.ok && (
+          {(masterSchedule.ok || classDescriptionsPdf) && (
             <div class="mb-6 flex flex-wrap gap-3">
-              <a href={`/events/${event.id}/schedule`} class="btn btn-secondary">
-                View schedule
-              </a>
-              {schedulePdfExists && (
+              {masterSchedule.ok && (
+                <a href={`/events/${event.id}/schedule`} class="btn btn-secondary">
+                  View schedule
+                </a>
+              )}
+              {masterSchedule.ok && schedulePdfExists && (
                 <a href={schedulePdfPath} class="btn btn-secondary" target="_blank" rel="noopener">
-                  Download PDF
+                  {classDescriptionsPdf ? 'Download schedule (PDF)' : 'Download PDF'}
+                </a>
+              )}
+              {classDescriptionsPdf && (
+                <a
+                  href={`/events/${event.id}/class-descriptions.pdf`}
+                  class="btn btn-secondary"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  Download class descriptions (PDF)
                 </a>
               )}
             </div>

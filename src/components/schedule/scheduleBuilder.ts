@@ -1,4 +1,5 @@
 import type { Workshop, TimeSlot } from './models';
+import { formatTimeRange } from './timeUtils';
 
 export interface MasterScheduleData {
   locations: string[];
@@ -14,6 +15,8 @@ export interface RosterEntry {
   /** Day span, so a roster for a half-block class can say which half. Optional for older callers. */
   startDay?: number;
   endDay?: number;
+  /** Formatted clock time for the period, e.g. "9:00 AM - 10:30 AM". Empty when the period has no timeslot. */
+  time?: string;
   attendees: { fullName: string; age: string }[];
 }
 
@@ -41,13 +44,15 @@ export function buildMasterSchedule(workshops: Workshop[], timeslots: TimeSlot[]
   return { locations, timeslots, workshops: workshops.filter((w) => w.location) };
 }
 
-export function buildRosters(workshops: Workshop[]): RosterEntry[] {
+export function buildRosters(workshops: Workshop[], timeslots: TimeSlot[] = []): RosterEntry[] {
+  const slotMap = new Map<string, TimeSlot>(timeslots.map((ts) => [ts.periodKey, ts]));
   return workshops
     .map((w) => {
       const firstChoiceOnly = w.selections.filter((s) => s.choiceNumber === 1);
       const sorted = [...firstChoiceOnly].sort(
         (a, b) => a.lastName.localeCompare(b.lastName) || a.firstName.localeCompare(b.firstName)
       );
+      const slot = slotMap.get(w.period.sheetName);
       return {
         workshopName: w.name,
         leader: w.leader,
@@ -55,10 +60,17 @@ export function buildRosters(workshops: Workshop[]): RosterEntry[] {
         period: w.period.displayName,
         startDay: w.duration.startDay,
         endDay: w.duration.endDay,
+        time: slot ? formatTimeRange(slot.startTime, slot.endTime) : '',
         attendees: sorted.map((s) => ({ fullName: s.fullName, age: '' })),
       };
     })
-    .sort((a, b) => a.period.localeCompare(b.period) || a.workshopName.localeCompare(b.workshopName));
+    .sort(
+      (a, b) =>
+        // Empty classes go last so their pages can be left out of a print run.
+        Number(a.attendees.length === 0) - Number(b.attendees.length === 0) ||
+        a.period.localeCompare(b.period) ||
+        a.workshopName.localeCompare(b.workshopName)
+    );
 }
 
 export function buildIndividualSchedules(workshops: Workshop[], timeslots: TimeSlot[]): IndividualSchedule[] {

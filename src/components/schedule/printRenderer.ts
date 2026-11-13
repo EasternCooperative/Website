@@ -127,12 +127,12 @@ function rosterTable(items: Array<{ a: RosterEntry['attendees'][0]; counter: num
   };
 }
 
-/** Period, room, day span, and head count in one filled band under the title. */
+/** Period (with its clock time), room, day span, and head count in one filled band under the title. */
 function rosterMetaBand(r: RosterEntry): object {
   const count = r.attendees.length;
   const isPartial = r.startDay != null && r.endDay != null && !(r.startDay === 1 && r.endDay === 4);
   const parts = [
-    r.period,
+    r.time ? `${r.period} (${r.time})` : r.period,
     ...(hasRoom(r.location) ? [r.location] : []),
     ...(isPartial ? [daysLabel(r.startDay!, r.endDay!)] : []),
     `${count} attendee${count !== 1 ? 's' : ''}`,
