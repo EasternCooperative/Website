@@ -20,8 +20,15 @@ function mockMatchMedia({ reducedMotion, desktop }: { reducedMotion: boolean; de
 
 // Elements are "below the fold" (reveal window not yet reached) unless a test says
 // otherwise — initScrollReveal reads getBoundingClientRect().top against innerHeight.
+// jsdom never runs layout, so the page height has to be stated: tall enough by default
+// that every element can scroll all the way through its reveal window.
+function setPageHeight(scrollHeight: number) {
+  Object.defineProperty(document.documentElement, 'scrollHeight', { configurable: true, value: scrollHeight });
+}
+
 function mockBelowFold() {
   Object.defineProperty(window, 'innerHeight', { configurable: true, value: 900 });
+  setPageHeight(10000);
   HTMLElement.prototype.getBoundingClientRect = vi.fn(() => ({ top: 2000 }) as DOMRect);
 }
 
@@ -73,6 +80,21 @@ describe('initScrollReveal', () => {
     expect(scrollMock).toHaveBeenCalledWith('animation-controls', {
       target: el,
       offset: ['start 85%', 'start 65%'],
+    });
+  });
+
+  it('moves the reveal window down for an element that cannot scroll up to the default end line', async () => {
+    // Viewport 900, page 2300: 1400px of scroll left. An element at 2000 stops rising
+    // at 600px, which is 66.7% down the viewport and short of the 65% end line.
+    setPageHeight(2300);
+    document.body.innerHTML = '<div data-scroll-reveal="up"></div>';
+    const { initScrollReveal } = await import('./scrollReveal');
+
+    await initScrollReveal();
+
+    expect(scrollMock).toHaveBeenCalledWith('animation-controls', {
+      target: document.querySelector('[data-scroll-reveal]'),
+      offset: ['start 88%', 'start 68%'],
     });
   });
 
@@ -160,6 +182,28 @@ describe('initScrollReveal', () => {
 
     expect(document.getElementById('a')?.hasAttribute('data-scroll-reveal-ready')).toBe(false);
     expect(document.getElementById('b')?.hasAttribute('data-scroll-reveal-ready')).toBe(true);
+  });
+});
+
+describe('revealWindow', () => {
+  it('keeps the default window when the element can reach the end line', async () => {
+    const { revealWindow } = await import('./scrollReveal');
+
+    expect(revealWindow(-200)).toEqual([85, 65]);
+    expect(revealWindow(65)).toEqual([85, 65]);
+  });
+
+  it('ends just before the scroll limit and keeps the 20-point span while it fits', async () => {
+    const { revealWindow } = await import('./scrollReveal');
+
+    expect(revealWindow(70.2)).toEqual([92, 72]);
+  });
+
+  it('squeezes the window against the bottom edge for an element that barely enters the viewport', async () => {
+    const { revealWindow } = await import('./scrollReveal');
+
+    expect(revealWindow(90)).toEqual([100, 91]);
+    expect(revealWindow(99.5)).toEqual([100, 99]);
   });
 });
 

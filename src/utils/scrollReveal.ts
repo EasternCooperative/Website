@@ -25,6 +25,26 @@ const START_PERCENT = 85;
 const END_PERCENT = 65;
 
 /**
+ * The reveal window for one element, as [start, end] percentages down the viewport.
+ *
+ * Normally that's the 85% -> 65% default. But an element near the bottom of the page
+ * can't always rise to 65%: once the page hits its scroll limit the element stops
+ * wherever it is, and on a tall screen (or a short page) that can be well below the
+ * end line, leaving it stuck partly transparent and blurred, or never shown at all.
+ * `lowestTopPercent` is where the element's top edge sits at the scroll limit; when
+ * that's below the default end line, the window is moved down so the reveal finishes
+ * just before the page runs out of scroll.
+ */
+export function revealWindow(lowestTopPercent: number): [start: number, end: number] {
+  if (lowestTopPercent <= END_PERCENT) return [START_PERCENT, END_PERCENT];
+  // +1 so the reveal completes a hair before the scroll limit rather than exactly on
+  // it, where sub-pixel rounding could leave it a fraction short.
+  const end = Math.min(99, Math.ceil(lowestTopPercent) + 1);
+  const start = Math.max(START_PERCENT, Math.min(100, end + (START_PERCENT - END_PERCENT)));
+  return [start, end];
+}
+
+/**
  * Wires up scroll-linked (scrubbed) reveal animations on every element under `root`
  * carrying a `data-scroll-reveal="up|left|right"` attribute that hasn't been wired yet.
  * Desktop-only and skipped entirely under prefers-reduced-motion, matching the rest of
@@ -47,17 +67,24 @@ export async function initScrollReveal(root: ParentNode = document): Promise<voi
   // Read phase: mark every candidate ready and take its geometry up front, before any
   // animate()/scroll() calls below can write styles — interleaving reads and writes here
   // is what causes a forced reflow per element.
-  const startPx = (START_PERCENT / 100) * window.innerHeight;
+  const viewportHeight = window.innerHeight;
+  const startPx = (START_PERCENT / 100) * viewportHeight;
+  // How much further the page can still scroll from here.
+  const remainingScroll = Math.max(0, document.documentElement.scrollHeight - viewportHeight - window.scrollY);
   const toReveal: HTMLElement[] = [];
+  const windows = new Map<HTMLElement, [start: number, end: number]>();
   candidates.forEach((el) => {
     el.dataset.scrollRevealReady = 'true';
+    const top = el.getBoundingClientRect().top;
 
     // If the element's reveal window has already been reached by its static position
     // (e.g. it's already partway down a freshly-loaded page, or the page opened at a
     // scrolled position), scroll-linking it would leave it stuck at whatever partial
     // opacity/blur/offset that position implies until the user scrolls further — which
     // reads as a rendering glitch, not an animation. Just show it fully revealed.
-    if (el.getBoundingClientRect().top > startPx) toReveal.push(el);
+    if (top <= startPx) return;
+    toReveal.push(el);
+    windows.set(el, revealWindow(((top - remainingScroll) / viewportHeight) * 100));
   });
 
   if (toReveal.length === 0) return;
@@ -85,6 +112,7 @@ export async function initScrollReveal(root: ParentNode = document): Promise<voi
     const direction = el.dataset.scrollReveal as Direction;
     const { x, y } = OFFSETS[direction] ?? OFFSETS.up;
     const isLight = direction === 'up-light';
+    const [start, end] = windows.get(el)!;
 
     scroll(
       animate(
@@ -96,7 +124,7 @@ export async function initScrollReveal(root: ParentNode = document): Promise<voi
         },
         { duration: isLight ? 0.5 : 1 }
       ),
-      { target: el, offset: [`start ${START_PERCENT}%`, `start ${END_PERCENT}%`] }
+      { target: el, offset: [`start ${start}%`, `start ${end}%`] }
     );
   });
 }
