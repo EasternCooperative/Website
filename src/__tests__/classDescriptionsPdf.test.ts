@@ -122,10 +122,28 @@ describe('classDescriptionsDocDefinition', () => {
     expect(doc.footer(2, 4).text).toBe('Winter Adventure 2026  |  Page 2 of 4');
   });
 
+  it('leaves out the heading and every optional line for a bare, ungrouped class', () => {
+    const bare = classDescriptionsDocDefinition(
+      [
+        { heading: '', time: '', classes: [{ name: 'Open Sing', leader: '', meta: [], description: '', callout: '' }] },
+        { heading: 'Evening', time: '', classes: [] },
+      ],
+      'Fun Day 2026'
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ) as any;
+    // Title block, the bare class, then the time-less "Evening" heading.
+    expect(bare.content).toHaveLength(4);
+    expect(bare.content[2].stack).toEqual([{ text: [{ text: 'Open Sing', bold: true, fontSize: 12 }] }]);
+    expect(bare.content[3].stack.map((n: { text?: string }) => n.text)).toEqual(['Evening', undefined]);
+  });
+
   it('keeps a period heading on the same page as its first class', () => {
     const heading = { headlineLevel: 1, pageNumbers: [1] };
     expect(doc.pageBreakBefore(heading, [{ pageNumbers: [2] }])).toBe(true);
     expect(doc.pageBreakBefore(heading, [{ pageNumbers: [1] }])).toBe(false);
+    // Last node in the document, or nodes not yet laid out: nothing to keep it with.
+    expect(doc.pageBreakBefore(heading, [])).toBe(false);
+    expect(doc.pageBreakBefore({ headlineLevel: 1 }, [{}])).toBe(false);
     expect(doc.pageBreakBefore({ pageNumbers: [1] }, [{ pageNumbers: [2] }])).toBe(false);
   });
 });
