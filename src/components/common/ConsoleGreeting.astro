@@ -1,0 +1,41 @@
+---
+// A small easter egg for anyone who opens devtools: the ECRS letters in the
+// brand colours, plus a pointer to the source.
+//
+// The art is an array of rows (not one multi-line string) so neither Prettier
+// nor the HTML/JS minifiers can disturb its spacing.
+---
+
+<script is:inline>
+  (function () {
+    // ClientRouter navigations can re-run inline scripts; greet once per load.
+    if (window.__ecrsGreeted) return;
+    window.__ecrsGreeted = true;
+
+    const rows = [
+      '███████╗ ██████╗██████╗ ███████╗',
+      '██╔════╝██╔════╝██╔══██╗██╔════╝',
+      '█████╗  ██║     ██████╔╝███████╗',
+      '██╔══╝  ██║     ██╔══██╗╚════██║',
+      '███████╗╚██████╗██║  ██║███████║',
+      '╚══════╝ ╚═════╝╚═╝  ╚═╝╚══════╝',
+    ];
+    // Brighter tints of the brand pink, orange, and sky so the art reads on
+    // both light and dark devtools themes. Two rows per colour.
+    const colors = ['#e0257a', '#e0257a', '#d97a0a', '#d97a0a', '#0a9bd0', '#0a9bd0'];
+    const art = 'font-family: monospace; line-height: 1.1; font-weight: bold; color: ';
+
+    let format = '';
+    const styles = [];
+    rows.forEach(function (row, i) {
+      format += '%c' + row + '\n';
+      styles.push(art + colors[i]);
+    });
+    format += '%c\nEastern Cooperative Recreation School\n';
+    styles.push('font-weight: bold');
+    format += '%cCurious how this site is built? https://github.com/EasternCooperative/Website';
+    styles.push('font-weight: normal');
+
+    console.log(format, ...styles);
+  })();
+</script>
