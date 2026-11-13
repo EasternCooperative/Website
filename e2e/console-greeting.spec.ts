@@ -14,7 +14,10 @@ const LAST_ROW = '╚══════╝ ╚═════╝╚═╝  ╚�
 test('prints the ECRS logo once, and not again after client-side navigation', async ({ page }) => {
   const greetings: string[] = [];
   page.on('console', (msg) => {
-    if (msg.text().includes(NAME)) greetings.push(msg.text());
+    // Each letter is its own %c-styled segment; strip the markers so the rows
+    // can be compared as plain text.
+    const text = msg.text().replace(/%c/g, '');
+    if (text.includes(NAME)) greetings.push(text);
   });
 
   await page.goto('/');

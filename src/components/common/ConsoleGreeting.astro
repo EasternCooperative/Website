@@ -1,6 +1,6 @@
 ---
 // A small easter egg for anyone who opens devtools: the ECRS letters in the
-// brand colours, plus a pointer to the source.
+// logo's four colors, plus a pointer to the source.
 //
 // The art is an array of rows (not one multi-line string) so neither Prettier
 // nor the HTML/JS minifiers can disturb its spacing.
@@ -20,16 +20,21 @@
       '███████╗╚██████╗██║  ██║███████║',
       '╚══════╝ ╚═════╝╚═╝  ╚═╝╚══════╝',
     ];
-    // Brighter tints of the brand pink, orange, and sky so the art reads on
-    // both light and dark devtools themes. Two rows per colour.
-    const colors = ['#e0257a', '#e0257a', '#d97a0a', '#d97a0a', '#0a9bd0', '#0a9bd0'];
+    // One color per letter, taken from the four signs in the ECRS logo
+    // (public/images/ecrs-logo.svg): pink E, blue C, green R, orange S.
+    const colors = ['#eb018b', '#01aced', '#41b03b', '#f48612'];
     const art = 'font-family: monospace; line-height: 1.1; font-weight: bold; color: ';
+    // Every letter is exactly this many characters wide in every row.
+    const letterWidth = 8;
 
     let format = '';
     const styles = [];
-    rows.forEach(function (row, i) {
-      format += '%c' + row + '\n';
-      styles.push(art + colors[i]);
+    rows.forEach(function (row) {
+      colors.forEach(function (color, i) {
+        format += '%c' + row.slice(i * letterWidth, (i + 1) * letterWidth);
+        styles.push(art + color);
+      });
+      format += '\n';
     });
     format += '%c\nEastern Cooperative Recreation School\n';
     styles.push('font-weight: bold');
