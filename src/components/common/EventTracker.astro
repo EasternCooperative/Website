@@ -47,3 +47,10 @@
     if (name) window.ecrsTrack('form_submit_' + name, { form_name: name });
   });
 </script>
+
+<script>
+  // Feature usage events (search, filters, share, downloads); see the module.
+  import { initFeatureTracking } from '~/utils/featureTracking';
+
+  initFeatureTracking();
+</script>

@@ -26,7 +26,7 @@ When you visit the site, we collect limited technical and usage information to u
 We use three analytics tools:
 
 - **Cloudflare Web Analytics** — privacy-first and **cookieless**. It measures aggregate page views and performance (such as page-load times) without using cookies, without tracking you across sites, and without collecting personal information. It runs on every visit.
-- **Google Analytics 4 (GA4)** — helps us understand how people navigate the site. GA4 uses cookies.
+- **Google Analytics 4 (GA4)** — helps us understand how people navigate the site and which features they use, such as search, filters, and calendar downloads. This includes the words typed into search boxes, but we never send search text that looks like an email address or phone number. GA4 uses cookies.
 - **Meta Pixel** — allows us to measure whether visitors who clicked one of our ads on Facebook or Instagram went on to register for an event or make a donation. Meta Pixel uses cookies and shares conversion data with Meta Platforms, Inc. Meta's use of that data is governed by [Meta's Privacy Policy](https://www.facebook.com/privacy/policy/).
 
 We treat Google Analytics and the Meta Pixel differently depending on where you are:

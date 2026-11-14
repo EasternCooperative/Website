@@ -67,10 +67,15 @@ function initShareButton() {
     if (!shareBtn) return;
     const { title, text } = shareBtn.dataset;
     const url = window.location.href;
+    const eventId = window.location.pathname.split('/').filter(Boolean).pop() ?? '';
     if (navigator.share) {
+      // Rejects when the visitor dismisses the share sheet, so only a
+      // completed share gets counted.
       await navigator.share({ title, text, url });
+      window.ecrsTrack?.('share', { method: 'native', content_type: 'event', item_id: eventId });
     } else {
       await navigator.clipboard.writeText(url);
+      window.ecrsTrack?.('share', { method: 'copy_link', content_type: 'event', item_id: eventId });
       const originalHTML = shareBtn.innerHTML;
       shareBtn.innerHTML = '<span class="text-sm font-semibold px-1">Copied!</span>';
       setTimeout(() => (shareBtn.innerHTML = originalHTML), 2000);
