@@ -5,8 +5,21 @@ import GalleryBrowser, { type GalleryPhoto } from '~/components/widgets/GalleryB
 import { cleanup, render, settle, textOf, type } from '../react';
 
 // Opening the lightbox needs a real layout engine; the grid and filters do not.
+// The mock keeps the props the real Gallery hands to PhotoSwipe, so tests can
+// drive the open hook and the custom toolbar button with a stand-in lightbox.
+const galleryProps: { current?: GalleryMockProps } = {};
+interface GalleryMockProps {
+  onOpen: (pswp: unknown) => void;
+  uiElements: {
+    onInit: (el: HTMLElement, pswp: unknown) => void;
+    onClick: (e: MouseEvent, el: HTMLElement, pswp: unknown) => void;
+  }[];
+}
 vi.mock('react-photoswipe-gallery', () => ({
-  Gallery: ({ children }: { children: React.ReactNode }) => <div data-gallery>{children}</div>,
+  Gallery: ({ children, ...props }: { children: React.ReactNode } & GalleryMockProps) => {
+    galleryProps.current = props;
+    return <div data-gallery>{children}</div>;
+  },
   Item: ({
     children,
     caption,
@@ -217,5 +230,70 @@ describe('GalleryBrowser', () => {
     await settle();
     expect(container.querySelector('input[type=range]')).toBeNull();
     expect(count(container)).toBe('1 photo');
+  });
+
+  describe('lightbox', () => {
+    // Just enough of PhotoSwipe for the open hook and the "open original" button.
+    function fakeLightbox(src: string) {
+      const handlers: Record<string, (() => void)[]> = {};
+      return {
+        currSlide: { data: { src } },
+        mainScroll: { moveIndexBy: vi.fn() },
+        on: (name: string, fn: () => void) => (handlers[name] ??= []).push(fn),
+        emit: (name: string) => handlers[name]?.forEach((fn) => fn()),
+      };
+    }
+
+    let track: ReturnType<typeof vi.fn<(eventName: string) => void>>;
+    beforeEach(() => {
+      track = vi.fn<(eventName: string) => void>();
+      window.ecrsTrack = track;
+    });
+    afterEach(() => {
+      delete window.ecrsTrack;
+    });
+
+    it('counts an open and animates arrow-key navigation until it closes', async () => {
+      await mount();
+      const pswp = fakeLightbox('/p/1-full.webp');
+      galleryProps.current!.onOpen(pswp);
+      expect(track).toHaveBeenCalledWith('gallery_photo_open');
+
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }));
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+      expect(pswp.mainScroll.moveIndexBy.mock.calls).toEqual([
+        [1, true],
+        [-1, true],
+      ]);
+
+      pswp.emit('destroy');
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+      expect(pswp.mainScroll.moveIndexBy).toHaveBeenCalledTimes(2);
+    });
+
+    it('opens and counts the original only for photos that have one', async () => {
+      await mount([photo(1, { originalSrc: 'https://example.com/1.jpg' }), photo(2)]);
+      const open = vi.spyOn(window, 'open').mockImplementation(() => null);
+      const [button] = galleryProps.current!.uiElements;
+      const el = document.createElement('button');
+
+      const withOriginal = fakeLightbox('/p/1-full.webp');
+      button.onInit(el, withOriginal);
+      expect(el.getAttribute('aria-label')).toBe('Open original photo in a new tab');
+      withOriginal.emit('change');
+      expect(el.style.display).toBe('');
+      button.onClick(new MouseEvent('click'), el, withOriginal);
+      expect(open).toHaveBeenCalledWith('https://example.com/1.jpg', '_blank', 'noopener');
+      expect(track).toHaveBeenCalledWith('gallery_original_open');
+
+      const withoutOriginal = fakeLightbox('/p/2-full.webp');
+      button.onInit(el, withoutOriginal);
+      withoutOriginal.emit('change');
+      expect(el.style.display).toBe('none');
+      button.onClick(new MouseEvent('click'), el, withoutOriginal);
+      expect(open).toHaveBeenCalledOnce();
+      expect(track).toHaveBeenCalledOnce();
+    });
   });
 });

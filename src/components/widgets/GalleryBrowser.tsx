@@ -12,6 +12,7 @@ import 'photoswipe/style.css';
 // arrow-key navigation ourselves via the same internal method, but passing
 // `animate: true` so it takes the animated path instead.
 function onGalleryOpen(pswp: PhotoSwipe) {
+  window.ecrsTrack?.('gallery_photo_open');
   const handleKeydown = (e: KeyboardEvent) => {
     if (e.key === 'ArrowLeft') pswp.mainScroll.moveIndexBy(-1, true);
     else if (e.key === 'ArrowRight') pswp.mainScroll.moveIndexBy(1, true);
@@ -95,7 +96,9 @@ export default function GalleryBrowser({ photos, years, photographers, events }:
         },
         onClick: (_e: MouseEvent, _el: HTMLElement, pswp: PhotoSwipe) => {
           const url = current(pswp);
-          if (url) window.open(url, '_blank', 'noopener');
+          if (!url) return;
+          window.ecrsTrack?.('gallery_original_open');
+          window.open(url, '_blank', 'noopener');
         },
       },
     ];
@@ -174,6 +177,7 @@ export default function GalleryBrowser({ photos, years, photographers, events }:
           }}
           className={`${selectClass} grow min-w-[200px]`}
           aria-label="Search photos"
+          data-track-search="gallery"
         />
         <select
           value={photographer}
@@ -183,6 +187,7 @@ export default function GalleryBrowser({ photos, years, photographers, events }:
           }}
           className={selectClass}
           aria-label="Filter by photographer"
+          data-track-filter="photographer"
         >
           <option value="">All photographers</option>
           <option value={UNKNOWN}>Unknown</option>
@@ -200,6 +205,7 @@ export default function GalleryBrowser({ photos, years, photographers, events }:
           }}
           className={selectClass}
           aria-label="Filter by event"
+          data-track-filter="event"
         >
           <option value="">All events</option>
           <option value={UNKNOWN}>Unknown</option>
