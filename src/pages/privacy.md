@@ -3,7 +3,7 @@ title: 'Privacy Policy'
 layout: '~/layouts/MarkdownLayout.astro'
 ---
 
-_Last updated: June 22, 2026_
+_Last updated: November 14, 2026_
 
 The Eastern Cooperative Recreation School ("ECRS," "we," "us," or "our") respects your privacy. This policy explains what information we collect when you visit [ecrs.org](https://ecrs.org) or register for our events and programs, how we use it, and the choices you have.
 

@@ -107,4 +107,13 @@ describe('initFeatureTracking', () => {
     vi.advanceTimersByTime(5000);
     expect(track).not.toHaveBeenCalled();
   });
+
+  it('reports a range filter once released, named without its min prefix', () => {
+    window.history.replaceState({}, '', '/events');
+    document.body.innerHTML =
+      '<div><input type="range" aria-label="Earliest year" min="2000" max="2026" value="2019" />' +
+      '<input type="range" aria-label="Latest year" min="2000" max="2026" value="2026" /></div>';
+    document.querySelector('input')!.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(track).toHaveBeenCalledWith('past_events_filter', { filter_name: 'year', filter_value: '2019-2026' });
+  });
 });
