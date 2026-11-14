@@ -17,9 +17,12 @@ const id = ANALYTICS?.vendors?.googleAnalytics?.id ? String(ANALYTICS.vendors.go
     var CONSENT_GRANTED = consentState('granted');
     var CONSENT_DENIED = consentState('denied');
 
-    // Never load GA in local development.
+    // Only the production site reports to GA. Preview deploys
+    // (*.pages.dev) are production builds too, so a build-time flag can't
+    // tell them apart; the hostname can. Elsewhere gtag never loads, and
+    // window.ecrsTrack (EventTracker.astro) skips GA when window.gtag is unset.
     var host = location.hostname;
-    var isLocal = host === 'localhost' || host === '127.0.0.1' || host === '';
+    var isProduction = host === 'ecrs.org' || host === 'www.ecrs.org';
 
     function getStored() {
       try {
@@ -37,7 +40,7 @@ const id = ANALYTICS?.vendors?.googleAnalytics?.id ? String(ANALYTICS.vendors.go
     }
 
     function loadGA() {
-      if (isLocal || loaded) return;
+      if (!isProduction || loaded) return;
       loaded = true;
       var s = document.createElement('script');
       s.async = true;
