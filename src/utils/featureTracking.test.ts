@@ -116,4 +116,149 @@ describe('initFeatureTracking', () => {
     document.querySelector('input')!.dispatchEvent(new Event('change', { bubbles: true }));
     expect(track).toHaveBeenCalledWith('past_events_filter', { filter_name: 'year', filter_value: '2019-2026' });
   });
+
+  function click(html: string) {
+    document.body.innerHTML = html;
+    (document.body.firstElementChild as HTMLElement).click();
+  }
+
+  function type(input: HTMLInputElement, value: string) {
+    input.value = value;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  it.each([
+    [
+      '<button id="filter-wheelchair-adaptable" aria-pressed="true"></button>',
+      'activity_filter',
+      { filter_name: 'wheelchair_adaptable', filter_value: 'yes', filter_state: 'on' },
+    ],
+    ['<button id="clear-all-filters"></button>', 'activity_filters_clear', undefined],
+    [
+      '<button data-filter-site="Wilmington" aria-pressed="false"></button>',
+      'past_events_filter',
+      { filter_name: 'site', filter_value: 'Wilmington', filter_state: 'off' },
+    ],
+    ['<button id="clear-past-filters"></button>', 'past_events_filters_clear', undefined],
+    ['<button data-people-sort="za"></button>', 'people_sort', { sort_order: 'za' }],
+    [
+      '<button id="people-filter-name-only" aria-pressed="true"></button>',
+      'people_filter',
+      { filter_name: 'empty_profiles', filter_state: 'on' },
+    ],
+  ])('reports button %s', (html, event, params) => {
+    click(html);
+    expect(track).toHaveBeenCalledWith(event, params);
+  });
+
+  it('reports the theme the toggle switched to', () => {
+    click('<button data-aw-toggle-color-scheme></button>');
+    expect(track).toHaveBeenLastCalledWith('theme_toggle', { theme: 'light' });
+    document.documentElement.classList.add('dark');
+    (document.querySelector('button') as HTMLElement).click();
+    expect(track).toHaveBeenLastCalledWith('theme_toggle', { theme: 'dark' });
+    document.documentElement.classList.remove('dark');
+  });
+
+  it('ignores unrelated buttons, plain links, off-site links, and non-element targets', () => {
+    click('<button>Other</button>');
+    click('<div>Not a control</div>');
+    document.body.innerHTML = '<a href="/about">About</a><a href="https://example.com/events/x.ics">Ext</a>';
+    for (const a of document.querySelectorAll('a')) {
+      a.addEventListener('click', (e) => e.preventDefault());
+      a.click();
+    }
+    document.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    expect(track).not.toHaveBeenCalled();
+  });
+
+  it('reports a search result click with the pending search flushed first', () => {
+    document.body.innerHTML = '<pagefind-modal><input /><a href="/membership?x=1#top">Membership</a></pagefind-modal>';
+    type(document.querySelector('input')!, 'Membership');
+    const link = document.querySelector('a')!;
+    link.addEventListener('click', (e) => e.preventDefault());
+    link.click();
+    expect(track.mock.calls).toEqual([
+      ['search', { search_term: 'membership', search_location: 'site' }],
+      ['search_result_click', { search_term: 'membership', search_result_path: '/membership' }],
+    ]);
+  });
+
+  it('reports a result click with an empty term when nothing was searched', () => {
+    document.body.innerHTML = '<pagefind-modal><a href="/about">About</a></pagefind-modal>';
+    const link = document.querySelector('a')!;
+    link.addEventListener('click', (e) => e.preventDefault());
+    link.click();
+    expect(track).toHaveBeenCalledWith('search_result_click', { search_term: '', search_result_path: '/about' });
+  });
+
+  it('reports gallery selects, using "all" for the empty option', () => {
+    document.body.innerHTML =
+      '<select data-track-filter="photographer"><option value="">All</option><option value="Ann">Ann</option></select>';
+    const select = document.querySelector('select')!;
+    select.value = 'Ann';
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    select.value = '';
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(track.mock.calls).toEqual([
+      ['gallery_filter', { filter_name: 'photographer', filter_value: 'Ann' }],
+      ['gallery_filter', { filter_name: 'photographer', filter_value: 'all' }],
+    ]);
+  });
+
+  it('ignores untagged selects, lone range inputs, and sliders on pages without filters', () => {
+    document.body.innerHTML = '<select><option>a</option></select><div><input type="range" /></div>';
+    document.querySelector('select')!.dispatchEvent(new Event('change', { bubbles: true }));
+    window.history.replaceState({}, '', '/activities');
+    document.querySelector('input')!.dispatchEvent(new Event('change', { bubbles: true }));
+    window.history.replaceState({}, '', '/about');
+    document.body.innerHTML = '<div><input type="range" /><input type="range" /></div>';
+    document.querySelector('input')!.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(track).not.toHaveBeenCalled();
+  });
+
+  it('names an unlabeled slider "range"', () => {
+    window.history.replaceState({}, '', '/gallery');
+    document.body.innerHTML = '<div><input type="range" value="1" /><input type="range" value="9" /></div>';
+    document.querySelector('input')!.dispatchEvent(new Event('change', { bubbles: true }));
+    expect(track).toHaveBeenCalledWith('gallery_filter', { filter_name: 'range', filter_value: '1-9' });
+  });
+
+  it('does not resend the same term, and drops a search cleared before it settles', () => {
+    document.body.innerHTML = '<input data-track-search="gallery" />';
+    const input = document.querySelector('input')!;
+    type(input, 'contra');
+    vi.advanceTimersByTime(1500);
+    type(input, 'contra ');
+    vi.advanceTimersByTime(1500);
+    type(input, 'waltz');
+    type(input, '');
+    vi.advanceTimersByTime(1500);
+    expect(track).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores typing in range inputs and non-input elements', () => {
+    document.body.innerHTML = '<input type="range" data-track-search="x" /><textarea data-track-search="x"></textarea>';
+    document.querySelector('input')!.dispatchEvent(new Event('input', { bubbles: true }));
+    document.querySelector('textarea')!.dispatchEvent(new Event('input', { bubbles: true }));
+    vi.advanceTimersByTime(5000);
+    expect(track).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['astro:before-preparation', () => document.dispatchEvent(new Event('astro:before-preparation'))],
+    ['pagehide', () => window.dispatchEvent(new Event('pagehide'))],
+  ])('sends a pending search on %s', (_name, leave) => {
+    document.body.innerHTML = '<input data-track-search="activities" />';
+    type(document.querySelector('input')!, 'parachute');
+    leave();
+    expect(track).toHaveBeenCalledWith('search', { search_term: 'parachute', search_location: 'activities' });
+  });
+
+  it('only installs its listeners once', async () => {
+    const mod = await import('./featureTracking');
+    mod.initFeatureTracking();
+    click('<button id="clear-all-filters"></button>');
+    expect(track).toHaveBeenCalledTimes(1);
+  });
 });
