@@ -16,6 +16,7 @@ import AxeBuilder from '@axe-core/playwright';
  *   /our-people    — leader cards, category sections
  *   /contact       — contact page
  *   /connections   — link lists + venue cards (feature-flagged, still built)
+ *   /leadership-resources — list of PDF links
  *   /about         — org history/mission content
  *   /donate        — embedded CognitoForm
  *   /membership    — embedded CognitoForm
@@ -110,6 +111,10 @@ test('contact page has no critical a11y violations', async ({ page }, testInfo) 
 
 test('connections page has no critical a11y violations', async ({ page }, testInfo) => {
   await audit(page, testInfo, '/connections');
+});
+
+test('leadership resources page has no critical a11y violations', async ({ page }, testInfo) => {
+  await audit(page, testInfo, '/leadership-resources');
 });
 
 test('about page has no critical a11y violations', async ({ page }, testInfo) => {

@@ -1,0 +1,60 @@
+---
+import { statSync } from 'node:fs';
+import { join } from 'node:path';
+import { Icon } from 'astro-icon/components';
+import Layout from '~/layouts/PageLayout.astro';
+import HeroText from '~/components/widgets/HeroText.astro';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+import resources from '~/data/settings/leadership-resources.json';
+
+const metadata = {
+  title: resources.heroTitle,
+  description: resources.introText,
+  openGraph: { images: [{ url: '/og/default.jpg', width: 1200, height: 630 }] },
+};
+
+// `description` is optional, so it is typed here rather than inferred from the
+// JSON: otherwise an entry list where none has one would be a type error.
+type ResourceDocument = { title: string; href: string; description?: string };
+const documents: ResourceDocument[] = resources.documents;
+
+// The size shown beside each link is read from the file at build time rather
+// than typed into the CMS, so replacing a PDF can't leave a stale number
+// behind. An entry whose file isn't under public/ (an external URL, say) just
+// shows "PDF".
+const fileSize = (href: string): string | undefined => {
+  if (!href.startsWith('/')) return undefined;
+  try {
+    const bytes = statSync(join(process.cwd(), 'public', decodeURIComponent(href))).size;
+    return bytes >= 1024 * 1024 ? `${(bytes / (1024 * 1024)).toFixed(1)} MB` : `${Math.round(bytes / 1024)} KB`;
+  } catch {
+    return undefined;
+  }
+};
+const items = documents.map((doc) => ({ ...doc, size: fileSize(doc.href) }));
+---
+
+<Layout metadata={metadata}>
+  <HeroText tagline={resources.heroTagline} title={resources.heroTitle} content={resources.introText} />
+
+  <!-- HeroText has no bottom padding of its own; this section owns the gap. -->
+  <WidgetWrapper containerClass="max-w-3xl pt-8 md:pt-10 lg:pt-12">
+    <ul class="grid gap-4" role="list">
+      {items.map((doc) => (
+        <li>
+          <a
+            href={doc.href}
+            class="group flex h-full items-start gap-4 rounded-lg border border-gray-200 px-5 py-4 text-default transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-gray-700"
+          >
+            <Icon name="tabler:file-text" class="mt-0.5 h-7 w-7 shrink-0 text-primary" aria-hidden="true" />
+            <span class="flex flex-col gap-1">
+              <span class="text-lg font-bold text-heading group-hover:text-primary">{doc.title}</span>
+              {doc.description && <span class="text-muted">{doc.description}</span>}
+              <span class="text-sm text-muted">{doc.size ? `PDF, ${doc.size}` : 'PDF'}</span>
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </WidgetWrapper>
+</Layout>

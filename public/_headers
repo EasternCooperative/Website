@@ -24,3 +24,9 @@
 
 /videos/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+# Standalone documents linked from emails (values, leadership guides). The
+# filenames carry no revision so a link keeps working when a document is
+# updated; the short cache lets a replacement show up within the hour.
+/docs/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400

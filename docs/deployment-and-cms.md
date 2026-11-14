@@ -158,19 +158,26 @@ A Zeffy form needs none of this: Zeffy's webhook is account-wide, so its payment
 
 ## Content model
 
-| CMS collection | Target                                                                                                                                                         | Consumed via                                   |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| Events         | `src/data/events/*.md`                                                                                                                                         | `event` content collection                     |
-| Leaders        | `src/data/leaders/*.md`                                                                                                                                        | `leader` content collection                    |
-| Venues         | `src/data/sites/*.md`                                                                                                                                          | `site` content collection                      |
-| Testimonials   | `src/data/testimonials/*.md`                                                                                                                                   | `testimonial` content collection               |
-| Activities     | `src/data/activities/*.md` (game, dance, song entries)                                                                                                         | `activity` content collection                  |
-| Gallery        | `src/data/gallery/*.md`, media in `public/images/gallery`                                                                                                      | `galleryPhoto` content collection              |
-| Pages → Home   | `src/data/settings/landing.md`                                                                                                                                 | `landingSettings` content collection           |
-| Pages → others | `src/data/settings/*.json` (about, connections, events-list, activities-list, gallery, contact, donation, membership, not-found), `src/data/pages/people.json` | direct ESM import by the page                  |
-| Site Settings  | `src/data/settings/{site,navigation,footer}.json`                                                                                                              | direct ESM import by header/footer/event pages |
+| CMS collection | Target                                                                                                                                                                               | Consumed via                                   |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------- |
+| Events         | `src/data/events/*.md`                                                                                                                                                               | `event` content collection                     |
+| Leaders        | `src/data/leaders/*.md`                                                                                                                                                              | `leader` content collection                    |
+| Venues         | `src/data/sites/*.md`                                                                                                                                                                | `site` content collection                      |
+| Testimonials   | `src/data/testimonials/*.md`                                                                                                                                                         | `testimonial` content collection               |
+| Activities     | `src/data/activities/*.md` (game, dance, song entries)                                                                                                                               | `activity` content collection                  |
+| Gallery        | `src/data/gallery/*.md`, media in `public/images/gallery`                                                                                                                            | `galleryPhoto` content collection              |
+| Pages → Home   | `src/data/settings/landing.md`                                                                                                                                                       | `landingSettings` content collection           |
+| Pages → others | `src/data/settings/*.json` (about, connections, leadership-resources, events-list, activities-list, gallery, contact, donation, membership, not-found), `src/data/pages/people.json` | direct ESM import by the page                  |
+| Site Settings  | `src/data/settings/{site,navigation,footer}.json`                                                                                                                                    | direct ESM import by header/footer/event pages |
 
 `src/data/staff/*.md` (`staff` collection) is edited in git only; it has no CMS collection.
+
+The Leadership Resources page (`/leadership-resources`, footer link only) lists PDFs that are
+mostly sent as links in emails. Its PDF field uploads to `public/docs/` (served at `/docs/`)
+instead of the default `public/images/`. The file name is the public link, so to update a
+document use Replace in the CMS asset library, which keeps the name; uploading a second file
+with the same name is saved with a `-1` suffix and would leave old links pointing at the old
+file. The size shown beside each link is read from the file at build time.
 
 When adding or changing a CMS field, update **both** sides: the field in
 `public/admin/config.yml` and the zod schema in `src/content.config.ts`
