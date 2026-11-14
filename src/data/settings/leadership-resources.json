@@ -1,0 +1,29 @@
+{
+  "heroTagline": "For Leaders and Staff",
+  "heroTitle": "Leadership Resources",
+  "introText": "Documents for ECRS leaders and staff. Each one opens as a PDF.",
+  "documents": [
+    {
+      "title": "ECRS Values for Staff",
+      "href": "/docs/ecrs-values.pdf"
+    },
+    {
+      "title": "ECRS Leadership",
+      "description": "A concise guide crystallized from the writings and traditions of Eastern Cooperative Recreation School.",
+      "href": "/docs/ecrs-leadership.pdf"
+    },
+    {
+      "title": "ECRS Leadership Competency Model",
+      "description": "To be used by staff or a mentor during prearranged observations as feedback for the evaluated leader.",
+      "href": "/docs/ecrs-leadership-competency-model.pdf"
+    },
+    {
+      "title": "Building Inclusion at ECRS",
+      "href": "/docs/building-inclusion-at-ecrs.pdf"
+    },
+    {
+      "title": "Recognizing Racial Microaggressions",
+      "href": "/docs/recognizing-racial-microaggressions.pdf"
+    }
+  ]
+}

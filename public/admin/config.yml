@@ -150,6 +150,45 @@ collections:
           - { label: 'CTA Secondary Button Text', name: 'ctaSecondaryText', widget: 'string' }
           - { label: 'CTA Secondary Button URL', name: 'ctaSecondaryHref', widget: 'string' }
 
+      - name: 'leadership-resources'
+        label: 'Leadership Resources'
+        file: 'src/data/settings/leadership-resources.json'
+        fields:
+          - { label: 'Hero Tagline', name: 'heroTagline', widget: 'string' }
+          - { label: 'Hero Title', name: 'heroTitle', widget: 'string' }
+          - { label: 'Intro Text', name: 'introText', widget: 'text' }
+          - label: 'Documents'
+            name: 'documents'
+            widget: 'list'
+            summary: '{{fields.title}}'
+            hint: 'The PDFs listed on the page, in this order. Add an item to list a new document.'
+            fields:
+              - { label: 'Title', name: 'title', widget: 'string' }
+              - {
+                  label: 'Description',
+                  name: 'description',
+                  widget: 'string',
+                  required: false,
+                  hint: 'Optional. One line shown under the title.',
+                }
+              - label: 'PDF File'
+                name: 'href'
+                widget: 'file'
+                accept: 'application/pdf,.pdf'
+                media_folder: '/public/docs'
+                public_folder: '/docs'
+                hint: 'Upload a PDF, or pick one already in /docs. The file name becomes the link
+                  people are sent (ecrs.org/docs/file-name.pdf), so give a new file a short, plain
+                  name with no date or version in it. To update a document that is already listed,
+                  do not upload it here: open Assets, find the file under docs, and use Replace.
+                  That keeps the same name, so links in old emails keep working. Uploading a second
+                  file with the same name here saves it as file-name-1.pdf and leaves the old one
+                  in place.'
+                media_libraries:
+                  default:
+                    config:
+                      slugify_filename: true
+
       - name: 'events-list'
         label: 'Events'
         file: 'src/data/settings/events-list.json'
