@@ -77,7 +77,7 @@ function handleClick(e: MouseEvent): void {
       flushSearch('site');
       track('search_result_click', {
         search_term: lastSent.get('site') ?? '',
-        link_url: new URL(link.href, location.href).pathname,
+        search_result_path: new URL(link.href, location.href).pathname,
       });
       return;
     }
