@@ -23,18 +23,25 @@ When you visit the site, we collect limited technical and usage information to u
 
 ## Analytics and Cookies
 
-We use three analytics tools:
+We use these analytics and advertising tools:
 
-- **Cloudflare Web Analytics** — privacy-first and **cookieless**. It measures aggregate page views and performance (such as page-load times) without using cookies, without tracking you across sites, and without collecting personal information. It runs on every visit.
-- **Google Analytics 4 (GA4)** — helps us understand how people navigate the site and which features they use, such as search, filters, and calendar downloads. This includes the words typed into search boxes, but we never send search text that looks like an email address or phone number. GA4 uses cookies.
-- **Meta Pixel** — allows us to measure whether visitors who clicked one of our ads on Facebook or Instagram went on to register for an event or make a donation. Meta Pixel uses cookies and shares conversion data with Meta Platforms, Inc. Meta's use of that data is governed by [Meta's Privacy Policy](https://www.facebook.com/privacy/policy/).
+- **Cloudflare Web Analytics:** privacy-first and **cookieless**. It measures aggregate page views and performance (such as page-load times) without using cookies, without tracking you across sites, and without collecting personal information. It runs on every visit.
+- **Google Analytics 4 (GA4):** helps us understand how people navigate the site and which features they use, such as search, filters, and calendar downloads. This includes the words typed into search boxes, but we never send search text that looks like an email address or phone number. GA4 uses cookies.
+- **Google Ads:** loads together with Google Analytics. It tells us whether people who clicked one of our Google ads went on to register for an event or make a donation, and it lets Google show our ads to people who have visited our site before (known as remarketing). Google Ads uses cookies. Google's use of that data is governed by [Google's Privacy Policy](https://policies.google.com/privacy).
+- **Meta Pixel:** allows us to measure whether visitors who clicked one of our ads on Facebook or Instagram went on to register for an event or make a donation. Meta Pixel uses cookies and shares conversion data with Meta Platforms, Inc. Meta's use of that data is governed by [Meta's Privacy Policy](https://www.facebook.com/privacy/policy/).
 
-We treat Google Analytics and the Meta Pixel differently depending on where you are:
+We treat Google Analytics, Google Ads, and the Meta Pixel differently depending on where you are:
 
-- **Outside the United States** (including Canada, the United Kingdom, and the European Economic Area), we show a consent banner and **do not enable Google Analytics or the Meta Pixel unless you choose "Accept."** If you decline, neither tool is loaded.
-- **Within the United States**, both tools are enabled by default. You can opt out of Google Analytics at any time using the [Google Analytics Opt-out Browser Add-on](https://tools.google.com/dlpage/gaoptout), and you can opt out of Meta's ad tracking through [Meta's Ad Preferences](https://www.facebook.com/ads/preferences/) or your browser's cookie controls.
+- **Outside the United States** (including Canada, the United Kingdom, and the European Economic Area), we show a consent banner and **do not enable Google Analytics, Google Ads, or the Meta Pixel unless you choose "Accept."** If you choose "No thanks," none of them is loaded.
+- **Within the United States**, all three are enabled by default. You can turn them off at any time with the "Cookie settings" link at the bottom of every page. You can also opt out of Google Analytics everywhere using the [Google Analytics Opt-out Browser Add-on](https://tools.google.com/dlpage/gaoptout), turn off personalized Google ads in [Google's My Ad Center](https://myadcenter.google.com/), and opt out of Meta's ad tracking through [Meta's Ad Preferences](https://www.facebook.com/ads/preferences/) or your browser's cookie controls.
 
-Your consent choice is stored in your browser's local storage so we don't ask again. You can clear it at any time by clearing your browser's site data for ecrs.org.
+Your choice is stored in your browser's local storage so we don't ask again. You can change it at any time with the "Cookie settings" link at the bottom of every page, or clear it by clearing your browser's site data for ecrs.org.
+
+### Registrations and donations
+
+When you complete a payment for an event registration, membership, or donation, our website tells Google Analytics that a payment was made, including the amount and what it was for, so we can see which pages and ads led to it. If Google Analytics was enabled during your visit, our forms include its identifier from your browser so the payment can be connected to that visit. If it wasn't, the payment is still counted, but it isn't connected to you or your visit.
+
+For payments made through our Cognito Forms registration and donation forms, we also tell Meta about the payment if the Meta Pixel was enabled during your visit. To help Meta match the payment to an ad click, we send your email address in hashed (scrambled) form; Meta does not receive the email address itself. If the Meta Pixel wasn't enabled, nothing is sent to Meta.
 
 ## How We Use Your Information
 
