@@ -325,6 +325,9 @@ const COLLAPSE_PAST_STICK = 24;
 // Sustained upward scroll needed to reopen the panel mid-list. Small corrective
 // scroll-ups while reading a card are constant, so this has to be deliberate.
 const EXPAND_DELTA = 96;
+// How long a newly focused search box keeps the panel open, to cover the
+// scroll a phone makes while its keyboard slides up.
+const KEYBOARD_HOLD_MS = 1000;
 // Matches duration-300 on #filters-body and #filters-spacer.
 const TRANSITION_MS = 300;
 
@@ -349,6 +352,10 @@ function initFiltersCollapse() {
   let dirAccum = 0;
   let accumDir = 0;
   let settleTimer: ReturnType<typeof setTimeout> | undefined;
+  // On phones, focusing the search box scrolls the page down to make room for
+  // the keyboard, which would otherwise collapse the panel out from under the
+  // reader. Hold it open briefly after a text field in it gains focus.
+  let holdOpenUntil = 0;
 
   // How far the panel's place in the flow has scrolled above its sticky offset.
   // Positive once the panel is stuck; zero or negative while it sits in place.
@@ -368,8 +375,11 @@ function initFiltersCollapse() {
     collapsed = next;
 
     const bodyFrom = body!.getBoundingClientRect().height;
-    const bodyTo = next ? 0 : expandedBodyHeight();
     const spacerFrom = spacer!.getBoundingClientRect().height;
+    // Reopening while the spacer holds space: open into exactly that space.
+    // Recomputing from the viewport instead would leave a gap or shift the
+    // list whenever the mobile URL bar has resized it since the collapse.
+    const bodyTo = next ? 0 : spacerFrom > 0 ? bodyFrom + spacerFrom : expandedBodyHeight();
     // While stuck, or while the spacer is still holding space from an earlier
     // collapse, keep body + spacer constant so nothing below the panel moves.
     const holdSpace = distancePastStick() > 0 || spacerFrom > 0;
@@ -406,6 +416,14 @@ function initFiltersCollapse() {
   }
   toggle.addEventListener('click', onToggleClick);
 
+  function onFocusIn(e: FocusEvent) {
+    const target = e.target;
+    if (target instanceof HTMLInputElement && (target.type === 'search' || target.type === 'text')) {
+      holdOpenUntil = Date.now() + KEYBOARD_HOLD_MS;
+    }
+  }
+  panel.addEventListener('focusin', onFocusIn);
+
   function onScroll() {
     const y = window.scrollY;
     const delta = y - lastScrollY;
@@ -432,7 +450,7 @@ function initFiltersCollapse() {
     }
 
     if (dir === 1) {
-      if (!collapsed && past > COLLAPSE_PAST_STICK) {
+      if (!collapsed && past > COLLAPSE_PAST_STICK && Date.now() >= holdOpenUntil) {
         closedByReader = false;
         setCollapsed(true);
       }
@@ -445,6 +463,7 @@ function initFiltersCollapse() {
   cleanupFiltersCollapse = () => {
     clearTimeout(settleTimer);
     toggle.removeEventListener('click', onToggleClick);
+    panel.removeEventListener('focusin', onFocusIn);
     window.removeEventListener('scroll', onScroll);
   };
 }

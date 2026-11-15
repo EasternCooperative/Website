@@ -588,6 +588,43 @@ describe('initFiltersCollapse', () => {
     expect(isCollapsed()).toBe(true);
   });
 
+  it('reopens into exactly the space it held, even if the viewport resized in between', async () => {
+    await setup();
+    scrollTo(1200);
+    expect(spacerHeight()).toBe('300px');
+    // The mobile URL bar shrinks the viewport, which would lower the CSS cap.
+    Object.defineProperty(window, 'innerHeight', { value: 300, configurable: true });
+    document.getElementById('filters-toggle')!.click();
+    expect(document.getElementById('filters-body')!.style.maxHeight).toBe('300px');
+    expect(spacerHeight()).toBe('0px');
+    Object.defineProperty(window, 'innerHeight', { value: 768, configurable: true });
+  });
+
+  it('stays open briefly after the search box gains focus, then collapses as usual', async () => {
+    await setup();
+    const input = document.createElement('input');
+    input.type = 'search';
+    document.getElementById('filters-body')!.appendChild(input);
+    input.focus();
+    // The keyboard sliding up scrolls the page down.
+    scrollTo(1200);
+    expect(isCollapsed()).toBe(false);
+    await vi.advanceTimersByTimeAsync(1100);
+    scrollTo(1240);
+    expect(isCollapsed()).toBe(true);
+  });
+
+  it('still collapses after the reader taps the toggle or a filter button', async () => {
+    await setup();
+    scrollTo(1200);
+    const toggle = document.getElementById('filters-toggle')!;
+    toggle.focus();
+    toggle.click();
+    expect(isCollapsed()).toBe(false);
+    scrollTo(1240);
+    expect(isCollapsed()).toBe(true);
+  });
+
   it('tears down the previous click listener on re-init so it does not double-fire', async () => {
     await setup();
     // A second init pass (as astro:page-load would trigger) must replace, not stack,
