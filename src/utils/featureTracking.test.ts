@@ -51,6 +51,8 @@ describe('initFeatureTracking', () => {
     document.body.innerHTML = '';
     track = vi.fn<(eventName: string, params?: Record<string, string | number>) => void>();
     window.ecrsTrack = track;
+    // GA loaded (the visitor is measured) unless a test says otherwise.
+    window.gtag = vi.fn();
     const original = document.addEventListener.bind(document);
     vi.spyOn(document, 'addEventListener').mockImplementation((type, listener, options) => {
       listeners.push([type, listener as EventListener]);
@@ -65,6 +67,7 @@ describe('initFeatureTracking', () => {
     vi.restoreAllMocks();
     vi.useRealTimers();
     delete window.ecrsTrack;
+    delete window.gtag;
   });
 
   it('reports a filter chip with its new pressed state', () => {
@@ -260,5 +263,22 @@ describe('initFeatureTracking', () => {
     mod.initFeatureTracking();
     click('<button id="clear-all-filters"></button>');
     expect(track).toHaveBeenCalledTimes(1);
+  });
+
+  it('sends a repeated search once GA loads, if the first one was dropped before consent', () => {
+    delete window.gtag;
+    document.body.innerHTML = '<pagefind-modal><input /></pagefind-modal>';
+    const input = document.querySelector('input')!;
+    type(input, 'membership');
+    vi.advanceTimersByTime(1500);
+
+    window.gtag = vi.fn();
+    type(input, '');
+    type(input, 'membership');
+    vi.advanceTimersByTime(1500);
+    type(input, 'membership ');
+    vi.advanceTimersByTime(1500);
+
+    expect(track.mock.calls.filter(([name]) => name === 'search')).toHaveLength(2);
   });
 });

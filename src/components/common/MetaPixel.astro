@@ -11,8 +11,11 @@ const id = ANALYTICS?.vendors?.metaPixel?.id ? String(ANALYTICS.vendors.metaPixe
     const STORAGE_KEY = 'ecrs-ga-consent'; // shared with GA4 — one banner, one decision
     let loaded = false;
 
+    // Only the production site reports to Meta, matching Analytics.astro:
+    // preview deploys (*.pages.dev) are production builds, so only the
+    // hostname can tell them apart.
     const host = location.hostname;
-    const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '';
+    const isProduction = host === 'ecrs.org' || host === 'www.ecrs.org';
 
     function getStored() {
       try {
@@ -23,7 +26,7 @@ const id = ANALYTICS?.vendors?.metaPixel?.id ? String(ANALYTICS.vendors.metaPixe
     }
 
     function loadPixel() {
-      if (isLocal || loaded) return;
+      if (!isProduction || loaded) return;
       loaded = true;
 
       if (!window.fbq) {

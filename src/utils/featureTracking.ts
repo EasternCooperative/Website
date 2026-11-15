@@ -16,6 +16,7 @@ type Params = Record<string, string | number>;
 declare global {
   interface Window {
     ecrsTrack?: (eventName: string, params?: Params) => void;
+    gtag?: (...args: unknown[]) => void;
   }
 }
 
@@ -150,8 +151,11 @@ const lastSent = new Map<string, string>();
 
 function sendSearch(where: string, term: string): void {
   if (lastSent.get(where) === term) return;
-  lastSent.set(where, term);
   track('search', { search_term: term, search_location: where });
+  // Only remember terms GA actually received. A search typed before the
+  // visitor accepted the consent banner was dropped, so the same search after
+  // accepting has to count.
+  if (window.gtag) lastSent.set(where, term);
 }
 
 function flushSearch(where: string): void {
