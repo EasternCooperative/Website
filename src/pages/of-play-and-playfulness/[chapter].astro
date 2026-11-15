@@ -3,14 +3,17 @@ import type { GetStaticPaths } from 'astro';
 import { Icon } from 'astro-icon/components';
 import Layout from '~/layouts/PageLayout.astro';
 import settings from '~/data/settings/of-play-and-playfulness.json';
+import { getImage } from 'astro:assets';
 import {
   BOOK_IMAGE_PATH,
   BOOK_PATH,
   chapterHtml,
   chapterPath,
   chapters,
+  rewriteImageSources,
   type Chapter,
 } from '~/utils/ofPlayAndPlayfulness';
+import { findImage } from '~/utils/images';
 import '~/assets/styles/of-play-and-playfulness.css';
 
 export const getStaticPaths = (() =>
@@ -27,7 +30,19 @@ interface Props {
 }
 
 const { chapter, number, prev, next } = Astro.props;
-const html = chapterHtml(chapter.slug);
+
+// The book's images go through Sharp like the rest of the site's: findImage
+// maps /images/… to the copy the prebuild step mirrors into src/assets, and
+// getImage turns it into WebP at its original size (these are small scans, so
+// there is nothing larger to offer). In `astro dev` there is no mirror, and the
+// original /images/ path is served unchanged.
+const optimize = async (src: string): Promise<string> => {
+  const resolved = await findImage(src);
+  if (!resolved || typeof resolved === 'string') return src;
+  return (await getImage({ src: resolved, format: 'webp' })).src;
+};
+const html = await rewriteImageSources(chapterHtml(chapter.slug), optimize);
+const titleImageSrc = await optimize(`${BOOK_IMAGE_PATH}/${chapter.titleImage}`);
 
 const metadata = {
   title: `${chapter.title} | ${settings.heroTitle}`,
@@ -59,8 +74,10 @@ const metadata = {
     <header class="text-center mb-10">
       <p class="text-sm font-semibold uppercase tracking-wide text-muted">Chapter {number}</p>
       <h1 class="mt-3 flex justify-center">
+        <!-- The title is calligraphy in an image, so search takes its title from the alt text. -->
         <img
-          src={`${BOOK_IMAGE_PATH}/${chapter.titleImage}`}
+          data-pagefind-meta="title[alt]"
+          src={titleImageSrc}
           alt={chapter.title}
           width={chapter.titleImageWidth}
           height={chapter.titleImageHeight}

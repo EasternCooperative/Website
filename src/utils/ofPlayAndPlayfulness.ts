@@ -37,3 +37,20 @@ export function chapterHtml(slug: string): string {
 }
 
 export const chapterPath = (slug: string): string => `${BOOK_PATH}/${slug}`;
+
+const IMG_SRC = /(<img\b[^>]*?\bsrc=")([^"]+)(")/g;
+
+/**
+ * Point every <img> in a chapter's HTML at the URL `optimize` returns for its
+ * src. The chapter page passes the Sharp pipeline (findImage + getImage), so
+ * images inside the archived text are optimized like any other on the site.
+ * Each distinct src is optimized once.
+ */
+export async function rewriteImageSources(html: string, optimize: (src: string) => Promise<string>): Promise<string> {
+  const sources = [...new Set(Array.from(html.matchAll(IMG_SRC), (m) => m[2]))];
+  const urls = new Map(await Promise.all(sources.map(async (src) => [src, await optimize(src)] as const)));
+  return html.replace(
+    IMG_SRC,
+    (_, before: string, src: string, after: string) => before + (urls.get(src) ?? src) + after
+  );
+}
