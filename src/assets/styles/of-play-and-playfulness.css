@@ -293,3 +293,10 @@
 .dark .opp-chip {
   border-color: rgb(255 255 255 / 0.2);
 }
+
+/* Tailwind v4 gives buttons the default arrow; these act like links. */
+[data-opp-search-open],
+[data-opp-search-close],
+[data-opp-toggle] {
+  cursor: pointer;
+}
