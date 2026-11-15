@@ -52,7 +52,7 @@ const relatedEvents = (data.relatedEventIds ?? [])
   .map((id) => ({ id, data: eventMap.get(id) }))
   .filter((e): e is { id: string; data: NonNullable<(typeof e)['data']> } => !!e.data);
 
-const typeLabel = { game: 'Game', dance: 'Dance', song: 'Song' }[data.type];
+const typeLabel = { game: 'Game', dance: 'Dance', song: 'Song', other: 'Other' }[data.type];
 
 // Quick facts — a general grid of whichever short fields are present, rather
 // than hardcoding a layout per type (many fields are shared across game/dance).
@@ -183,12 +183,19 @@ const breadcrumbJsonLd = {
           {typeLabel}
         </span>
         {posturePill && (
-          <span class="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full bg-accent/10 text-accent">
+          <span
+            class:list={[
+              'inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full',
+              posturePill.wheelchairFirst
+                ? 'bg-primary text-white dark:bg-(--aw-color-primary-strong)'
+                : 'bg-accent/10 text-accent',
+            ]}
+          >
             {posturePill.label}
             {posturePill.accessible && (
               <>
                 <Icon name="tabler:wheelchair" class="w-3.5 h-3.5" aria-hidden="true" />
-                {posturePill.label !== 'Seated/wheelchair adaptable' && (
+                {!posturePill.wheelchairFirst && posturePill.label !== 'Seated/wheelchair adaptable' && (
                   <span class="sr-only">Seated/wheelchair adaptable</span>
                 )}
               </>
@@ -243,6 +250,23 @@ const breadcrumbJsonLd = {
         <div class="mb-8 rounded-xl bg-primary/5 border border-primary/20 p-4">
           <p class="text-xs font-bold uppercase tracking-widest text-muted mb-1">Objective</p>
           <p class="text-default font-semibold">{data.objective}</p>
+        </div>
+      )}
+
+      <!-- Written for wheelchairs: say so before the steps, with the setup notes. -->
+      {data.wheelchairFirst && (
+        <div class="mb-8 flex gap-4 rounded-xl border border-primary/30 bg-primary/5 p-5">
+          <Icon name="tabler:wheelchair" class="h-8 w-8 shrink-0 text-primary" aria-hidden="true" />
+          <div>
+            <p class="font-heading text-lg font-bold text-heading">Written for wheelchairs</p>
+            <div class="prose prose-sm dark:prose-invert max-w-none text-default">
+              {data.accessibilityNotes ? (
+                <Fragment set:html={renderProse(data.accessibilityNotes)} />
+              ) : (
+                <p>These steps are written for participants in wheelchairs.</p>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -392,8 +416,8 @@ const breadcrumbJsonLd = {
         </div>
       )}
 
-      <!-- Accessibility -->
-      {data.accessibilityNotes && (
+      <!-- Accessibility (shown up top instead for wheelchair-first activities) -->
+      {data.accessibilityNotes && !data.wheelchairFirst && (
         <div class="mt-8 rounded-xl bg-primary/5 border border-primary/20 p-5">
           <h2 class="font-heading text-lg font-bold text-heading mb-2">Accessibility</h2>
           <div class="prose prose-sm dark:prose-invert max-w-none text-default">

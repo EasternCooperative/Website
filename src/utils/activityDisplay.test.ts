@@ -32,6 +32,14 @@ describe('getPosturePill', () => {
   it('returns undefined when neither field is set', () => {
     expect(getPosturePill({})).toBeUndefined();
   });
+
+  it('marks an activity written for wheelchairs ahead of posture and adaptability', () => {
+    expect(getPosturePill({ wheelchairFirst: true, posture: 'either', seatedOrWheelchairAdaptable: true })).toEqual({
+      label: 'Written for wheelchairs',
+      accessible: true,
+      wheelchairFirst: true,
+    });
+  });
 });
 
 describe('getBadges', () => {

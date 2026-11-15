@@ -338,7 +338,8 @@ const activityCollection = defineCollection({
   loader: glob({ pattern: ['*.md', '*.mdx'], base: 'src/data/activities' }),
   schema: z.object({
     title: z.string(),
-    type: z.enum(['game', 'dance', 'song']),
+    // 'other': activities that aren't games, dances, or songs (e.g. outdoor nature activities).
+    type: z.enum(['game', 'dance', 'song', 'other']),
     excerpt: z.string().optional(),
     instructions: z.string().optional(),
     tags: z.array(z.string()).optional(),
@@ -370,6 +371,9 @@ const activityCollection = defineCollection({
     safetyFlags: z.array(z.string()).optional(), // e.g. "no-running", "spotter-recommended"
     safetyNotesOther: z.string().optional(),
     seatedOrWheelchairAdaptable: z.boolean().optional(),
+    // Written for participants in wheelchairs in the first place (e.g. Eddie Moyer's
+    // wheelchair dances), not a standing activity adapted for seated players.
+    wheelchairFirst: z.boolean().optional(),
     beginnerAdaptable: z.boolean().optional(), // can be simplified for total newcomers
     setting: z.enum(['indoor', 'outdoor', 'either']).optional(),
     ageRange: z.string().optional(),

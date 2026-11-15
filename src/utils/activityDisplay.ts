@@ -24,9 +24,14 @@ export const safetyFlagLabel: Record<string, string> = {
 // Posture and seated/wheelchair adaptability are separate fields in the CMS,
 // but collapse into a single display pill: the posture label, plus a
 // wheelchair icon when the activity supports or adapts to seated participation.
+// An activity written for wheelchairs in the first place gets its own pill,
+// shown with more emphasis than "adaptable".
+export const WHEELCHAIR_FIRST_LABEL = 'Written for wheelchairs';
+
 export function getPosturePill(
-  data: Pick<ActivityData, 'posture' | 'seatedOrWheelchairAdaptable'>
-): { label: string; accessible: boolean } | undefined {
+  data: Pick<ActivityData, 'posture' | 'seatedOrWheelchairAdaptable' | 'wheelchairFirst'>
+): { label: string; accessible: boolean; wheelchairFirst?: true } | undefined {
+  if (data.wheelchairFirst) return { label: WHEELCHAIR_FIRST_LABEL, accessible: true, wheelchairFirst: true };
   if (data.posture) return { label: sentenceCase(data.posture), accessible: !!data.seatedOrWheelchairAdaptable };
   if (data.seatedOrWheelchairAdaptable) return { label: 'Seated/wheelchair adaptable', accessible: true };
   return undefined;

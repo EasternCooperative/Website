@@ -44,7 +44,7 @@ function initActivityFilters() {
   // Only games/dances carry structured group-size data; the
   // slider row hides (and resets) itself for other types, same as the
   // meter/key chip groups.
-  const GROUP_SIZE_RELEVANT_TYPES = ['game', 'dance'];
+  const GROUP_SIZE_RELEVANT_TYPES = ['game', 'dance', 'other'];
   const groupSizeBoundMin = groupSizeMinInput ? Number(groupSizeMinInput.min) : 1;
   const groupSizeBoundMax = groupSizeMinInput ? Number(groupSizeMinInput.max) : 1;
   const groupSizeSlider =

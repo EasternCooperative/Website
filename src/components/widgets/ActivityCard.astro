@@ -21,6 +21,7 @@ const {
   key,
   meter,
   seatedOrWheelchairAdaptable,
+  wheelchairFirst,
   groupSizeMin,
   groupSizeMax,
   isCalled,
@@ -28,11 +29,12 @@ const {
   beginnerAdaptable,
 } = data;
 
-const typeLabel = { game: 'Game', dance: 'Dance', song: 'Song' }[type];
+const typeLabel = { game: 'Game', dance: 'Dance', song: 'Song', other: 'Other' }[type];
 const typeColor = {
   game: 'bg-primary/10 text-primary',
   dance: 'bg-accent/10 text-accent',
   song: 'bg-secondary/10 text-secondary',
+  other: 'bg-gray-500/10 text-muted',
 }[type];
 
 const posturePill = getPosturePill(data);
@@ -50,7 +52,7 @@ const searchText = [title, excerpt, ...tags].filter(Boolean).join(' ').toLowerCa
   data-meter={meter ?? ''}
   data-group-min={groupSizeMin ?? ''}
   data-group-max={groupSizeMax ?? ''}
-  data-wheelchair-adaptable={seatedOrWheelchairAdaptable ? 'true' : 'false'}
+  data-wheelchair-adaptable={seatedOrWheelchairAdaptable || wheelchairFirst ? 'true' : 'false'}
   data-called-live={isCalled ? 'true' : 'false'}
   data-is-round={isRound ? 'true' : 'false'}
   data-beginner-adaptable={beginnerAdaptable ? 'true' : 'false'}
@@ -82,12 +84,19 @@ const searchText = [title, excerpt, ...tags].filter(Boolean).join(' ').toLowerCa
         {typeLabel}
       </span>
       {cardStyle === 'rich' && posturePill && (
-        <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-accent/10 text-accent">
+        <span
+          class:list={[
+            'inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full',
+            posturePill.wheelchairFirst
+              ? 'bg-primary text-white dark:bg-(--aw-color-primary-strong)'
+              : 'bg-accent/10 text-accent',
+          ]}
+        >
           {posturePill.label}
           {posturePill.accessible && (
             <>
               <Icon name="tabler:wheelchair" class="w-3.5 h-3.5" aria-hidden="true" />
-              {posturePill.label !== 'Seated/wheelchair adaptable' && (
+              {!posturePill.wheelchairFirst && posturePill.label !== 'Seated/wheelchair adaptable' && (
                 <span class="sr-only">Seated/wheelchair adaptable</span>
               )}
             </>
