@@ -17,6 +17,8 @@ import AxeBuilder from '@axe-core/playwright';
  *   /contact       — contact page
  *   /connections   — link lists + venue cards (feature-flagged, still built)
  *   /leadership-resources — list of PDF links
+ *   /of-play-and-playfulness         — book contents
+ *   /of-play-and-playfulness/dancing — longest chapter: tables, sheet music, marks
  *   /about         — org history/mission content
  *   /donate        — embedded CognitoForm
  *   /membership    — embedded CognitoForm
@@ -115,6 +117,14 @@ test('connections page has no critical a11y violations', async ({ page }, testIn
 
 test('leadership resources page has no critical a11y violations', async ({ page }, testInfo) => {
   await audit(page, testInfo, '/leadership-resources');
+});
+
+test('Of Play and Playfulness contents has no critical a11y violations', async ({ page }, testInfo) => {
+  await audit(page, testInfo, '/of-play-and-playfulness');
+});
+
+test('Of Play and Playfulness chapter has no critical a11y violations', async ({ page }, testInfo) => {
+  await audit(page, testInfo, '/of-play-and-playfulness/dancing');
 });
 
 test('about page has no critical a11y violations', async ({ page }, testInfo) => {

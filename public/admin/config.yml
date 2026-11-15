@@ -161,7 +161,7 @@ collections:
             name: 'documents'
             widget: 'list'
             summary: '{{fields.title}}'
-            hint: 'The PDFs listed on the page, in this order. Add an item to list a new document.'
+            hint: 'The documents listed on the page, in this order. Add an item to list a new PDF. The Of Play and Playfulness item links to the book on the site, not a PDF: leave its link as it is.'
             fields:
               - { label: 'Title', name: 'title', widget: 'string' }
               - {

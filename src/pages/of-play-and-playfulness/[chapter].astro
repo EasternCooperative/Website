@@ -1,0 +1,119 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { Icon } from 'astro-icon/components';
+import Layout from '~/layouts/PageLayout.astro';
+import settings from '~/data/settings/of-play-and-playfulness.json';
+import {
+  BOOK_IMAGE_PATH,
+  BOOK_PATH,
+  chapterHtml,
+  chapterPath,
+  chapters,
+  type Chapter,
+} from '~/utils/ofPlayAndPlayfulness';
+import '~/assets/styles/of-play-and-playfulness.css';
+
+export const getStaticPaths = (() =>
+  chapters.map((chapter, i) => ({
+    params: { chapter: chapter.slug },
+    props: { chapter, number: i + 1, prev: chapters[i - 1], next: chapters[i + 1] },
+  }))) satisfies GetStaticPaths;
+
+interface Props {
+  chapter: Chapter;
+  number: number;
+  prev?: Chapter;
+  next?: Chapter;
+}
+
+const { chapter, number, prev, next } = Astro.props;
+const html = chapterHtml(chapter.slug);
+
+const metadata = {
+  title: `${chapter.title} | ${settings.heroTitle}`,
+  description: chapter.quote
+    ? `${chapter.quote}${chapter.attribution ? ` - ${chapter.attribution}` : ''}`
+    : `Chapter ${number} of ${settings.heroTitle}.`,
+  openGraph: { images: [{ url: '/og/default.jpg', width: 1200, height: 630 }] },
+};
+---
+
+<Layout metadata={metadata}>
+  <article class="max-w-3xl mx-auto px-4 sm:px-6 py-10 md:py-14">
+    <nav aria-label="Breadcrumb" class="mb-8">
+      <ol class="flex flex-wrap items-center gap-2 text-sm text-muted list-none p-0 m-0">
+        <li>
+          <a href={BOOK_PATH} class="hover:text-primary transition-colors">
+            {settings.heroTitle}
+          </a>
+        </li>
+        <li aria-hidden="true" class="text-muted/50">
+          /
+        </li>
+        <li aria-current="page" class="text-default">
+          {chapter.title}
+        </li>
+      </ol>
+    </nav>
+
+    <header class="text-center mb-10">
+      <p class="text-sm font-semibold uppercase tracking-wide text-muted">Chapter {number}</p>
+      <h1 class="mt-3 flex justify-center">
+        <img
+          src={`${BOOK_IMAGE_PATH}/${chapter.titleImage}`}
+          alt={chapter.title}
+          width={chapter.titleImageWidth}
+          height={chapter.titleImageHeight}
+          class="opp-art"
+          loading="eager"
+          fetchpriority="high"
+        />
+      </h1>
+    </header>
+
+    <div
+      class="opp-book prose prose-lg max-w-none dark:prose-invert prose-headings:font-heading prose-a:text-primary"
+      set:html={html}
+    />
+
+    <nav
+      aria-label="Chapters"
+      class="mt-14 grid gap-4 border-t border-gray-200 pt-6 sm:grid-cols-2 dark:border-gray-700"
+    >
+      {prev ? (
+        <a href={chapterPath(prev.slug)} class="group flex items-center gap-2 text-default hover:text-primary">
+          <Icon name="tabler:chevron-left" class="h-5 w-5 shrink-0" aria-hidden="true" />
+          <span>
+            <span class="block text-sm text-muted">Previous</span>
+            <span class="font-bold">{prev.title}</span>
+          </span>
+        </a>
+      ) : (
+        <a href={BOOK_PATH} class="group flex items-center gap-2 text-default hover:text-primary">
+          <Icon name="tabler:chevron-left" class="h-5 w-5 shrink-0" aria-hidden="true" />
+          <span class="font-bold">{settings.contentsTitle}</span>
+        </a>
+      )}
+      {next ? (
+        <a
+          href={chapterPath(next.slug)}
+          class="group flex items-center justify-end gap-2 text-right text-default hover:text-primary sm:col-start-2"
+        >
+          <span>
+            <span class="block text-sm text-muted">Next</span>
+            <span class="font-bold">{next.title}</span>
+          </span>
+          <Icon name="tabler:chevron-right" class="h-5 w-5 shrink-0" aria-hidden="true" />
+        </a>
+      ) : (
+        <a
+          href={BOOK_PATH}
+          class="group flex items-center justify-end gap-2 text-right text-default hover:text-primary sm:col-start-2"
+        >
+          <span class="font-bold">{settings.contentsTitle}</span>
+          <Icon name="tabler:chevron-right" class="h-5 w-5 shrink-0" aria-hidden="true" />
+        </a>
+      )}
+    </nav>
+  </article>
+</Layout>

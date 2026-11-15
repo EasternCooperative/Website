@@ -1,0 +1,95 @@
+/* Of Play and Playfulness: the book's chapters are archived HTML fragments
+   (src/data/of-play-and-playfulness/*.html) rendered with set:html, so their
+   styling lives here rather than in Tailwind classes on the markup. */
+
+/* The book's art is black line work on white JPEGs. Multiply drops the white
+   on a light page; in dark mode, inverting and screening does the same on a
+   dark page, leaving light lines. */
+.opp-art {
+  mix-blend-mode: multiply;
+}
+.dark .opp-art {
+  filter: invert(1);
+  mix-blend-mode: screen;
+}
+
+.opp-book h2 {
+  font-size: 1.25rem;
+  letter-spacing: 0.03em;
+  text-align: center;
+  margin-top: 2.5em;
+}
+
+/* Clear the sticky header when jumping to a game, dance, or song. */
+.opp-book [id] {
+  scroll-margin-top: 5rem;
+}
+
+.opp-book img {
+  margin: 0;
+  mix-blend-mode: multiply;
+}
+.dark .opp-book img {
+  filter: invert(1);
+  mix-blend-mode: screen;
+}
+
+/* The book's own marks (see its Introduction): personal experience, theory
+   and leadership, excerpt from a prior publication. */
+.opp-book img.opp-mark {
+  display: inline-block;
+  vertical-align: baseline;
+  margin-right: 0.25em;
+}
+
+.opp-book .opp-center {
+  text-align: center;
+}
+.opp-book .opp-center img,
+.opp-book img.opp-figure,
+.opp-book img.opp-music {
+  display: inline-block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* The book uses <blockquote> to indent memories and music, not to quote:
+   undo the prose quote marks, italics, and rule. */
+.opp-book blockquote {
+  font-style: normal;
+  font-weight: inherit;
+  color: inherit;
+  quotes: none;
+  border-left: 0;
+  margin-left: 0;
+  padding-left: 1.25em;
+}
+.opp-book blockquote p::before,
+.opp-book blockquote p::after {
+  content: none;
+}
+
+.opp-book .opp-signature {
+  text-align: right;
+  font-style: italic;
+}
+
+.opp-book .opp-table {
+  overflow-x: auto;
+  margin: 1em 0;
+}
+.opp-book .opp-table table {
+  margin: 0 auto;
+  width: auto;
+}
+.opp-book .opp-table td {
+  vertical-align: top;
+  padding: 0.25em 0.75em;
+}
+
+.opp-book dt {
+  margin-top: 1em;
+}
+.opp-book dd {
+  margin-top: 0.25em;
+}
