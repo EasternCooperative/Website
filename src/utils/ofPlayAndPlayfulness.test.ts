@@ -8,6 +8,7 @@ import {
   demoteHeadings,
   groupByInitial,
   linkLeaders,
+  separateBlocks,
   localizeAnchors,
   titleImagePath,
   replaceMarks,
@@ -123,6 +124,14 @@ describe('linkLeaders', () => {
     const html = '<img alt="Frank Baskin"/><p>Frank Baskins and Bob Siftar</p>';
     expect(linkLeaders(html, leaders)).toEqual({ html, ids: [] });
     expect(linkLeaders(html, [])).toEqual({ html, ids: [] });
+  });
+});
+
+describe('separateBlocks', () => {
+  it('ends list terms, definitions, items, and cells with an encoded space', () => {
+    expect(separateBlocks('<dl><dt><b>Calls:</b></dt><dd>When</dd></dl><ul><li>a</li></ul><td>b</td><p>c</p>')).toBe(
+      '<dl><dt><b>Calls:</b>&#32;</dt><dd>When&#32;</dd></dl><ul><li>a&#32;</li></ul><td>b&#32;</td><p>c</p>'
+    );
   });
 });
 

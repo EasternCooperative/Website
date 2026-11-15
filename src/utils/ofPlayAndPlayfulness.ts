@@ -164,6 +164,17 @@ export function linkLeaders(html: string, leaders: { id: string; name: string }[
   return { html: out, ids: [...ids] };
 }
 
+/**
+ * The site's HTML minifier drops the whitespace between block tags, so
+ * "<dt>Calls:</dt><dd>When</dd>" reaches Pagefind as "Calls:When" and the
+ * words can't be found on their own. An encoded space at the end of each list
+ * term, definition, list item, and table cell survives minifying, isn't drawn
+ * (it's trailing), and keeps the words apart in the search index.
+ */
+export function separateBlocks(html: string): string {
+  return html.replace(/<\/(dt|dd|li|td)>/g, '&#32;</$1>');
+}
+
 /** In the print edition each chapter is an h2, so its sections step down to h3 (and the PDF's bookmarks nest). */
 export function demoteHeadings(html: string): string {
   return html.replace(/<(\/?)h2\b/g, '<$1h3');

@@ -1,6 +1,7 @@
 ---
 import { Icon } from 'astro-icon/components';
 import Layout from '~/layouts/PageLayout.astro';
+import BookSearch from '~/components/book/BookSearch.astro';
 import settings from '~/data/settings/of-play-and-playfulness.json';
 import {
   BOOK_PDF_PATH,
@@ -69,9 +70,19 @@ const index = groupByInitial(activityIndex());
   </section>
 
   <section class="not-prose mx-auto max-w-6xl px-4 pt-14 sm:px-6 md:pt-20" aria-labelledby="opp-contents">
-    <h2 id="opp-contents" class="font-heading text-3xl font-bold text-heading">
-      {settings.contentsTitle}
-    </h2>
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <h2 id="opp-contents" class="font-heading text-3xl font-bold text-heading">
+        {settings.contentsTitle}
+      </h2>
+      <button
+        type="button"
+        data-opp-search-open
+        class="flex w-full items-center gap-3 rounded-full border border-gray-300 bg-white px-5 py-3 text-left text-muted shadow-sm transition hover:border-primary hover:text-primary sm:w-96 dark:border-white/20 dark:bg-white/5"
+      >
+        <Icon name="tabler:search" class="h-5 w-5 shrink-0" aria-hidden="true" />
+        <span>{settings.searchPlaceholder}</span>
+      </button>
+    </div>
     <ol class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" role="list">
       {cards.map((c) => (
         <li>
@@ -139,4 +150,6 @@ const index = groupByInitial(activityIndex());
       ))}
     </div>
   </section>
+
+  <BookSearch />
 </Layout>

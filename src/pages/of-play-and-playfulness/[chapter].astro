@@ -4,6 +4,7 @@ import { getCollection } from 'astro:content';
 import { Icon } from 'astro-icon/components';
 import Layout from '~/layouts/PageLayout.astro';
 import LeaderPopover from '~/components/ui/LeaderPopover.astro';
+import BookSearch from '~/components/book/BookSearch.astro';
 import settings from '~/data/settings/of-play-and-playfulness.json';
 import {
   BOOK_PATH,
@@ -14,10 +15,12 @@ import {
   linkLeaders,
   replaceMarks,
   rewriteImageSources,
+  separateBlocks,
   titleImagePath,
   type Chapter,
 } from '~/utils/ofPlayAndPlayfulness';
 import { optimizeBookImage } from '~/utils/ofPlayAndPlayfulnessImages';
+import { BOOK_FILTER } from '~/utils/bookSearch';
 import { publicFileSize } from '~/utils/fileSize';
 import siteSettings from '~/data/settings/site.json';
 import '~/assets/styles/of-play-and-playfulness.css';
@@ -46,7 +49,7 @@ const leaderMap = new Map(leaderRecords.map((l) => [l.id, l.data]));
 
 // Marks first: they are recognized by their original file names.
 const { html, ids: mentionedLeaders } = linkLeaders(
-  await rewriteImageSources(replaceMarks(chapterHtml(chapter.slug)), optimizeBookImage),
+  await rewriteImageSources(separateBlocks(replaceMarks(chapterHtml(chapter.slug))), optimizeBookImage),
   leaderRecords.map((l) => ({ id: l.id, name: l.data.name }))
 );
 const titleArt = await optimizeBookImage(titleImagePath(chapter));
@@ -65,43 +68,69 @@ const linkBase = 'text-default hover:text-primary transition-colors';
 
 <Layout metadata={metadata}>
   <div class="mx-auto max-w-6xl px-4 py-10 sm:px-6 md:py-14 lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-14">
-    <!-- The whole book's contents, with this chapter's sections opened out. -->
-    <aside class="hidden lg:block" aria-label="Book contents">
-      <div class="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pb-6 pr-2 text-sm">
+    <!-- The whole book's contents. Each chapter's sections fold away under its
+         button; this chapter's start open, and its row stays pinned at the top
+         while you scroll through them, so the button is always in reach. -->
+    <aside class="hidden lg:block" aria-label="Book contents" data-pagefind-ignore="all">
+      <div class="opp-sidebar sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pb-6 pr-2 text-sm">
         <a href={BOOK_PATH} class="font-heading text-base font-bold text-heading hover:text-primary">
           {settings.heroTitle}
         </a>
-        <ol class="mt-4 space-y-1 border-l border-gray-200 dark:border-white/10" role="list">
-          {chapters.map((ch) => (
-            <li>
-              {ch.slug === chapter.slug ? (
-                <>
+        <button
+          type="button"
+          data-opp-search-open
+          class="mt-3 flex w-full items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-left text-muted transition hover:border-primary hover:text-primary dark:border-white/20"
+        >
+          <Icon name="tabler:search" class="h-4 w-4 shrink-0" aria-hidden="true" />
+          {settings.searchLabel}
+        </button>
+        <ol class="mt-4 border-l border-gray-200 dark:border-white/10" role="list">
+          {chapters.map((ch) => {
+            const current = ch.slug === chapter.slug;
+            const listId = `opp-nav-${ch.slug}`;
+            return (
+              <li>
+                <div class:list={['opp-sidebar-row flex items-center', { 'opp-sidebar-current': current }]}>
                   <a
                     href={chapterPath(ch.slug)}
-                    aria-current="page"
-                    class="-ml-px block border-l-2 border-primary py-1 pl-3 font-semibold text-primary"
+                    aria-current={current ? 'page' : undefined}
+                    class:list={[
+                      'block min-w-0 flex-1 py-1 pl-3',
+                      current ? '-ml-px border-l-2 border-primary font-semibold text-primary' : linkBase,
+                    ]}
                   >
                     {ch.title}
                   </a>
                   {ch.sections.length > 0 && (
-                    <ul class="mb-2 mt-1 space-y-1 pl-6" role="list">
-                      {ch.sections.map((s) => (
-                        <li>
-                          <a href={`#${s.id}`} class={`block py-0.5 text-muted ${linkBase}`}>
-                            {s.label}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
+                    <button
+                      type="button"
+                      data-opp-toggle
+                      aria-controls={listId}
+                      aria-expanded={current ? 'true' : 'false'}
+                      aria-label={`Sections in ${ch.title}`}
+                      class="opp-toggle ml-1 shrink-0 rounded p-1 text-muted transition hover:bg-gray-100 hover:text-heading dark:hover:bg-white/10"
+                    >
+                      <Icon name="tabler:chevron-down" class="h-4 w-4" aria-hidden="true" />
+                    </button>
                   )}
-                </>
-              ) : (
-                <a href={chapterPath(ch.slug)} class={`block py-1 pl-3 ${linkBase}`}>
-                  {ch.title}
-                </a>
-              )}
-            </li>
-          ))}
+                </div>
+                {ch.sections.length > 0 && (
+                  <ul id={listId} class="mb-2 mt-1 space-y-1 pl-6" role="list" hidden={!current}>
+                    {ch.sections.map((s) => (
+                      <li>
+                        <a
+                          href={current ? `#${s.id}` : `${chapterPath(ch.slug)}#${s.id}`}
+                          class={`block py-0.5 text-muted ${linkBase}`}
+                        >
+                          {s.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            );
+          })}
         </ol>
         <a
           href={BOOK_PDF_PATH}
@@ -115,8 +144,8 @@ const linkBase = 'text-default hover:text-primary transition-colors';
       </div>
     </aside>
 
-    <article class="min-w-0 max-w-3xl">
-      <div class="mb-8 flex flex-wrap items-center justify-between gap-3">
+    <article class="min-w-0 max-w-3xl" data-pagefind-filter={`book:${BOOK_FILTER}`}>
+      <div class="mb-8 flex flex-wrap items-center justify-between gap-3" data-pagefind-ignore="all">
         <nav aria-label="Breadcrumb">
           <ol class="m-0 flex list-none flex-wrap items-center gap-2 p-0 text-sm text-muted">
             <li>
@@ -132,18 +161,20 @@ const linkBase = 'text-default hover:text-primary transition-colors';
             </li>
           </ol>
         </nav>
-        <a
-          href={BOOK_PDF_PATH}
-          download
-          class="inline-flex items-center gap-1.5 rounded-full border border-gray-300 px-3 py-1 text-sm text-default transition hover:border-primary hover:text-primary lg:hidden dark:border-white/20"
-        >
-          <Icon name="tabler:download" class="h-4 w-4" aria-hidden="true" />
-          PDF
-        </a>
+        <div class="flex gap-2 lg:hidden">
+          <button type="button" data-opp-search-open class="opp-chip">
+            <Icon name="tabler:search" class="h-4 w-4" aria-hidden="true" />
+            Search
+          </button>
+          <a href={BOOK_PDF_PATH} download class="opp-chip">
+            <Icon name="tabler:download" class="h-4 w-4" aria-hidden="true" />
+            PDF
+          </a>
+        </div>
       </div>
 
       <header class="text-center">
-        <p class="text-sm font-semibold uppercase tracking-widest text-secondary">
+        <p class="text-sm font-semibold uppercase tracking-widest text-secondary" data-pagefind-ignore>
           Chapter {number} <span class="text-muted">of {chapters.length}</span>
         </p>
         <h1 class="mt-4">
@@ -170,7 +201,10 @@ const linkBase = 'text-default hover:text-primary transition-colors';
       </header>
 
       {chapter.sections.length > 0 && (
-        <details class="group mt-10 rounded-xl border border-gray-200 bg-white lg:hidden dark:border-white/10 dark:bg-white/5">
+        <details
+          data-pagefind-ignore="all"
+          class="group mt-10 rounded-xl border border-gray-200 bg-white lg:hidden dark:border-white/10 dark:bg-white/5"
+        >
           <summary class="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-heading">
             <span>
               {settings.inThisChapterTitle}
@@ -198,7 +232,7 @@ const linkBase = 'text-default hover:text-primary transition-colors';
         set:html={html}
       />
 
-      <nav aria-label="Chapters" class="mt-16 grid gap-4 sm:grid-cols-2">
+      <nav aria-label="Chapters" class="mt-16 grid gap-4 sm:grid-cols-2" data-pagefind-ignore="all">
         {prev ? (
           <a href={chapterPath(prev.slug)} class="opp-pager group">
             <span class="flex items-center gap-1 text-sm text-muted">
@@ -250,12 +284,14 @@ const linkBase = 'text-default hover:text-primary transition-colors';
   </div>
 
   {mentionedLeaders.length > 0 && (
-    <div class="no-print">
+    <div class="no-print" data-pagefind-ignore="all">
       {mentionedLeaders.map((id) => (
         <LeaderPopover id={id} leader={leaderMap.get(id)!} />
       ))}
     </div>
   )}
+
+  <BookSearch />
 </Layout>
 
 <script>

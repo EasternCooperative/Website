@@ -204,3 +204,92 @@
     cursor: auto;
   }
 }
+
+/* Book search (BookSearch.astro): results are built in bookSearch.ts. */
+.opp-search-dialog::backdrop {
+  background: rgb(0 0 0 / 0.4);
+  backdrop-filter: blur(2px);
+}
+.opp-search-results > li {
+  padding: 0.85rem 0;
+  border-bottom: 1px solid rgb(229 231 235);
+}
+.dark .opp-search-results > li {
+  border-color: rgb(255 255 255 / 0.1);
+}
+.opp-search-results .opp-search-chapter {
+  font-family: var(--aw-font-heading, inherit);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--aw-color-text-heading);
+}
+.opp-search-results ul {
+  margin-top: 0.4rem;
+}
+.opp-search-results ul a {
+  display: block;
+  padding: 0.4rem 0.6rem;
+  margin: 0 -0.6rem;
+  border-radius: 0.5rem;
+}
+.opp-search-results a:hover,
+.opp-search-results a:focus-visible {
+  background: color-mix(in srgb, var(--aw-color-primary) 8%, transparent);
+}
+.opp-search-results .opp-search-chapter:hover {
+  color: var(--aw-color-primary);
+  background: none;
+}
+.opp-search-section {
+  display: block;
+  font-weight: 600;
+  color: var(--aw-color-primary);
+}
+.opp-search-excerpt {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--aw-color-text-muted);
+}
+.opp-search-excerpt mark {
+  background: color-mix(in srgb, var(--aw-color-primary) 18%, transparent);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+/* Chapter sidebar ([chapter].astro): the open chapter's row stays pinned at
+   the top of the scrolling sidebar, so its collapse button is always in reach. */
+.opp-sidebar-current {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--aw-color-bg-page);
+}
+.opp-toggle svg {
+  transition: transform 150ms;
+}
+.opp-toggle[aria-expanded='false'] svg {
+  transform: rotate(-90deg);
+}
+
+/* Small rounded buttons above a chapter on phones (Search, PDF). */
+.opp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgb(209 213 219);
+  font-size: 0.875rem;
+  color: var(--aw-color-text-default);
+  transition:
+    border-color 150ms,
+    color 150ms;
+}
+.opp-chip:hover {
+  border-color: var(--aw-color-primary);
+  color: var(--aw-color-primary);
+}
+.dark .opp-chip {
+  border-color: rgb(255 255 255 / 0.2);
+}
