@@ -300,3 +300,59 @@
 [data-opp-toggle] {
   cursor: pointer;
 }
+
+/* Words from a book search (bookHighlight.ts), and the bar to clear them. */
+mark.opp-hit {
+  background: #fde68a;
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+.opp-hit-bar {
+  position: fixed;
+  left: 50%;
+  /* Just under the sticky header: the bottom of the screen belongs to the
+     cookie banner and the back-to-top button. */
+  top: 4.75rem;
+  z-index: 40;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: calc(100vw - 2rem);
+  padding: 0.5rem 0.5rem 0.5rem 1rem;
+  border-radius: 999px;
+  background: var(--aw-color-text-heading);
+  color: var(--aw-color-bg-page);
+  font-size: 0.875rem;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.2);
+}
+.dark mark.opp-hit {
+  background: rgb(250 204 21 / 0.35);
+}
+.opp-hit-bar span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* While the bar shows, a jump to a game leaves room for it under the header. */
+body:has(#opp-hit-bar) .opp-book [id] {
+  scroll-margin-top: 9rem;
+}
+.opp-hit-bar button {
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--aw-color-bg-page) 18%, transparent);
+}
+.opp-hit-bar button:hover {
+  background: color-mix(in srgb, var(--aw-color-bg-page) 30%, transparent);
+}
+@media print {
+  mark.opp-hit {
+    background: none;
+  }
+}

@@ -16,8 +16,16 @@ test('searching the book finds a game and jumps to it', async ({ page }) => {
   await expect(result).toBeVisible();
   await expect(dialog.getByRole('status')).toContainText('mention');
   await result.click();
-  await expect(page).toHaveURL(/\/of-play-and-playfulness\/games#bat_the_balloon$/);
+  await expect(page).toHaveURL(/\/of-play-and-playfulness\/games\?highlight=balloon#bat_the_balloon$/);
   await expect(dialog).toBeHidden();
+
+  // The words are highlighted in the chapter until cleared.
+  const hits = page.locator('.opp-book mark.opp-hit');
+  await expect(hits.first()).toBeVisible();
+  expect(await hits.count()).toBeGreaterThan(3);
+  await page.getByRole('button', { name: 'Clear highlights' }).click();
+  await expect(hits).toHaveCount(0);
+  await expect(page).toHaveURL(/\/games#bat_the_balloon$/);
 });
 
 test('a chapter in the sidebar folds its sections away and back', async ({ page }) => {

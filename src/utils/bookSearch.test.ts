@@ -73,6 +73,13 @@ describe('renderBookHits', () => {
     expect(html).toContain('<span class="opp-search-excerpt">bat a <mark>balloon</mark></span>');
     expect(html).toContain('>Intro &lt;b&gt;</a><p class="opp-search-excerpt">a <mark>balloon</mark> once</p>');
   });
+
+  it('carries the search words in every link, so the chapter can highlight them', () => {
+    const html = renderBookHits(toBookHits([games, intro]), 'bat balloon');
+    expect(html).toContain('href="/of-play-and-playfulness/games?highlight=bat%20balloon"');
+    expect(html).toContain('href="/of-play-and-playfulness/games?highlight=bat%20balloon#bat_the_balloon"');
+    expect(html).toContain('href="/of-play-and-playfulness/introduction?highlight=bat%20balloon"');
+  });
 });
 
 describe('initBookSearch', () => {

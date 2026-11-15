@@ -48,7 +48,9 @@ const labels = Object.fromEntries(chapters.flatMap((ch) => ch.sections.map((s) =
 <script>
   import { initBookSearch } from '~/utils/bookSearch';
   import { initBookSidebar } from '~/utils/bookSidebar';
+  import { initBookHighlight } from '~/utils/bookHighlight';
 
   initBookSearch();
   initBookSidebar();
+  initBookHighlight();
 </script>

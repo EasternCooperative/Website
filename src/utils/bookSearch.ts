@@ -8,6 +8,7 @@
  * view-transition navigation swaps the page out (page scripts don't re-run).
  */
 import { normalizeResultPath } from '~/utils/searchUrlFix';
+import { withHighlight } from '~/utils/bookHighlight';
 
 export const BOOK_FILTER = 'Of Play and Playfulness';
 const MAX_CHAPTERS = 10;
@@ -80,18 +81,21 @@ export function titleCase(s: string): string {
     .join(' ');
 }
 
-/** Excerpts come from Pagefind already escaped, with matches in <mark>. */
-export function renderBookHits(hits: BookHit[]): string {
+/**
+ * Excerpts come from Pagefind already escaped, with matches in <mark>. Links
+ * carry the search words, so the chapter highlights them (bookHighlight.ts).
+ */
+export function renderBookHits(hits: BookHit[], term = ''): string {
   return hits
     .map(
       (h) =>
         `<li class="opp-search-hit">` +
-        `<a href="${escapeHtml(h.url)}" class="opp-search-chapter">${escapeHtml(h.title)}</a>` +
+        `<a href="${escapeHtml(withHighlight(h.url, term))}" class="opp-search-chapter">${escapeHtml(h.title)}</a>` +
         (h.sections.length
           ? `<ul>${h.sections
               .map(
                 (s) =>
-                  `<li><a href="${escapeHtml(s.url)}"><span class="opp-search-section">${escapeHtml(s.title)}</span>` +
+                  `<li><a href="${escapeHtml(withHighlight(s.url, term))}"><span class="opp-search-section">${escapeHtml(s.title)}</span>` +
                   `<span class="opp-search-excerpt">${s.excerpt}</span></a></li>`
               )
               .join('')}</ul>`
@@ -142,7 +146,7 @@ export function initBookSearch(load: () => Promise<Pagefind> = loadDefault): voi
       const data = await Promise.all((found?.results ?? []).slice(0, MAX_CHAPTERS).map((r) => r.data()));
       if (id !== latest) return; // a newer search has started
       const labels = JSON.parse(dialog.dataset.labels ?? '{}') as SectionLabels;
-      results.innerHTML = renderBookHits(toBookHits(data, labels));
+      results.innerHTML = renderBookHits(toBookHits(data, labels), term);
       status.textContent = data.length
         ? `${data.length === 1 ? '1 chapter mentions' : `${data.length} chapters mention`} "${term.trim()}".`
         : `Nothing in the book matches "${term.trim()}".`;
