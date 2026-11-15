@@ -420,20 +420,52 @@ describe('initActivityFiltersPage — empty state and clear-all', () => {
 });
 
 describe('initFiltersCollapse', () => {
+  // jsdom does no layout, so the geometry the collapse logic reads is faked:
+  // `sentinelTop` is where the panel's place in the flow sits relative to the
+  // viewport (the panel sticks at 64px), the body is 300px tall when open,
+  // and the spacer reports whatever height the script last gave it.
+  let sentinelTop = 500;
+
   function buildCollapseFixture() {
     document.body.innerHTML = `
-      <div id="filters-panel">
+      <div id="filters-sentinel"></div>
+      <div id="filters-panel" style="top: 64px">
         <button id="filters-toggle" aria-expanded="true"></button>
         <span id="filters-chevron"></span>
         <div id="filters-body"></div>
       </div>
+      <div id="filters-spacer"></div>
       <div id="activity-grid"><ul></ul></div>
     `;
+    sentinelTop = 500;
+    const rect = (height: number, top = 0) => ({ top, height }) as DOMRect;
+    const sentinel = document.getElementById('filters-sentinel')!;
+    const body = document.getElementById('filters-body')!;
+    const spacer = document.getElementById('filters-spacer')!;
+    sentinel.getBoundingClientRect = () => rect(0, sentinelTop);
+    body.getBoundingClientRect = () => rect(body.style.maxHeight ? parseFloat(body.style.maxHeight) : 300);
+    Object.defineProperty(body, 'scrollHeight', { value: 300, configurable: true });
+    spacer.getBoundingClientRect = () => rect(parseFloat(spacer.style.height) || 0);
   }
 
+  // Scrolls the page to `y`, moving the panel's place in the flow with it.
+  let currentY = 0;
   function scrollTo(y: number) {
+    sentinelTop -= y - currentY;
+    currentY = y;
     Object.defineProperty(window, 'scrollY', { value: y, configurable: true, writable: true });
     window.dispatchEvent(new Event('scroll'));
+  }
+
+  const isCollapsed = () => document.getElementById('filters-toggle')!.getAttribute('aria-expanded') === 'false';
+  const spacerHeight = () => document.getElementById('filters-spacer')!.style.height;
+
+  async function setup() {
+    currentY = 0;
+    Object.defineProperty(window, 'scrollY', { value: 0, configurable: true, writable: true });
+    buildCollapseFixture();
+    const { initActivityFiltersPage } = await import('./activityFilters');
+    initActivityFiltersPage();
   }
 
   it('does nothing when the panel markup is absent', async () => {
@@ -442,48 +474,130 @@ describe('initFiltersCollapse', () => {
     expect(() => initActivityFiltersPage()).not.toThrow();
   });
 
-  it('does not collapse the panel on scroll', async () => {
-    buildCollapseFixture();
-    const { initActivityFiltersPage } = await import('./activityFilters');
-    initActivityFiltersPage();
-
-    scrollTo(600);
-    expect(document.getElementById('filters-body')!.classList.contains('max-h-0')).toBe(false);
-  });
-
   it('toggles collapsed state on manual toggle click', async () => {
-    buildCollapseFixture();
-    const { initActivityFiltersPage } = await import('./activityFilters');
-    initActivityFiltersPage();
-
+    await setup();
     const toggle = document.getElementById('filters-toggle')!;
     const body = document.getElementById('filters-body')!;
 
     toggle.click();
-    expect(body.classList.contains('max-h-0')).toBe(true);
+    expect(body.style.maxHeight).toBe('0px');
     expect(toggle.getAttribute('aria-expanded')).toBe('false');
 
     toggle.click();
-    expect(body.classList.contains('max-h-0')).toBe(false);
+    expect(body.style.maxHeight).toBe('300px');
     expect(toggle.getAttribute('aria-expanded')).toBe('true');
+
+    // Once the transition settles, the open body goes back to its CSS cap.
+    await vi.advanceTimersByTimeAsync(400);
+    expect(body.style.maxHeight).toBe('');
+  });
+
+  it('does not collapse while the panel is still down the page, however far the reader scrolls', async () => {
+    await setup();
+    // The hero image keeps the panel below the fold for the first stretch.
+    scrollTo(200);
+    scrollTo(430);
+    expect(isCollapsed()).toBe(false);
+  });
+
+  it('waits until the panel has been stuck for a little while before collapsing', async () => {
+    await setup();
+    scrollTo(446); // 10px past the stuck point
+    expect(isCollapsed()).toBe(false);
+    scrollTo(480); // 44px past
+    expect(isCollapsed()).toBe(true);
+  });
+
+  it('holds the collapsed height in the spacer while stuck so the list does not move', async () => {
+    await setup();
+    scrollTo(600);
+    expect(isCollapsed()).toBe(true);
+    expect(spacerHeight()).toBe('300px');
+  });
+
+  it('does not hold space when the reader collapses the panel before it is stuck', async () => {
+    await setup();
+    document.getElementById('filters-toggle')!.click();
+    expect(isCollapsed()).toBe(true);
+    expect(spacerHeight()).toBe('0px');
+  });
+
+  it('keeps the panel collapsed through a small upward scroll mid-list', async () => {
+    await setup();
+    scrollTo(1200);
+    expect(isCollapsed()).toBe(true);
+    scrollTo(1140);
+    expect(isCollapsed()).toBe(true);
+  });
+
+  it('reopens mid-list on a sustained upward scroll, giving the space back from the spacer', async () => {
+    await setup();
+    scrollTo(1200);
+    expect(isCollapsed()).toBe(true);
+    scrollTo(1150);
+    expect(isCollapsed()).toBe(true);
+    scrollTo(1100); // 100px of upward travel
+    expect(isCollapsed()).toBe(false);
+    expect(spacerHeight()).toBe('0px');
+  });
+
+  it('resets the upward accumulator on each direction change so jitter never reopens it', async () => {
+    await setup();
+    scrollTo(1200);
+    for (let i = 0; i < 6; i++) {
+      scrollTo(1160);
+      scrollTo(1200);
+    }
+    expect(isCollapsed()).toBe(true);
+  });
+
+  it('reopens when the panel scrolls back into its place in the page', async () => {
+    await setup();
+    scrollTo(1200);
+    expect(isCollapsed()).toBe(true);
+    // Work back up in 50px hops, each followed by a 10px nudge down, so the
+    // upward accumulator never reaches the mid-list reopen threshold.
+    let y = 1200;
+    while (y - 50 > 440) {
+      y -= 50;
+      scrollTo(y);
+      scrollTo(y + 10);
+    }
+    expect(isCollapsed()).toBe(true);
+    scrollTo(400); // panel back below its sticky offset
+    expect(isCollapsed()).toBe(false);
+    expect(spacerHeight()).toBe('0px');
+  });
+
+  it('leaves a panel the reader closed alone on upward scrolls and back at the top', async () => {
+    await setup();
+    document.getElementById('filters-toggle')!.click();
+    scrollTo(1200);
+    scrollTo(1000);
+    expect(isCollapsed()).toBe(true);
+    scrollTo(0);
+    expect(isCollapsed()).toBe(true);
+  });
+
+  it('collapses again on scrolling down after the reader reopens it while stuck', async () => {
+    await setup();
+    scrollTo(1200);
+    document.getElementById('filters-toggle')!.click();
+    expect(isCollapsed()).toBe(false);
+    scrollTo(1240);
+    expect(isCollapsed()).toBe(true);
   });
 
   it('tears down the previous click listener on re-init so it does not double-fire', async () => {
-    buildCollapseFixture();
-    const { initActivityFiltersPage } = await import('./activityFilters');
-    initActivityFiltersPage();
-
+    await setup();
     // A second init pass (as astro:page-load would trigger) must replace, not stack,
     // the toggle's click handler.
     document.dispatchEvent(new Event('astro:page-load'));
 
-    const toggle = document.getElementById('filters-toggle')!;
-    const body = document.getElementById('filters-body')!;
-
-    toggle.click();
+    document.getElementById('filters-toggle')!.click();
 
     // If the old listener were still attached too, two toggles would fire on one
     // click and net out to no visible change.
-    expect(body.classList.contains('max-h-0')).toBe(true);
+    expect(isCollapsed()).toBe(true);
   });
 });
