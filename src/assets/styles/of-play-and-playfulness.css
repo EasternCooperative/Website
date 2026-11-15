@@ -1,47 +1,51 @@
 /* Of Play and Playfulness: the book's chapters are archived HTML fragments
    (src/data/of-play-and-playfulness/*.html) rendered with set:html, so their
-   styling lives here rather than in Tailwind classes on the markup. */
+   styling lives here rather than in Tailwind classes on the markup. The print
+   edition (print.astro) shares these rules and adds its own under @media print. */
 
 /* The book's art is black line work on white JPEGs. Multiply drops the white
    on a light page; in dark mode, inverting and screening does the same on a
    dark page, leaving light lines. */
-.opp-art {
-  mix-blend-mode: multiply;
-}
-.dark .opp-art {
-  filter: invert(1);
-  mix-blend-mode: screen;
-}
-
-.opp-book h2 {
-  font-size: 1.25rem;
-  letter-spacing: 0.03em;
-  text-align: center;
-  margin-top: 2.5em;
-}
-
-/* Clear the sticky header when jumping to a game, dance, or song. */
-.opp-book [id] {
-  scroll-margin-top: 5rem;
-}
-
+.opp-art,
 .opp-book img {
-  margin: 0;
   mix-blend-mode: multiply;
 }
+.dark .opp-art,
 .dark .opp-book img {
   filter: invert(1);
   mix-blend-mode: screen;
 }
 
-/* The book's own marks (see its Introduction): personal experience, theory
-   and leadership, excerpt from a prior publication. */
-.opp-book img.opp-mark {
-  display: inline-block;
-  vertical-align: baseline;
-  margin-right: 0.25em;
+/* Section headings: the book sets them in capitals; give them a small accent
+   rule and left-align them (h3 in the print edition), even where the archive wrapped them in a center. */
+.opp-book h2,
+.opp-book h3 {
+  font-size: 1.3rem;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+  text-align: left;
+  margin-top: 2.75em;
+  margin-bottom: 0.75em;
+}
+.opp-book h2::before,
+.opp-book h3::before {
+  content: '';
+  display: block;
+  width: 2.5rem;
+  height: 3px;
+  border-radius: 3px;
+  margin-bottom: 0.6em;
+  background: var(--aw-color-primary);
 }
 
+/* Clear the sticky header when jumping to a game, dance, or song. */
+.opp-book [id] {
+  scroll-margin-top: 6rem;
+}
+
+.opp-book img {
+  margin: 0;
+}
 .opp-book .opp-center {
   text-align: center;
 }
@@ -51,16 +55,62 @@
   display: inline-block;
   max-width: 100%;
   height: auto;
+  margin: 0.5em 0;
+}
+
+/* The book's marks (see its Introduction), as labeled tags. One that opens a
+   paragraph sits on its own line above the text it introduces. */
+.opp-tag {
+  --opp-tag: var(--aw-color-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.2em 0.7em 0.2em 0.55em;
+  border-radius: 999px;
+  font-family: var(--aw-font-sans, inherit);
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  vertical-align: 0.15em;
+  white-space: nowrap;
+  color: var(--opp-tag);
+  background: color-mix(in srgb, var(--opp-tag) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--opp-tag) 30%, transparent);
+}
+.opp-tag svg {
+  width: 1.15em;
+  height: 1.15em;
+  flex: none;
+}
+.opp-tag-theory {
+  --opp-tag: #92400e;
+}
+.opp-tag-excerpt {
+  --opp-tag: #0369a1;
+}
+.dark .opp-tag-theory {
+  --opp-tag: #fbbf24;
+}
+.dark .opp-tag-excerpt {
+  --opp-tag: #7dd3fc;
+}
+.opp-book .opp-tag-lead {
+  display: flex;
+  width: fit-content;
+  margin-bottom: 0.6em;
 }
 
 /* The book uses <blockquote> to indent memories and music, not to quote:
-   undo the prose quote marks, italics, and rule. */
+   undo the prose quote marks and italics, and keep a quiet rule. */
 .opp-book blockquote {
   font-style: normal;
   font-weight: inherit;
   color: inherit;
   quotes: none;
-  border-left: 0;
+  border-left: 3px solid color-mix(in srgb, var(--aw-color-primary) 25%, transparent);
   margin-left: 0;
   padding-left: 1.25em;
 }
@@ -72,6 +122,7 @@
 .opp-book .opp-signature {
   text-align: right;
   font-style: italic;
+  color: var(--aw-color-text-muted);
 }
 
 .opp-book .opp-table {
@@ -87,9 +138,69 @@
   padding: 0.25em 0.75em;
 }
 
+/* A game's, dance's, or song's particulars (Formation, Object, Action, ...):
+   a panel with each label over its text. Some labels are whole sentences, so
+   they stack rather than sit in a column. */
+.opp-book dl {
+  margin: 1.25em 0;
+  padding: 0.25em 1.25em 1em;
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--aw-color-primary) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--aw-color-primary) 15%, transparent);
+}
 .opp-book dt {
   margin-top: 1em;
+  font-size: 0.8em;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--aw-color-secondary);
 }
 .opp-book dd {
   margin-top: 0.25em;
+  padding-left: 0;
+}
+
+/* Previous and next chapter. */
+.opp-pager {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem 1.25rem;
+  border-radius: 1rem;
+  border: 1px solid rgb(229 231 235);
+  transition:
+    border-color 150ms,
+    box-shadow 150ms;
+}
+.opp-pager:hover {
+  border-color: var(--aw-color-primary);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.06);
+}
+.dark .opp-pager {
+  border-color: rgb(255 255 255 / 0.1);
+}
+.dark .opp-pager:hover {
+  border-color: var(--aw-color-primary);
+}
+
+/* A leader the book names: opens their card on hover or tap, as on the schedule. */
+.opp-book .opp-person {
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  transition: color 150ms;
+}
+.opp-book .opp-person:hover,
+.opp-book .opp-person:focus-visible {
+  color: var(--aw-color-primary);
+}
+/* Printed from the browser, a name is just a name. */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  .opp-book .opp-person {
+    text-decoration: none;
+    cursor: auto;
+  }
 }

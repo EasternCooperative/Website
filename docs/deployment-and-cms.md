@@ -24,10 +24,12 @@ changing CI, the CMS config, or anything touching `main`.
   edit) run just the fast validators (`check` + `build`). Code changes also
   run unit tests, Playwright e2e (against the built site), and Lighthouse
   (accessibility/best-practices/SEO enforced at ≥ 0.9).
-- **Schedule PDFs** (`.github/workflows/schedule-pdfs.yml`): when schedule
-  code or event data changes, headless Chrome renders each
-  `/events/<id>/schedule` page to `public/schedules/<id>.pdf` and commits it
-  to `main` (the `chore(schedule): regenerate master-schedule PDFs` commits).
+- **Rendered PDFs** (`.github/workflows/schedule-pdfs.yml`): when schedule
+  code, event data, or the Of Play and Playfulness book changes, headless
+  Chrome renders each `/events/<id>/schedule` page to
+  `public/schedules/<id>.pdf` and `/of-play-and-playfulness/print` to
+  `public/docs/of-play-and-playfulness.pdf`, and commits them to `main` (the
+  `chore(pdf): regenerate rendered PDFs` commits).
 - Pages are plain static HTML: `public/_routes.json` sends only `/api/*` to
   Pages Functions. The consent banner's region check runs in the browser
   (`Analytics.astro` asks Cloudflare's `/cdn-cgi/trace` for the visitor's

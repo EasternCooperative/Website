@@ -1,0 +1,31 @@
+---
+// A leader's card, opened from a `data-popover-target="leader-<id>"` trigger by
+// initLeaderPopovers (hover, tap, or keyboard). Render one per leader, inside a
+// `no-print` wrapper so printouts and PDFs keep just the name.
+import type { CollectionEntry } from 'astro:content';
+import PersonPhoto from '~/components/ui/PersonPhoto.astro';
+import { renderInlineMarkdown } from '~/utils/markdown';
+
+interface Props {
+  id: string;
+  leader: CollectionEntry<'leader'>['data'];
+}
+
+const { id, leader: l } = Astro.props;
+---
+
+<div id={`leader-${id}`} popover="auto" class="m-0 border-0 bg-transparent p-0 shadow-none [&::backdrop]:bg-black/20">
+  <div class="w-64 max-w-[calc(100vw-2rem)] rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-xl dark:border-gray-700 dark:bg-gray-900">
+    <div class="mb-2 flex items-center gap-3">
+      {l.photo && <PersonPhoto name={l.name} photo={l.photo} size={48} class="flex-shrink-0" />}
+      <div class="min-w-0">
+        <p class="font-semibold leading-snug text-heading">{l.name}</p>
+        {l.title && <p class="text-xs leading-snug text-muted">{l.title}</p>}
+      </div>
+    </div>
+    {l.bio && <p class="md-links mb-3 line-clamp-6 text-sm text-muted" set:html={renderInlineMarkdown(l.bio)} />}
+    <a href={`/our-people#leader-${id}`} class="text-xs font-semibold text-primary hover:underline">
+      View full profile →
+    </a>
+  </div>
+</div>

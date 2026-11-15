@@ -1,19 +1,25 @@
 ---
 import type { GetStaticPaths } from 'astro';
+import { getCollection } from 'astro:content';
 import { Icon } from 'astro-icon/components';
 import Layout from '~/layouts/PageLayout.astro';
+import LeaderPopover from '~/components/ui/LeaderPopover.astro';
 import settings from '~/data/settings/of-play-and-playfulness.json';
-import { getImage } from 'astro:assets';
 import {
-  BOOK_IMAGE_PATH,
   BOOK_PATH,
+  BOOK_PDF_PATH,
   chapterHtml,
   chapterPath,
   chapters,
+  linkLeaders,
+  replaceMarks,
   rewriteImageSources,
+  titleImagePath,
   type Chapter,
 } from '~/utils/ofPlayAndPlayfulness';
-import { findImage } from '~/utils/images';
+import { optimizeBookImage } from '~/utils/ofPlayAndPlayfulnessImages';
+import { publicFileSize } from '~/utils/fileSize';
+import siteSettings from '~/data/settings/site.json';
 import '~/assets/styles/of-play-and-playfulness.css';
 
 export const getStaticPaths = (() =>
@@ -31,18 +37,20 @@ interface Props {
 
 const { chapter, number, prev, next } = Astro.props;
 
-// The book's images go through Sharp like the rest of the site's: findImage
-// maps /images/… to the copy the prebuild step mirrors into src/assets, and
-// getImage turns it into WebP at its original size (these are small scans, so
-// there is nothing larger to offer). In `astro dev` there is no mirror, and the
-// original /images/ path is served unchanged.
-const optimize = async (src: string): Promise<string> => {
-  const resolved = await findImage(src);
-  if (!resolved || typeof resolved === 'string') return src;
-  return (await getImage({ src: resolved, format: 'webp' })).src;
-};
-const html = await rewriteImageSources(chapterHtml(chapter.slug), optimize);
-const titleImageSrc = await optimize(`${BOOK_IMAGE_PATH}/${chapter.titleImage}`);
+// Leaders the book names get the same hover card as on the schedule, held to
+// the same rule: people with a bio, unless the site shows everyone.
+const leaderRecords = (await getCollection('leader')).filter(
+  (l) => siteSettings.featureFlags.peopleWithoutPhotoOrBio || !!l.data.bio
+);
+const leaderMap = new Map(leaderRecords.map((l) => [l.id, l.data]));
+
+// Marks first: they are recognized by their original file names.
+const { html, ids: mentionedLeaders } = linkLeaders(
+  await rewriteImageSources(replaceMarks(chapterHtml(chapter.slug)), optimizeBookImage),
+  leaderRecords.map((l) => ({ id: l.id, name: l.data.name }))
+);
+const titleArt = await optimizeBookImage(titleImagePath(chapter));
+const pdfSize = publicFileSize(BOOK_PDF_PATH);
 
 const metadata = {
   title: `${chapter.title} | ${settings.heroTitle}`,
@@ -51,86 +59,208 @@ const metadata = {
     : `Chapter ${number} of ${settings.heroTitle}.`,
   openGraph: { images: [{ url: '/og/default.jpg', width: 1200, height: 630 }] },
 };
+
+const linkBase = 'text-default hover:text-primary transition-colors';
 ---
 
 <Layout metadata={metadata}>
-  <article class="max-w-3xl mx-auto px-4 sm:px-6 py-10 md:py-14">
-    <nav aria-label="Breadcrumb" class="mb-8">
-      <ol class="flex flex-wrap items-center gap-2 text-sm text-muted list-none p-0 m-0">
-        <li>
-          <a href={BOOK_PATH} class="hover:text-primary transition-colors">
-            {settings.heroTitle}
+  <div class="mx-auto max-w-6xl px-4 py-10 sm:px-6 md:py-14 lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-14">
+    <!-- The whole book's contents, with this chapter's sections opened out. -->
+    <aside class="hidden lg:block" aria-label="Book contents">
+      <div class="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pb-6 pr-2 text-sm">
+        <a href={BOOK_PATH} class="font-heading text-base font-bold text-heading hover:text-primary">
+          {settings.heroTitle}
+        </a>
+        <ol class="mt-4 space-y-1 border-l border-gray-200 dark:border-white/10" role="list">
+          {chapters.map((ch) => (
+            <li>
+              {ch.slug === chapter.slug ? (
+                <>
+                  <a
+                    href={chapterPath(ch.slug)}
+                    aria-current="page"
+                    class="-ml-px block border-l-2 border-primary py-1 pl-3 font-semibold text-primary"
+                  >
+                    {ch.title}
+                  </a>
+                  {ch.sections.length > 0 && (
+                    <ul class="mb-2 mt-1 space-y-1 pl-6" role="list">
+                      {ch.sections.map((s) => (
+                        <li>
+                          <a href={`#${s.id}`} class={`block py-0.5 text-muted ${linkBase}`}>
+                            {s.label}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </>
+              ) : (
+                <a href={chapterPath(ch.slug)} class={`block py-1 pl-3 ${linkBase}`}>
+                  {ch.title}
+                </a>
+              )}
+            </li>
+          ))}
+        </ol>
+        <a
+          href={BOOK_PDF_PATH}
+          download
+          class="mt-6 inline-flex items-center gap-2 pl-3 font-medium text-primary hover:underline"
+        >
+          <Icon name="tabler:download" class="h-4 w-4" aria-hidden="true" />
+          {settings.downloadLabel}
+          {pdfSize && <span class="text-muted">({pdfSize})</span>}
+        </a>
+      </div>
+    </aside>
+
+    <article class="min-w-0 max-w-3xl">
+      <div class="mb-8 flex flex-wrap items-center justify-between gap-3">
+        <nav aria-label="Breadcrumb">
+          <ol class="m-0 flex list-none flex-wrap items-center gap-2 p-0 text-sm text-muted">
+            <li>
+              <a href={BOOK_PATH} class="transition-colors hover:text-primary">
+                {settings.heroTitle}
+              </a>
+            </li>
+            <li aria-hidden="true" class="text-muted/50">
+              /
+            </li>
+            <li aria-current="page" class="text-default">
+              {chapter.title}
+            </li>
+          </ol>
+        </nav>
+        <a
+          href={BOOK_PDF_PATH}
+          download
+          class="inline-flex items-center gap-1.5 rounded-full border border-gray-300 px-3 py-1 text-sm text-default transition hover:border-primary hover:text-primary lg:hidden dark:border-white/20"
+        >
+          <Icon name="tabler:download" class="h-4 w-4" aria-hidden="true" />
+          PDF
+        </a>
+      </div>
+
+      <header class="text-center">
+        <p class="text-sm font-semibold uppercase tracking-widest text-secondary">
+          Chapter {number} <span class="text-muted">of {chapters.length}</span>
+        </p>
+        <h1 class="mt-4">
+          <span class="sr-only" data-pagefind-meta="title">
+            {chapter.title}
+          </span>
+          <img
+            src={titleArt}
+            alt=""
+            aria-hidden="true"
+            width={chapter.titleImageWidth}
+            height={chapter.titleImageHeight}
+            class="opp-art mx-auto h-auto w-auto max-h-36 max-w-full"
+            loading="eager"
+            fetchpriority="high"
+          />
+        </h1>
+        {chapter.quote && (
+          <figure class="mx-auto mt-8 max-w-xl">
+            <blockquote class="text-lg italic leading-relaxed text-heading md:text-xl">{chapter.quote}</blockquote>
+            {chapter.attribution && <figcaption class="mt-2 text-sm text-muted">{chapter.attribution}</figcaption>}
+          </figure>
+        )}
+      </header>
+
+      {chapter.sections.length > 0 && (
+        <details class="group mt-10 rounded-xl border border-gray-200 bg-white lg:hidden dark:border-white/10 dark:bg-white/5">
+          <summary class="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-semibold text-heading">
+            <span>
+              {settings.inThisChapterTitle}
+              <span class="ml-1 font-normal text-muted">({chapter.sections.length})</span>
+            </span>
+            <Icon name="tabler:chevron-down" class="h-5 w-5 transition group-open:rotate-180" aria-hidden="true" />
+          </summary>
+          <ul
+            class="grid gap-x-4 gap-y-1 border-t border-gray-200 px-4 py-3 text-sm sm:grid-cols-2 dark:border-white/10"
+            role="list"
+          >
+            {chapter.sections.map((s) => (
+              <li>
+                <a href={`#${s.id}`} class="block py-1 text-primary">
+                  {s.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+
+      <div
+        class="opp-book prose prose-lg mt-10 max-w-none dark:prose-invert prose-headings:font-heading prose-a:text-primary"
+        set:html={html}
+      />
+
+      <nav aria-label="Chapters" class="mt-16 grid gap-4 sm:grid-cols-2">
+        {prev ? (
+          <a href={chapterPath(prev.slug)} class="opp-pager group">
+            <span class="flex items-center gap-1 text-sm text-muted">
+              <Icon
+                name="tabler:arrow-left"
+                class="h-4 w-4 transition group-hover:-translate-x-0.5"
+                aria-hidden="true"
+              />
+              Previous chapter
+            </span>
+            <span class="font-heading text-lg font-bold text-heading group-hover:text-primary">{prev.title}</span>
           </a>
-        </li>
-        <li aria-hidden="true" class="text-muted/50">
-          /
-        </li>
-        <li aria-current="page" class="text-default">
-          {chapter.title}
-        </li>
-      </ol>
-    </nav>
+        ) : (
+          <a href={BOOK_PATH} class="opp-pager group">
+            <span class="flex items-center gap-1 text-sm text-muted">
+              <Icon name="tabler:arrow-left" class="h-4 w-4" aria-hidden="true" />
+              Back to
+            </span>
+            <span class="font-heading text-lg font-bold text-heading group-hover:text-primary">
+              {settings.contentsTitle}
+            </span>
+          </a>
+        )}
+        {next ? (
+          <a href={chapterPath(next.slug)} class="opp-pager group sm:col-start-2 sm:text-right">
+            <span class="flex items-center gap-1 text-sm text-muted sm:justify-end">
+              Next chapter
+              <Icon
+                name="tabler:arrow-right"
+                class="h-4 w-4 transition group-hover:translate-x-0.5"
+                aria-hidden="true"
+              />
+            </span>
+            <span class="font-heading text-lg font-bold text-heading group-hover:text-primary">{next.title}</span>
+          </a>
+        ) : (
+          <a href={BOOK_PATH} class="opp-pager group sm:col-start-2 sm:text-right">
+            <span class="flex items-center gap-1 text-sm text-muted sm:justify-end">
+              Back to
+              <Icon name="tabler:arrow-right" class="h-4 w-4" aria-hidden="true" />
+            </span>
+            <span class="font-heading text-lg font-bold text-heading group-hover:text-primary">
+              {settings.contentsTitle}
+            </span>
+          </a>
+        )}
+      </nav>
+    </article>
+  </div>
 
-    <header class="text-center mb-10">
-      <p class="text-sm font-semibold uppercase tracking-wide text-muted">Chapter {number}</p>
-      <h1 class="mt-3 flex justify-center">
-        <!-- The title is calligraphy in an image, so search takes its title from the alt text. -->
-        <img
-          data-pagefind-meta="title[alt]"
-          src={titleImageSrc}
-          alt={chapter.title}
-          width={chapter.titleImageWidth}
-          height={chapter.titleImageHeight}
-          class="opp-art"
-          loading="eager"
-          fetchpriority="high"
-        />
-      </h1>
-    </header>
-
-    <div
-      class="opp-book prose prose-lg max-w-none dark:prose-invert prose-headings:font-heading prose-a:text-primary"
-      set:html={html}
-    />
-
-    <nav
-      aria-label="Chapters"
-      class="mt-14 grid gap-4 border-t border-gray-200 pt-6 sm:grid-cols-2 dark:border-gray-700"
-    >
-      {prev ? (
-        <a href={chapterPath(prev.slug)} class="group flex items-center gap-2 text-default hover:text-primary">
-          <Icon name="tabler:chevron-left" class="h-5 w-5 shrink-0" aria-hidden="true" />
-          <span>
-            <span class="block text-sm text-muted">Previous</span>
-            <span class="font-bold">{prev.title}</span>
-          </span>
-        </a>
-      ) : (
-        <a href={BOOK_PATH} class="group flex items-center gap-2 text-default hover:text-primary">
-          <Icon name="tabler:chevron-left" class="h-5 w-5 shrink-0" aria-hidden="true" />
-          <span class="font-bold">{settings.contentsTitle}</span>
-        </a>
-      )}
-      {next ? (
-        <a
-          href={chapterPath(next.slug)}
-          class="group flex items-center justify-end gap-2 text-right text-default hover:text-primary sm:col-start-2"
-        >
-          <span>
-            <span class="block text-sm text-muted">Next</span>
-            <span class="font-bold">{next.title}</span>
-          </span>
-          <Icon name="tabler:chevron-right" class="h-5 w-5 shrink-0" aria-hidden="true" />
-        </a>
-      ) : (
-        <a
-          href={BOOK_PATH}
-          class="group flex items-center justify-end gap-2 text-right text-default hover:text-primary sm:col-start-2"
-        >
-          <span class="font-bold">{settings.contentsTitle}</span>
-          <Icon name="tabler:chevron-right" class="h-5 w-5 shrink-0" aria-hidden="true" />
-        </a>
-      )}
-    </nav>
-  </article>
+  {mentionedLeaders.length > 0 && (
+    <div class="no-print">
+      {mentionedLeaders.map((id) => (
+        <LeaderPopover id={id} leader={leaderMap.get(id)!} />
+      ))}
+    </div>
+  )}
 </Layout>
+
+<script>
+  import { initLeaderPopovers } from '~/utils/eventPageInteractions';
+
+  // Runs on the first load and after each view-transition navigation.
+  document.addEventListener('astro:page-load', initLeaderPopovers);
+</script>
