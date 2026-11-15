@@ -124,6 +124,9 @@ const itemListJsonLd = {
     <!-- ============================================================
          SEARCH + FILTERS
          ============================================================ -->
+    <!-- Marks where the sticky panel sits in the page flow; the collapse script
+         compares it to the panel's sticky offset to tell when the panel is stuck. -->
+    <div id="filters-sentinel" aria-hidden="true"></div>
     <div
       id="filters-panel"
       class="sticky top-16 z-30 rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50/95 dark:bg-gray-900/95 backdrop-blur-sm p-5 md:p-6 mb-8"
@@ -157,7 +160,7 @@ const itemListJsonLd = {
            panel can never grow taller than the viewport and clip content out of reach. -->
       <div
         id="filters-body"
-        class="overflow-y-auto overscroll-contain transition-[max-height] duration-300 ease-in-out motion-reduce:transition-none max-h-[min(600px,calc(100dvh-10rem))]"
+        class="overflow-y-auto transition-[max-height] duration-300 ease-in-out motion-reduce:transition-none max-h-[min(600px,calc(100dvh-10rem))]"
       >
         <div>
           <div class="relative mt-4 mb-6">
@@ -372,6 +375,13 @@ const itemListJsonLd = {
         </div>
       </div>
     </div>
+    <!-- Takes up the height the panel gives up when it collapses while stuck, so
+         the list below never moves. Sized and animated by the collapse script. -->
+    <div
+      id="filters-spacer"
+      aria-hidden="true"
+      class="h-0 transition-[height] duration-300 ease-in-out motion-reduce:transition-none"
+    ></div>
 
     <p data-empty-state class="text-muted text-lg hidden">
       {activitiesListSettings.emptyStateText}

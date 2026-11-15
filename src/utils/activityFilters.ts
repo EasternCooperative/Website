@@ -315,81 +315,132 @@ function initActivityFilters() {
 }
 
 // The filters panel is sticky (see #filters-panel) so it stays reachable while
-// browsing the list, but a fully-expanded panel pinned at the top would eat a
-// lot of the viewport. Collapse it to just the toggle bar once the reader
-// scrolls down, expand again on any upward scroll — the same direction-based
-// pattern used by hide-on-scroll headers. Manual toggle always works too.
+// browsing the list, but fully expanded it would cover much of the viewport
+// (most of it on a phone). So it collapses to just the toggle bar once it is
+// stuck and the reader keeps scrolling down, and opens again on a sustained
+// upward scroll or when it scrolls back into its place in the page.
+//
+// Two things keep this from jolting the page:
+//  - "Stuck" is measured from #filters-sentinel, which sits where the panel
+//    would be in the page flow. A fixed scrollY threshold collapsed the panel
+//    long before it reached the top once the hero image sat above it.
+//  - While stuck, #filters-spacer takes up exactly the height the body gives
+//    up, animated in step with it, so the panel's slot in the layout never
+//    changes size. Without it the list jumped by the collapsed height and the
+//    browser's scroll anchoring moved the page on its own.
+//
 // astro:page-load fires even on the very first load (in addition to the direct
 // call below), so this must tear down its own previous listeners before
-// re-attaching — otherwise two independent closures, each with their own
-// `collapsed` state, end up fighting over the same DOM classes.
+// re-attaching, or two closures would fight over the same panel.
 let cleanupFiltersCollapse: (() => void) | null = null;
+
+// How far past the stuck point the reader scrolls before the panel collapses,
+// so it does not flicker while the panel is just arriving at the top.
+const COLLAPSE_PAST_STICK = 24;
+// Sustained upward scroll needed to reopen the panel mid-list. Small corrective
+// scroll-ups while reading a card are constant, so this has to be deliberate.
+const EXPAND_DELTA = 96;
+// How long a newly focused search box keeps the panel open, to cover the
+// scroll a phone makes while its keyboard slides up.
+const KEYBOARD_HOLD_MS = 1000;
+// Matches duration-300 on #filters-body and #filters-spacer.
+const TRANSITION_MS = 300;
 
 function initFiltersCollapse() {
   cleanupFiltersCollapse?.();
   cleanupFiltersCollapse = null;
 
   const panel = document.getElementById('filters-panel');
+  const sentinel = document.getElementById('filters-sentinel');
+  const spacer = document.getElementById('filters-spacer');
   const toggle = document.getElementById('filters-toggle') as HTMLButtonElement | null;
   const body = document.getElementById('filters-body');
   const chevron = document.getElementById('filters-chevron');
-  if (!panel || !toggle || !body || !chevron) return;
+  if (!panel || !sentinel || !spacer || !toggle || !body || !chevron) return;
 
-  const COLLAPSE_SCROLL_THRESHOLD = 150;
-  // Collapsing/expanding resizes this sticky element's flow height, which
-  // can shift the document's scrollable height enough that the browser
-  // clamps/adjusts scrollY on its own — firing a native scroll event that
-  // would otherwise be mistaken for user input and immediately re-trigger
-  // the opposite state (an infinite loop). Suppress scroll evaluation
-  // briefly (covering the transition duration) after any programmatic change.
-  const SCROLL_SUPPRESS_MS = 400;
-  // Collapsing is non-disruptive — it only frees viewport, it never hides
-  // content the reader is looking at — so any downward scroll past the
-  // threshold triggers it, like a hide-on-scroll header. Expanding is
-  // disruptive: it pushes the whole grid down, so it demands a deliberate,
-  // sustained upward scroll. With a populated list the page is long enough that
-  // small corrective scroll-ups while reading a card are constant; a low expand
-  // threshold made the panel flap open on every one of them.
-  //
-  // Collapse used to sit behind its own accumulator gate mirroring this one,
-  // but trackpad/touch momentum (and the mobile URL-bar resize) flips scroll
-  // direction often enough near the top of the page — zeroing dirAccum on each
-  // flip — that the first scroll down could be starved past the threshold and
-  // never collapse until far down the page. The gate only ever guarded expand.
-  const EXPAND_DELTA = 72;
   let collapsed = false;
-  let suppressScrollUntil = 0;
+  // Collapsed from the toggle: scrolling up mid-list leaves it closed.
+  let closedByReader = false;
   let lastScrollY = window.scrollY;
-  // Distance travelled since the last direction change; reset whenever the
-  // scroll direction flips so trackpad momentum (a hard scroll one way that
-  // rebounds slightly the other) can't accumulate into a spurious toggle.
+  // Distance travelled since the last direction change, so a fling that
+  // rebounds slightly the other way can't add up to a spurious toggle.
   let dirAccum = 0;
   let accumDir = 0;
+  let settleTimer: ReturnType<typeof setTimeout> | undefined;
+  // On phones, focusing the search box scrolls the page down to make room for
+  // the keyboard, which would otherwise collapse the panel out from under the
+  // reader. Hold it open briefly after a text field in it gains focus.
+  let holdOpenUntil = 0;
+
+  // How far the panel's place in the flow has scrolled above its sticky offset.
+  // Positive once the panel is stuck; zero or negative while it sits in place.
+  function distancePastStick() {
+    const stickyTop = parseFloat(getComputedStyle(panel!).top) || 0;
+    return stickyTop - sentinel!.getBoundingClientRect().top;
+  }
+
+  function expandedBodyHeight() {
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    const cap = Math.min(600, window.innerHeight - 10 * rem);
+    return Math.min(body!.scrollHeight, cap);
+  }
 
   function setCollapsed(next: boolean) {
     if (next === collapsed) return;
     collapsed = next;
-    body!.classList.toggle('max-h-[min(600px,calc(100dvh-10rem))]', !collapsed);
-    body!.classList.toggle('max-h-0', collapsed);
-    chevron!.classList.toggle('rotate-180', !collapsed);
-    toggle!.setAttribute('aria-expanded', String(!collapsed));
-    suppressScrollUntil = Date.now() + SCROLL_SUPPRESS_MS;
-    lastScrollY = window.scrollY;
+
+    const bodyFrom = body!.getBoundingClientRect().height;
+    const spacerFrom = spacer!.getBoundingClientRect().height;
+    // Reopening while the spacer holds space: open into exactly that space.
+    // Recomputing from the viewport instead would leave a gap or shift the
+    // list whenever the mobile URL bar has resized it since the collapse.
+    const bodyTo = next ? 0 : spacerFrom > 0 ? bodyFrom + spacerFrom : expandedBodyHeight();
+    // While stuck, or while the spacer is still holding space from an earlier
+    // collapse, keep body + spacer constant so nothing below the panel moves.
+    const holdSpace = distancePastStick() > 0 || spacerFrom > 0;
+    const spacerTo = holdSpace ? Math.max(0, spacerFrom + bodyFrom - bodyTo) : 0;
+
+    // Start both from their current rendered heights with transitions off, then
+    // animate to the targets together. Animating from the CSS max-height cap
+    // instead would hold the body at full height for part of the transition.
+    body!.style.transition = 'none';
+    spacer!.style.transition = 'none';
+    body!.style.maxHeight = `${bodyFrom}px`;
+    spacer!.style.height = `${spacerFrom}px`;
+    void body!.offsetHeight;
+    body!.style.transition = '';
+    spacer!.style.transition = '';
+    body!.style.maxHeight = `${bodyTo}px`;
+    spacer!.style.height = `${spacerTo}px`;
+
+    chevron!.classList.toggle('rotate-180', !next);
+    toggle!.setAttribute('aria-expanded', String(!next));
     dirAccum = 0;
     accumDir = 0;
+
+    clearTimeout(settleTimer);
+    settleTimer = setTimeout(() => {
+      // Hand the open body back to its CSS cap, which tracks the viewport.
+      if (!collapsed) body!.style.maxHeight = '';
+    }, TRANSITION_MS + 50);
   }
 
   function onToggleClick() {
+    closedByReader = !collapsed;
     setCollapsed(!collapsed);
   }
   toggle.addEventListener('click', onToggleClick);
 
+  function onFocusIn(e: FocusEvent) {
+    const target = e.target;
+    if (target instanceof HTMLInputElement && (target.type === 'search' || target.type === 'text')) {
+      holdOpenUntil = Date.now() + KEYBOARD_HOLD_MS;
+    }
+  }
+  panel.addEventListener('focusin', onFocusIn);
+
   function onScroll() {
     const y = window.scrollY;
-    if (Date.now() < suppressScrollUntil) {
-      lastScrollY = y;
-      return;
-    }
     const delta = y - lastScrollY;
     lastScrollY = y;
     if (delta === 0) return;
@@ -401,18 +452,33 @@ function initFiltersCollapse() {
     }
     dirAccum += Math.abs(delta);
 
+    const past = distancePastStick();
+    if (past <= 0) {
+      // Back in its place in the page: reopen if it was collapsed while stuck,
+      // filling the space the spacer was holding. A panel the reader closed
+      // up here stays closed.
+      if (collapsed && spacer!.getBoundingClientRect().height > 0) {
+        closedByReader = false;
+        setCollapsed(false);
+      }
+      return;
+    }
+
     if (dir === 1) {
-      if (!collapsed && y > COLLAPSE_SCROLL_THRESHOLD) setCollapsed(true);
-    } else {
-      // Near the top the panel always belongs open; below that, only a
-      // sustained upward scroll brings it back.
-      if (collapsed && (y <= COLLAPSE_SCROLL_THRESHOLD || dirAccum >= EXPAND_DELTA)) setCollapsed(false);
+      if (!collapsed && past > COLLAPSE_PAST_STICK && Date.now() >= holdOpenUntil) {
+        closedByReader = false;
+        setCollapsed(true);
+      }
+    } else if (collapsed && !closedByReader && dirAccum >= EXPAND_DELTA) {
+      setCollapsed(false);
     }
   }
   window.addEventListener('scroll', onScroll, { passive: true });
 
   cleanupFiltersCollapse = () => {
+    clearTimeout(settleTimer);
     toggle.removeEventListener('click', onToggleClick);
+    panel.removeEventListener('focusin', onFocusIn);
     window.removeEventListener('scroll', onScroll);
   };
 }
