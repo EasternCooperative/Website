@@ -25,8 +25,11 @@
 /videos/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 
-# Standalone documents linked from emails (values, leadership guides). The
-# filenames carry no revision so a link keeps working when a document is
-# updated; the short cache lets a replacement show up within the hour.
+# Standalone documents linked from emails (values, leadership guides, the
+# book). The filenames carry no revision so a link keeps working when a
+# document is updated, so browsers must check before reusing a copy: no-cache
+# still caches, but revalidates by ETag (a 304 when unchanged), so a replaced
+# PDF shows up on the next open instead of hours later (Nov 2026: Karen's
+# corrected PDFs stayed stale in browsers for hours after the deploy).
 /docs/*
-  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+  Cache-Control: public, no-cache

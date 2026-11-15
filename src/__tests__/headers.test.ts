@@ -24,4 +24,10 @@ describe('public/_headers', () => {
     );
     expect(block.some((l) => l.trim().startsWith('Content-Security-Policy:'))).toBe(true);
   });
+
+  it('makes browsers revalidate documents, so a replaced PDF shows up right away', () => {
+    const i = lines.indexOf('/docs/*');
+    expect(i).toBeGreaterThan(-1);
+    expect(lines[i + 1].trim()).toBe('Cache-Control: public, no-cache');
+  });
 });
