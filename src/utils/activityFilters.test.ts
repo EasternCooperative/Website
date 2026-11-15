@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 // initActivityFiltersPage() registers persistent listeners on the shared jsdom
-// `document`/`window` (astro:page-load, scroll). Without removing them, listeners
+// `document`/`window` (astro:page-load). Without removing them, listeners
 // from earlier tests would keep firing and contaminate later tests.
 let addedDocListeners: [string, EventListenerOrEventListenerObject][] = [];
 
@@ -442,6 +442,15 @@ describe('initFiltersCollapse', () => {
     expect(() => initActivityFiltersPage()).not.toThrow();
   });
 
+  it('does not collapse the panel on scroll', async () => {
+    buildCollapseFixture();
+    const { initActivityFiltersPage } = await import('./activityFilters');
+    initActivityFiltersPage();
+
+    scrollTo(600);
+    expect(document.getElementById('filters-body')!.classList.contains('max-h-0')).toBe(false);
+  });
+
   it('toggles collapsed state on manual toggle click', async () => {
     buildCollapseFixture();
     const { initActivityFiltersPage } = await import('./activityFilters');
@@ -459,116 +468,7 @@ describe('initFiltersCollapse', () => {
     expect(toggle.getAttribute('aria-expanded')).toBe('true');
   });
 
-  it('collapses on a downward scroll past the threshold, expands again near the top', async () => {
-    buildCollapseFixture();
-    const { initActivityFiltersPage } = await import('./activityFilters');
-    initActivityFiltersPage();
-
-    const body = document.getElementById('filters-body')!;
-
-    scrollTo(200);
-    expect(body.classList.contains('max-h-0')).toBe(true);
-
-    // Past the post-toggle suppression window, so this scroll is evaluated for real.
-    await vi.advanceTimersByTimeAsync(500);
-    scrollTo(50);
-    expect(body.classList.contains('max-h-0')).toBe(false);
-  });
-
-  it('does not collapse for a downward scroll that has not passed the scroll threshold', async () => {
-    buildCollapseFixture();
-    const { initActivityFiltersPage } = await import('./activityFilters');
-    initActivityFiltersPage();
-
-    scrollTo(5);
-    expect(document.getElementById('filters-body')!.classList.contains('max-h-0')).toBe(false);
-  });
-
-  it('ignores a scroll event that does not move the page', async () => {
-    buildCollapseFixture();
-    const { initActivityFiltersPage } = await import('./activityFilters');
-    initActivityFiltersPage();
-
-    const body = document.getElementById('filters-body')!;
-    scrollTo(300);
-    expect(body.classList.contains('max-h-0')).toBe(true);
-
-    await vi.advanceTimersByTimeAsync(500);
-    // Same scrollY — delta is zero, so nothing should change.
-    scrollTo(300);
-    expect(body.classList.contains('max-h-0')).toBe(true);
-  });
-
-  it('keeps the panel collapsed when a small upward scroll is still well below the page fold', async () => {
-    buildCollapseFixture();
-    const { initActivityFiltersPage } = await import('./activityFilters');
-    initActivityFiltersPage();
-
-    const body = document.getElementById('filters-body')!;
-    scrollTo(600);
-    expect(body.classList.contains('max-h-0')).toBe(true);
-
-    await vi.advanceTimersByTimeAsync(500);
-    // A 40px correction: not near the top, not a sustained gesture — panel stays put.
-    scrollTo(560);
-    expect(body.classList.contains('max-h-0')).toBe(true);
-  });
-
-  it('re-expands mid-page once the upward scroll is sustained past the expand threshold', async () => {
-    buildCollapseFixture();
-    const { initActivityFiltersPage } = await import('./activityFilters');
-    initActivityFiltersPage();
-
-    const body = document.getElementById('filters-body')!;
-    scrollTo(600);
-    expect(body.classList.contains('max-h-0')).toBe(true);
-
-    await vi.advanceTimersByTimeAsync(500);
-    // Two upward steps in the same direction accumulate to 80px (> the 72px
-    // expand threshold) while still far below the fold.
-    scrollTo(560);
-    expect(body.classList.contains('max-h-0')).toBe(true);
-    scrollTo(520);
-    expect(body.classList.contains('max-h-0')).toBe(false);
-  });
-
-  it('resets the accumulator on each direction change so momentum rebound never re-expands', async () => {
-    buildCollapseFixture();
-    const { initActivityFiltersPage } = await import('./activityFilters');
-    initActivityFiltersPage();
-
-    const body = document.getElementById('filters-body')!;
-    scrollTo(600);
-    expect(body.classList.contains('max-h-0')).toBe(true);
-
-    await vi.advanceTimersByTimeAsync(500);
-    // Alternating small jitters, each flipping direction — none accumulates.
-    scrollTo(585);
-    scrollTo(600);
-    scrollTo(585);
-    scrollTo(600);
-    expect(body.classList.contains('max-h-0')).toBe(true);
-  });
-
-  it('collapses when the scroll threshold is crossed on a tiny delta amid direction jitter', async () => {
-    buildCollapseFixture();
-    const { initActivityFiltersPage } = await import('./activityFilters');
-    initActivityFiltersPage();
-
-    const body = document.getElementById('filters-body')!;
-    // Climb toward the fold with the direction flipping every step, so any
-    // accumulator keeps resetting. The threshold (150) is finally crossed by a
-    // 5px move — collapse must not be gated on accumulated distance, or a
-    // jittery first scroll down (trackpad momentum, mobile URL-bar resize)
-    // sails past the fold without ever collapsing.
-    scrollTo(148);
-    expect(body.classList.contains('max-h-0')).toBe(false);
-    scrollTo(146);
-    scrollTo(151);
-    expect(body.classList.contains('max-h-0')).toBe(true);
-  });
-
-  it('tears down the previous scroll/click listeners on re-init so they do not double-fire', async () => {
+  it('tears down the previous click listener on re-init so it does not double-fire', async () => {
     buildCollapseFixture();
     const { initActivityFiltersPage } = await import('./activityFilters');
     initActivityFiltersPage();

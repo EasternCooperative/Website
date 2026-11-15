@@ -300,105 +300,36 @@ function initActivityFilters() {
 }
 
 // The filters panel is sticky (see #filters-panel) so it stays reachable while
-// browsing the list, but a fully-expanded panel pinned at the top would eat a
-// lot of the viewport. Collapse it to just the toggle bar once the reader
-// scrolls down, expand again on any upward scroll — the same direction-based
-// pattern used by hide-on-scroll headers. Manual toggle always works too.
+// browsing the list. It used to collapse itself on scroll, but that stopped
+// working reliably once the hero image was added above it, so collapsing is
+// now manual only, via the toggle bar.
 // astro:page-load fires even on the very first load (in addition to the direct
-// call below), so this must tear down its own previous listeners before
-// re-attaching — otherwise two independent closures, each with their own
-// `collapsed` state, end up fighting over the same DOM classes.
+// call below), so this must tear down its own previous listener before
+// re-attaching, or two click handlers would cancel each other out.
 let cleanupFiltersCollapse: (() => void) | null = null;
 
 function initFiltersCollapse() {
   cleanupFiltersCollapse?.();
   cleanupFiltersCollapse = null;
 
-  const panel = document.getElementById('filters-panel');
   const toggle = document.getElementById('filters-toggle') as HTMLButtonElement | null;
   const body = document.getElementById('filters-body');
   const chevron = document.getElementById('filters-chevron');
-  if (!panel || !toggle || !body || !chevron) return;
+  if (!toggle || !body || !chevron) return;
 
-  const COLLAPSE_SCROLL_THRESHOLD = 150;
-  // Collapsing/expanding resizes this sticky element's flow height, which
-  // can shift the document's scrollable height enough that the browser
-  // clamps/adjusts scrollY on its own — firing a native scroll event that
-  // would otherwise be mistaken for user input and immediately re-trigger
-  // the opposite state (an infinite loop). Suppress scroll evaluation
-  // briefly (covering the transition duration) after any programmatic change.
-  const SCROLL_SUPPRESS_MS = 400;
-  // Collapsing is non-disruptive — it only frees viewport, it never hides
-  // content the reader is looking at — so any downward scroll past the
-  // threshold triggers it, like a hide-on-scroll header. Expanding is
-  // disruptive: it pushes the whole grid down, so it demands a deliberate,
-  // sustained upward scroll. With a populated list the page is long enough that
-  // small corrective scroll-ups while reading a card are constant; a low expand
-  // threshold made the panel flap open on every one of them.
-  //
-  // Collapse used to sit behind its own accumulator gate mirroring this one,
-  // but trackpad/touch momentum (and the mobile URL-bar resize) flips scroll
-  // direction often enough near the top of the page — zeroing dirAccum on each
-  // flip — that the first scroll down could be starved past the threshold and
-  // never collapse until far down the page. The gate only ever guarded expand.
-  const EXPAND_DELTA = 72;
   let collapsed = false;
-  let suppressScrollUntil = 0;
-  let lastScrollY = window.scrollY;
-  // Distance travelled since the last direction change; reset whenever the
-  // scroll direction flips so trackpad momentum (a hard scroll one way that
-  // rebounds slightly the other) can't accumulate into a spurious toggle.
-  let dirAccum = 0;
-  let accumDir = 0;
 
-  function setCollapsed(next: boolean) {
-    if (next === collapsed) return;
-    collapsed = next;
+  function onToggleClick() {
+    collapsed = !collapsed;
     body!.classList.toggle('max-h-[min(600px,calc(100dvh-10rem))]', !collapsed);
     body!.classList.toggle('max-h-0', collapsed);
     chevron!.classList.toggle('rotate-180', !collapsed);
     toggle!.setAttribute('aria-expanded', String(!collapsed));
-    suppressScrollUntil = Date.now() + SCROLL_SUPPRESS_MS;
-    lastScrollY = window.scrollY;
-    dirAccum = 0;
-    accumDir = 0;
-  }
-
-  function onToggleClick() {
-    setCollapsed(!collapsed);
   }
   toggle.addEventListener('click', onToggleClick);
 
-  function onScroll() {
-    const y = window.scrollY;
-    if (Date.now() < suppressScrollUntil) {
-      lastScrollY = y;
-      return;
-    }
-    const delta = y - lastScrollY;
-    lastScrollY = y;
-    if (delta === 0) return;
-
-    const dir = delta > 0 ? 1 : -1;
-    if (dir !== accumDir) {
-      accumDir = dir;
-      dirAccum = 0;
-    }
-    dirAccum += Math.abs(delta);
-
-    if (dir === 1) {
-      if (!collapsed && y > COLLAPSE_SCROLL_THRESHOLD) setCollapsed(true);
-    } else {
-      // Near the top the panel always belongs open; below that, only a
-      // sustained upward scroll brings it back.
-      if (collapsed && (y <= COLLAPSE_SCROLL_THRESHOLD || dirAccum >= EXPAND_DELTA)) setCollapsed(false);
-    }
-  }
-  window.addEventListener('scroll', onScroll, { passive: true });
-
   cleanupFiltersCollapse = () => {
     toggle.removeEventListener('click', onToggleClick);
-    window.removeEventListener('scroll', onScroll);
   };
 }
 
