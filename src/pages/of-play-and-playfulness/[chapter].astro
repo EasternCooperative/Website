@@ -76,11 +76,7 @@ const linkBase = 'text-default hover:text-primary transition-colors';
         <a href={BOOK_PATH} class="font-heading text-base font-bold text-heading hover:text-primary">
           {settings.heroTitle}
         </a>
-        <button
-          type="button"
-          data-opp-search-open
-          class="mt-3 flex w-full items-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-left text-muted transition hover:border-primary hover:text-primary dark:border-white/20"
-        >
+        <button type="button" data-opp-search-open class="opp-chip mt-3">
           <Icon name="tabler:search" class="h-4 w-4 shrink-0" aria-hidden="true" />
           {settings.searchLabel}
         </button>

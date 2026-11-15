@@ -7,7 +7,7 @@ import { test, expect } from '@playwright/test';
 
 test('searching the book finds a game and jumps to it', async ({ page }) => {
   await page.goto('/of-play-and-playfulness');
-  await page.getByRole('button', { name: /search for a game/i }).click();
+  await page.getByRole('button', { name: 'Search the book' }).click();
   const dialog = page.locator('#opp-search');
   await expect(dialog).toBeVisible();
   await page.keyboard.type('balloon');
