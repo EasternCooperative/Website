@@ -9,5 +9,5 @@ formation: 'Chairs scattered around the room'
 references:
   - url: '/of-play-and-playfulness/storytelling#transforming_chairs'
     label: 'Of Play and Playfulness, Storytelling chapter'
-tags: ['drama', 'warm-up', 'of-play-and-playfulness']
+tags: ['drama', 'warm-up', 'improv', 'of-play-and-playfulness']
 ---

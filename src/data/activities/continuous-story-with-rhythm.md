@@ -9,5 +9,5 @@ formation: 'Standing circle'
 references:
   - url: '/of-play-and-playfulness/storytelling#continuous_story_with_rhythm'
     label: 'Of Play and Playfulness, Storytelling chapter'
-tags: ['circle', 'storytelling', 'warm-up', 'of-play-and-playfulness']
+tags: ['circle', 'storytelling', 'warm-up', 'improv', 'of-play-and-playfulness']
 ---

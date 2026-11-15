@@ -47,5 +47,5 @@ groupSizeMin: 3
 groupSizeMax: 10
 groupSizeAdaptationNotes: 'An audience game. The watching audience can be any size. In play at once: a guesser, a boss, and one or more workers rotating in.'
 duration: '8 to 15 minutes'
-tags: ['audience', 'guessing', 'whose-line']
+tags: ['audience', 'guessing', 'whose-line', 'drama', 'improv']
 ---

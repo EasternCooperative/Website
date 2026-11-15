@@ -17,5 +17,5 @@ formation: 'Pairs within a seated circle'
 references:
   - url: '/of-play-and-playfulness/informal-dramatics#this_is_my_friend'
     label: 'Of Play and Playfulness, Informal Dramatics chapter'
-tags: ['pairs', 'guessing', 'drama', 'warm-up', 'of-play-and-playfulness']
+tags: ['pairs', 'guessing', 'drama', 'warm-up', 'improv', 'of-play-and-playfulness']
 ---

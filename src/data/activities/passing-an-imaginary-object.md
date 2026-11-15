@@ -14,5 +14,5 @@ formation: 'Seated circle'
 references:
   - url: '/of-play-and-playfulness/informal-dramatics#passing_an_imaginary_object'
     label: 'Of Play and Playfulness, Informal Dramatics chapter'
-tags: ['circle', 'drama', 'object-work', 'warm-up', 'of-play-and-playfulness']
+tags: ['circle', 'drama', 'object-work', 'warm-up', 'improv', 'of-play-and-playfulness']
 ---

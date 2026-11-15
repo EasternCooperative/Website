@@ -19,5 +19,5 @@ groupSizeMax: 20
 references:
   - url: '/of-play-and-playfulness/informal-dramatics#a-what_a-where_and_a-who'
     label: 'Of Play and Playfulness, Informal Dramatics chapter'
-tags: ['drama', 'guessing', 'object-work', 'of-play-and-playfulness']
+tags: ['drama', 'guessing', 'object-work', 'improv', 'of-play-and-playfulness']
 ---

@@ -26,5 +26,5 @@ formation: 'Small groups of up to ten'
 references:
   - url: '/of-play-and-playfulness/informal-dramatics#forms_that_lend_themselves_to_informal_dramatics'
     label: 'Of Play and Playfulness, Informal Dramatics chapter'
-tags: ['drama', 'small-groups', 'storytelling', 'of-play-and-playfulness']
+tags: ['drama', 'small-groups', 'storytelling', 'improv', 'of-play-and-playfulness']
 ---

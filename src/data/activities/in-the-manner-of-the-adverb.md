@@ -34,5 +34,5 @@ seatedOrWheelchairAdaptable: true
 groupSizeMin: 5
 groupSizeMax: 25
 duration: '10 to 25 minutes'
-tags: ['circle', 'guessing']
+tags: ['circle', 'guessing', 'drama', 'improv']
 ---

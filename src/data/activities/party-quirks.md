@@ -45,5 +45,5 @@ groupSizeMin: 3
 groupSizeMax: 6
 groupSizeAdaptationNotes: 'An audience game. The watching audience can be any size. On stage: one host and roughly two to four guests.'
 duration: '8 to 15 minutes'
-tags: ['audience', 'guessing', 'whose-line']
+tags: ['audience', 'guessing', 'whose-line', 'drama', 'improv']
 ---

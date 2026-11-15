@@ -29,5 +29,5 @@ groupSizeMax: 25
 references:
   - url: '/of-play-and-playfulness/games#im_thinking_of_a_word_that_rhymes_with'
     label: 'Of Play and Playfulness, Games chapter'
-tags: ['circle', 'guessing', 'drama', 'of-play-and-playfulness']
+tags: ['circle', 'guessing', 'drama', 'improv', 'of-play-and-playfulness']
 ---

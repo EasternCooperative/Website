@@ -28,5 +28,5 @@ groupSizeMax: 25
 references:
   - url: '/of-play-and-playfulness/informal-dramatics#charades'
     label: 'Of Play and Playfulness, Informal Dramatics chapter'
-tags: ['drama', 'guessing', 'audience', 'of-play-and-playfulness']
+tags: ['drama', 'guessing', 'audience', 'improv', 'of-play-and-playfulness']
 ---

@@ -34,5 +34,5 @@ seatedOrWheelchairAdaptable: true
 groupSizeMin: 4
 groupSizeMax: 30
 duration: '3 to 5 minutes'
-tags: ['circle', 'warm-up']
+tags: ['circle', 'warm-up', 'drama', 'improv']
 ---

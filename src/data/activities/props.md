@@ -17,5 +17,5 @@ materialsNeeded: 'Two or three open-ended objects, such as a long cardboard tube
 references:
   - url: '/of-play-and-playfulness/informal-dramatics#props'
     label: 'Of Play and Playfulness, Informal Dramatics chapter'
-tags: ['circle', 'drama', 'object-work', 'warm-up', 'of-play-and-playfulness']
+tags: ['circle', 'drama', 'object-work', 'warm-up', 'improv', 'of-play-and-playfulness']
 ---

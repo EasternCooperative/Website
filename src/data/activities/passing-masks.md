@@ -9,5 +9,5 @@ formation: 'Circle'
 references:
   - url: '/of-play-and-playfulness/storytelling#passing_masks'
     label: 'Of Play and Playfulness, Storytelling chapter'
-tags: ['circle', 'drama', 'warm-up', 'of-play-and-playfulness']
+tags: ['circle', 'drama', 'warm-up', 'improv', 'of-play-and-playfulness']
 ---

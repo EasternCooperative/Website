@@ -19,5 +19,5 @@ formation: 'Groups of three'
 references:
   - url: '/of-play-and-playfulness/storytelling#once_upon_a_time_there_were_three'
     label: 'Of Play and Playfulness, Storytelling chapter'
-tags: ['trios', 'storytelling', 'of-play-and-playfulness']
+tags: ['trios', 'storytelling', 'improv', 'of-play-and-playfulness']
 ---

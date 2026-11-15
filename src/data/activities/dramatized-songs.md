@@ -12,5 +12,5 @@ formation: 'Small groups'
 references:
   - url: '/of-play-and-playfulness/informal-dramatics#forms_that_lend_themselves_to_informal_dramatics'
     label: 'Of Play and Playfulness, Informal Dramatics chapter'
-tags: ['drama', 'small-groups', 'of-play-and-playfulness']
+tags: ['drama', 'small-groups', 'improv', 'of-play-and-playfulness']
 ---
