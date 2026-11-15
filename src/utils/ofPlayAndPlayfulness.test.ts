@@ -71,6 +71,7 @@ describe('replaceMarks', () => {
     const figure = '<img class="opp-figure" src="/images/of-play-and-playfulness/personal.jpg"/>';
     expect(replaceMarks(figure)).toBe(figure);
     expect(() => replaceMarks(mark('mystery.jpg'))).toThrow('Unknown book mark');
+    expect(() => replaceMarks('<img class="opp-mark" alt="x"/>')).toThrow('Unknown book mark');
   });
 
   it('replaces every mark in the book', () => {
