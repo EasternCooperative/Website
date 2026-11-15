@@ -29,7 +29,10 @@ const metadata = {
         <li class="border-t border-gray-200 pt-5 dark:border-gray-700">
           <p class="text-sm font-semibold uppercase tracking-wide text-muted">Chapter {i + 1}</p>
           <h3 class="mt-1 text-xl font-bold">
-            <a href={chapterPath(ch.slug)} class="text-heading hover:text-primary">
+            <a
+              href={chapterPath(ch.slug)}
+              class="text-primary underline decoration-primary/40 underline-offset-4 transition-colors hover:decoration-primary"
+            >
               {ch.title}
             </a>
           </h3>
