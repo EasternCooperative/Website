@@ -1,0 +1,754 @@
+[
+  {
+    "slug": "introduction",
+    "legacyFile": "introduction.html",
+    "title": "Introduction",
+    "titleImage": "chapter01.jpg",
+    "quote": null,
+    "attribution": null,
+    "sections": [],
+    "titleImageWidth": 250,
+    "titleImageHeight": 91
+  },
+  {
+    "slug": "ecrs-approach",
+    "legacyFile": "ecrs_approach.html",
+    "title": "The ECRS Approach to Play",
+    "titleImage": "chapter02.jpg",
+    "quote": "\"The unique framework of the ECRS approach to play and recreation.\"",
+    "attribution": "Sy Kantor",
+    "sections": [],
+    "titleImageWidth": 250,
+    "titleImageHeight": 142
+  },
+  {
+    "slug": "games",
+    "legacyFile": "games.html",
+    "title": "Games",
+    "titleImage": "chapter03.jpg",
+    "quote": "\"A game is an artificial situation set up imaginatively and defined by rules which together with the prescribed roles, is accepted by the players.\"",
+    "attribution": "Neva Boyd",
+    "sections": [
+      {
+        "id": "bat_the_balloon",
+        "label": "Bat the Balloon"
+      },
+      {
+        "id": "big_wind_blows",
+        "label": "Big Wind Blows"
+      },
+      {
+        "id": "come_along",
+        "label": "Come Along"
+      },
+      {
+        "id": "cultural_differences",
+        "label": "Cultural Differences"
+      },
+      {
+        "id": "dzien_dobry",
+        "label": "Dzien Dobry"
+      },
+      {
+        "id": "el_hombre_el_tigre_y_el_fusil",
+        "label": "El Hombre, El Tigre y El Fusil"
+      },
+      {
+        "id": "elbow_tag",
+        "label": "Elbow Tag"
+      },
+      {
+        "id": "face_to_face",
+        "label": "Face to Face"
+      },
+      {
+        "id": "guidelines_for_leading_games",
+        "label": "Guidelines for Leading Games"
+      },
+      {
+        "id": "hands_down_fifty_four",
+        "label": "Hands Down Fifty-Four"
+      },
+      {
+        "id": "hot_potato",
+        "label": "Hot Potato"
+      },
+      {
+        "id": "im_thinking_of_a_word_that_rhymes_with",
+        "label": "I'm Thinking of a Word That Rhymes With..."
+      },
+      {
+        "id": "kho",
+        "label": "Kho"
+      },
+      {
+        "id": "lemonade",
+        "label": "Lemonade"
+      },
+      {
+        "id": "magic_music",
+        "label": "Magic Music"
+      },
+      {
+        "id": "musical_chairs",
+        "label": "Musical Chairs"
+      },
+      {
+        "id": "name_ball",
+        "label": "Name Ball"
+      },
+      {
+        "id": "name_six",
+        "label": "Name Six"
+      },
+      {
+        "id": "obasan_samurai_and_shishi",
+        "label": "Obaasan, Samurai, and Shishi"
+      },
+      {
+        "id": "peteca",
+        "label": "Peteca"
+      },
+      {
+        "id": "swat",
+        "label": "Swat"
+      },
+      {
+        "id": "ti_li_cum",
+        "label": "Ti Li Cum"
+      },
+      {
+        "id": "up_jenkins",
+        "label": "Up Jenkins"
+      },
+      {
+        "id": "jenkins_up",
+        "label": "Jenkins Up"
+      },
+      {
+        "id": "what_part_does_competition_play",
+        "label": "What Part Does Competition Play"
+      },
+      {
+        "id": "who_started_the_motion",
+        "label": "Who Started the Motion"
+      },
+      {
+        "id": "wink",
+        "label": "Wink"
+      }
+    ],
+    "titleImageWidth": 250,
+    "titleImageHeight": 62
+  },
+  {
+    "slug": "cultural-messages",
+    "legacyFile": "cultural_messages.html",
+    "title": "Cultural Messages",
+    "titleImage": "chapter04.jpg",
+    "quote": "\"Play activities serve two, apparently contradictory, objectives: (a) to enlist members' support for the culture by reenacting the values in play form, and (b) to provide participants with relief from the tensions built up day to day.\"",
+    "attribution": "Sy Kantor",
+    "sections": [],
+    "titleImageWidth": 250,
+    "titleImageHeight": 86
+  },
+  {
+    "slug": "play-parties",
+    "legacyFile": "play_parties.html",
+    "title": "Play Parties",
+    "titleImage": "chapter05.jpg",
+    "quote": "\"Play parties are a unique blend of steps, movement and self-made music... a valuable dance form which requires no music except the singing of the dancers.\"",
+    "attribution": "Bob and Dotti Siftar",
+    "sections": [
+      {
+        "id": "swing_on_the_corner",
+        "label": "Swing on the Corner"
+      },
+      {
+        "id": "shoo_fly",
+        "label": "Shoo Fly"
+      },
+      {
+        "id": "somebody_waiting",
+        "label": "Somebody Waiting"
+      },
+      {
+        "id": "napoleon",
+        "label": "Napoleon"
+      },
+      {
+        "id": "alabama_girl",
+        "label": "Alabama Girl"
+      },
+      {
+        "id": "great_big_house",
+        "label": "Great Big House"
+      },
+      {
+        "id": "the_thief",
+        "label": "The Thief"
+      },
+      {
+        "id": "red_river_valley",
+        "label": "Red River Valley"
+      },
+      {
+        "id": "simmons",
+        "label": "Simmons"
+      },
+      {
+        "id": "gustafs_toast",
+        "label": "Gustaf's Toast"
+      },
+      {
+        "id": "captain_jinks",
+        "label": "Captain Jinks"
+      },
+      {
+        "id": "needles_eye",
+        "label": "Needle's Eye"
+      },
+      {
+        "id": "come_my_love",
+        "label": "Come, My Love"
+      },
+      {
+        "id": "circle_round_the_zero",
+        "label": "Circle Round the Zero"
+      },
+      {
+        "id": "bingo",
+        "label": "Bingo"
+      }
+    ],
+    "titleImageWidth": 250,
+    "titleImageHeight": 137
+  },
+  {
+    "slug": "dancing",
+    "legacyFile": "dancing.html",
+    "title": "Dancing",
+    "titleImage": "chapter06.jpg",
+    "quote": "\"A chance for people to come together in a spirit of joy and relaxation.\"",
+    "attribution": "Lanie Melamed",
+    "sections": [
+      {
+        "id": "ten_all-time_favorite_ecrs_folk_dances",
+        "label": "Ten All-Time Favorite ECRS Folk Dances"
+      },
+      {
+        "id": "leading_dances",
+        "label": "Leading Dances"
+      },
+      {
+        "id": "warm-ups_for_dancing",
+        "label": "Warm-Ups for Dancing"
+      },
+      {
+        "id": "carabamboli",
+        "label": "Carabamboli"
+      },
+      {
+        "id": "cotton-eyed_joe",
+        "label": "Cotton-Eyed Joe"
+      },
+      {
+        "id": "jiffy_mixer",
+        "label": "Jiffy Mixer"
+      },
+      {
+        "id": "greensleeves",
+        "label": "Greensleeves"
+      },
+      {
+        "id": "other_favorite_dances",
+        "label": "Other Favorite Dances"
+      },
+      {
+        "id": "other_favorite_dances",
+        "label": "Alunelul"
+      },
+      {
+        "id": "other_favorite_dances",
+        "label": "Biserka"
+      },
+      {
+        "id": "other_favorite_dances",
+        "label": "Chiotikos"
+      },
+      {
+        "id": "other_favorite_dances",
+        "label": "Hora Aggadati"
+      },
+      {
+        "id": "other_favorite_dances",
+        "label": "La Bastringue"
+      },
+      {
+        "id": "other_favorite_dances",
+        "label": "Lerikos"
+      },
+      {
+        "id": "other_favorite_dances",
+        "label": "New York, New York"
+      },
+      {
+        "id": "other_favorite_dances",
+        "label": "Oslo Waltz"
+      },
+      {
+        "id": "other_favorite_dances",
+        "label": "Salty Dog Rag"
+      },
+      {
+        "id": "other_favorite_dances",
+        "label": "Sirtaki"
+      },
+      {
+        "id": "other_favorite_dances",
+        "label": "Teton Mountain Stomp"
+      },
+      {
+        "id": "other_favorite_dances",
+        "label": "Trugnala Rumjana"
+      },
+      {
+        "id": "other_favorite_dances",
+        "label": "Tzadik Katamar"
+      },
+      {
+        "id": "other_favorite_dances",
+        "label": "Ve David"
+      },
+      {
+        "id": "other_favorite_dances",
+        "label": "Yedid Nefesh"
+      },
+      {
+        "id": "other_favorite_dances",
+        "label": "Yugo"
+      },
+      {
+        "id": "chimes_of_dunkirk",
+        "label": "Chimes of Dunkirk"
+      },
+      {
+        "id": "southern_mountain_circle_dance",
+        "label": "Southern Mountain Circle Dance"
+      },
+      {
+        "id": "square_dance_terms",
+        "label": "Square Dance Terms"
+      },
+      {
+        "id": "some_favorite_square_dances",
+        "label": "Some Favorite Square Dances"
+      },
+      {
+        "id": "grapevine_twist",
+        "label": "Grapevine Twist"
+      },
+      {
+        "id": "birdie_in_the_cage",
+        "label": "Birdie in the Cage"
+      },
+      {
+        "id": "forward_up_six",
+        "label": "Forward Up Six"
+      }
+    ],
+    "titleImageWidth": 250,
+    "titleImageHeight": 94
+  },
+  {
+    "slug": "singing",
+    "legacyFile": "singing.html",
+    "title": "Singing",
+    "titleImage": "chapter07.jpg",
+    "quote": "\"Fun comes with the weaving of sound amidst the delight of security and growth.\"",
+    "attribution": "Dotti Siftar",
+    "sections": [
+      {
+        "id": "hoven_hoven",
+        "label": "Ho'ven, Ho'ven"
+      },
+      {
+        "id": "warm-ups_to_singing",
+        "label": "Warm-Ups to Singing"
+      },
+      {
+        "id": "can_you_dig_that_crazy_gibberish",
+        "label": "Can You Dig that Crazy Gibberish?"
+      },
+      {
+        "id": "i_had_a_little_overcoat",
+        "label": "I Had Little Overcoat"
+      },
+      {
+        "id": "peter_and_paul",
+        "label": "Peter and Paul"
+      },
+      {
+        "id": "take_time_in_life",
+        "label": "Take Time in Life"
+      },
+      {
+        "id": "songs_for_group_singing",
+        "label": "Songs for Group Singing"
+      },
+      {
+        "id": "come_and_go_with_me",
+        "label": "Come and Go with Me"
+      },
+      {
+        "id": "white_coral_bells",
+        "label": "White Coral Bells"
+      },
+      {
+        "id": "i_can_feel_the_sweet_winds_blowing",
+        "label": "I Can Feel the Sweet Winds"
+      },
+      {
+        "id": "white_sand_and_gray_sand",
+        "label": "White Sand and Gray Sand"
+      }
+    ],
+    "titleImageWidth": 250,
+    "titleImageHeight": 69
+  },
+  {
+    "slug": "exploring-outdoors",
+    "legacyFile": "exploring_outdoors.html",
+    "title": "Exploring Outdoors",
+    "titleImage": "chapter08.jpg",
+    "quote": "\"Eddie and I went fishing a couple of times in the early morning, during the Summer School of 1986. ... I don't recall catching any fish. But that's all right. It's the process that's important.\"",
+    "attribution": "Sioux Free",
+    "sections": [
+      {
+        "id": "conversation_with_a_tree",
+        "label": "Conversation with a Tree"
+      },
+      {
+        "id": "tissue_pressings",
+        "label": "Tissue Pressings"
+      },
+      {
+        "id": "nature_activities_oriented_toward_senses",
+        "label": "Nature Activities Oriented Toward Senses"
+      },
+      {
+        "id": "scavenger_hunt",
+        "label": "Scavenger Hunt"
+      },
+      {
+        "id": "still-watching",
+        "label": "Still-Watching"
+      },
+      {
+        "id": "unnatural_trail",
+        "label": "Unnatural Trail"
+      },
+      {
+        "id": "blind_walk",
+        "label": "Blind Walk"
+      },
+      {
+        "id": "writing_a_cinquaine_poem",
+        "label": "Writing A Cinquaine Poem"
+      }
+    ],
+    "titleImageWidth": 250,
+    "titleImageHeight": 118
+  },
+  {
+    "slug": "dramatics",
+    "legacyFile": "dramatics.html",
+    "title": "Dramatics",
+    "titleImage": "chapter09.jpg",
+    "quote": "\"Living temporarily inside the skin of another person can be a very freeing experience.\"",
+    "attribution": "Jim Norris",
+    "sections": [],
+    "titleImageWidth": 250,
+    "titleImageHeight": 58
+  },
+  {
+    "slug": "informal-dramatics",
+    "legacyFile": "informal_dramatics.html",
+    "title": "Informal Dramatics",
+    "titleImage": "chapter10.jpg",
+    "quote": "\"Informal dramatics is concerned with individual growth and the group process.... The interest in playmaking is transferred from a slick end-product to the process by which ideas and thoughts are fused into action.\"",
+    "attribution": "Lanie Melamed",
+    "sections": [
+      {
+        "id": "forms_that_lend_themselves_to_informal_dramatics",
+        "label": "Forms That Lend Themselves To Informal Dramatics"
+      },
+      {
+        "id": "beginning_activities",
+        "label": "Beginning Activities"
+      },
+      {
+        "id": "this_is_my_friend",
+        "label": "This Is My Friend"
+      },
+      {
+        "id": "passing_an_imaginary_object",
+        "label": "Passing an Imaginary Object"
+      },
+      {
+        "id": "props",
+        "label": "Props"
+      },
+      {
+        "id": "a-what_a-where_and_a-who",
+        "label": "A-What, A-Where and A-Who"
+      },
+      {
+        "id": "charades",
+        "label": "Charades"
+      }
+    ],
+    "titleImageWidth": 250,
+    "titleImageHeight": 98
+  },
+  {
+    "slug": "small-scenes",
+    "legacyFile": "small_scenes.html",
+    "title": "Small Scenes",
+    "titleImage": "chapter11.jpg",
+    "quote": "\"Therein lies the treasure: vignettes that stand alone due to the wholeness of scenes cut from plays of high quality.\"",
+    "attribution": "Dotti Siftar",
+    "sections": [],
+    "titleImageWidth": 250,
+    "titleImageHeight": 84
+  },
+  {
+    "slug": "storytelling",
+    "legacyFile": "storytelling.html",
+    "title": "Storytelling",
+    "titleImage": "chapter12.jpg",
+    "quote": "\"We are all storytellers,\" and it's true.",
+    "attribution": "Jay Goldspinner",
+    "sections": [
+      {
+        "id": "continuous_story_with_rhythm",
+        "label": "Continuous Story With Rhythm"
+      },
+      {
+        "id": "props",
+        "label": "Props"
+      },
+      {
+        "id": "passing_masks",
+        "label": "Passing Masks"
+      },
+      {
+        "id": "transforming_chairs",
+        "label": "Transforming Chairs"
+      },
+      {
+        "id": "name_story",
+        "label": "Name Story"
+      },
+      {
+        "id": "as_i_went_up_the_apple_tree",
+        "label": "As I Went Up the Apple Tree"
+      },
+      {
+        "id": "once_upon_a_time_there_were_three",
+        "label": "Once Upon a Time There Were Three"
+      },
+      {
+        "id": "tell_the_story_of_an_object",
+        "label": "Tell the Story of an Object"
+      },
+      {
+        "id": "short_folktale",
+        "label": "Short Folktale"
+      }
+    ],
+    "titleImageWidth": 250,
+    "titleImageHeight": 89
+  },
+  {
+    "slug": "puppetry",
+    "legacyFile": "puppetry.html",
+    "title": "Puppetry",
+    "titleImage": "chapter13.jpg",
+    "quote": "\"... as an art form for adults, as adult theater.\"",
+    "attribution": "Hal Kantor",
+    "sections": [
+      {
+        "id": "quicky_puppets",
+        "label": "Quicky Puppets"
+      },
+      {
+        "id": "papier_mache_puppets",
+        "label": "Papier Mache Puppets"
+      }
+    ],
+    "titleImageWidth": 250,
+    "titleImageHeight": 67
+  },
+  {
+    "slug": "crafts-and-art",
+    "legacyFile": "crafts_and_art.html",
+    "title": "Crafts and Art",
+    "titleImage": "chapter14.jpg",
+    "quote": "\"As in folk dancing and dramatics, individual growth is often stimulated by participation and interaction within the group.\"",
+    "attribution": "Hal Kantor",
+    "sections": [
+      {
+        "id": "black_and_white_shapes",
+        "label": "Black and White Shapes"
+      },
+      {
+        "id": "warm-ups_in_crafts",
+        "label": "Warm-ups in Crafts"
+      },
+      {
+        "id": "informal_art",
+        "label": "Informal Art"
+      },
+      {
+        "id": "contour_drawing",
+        "label": "Contour Drawing"
+      },
+      {
+        "id": "finger_painting",
+        "label": "Finger Painting"
+      },
+      {
+        "id": "print-making",
+        "label": "Print-Making"
+      },
+      {
+        "id": "weaving",
+        "label": "Weaving"
+      }
+    ],
+    "titleImageWidth": 250,
+    "titleImageHeight": 72
+  },
+  {
+    "slug": "special-populations",
+    "legacyFile": "special_populations.html",
+    "title": "Special Populations",
+    "titleImage": "chapter15.jpg",
+    "quote": null,
+    "attribution": null,
+    "sections": [
+      {
+        "id": "wheelchair_dancing",
+        "label": "Wheelchair Dancing"
+      },
+      {
+        "id": "captain_jinks",
+        "label": "Captain Jinks"
+      },
+      {
+        "id": "circassian_circle",
+        "label": "Circassian Circle"
+      },
+      {
+        "id": "doublebska_polka",
+        "label": "Doudlebska Polka"
+      },
+      {
+        "id": "gallopede",
+        "label": "Gallopede"
+      },
+      {
+        "id": "marching_through_georgia",
+        "label": "Marching Through Georgia"
+      },
+      {
+        "id": "mountain_square_dance",
+        "label": "Mountain Square Dance"
+      },
+      {
+        "id": "oh_susannah",
+        "label": "Oh Susannah"
+      },
+      {
+        "id": "texas_star",
+        "label": "Texas Star"
+      },
+      {
+        "id": "programs_for_special_populations",
+        "label": "Programs For Special Populations"
+      },
+      {
+        "id": "additional_wheelchair_dances",
+        "label": "Additional Wheelchair Dances"
+      },
+      {
+        "id": "games_in_wheelchairs",
+        "label": "Games in Wheelchairs"
+      }
+    ],
+    "titleImageWidth": 250,
+    "titleImageHeight": 81
+  },
+  {
+    "slug": "program-planning",
+    "legacyFile": "program_planning.html",
+    "title": "Program Planning",
+    "titleImage": "chapter16.jpg",
+    "quote": "\"It has been our ECRS philosophy that every program should have a plan. ... We have also stressed that \"plans are made to be changed.\" Flexibility to change is an essential requirement of leaders.\"",
+    "attribution": "Ruth Sherman",
+    "sections": [
+      {
+        "id": "stages_of_program_development",
+        "label": "Stages of Program Development"
+      },
+      {
+        "id": "evaluation",
+        "label": "Evaluation"
+      },
+      {
+        "id": "social_interaction_scale",
+        "label": "Social Interaction Scale"
+      },
+      {
+        "id": "guidelines_for_evaluation_of_recreation_leadership",
+        "label": "Guidelines for Evaluation of Recreation Leadership"
+      }
+    ],
+    "titleImageWidth": 250,
+    "titleImageHeight": 116
+  },
+  {
+    "slug": "dear-eddie",
+    "legacyFile": "dear_eddie.html",
+    "title": "Dear Eddie",
+    "titleImage": "chapter17.jpg",
+    "quote": null,
+    "attribution": null,
+    "sections": [],
+    "titleImageWidth": 250,
+    "titleImageHeight": 145
+  },
+  {
+    "slug": "past-present-future",
+    "legacyFile": "past_present_future.html",
+    "title": "ECRS: Past Present and Future",
+    "titleImage": "chapter18.jpg",
+    "quote": null,
+    "attribution": null,
+    "sections": [],
+    "titleImageWidth": 250,
+    "titleImageHeight": 77
+  },
+  {
+    "slug": "resources",
+    "legacyFile": "resources.html",
+    "title": "Resources",
+    "titleImage": "chapter19.jpg",
+    "quote": null,
+    "attribution": null,
+    "sections": [],
+    "titleImageWidth": 231,
+    "titleImageHeight": 53
+  }
+]

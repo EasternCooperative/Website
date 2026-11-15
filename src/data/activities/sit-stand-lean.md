@@ -25,5 +25,5 @@ groupSizeMin: 3
 groupSizeMax: 3
 groupSizeAdaptationNotes: 'Three performers at a time. Others watch and rotate in for the next scene.'
 duration: '2 to 5 minutes per scene'
-tags: ['audience']
+tags: ['audience', 'drama', 'improv']
 ---

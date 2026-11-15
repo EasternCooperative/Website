@@ -40,5 +40,5 @@ groupSizeMin: 5
 groupSizeMax: 15
 groupSizeAdaptationNotes: 'This is an audience game. The watching audience can be any size. In practice no more than about 15 people will actually step up to add a line.'
 duration: '5 to 20 minutes'
-tags: ['audience', 'storytelling']
+tags: ['audience', 'storytelling', 'drama', 'improv']
 ---

@@ -31,5 +31,5 @@ seatedOrWheelchairAdaptable: true
 groupSizeMin: 4
 groupSizeMax: 30
 duration: '5 to 15 minutes'
-tags: ['circle', 'object-work', 'yes-and', 'dare-to-be-average']
+tags: ['circle', 'object-work', 'yes-and', 'dare-to-be-average', 'drama', 'improv']
 ---

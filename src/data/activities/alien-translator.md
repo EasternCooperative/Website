@@ -32,5 +32,5 @@ groupSizeMin: 3
 groupSizeMax: 40
 groupSizeAdaptationNotes: 'Works for almost any number. Split the room into trios, or groups of four for the two-translator variation.'
 duration: '5 to 15 minutes'
-tags: ['trios', 'yes-and']
+tags: ['trios', 'yes-and', 'drama', 'improv']
 ---

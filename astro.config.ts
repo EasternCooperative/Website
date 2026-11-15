@@ -76,6 +76,7 @@ export default defineConfig({
         !/\/internal(?:\/|$)/.test(page) &&
         !/\/events\/[^/]+\/classes\/?$/.test(page) &&
         !/\/activities\/share\/?$/.test(page) &&
+        !/\/of-play-and-playfulness\/print\/?$/.test(page) &&
         (siteSettings.featureFlags.connectionsPage || !/\/connections\/?$/.test(page)) &&
         (siteSettings.featureFlags.activitiesLibrary || !/\/activities(?:\/|$)/.test(page)) &&
         !isDraftPage(page, '/events/', draftEventSlugs) &&

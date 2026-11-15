@@ -64,5 +64,5 @@ seatedOrWheelchairAdaptable: true
 groupSizeMin: 10
 groupSizeMax: 40
 duration: '5 to 20 minutes'
-tags: ['circle']
+tags: ['circle', 'drama', 'improv']
 ---

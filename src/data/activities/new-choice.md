@@ -34,5 +34,5 @@ groupSizeMin: 2
 groupSizeMax: 4
 groupSizeAdaptationNotes: 'Two to four performers at a time. Others watch.'
 duration: '3 to 8 minutes'
-tags: ['audience']
+tags: ['audience', 'drama', 'improv']
 ---

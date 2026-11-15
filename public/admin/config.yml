@@ -161,7 +161,7 @@ collections:
             name: 'documents'
             widget: 'list'
             summary: '{{fields.title}}'
-            hint: 'The PDFs listed on the page, in this order. Add an item to list a new document.'
+            hint: 'The documents listed on the page, in this order. Add an item to list a new PDF. The Of Play and Playfulness item links to the book on the site, not a PDF: leave its link as it is.'
             fields:
               - { label: 'Title', name: 'title', widget: 'string' }
               - {
@@ -1059,6 +1059,14 @@ collections:
           required: false,
           default: false,
         }
+      - &act-wheelchair-first {
+          label: 'Written for Wheelchairs',
+          name: 'wheelchairFirst',
+          widget: 'boolean',
+          required: false,
+          default: false,
+          hint: 'Turn on when the activity was written for people in wheelchairs in the first place (not a standing activity adapted for seated players). Shows a "Written for wheelchairs" pill and puts the Accessibility notes above the instructions.',
+        }
       - &act-beginner {
           label: 'Beginner Adaptable',
           name: 'beginnerAdaptable',
@@ -1114,6 +1122,44 @@ collections:
 
       - &act-draft { label: 'Draft', name: 'draft', widget: 'boolean', required: false, default: false }
 
+  - name: 'activity-other'
+    label: 'Other Activities'
+    label_singular: 'Other Activity'
+    folder: 'src/data/activities'
+    create: true
+    slug: '{{fields.title | slugify}}'
+    filter: { field: 'type', value: 'other' }
+    fields:
+      - *act-title
+      - { label: 'Type', name: 'type', widget: 'hidden', default: 'other' }
+      - *act-excerpt
+      - *act-instructions
+      - *act-leading-tips
+      - *act-adaptations
+      - *act-group-size-min
+      - *act-group-size-max
+      - *act-duration
+      - *act-energy-level
+      - *act-origin
+      - *act-references
+      - *act-related-leaders
+      - *act-related-events
+      - *act-image
+      - *act-tags
+      - *act-formation
+      - *act-activity-level
+      - *act-contact-level
+      - *act-accessibility
+      - *act-seated
+      - *act-wheelchair-first
+      - *act-beginner
+      - *act-setting
+      - *act-age-range
+      - *act-posture
+      - *act-materials
+      - *act-variations
+      - *act-draft
+
   - name: 'activity-dance'
     label: 'Dances'
     label_singular: 'Dance'
@@ -1147,6 +1193,7 @@ collections:
       - *act-safety-flags
       - *act-safety-other
       - *act-seated
+      - *act-wheelchair-first
       - *act-beginner
       - *act-setting
       - *act-age-range

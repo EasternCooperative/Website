@@ -1,7 +1,7 @@
 {
   "heroTagline": "For Leaders and Staff",
   "heroTitle": "Leadership Resources",
-  "introText": "Documents for ECRS leaders and staff. Each one opens as a PDF.",
+  "introText": "Documents for ECRS leaders and staff.",
   "documents": [
     {
       "title": "ECRS Values for Staff",
@@ -11,6 +11,11 @@
       "title": "ECRS Is !!!",
       "description": "By Bob Dunn, written in 1988.",
       "href": "/docs/ecrs-is.pdf"
+    },
+    {
+      "title": "Of Play and Playfulness",
+      "description": "A collection of recreational activities, memories, and reflections developed by ECRS from 1940 to 1990.",
+      "href": "/of-play-and-playfulness"
     },
     {
       "title": "ECRS Leadership",

@@ -21,6 +21,7 @@ function initActivityFilters() {
   const meterButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-filter-meter]'));
   const keyButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-filter-key]'));
   const wheelchairButton = document.getElementById('filter-wheelchair-adaptable') as HTMLButtonElement | null;
+  const wheelchairFirstButton = document.getElementById('filter-wheelchair-first') as HTMLButtonElement | null;
   const relevanceButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-relevant-types]'));
   const filterGroups = Array.from(document.querySelectorAll<HTMLElement>('[data-filter-group]'));
   const groupSizeRow = document.getElementById('groupsize-filter-row');
@@ -38,13 +39,14 @@ function initActivityFilters() {
   const activeMeters = new Set<string>();
   const activeKeys = new Set<string>();
   let wheelchairOnly = false;
+  let wheelchairFirstOnly = false;
   let searchQuery = '';
   const groupSizeLabel = groupSizeRangeValue ? new RollingLabel(groupSizeRangeValue) : null;
 
   // Only games/dances carry structured group-size data; the
   // slider row hides (and resets) itself for other types, same as the
   // meter/key chip groups.
-  const GROUP_SIZE_RELEVANT_TYPES = ['game', 'dance'];
+  const GROUP_SIZE_RELEVANT_TYPES = ['game', 'dance', 'other'];
   const groupSizeBoundMin = groupSizeMinInput ? Number(groupSizeMinInput.min) : 1;
   const groupSizeBoundMax = groupSizeMinInput ? Number(groupSizeMinInput.max) : 1;
   const groupSizeSlider =
@@ -98,7 +100,9 @@ function initActivityFilters() {
     if (btn.dataset.filterPosture !== undefined) activePostures.delete(btn.dataset.filterPosture);
     else if (btn.dataset.filterMeter !== undefined) activeMeters.delete(btn.dataset.filterMeter);
     else if (btn.dataset.filterKey !== undefined) activeKeys.delete(btn.dataset.filterKey);
-    else if (btn === wheelchairButton) wheelchairOnly = false;
+    // The two wheelchair toggles are single buttons rather than chip sets.
+    if (btn === wheelchairButton) wheelchairOnly = false;
+    if (btn === wheelchairFirstButton) wheelchairFirstOnly = false;
     setActive(btn, false);
   }
 
@@ -170,6 +174,7 @@ function initActivityFilters() {
       activeMeters.size > 0 ||
       activeKeys.size > 0 ||
       wheelchairOnly ||
+      wheelchairFirstOnly ||
       selMin > groupSizeBoundMin ||
       selMax < groupSizeBoundMax ||
       searchQuery !== ''
@@ -209,6 +214,7 @@ function initActivityFilters() {
         matchesGroupSize = cardMin <= effectiveSelMax && cardMax >= selMin;
       }
       const matchesWheelchair = !wheelchairOnly || card.dataset.wheelchairAdaptable === 'true';
+      const matchesWheelchairFirst = !wheelchairFirstOnly || card.dataset.wheelchairFirst === 'true';
       const matchesSearch = searchQuery === '' || cardSearch.includes(searchQuery);
       const visible =
         matchesType &&
@@ -218,6 +224,7 @@ function initActivityFilters() {
         matchesKey &&
         matchesGroupSize &&
         matchesWheelchair &&
+        matchesWheelchairFirst &&
         matchesSearch;
       card.closest('li')!.classList.toggle('hidden', !visible);
       if (visible) visibleCount++;
@@ -244,6 +251,8 @@ function initActivityFilters() {
 
     wheelchairOnly = false;
     if (wheelchairButton) setActive(wheelchairButton, false);
+    wheelchairFirstOnly = false;
+    if (wheelchairFirstButton) setActive(wheelchairFirstButton, false);
 
     groupSizeSlider?.setValues(groupSizeBoundMin, groupSizeBoundMax);
     updateGroupSizeLabel(groupSizeBoundMin, groupSizeBoundMax);
@@ -285,6 +294,12 @@ function initActivityFilters() {
   wheelchairButton?.addEventListener('click', () => {
     wheelchairOnly = !wheelchairOnly;
     setActive(wheelchairButton, wheelchairOnly);
+    apply();
+  });
+
+  wheelchairFirstButton?.addEventListener('click', () => {
+    wheelchairFirstOnly = !wheelchairFirstOnly;
+    setActive(wheelchairFirstButton, wheelchairFirstOnly);
     apply();
   });
 

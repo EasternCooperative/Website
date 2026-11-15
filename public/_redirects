@@ -39,6 +39,32 @@
 /event/*                                          /events   301
 /our-activities/*                                 /about   301
 
+# --- Of Play and Playfulness (pre-WordPress static pages, still linked from other sites) ---
+# Fragments like #bat_the_balloon carry across the redirect; the new pages keep the old anchor names.
+/ofplayandplayfulness                             /of-play-and-playfulness   301
+/ofplayandplayfulness/                            /of-play-and-playfulness   301
+/ofplayandplayfulness/index.html                  /of-play-and-playfulness   301
+/ofplayandplayfulness/introduction.html           /of-play-and-playfulness/introduction   301
+/ofplayandplayfulness/ecrs_approach.html          /of-play-and-playfulness/ecrs-approach   301
+/ofplayandplayfulness/games.html                  /of-play-and-playfulness/games   301
+/ofplayandplayfulness/cultural_messages.html      /of-play-and-playfulness/cultural-messages   301
+/ofplayandplayfulness/play_parties.html           /of-play-and-playfulness/play-parties   301
+/ofplayandplayfulness/dancing.html                /of-play-and-playfulness/dancing   301
+/ofplayandplayfulness/singing.html                /of-play-and-playfulness/singing   301
+/ofplayandplayfulness/exploring_outdoors.html     /of-play-and-playfulness/exploring-outdoors   301
+/ofplayandplayfulness/dramatics.html              /of-play-and-playfulness/dramatics   301
+/ofplayandplayfulness/informal_dramatics.html     /of-play-and-playfulness/informal-dramatics   301
+/ofplayandplayfulness/small_scenes.html           /of-play-and-playfulness/small-scenes   301
+/ofplayandplayfulness/storytelling.html           /of-play-and-playfulness/storytelling   301
+/ofplayandplayfulness/puppetry.html               /of-play-and-playfulness/puppetry   301
+/ofplayandplayfulness/crafts_and_art.html         /of-play-and-playfulness/crafts-and-art   301
+/ofplayandplayfulness/special_populations.html    /of-play-and-playfulness/special-populations   301
+/ofplayandplayfulness/program_planning.html       /of-play-and-playfulness/program-planning   301
+/ofplayandplayfulness/dear_eddie.html             /of-play-and-playfulness/dear-eddie   301
+/ofplayandplayfulness/past_present_future.html    /of-play-and-playfulness/past-present-future   301
+/ofplayandplayfulness/resources.html              /of-play-and-playfulness/resources   301
+/ofplayandplayfulness/*                           /of-play-and-playfulness   301
+
 /membership-backup/*                              /membership   301
 
 /donate-to-ecrs/*                                 /donate   301

@@ -38,5 +38,5 @@ seatedOrWheelchairAdaptable: true
 groupSizeMin: 2
 groupSizeMax: 40
 duration: '5 to 15 minutes'
-tags: ['pairs', 'storytelling', 'yes-and']
+tags: ['pairs', 'storytelling', 'yes-and', 'drama', 'improv']
 ---

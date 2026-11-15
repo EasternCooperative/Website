@@ -69,6 +69,7 @@ function buildFixture() {
     </div>
 
     <button id="filter-wheelchair-adaptable">Wheelchair</button>
+    <button id="filter-wheelchair-first" data-relevant-types="game,dance">Written for wheelchairs</button>
 
     <div id="groupsize-filter-row">
       <input id="group-size-min" min="1" max="20" value="1" />
@@ -338,6 +339,17 @@ describe('initActivityFiltersPage — group size range', () => {
   });
 });
 
+// A dance written for wheelchairs, added only where a test needs it.
+function addWheelchairFirstCard() {
+  document
+    .querySelector('[data-activity-card]')!
+    .closest('ul')!
+    .insertAdjacentHTML(
+      'beforeend',
+      '<li><a data-activity-card href="/d" data-type="dance" data-tags="circle" data-search="gallopede" data-wheelchair-adaptable="true" data-wheelchair-first="true"></a></li>'
+    );
+}
+
 describe('initActivityFiltersPage — wheelchair filter', () => {
   it('shows only wheelchair-adaptable cards when toggled on', async () => {
     buildFixture();
@@ -346,6 +358,58 @@ describe('initActivityFiltersPage — wheelchair filter', () => {
 
     document.getElementById('filter-wheelchair-adaptable')!.click();
 
+    expect(visibleCards()).toEqual(['/c']);
+  });
+
+  it('shows only activities written for wheelchairs, and toggles back off', async () => {
+    buildFixture();
+    addWheelchairFirstCard();
+    const { initActivityFiltersPage } = await import('./activityFilters');
+    initActivityFiltersPage();
+
+    const button = document.getElementById('filter-wheelchair-first')!;
+    button.click();
+    expect(visibleCards()).toEqual(['/d']);
+    expect(button.getAttribute('aria-pressed')).toBe('true');
+
+    button.click();
+    expect(visibleCards()).toHaveLength(4);
+  });
+
+  it('drops the wheelchair-adaptable filter when switching to a type it does not apply to', async () => {
+    buildFixture();
+    document.getElementById('filter-wheelchair-adaptable')!.dataset.relevantTypes = 'game,dance';
+    const { initActivityFiltersPage } = await import('./activityFilters');
+    initActivityFiltersPage();
+
+    document.getElementById('filter-wheelchair-adaptable')!.click();
+    expect(visibleCards()).toEqual(['/c']);
+    document.querySelector<HTMLButtonElement>('[data-filter-type="song"]')!.click();
+    expect(document.getElementById('filter-wheelchair-adaptable')!.getAttribute('aria-pressed')).toBe('false');
+    expect(visibleCards()).toEqual(['/c']);
+  });
+
+  it('works on a page with no written-for-wheelchairs activities (and so no button)', async () => {
+    buildFixture();
+    document.getElementById('filter-wheelchair-first')!.remove();
+    const { initActivityFiltersPage } = await import('./activityFilters');
+    initActivityFiltersPage();
+
+    document.querySelector<HTMLButtonElement>('[data-filter-tag="fun"]')!.click();
+    document.getElementById('clear-all-filters')!.click();
+    await vi.advanceTimersByTimeAsync(200);
+    expect(visibleCards()).toEqual(['/a', '/b', '/c']);
+  });
+
+  it('drops the written-for-wheelchairs filter when switching to a type it does not apply to', async () => {
+    buildFixture();
+    addWheelchairFirstCard();
+    const { initActivityFiltersPage } = await import('./activityFilters');
+    initActivityFiltersPage();
+
+    document.getElementById('filter-wheelchair-first')!.click();
+    document.querySelector<HTMLButtonElement>('[data-filter-type="song"]')!.click();
+    expect(document.getElementById('filter-wheelchair-first')!.getAttribute('aria-pressed')).toBe('false');
     expect(visibleCards()).toEqual(['/c']);
   });
 });
@@ -399,6 +463,7 @@ describe('initActivityFiltersPage — empty state and clear-all', () => {
     document.querySelector<HTMLButtonElement>('[data-filter-tag="fun"]')!.click();
     document.querySelector<HTMLButtonElement>('[data-filter-meter="2/4"]')!.click();
     document.getElementById('filter-wheelchair-adaptable')!.click();
+    document.getElementById('filter-wheelchair-first')!.click();
     const search = document.getElementById('activity-search') as HTMLInputElement;
     search.value = 'reel';
     search.dispatchEvent(new Event('input'));

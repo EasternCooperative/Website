@@ -61,3 +61,6 @@ src/assets/images/headshots/
 # so the mirrored copies are never used by Sharp.
 src/assets/images/logos/
 src/assets/images/events/
+# Of Play and Playfulness images: the chapter page optimizes these mirrored copies
+# (see [chapter].astro); the originals stay in public/images/.
+src/assets/images/of-play-and-playfulness/

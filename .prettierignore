@@ -6,3 +6,6 @@ src/data/post
 .claude
 test-results
 coverage
+# Of Play and Playfulness chapters: archived text converted from the old site.
+# Reformatting could change spacing in the rendered text.
+src/data/of-play-and-playfulness/*.html

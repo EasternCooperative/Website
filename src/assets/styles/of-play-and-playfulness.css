@@ -1,0 +1,358 @@
+/* Of Play and Playfulness: the book's chapters are archived HTML fragments
+   (src/data/of-play-and-playfulness/*.html) rendered with set:html, so their
+   styling lives here rather than in Tailwind classes on the markup. The print
+   edition (print.astro) shares these rules and adds its own under @media print. */
+
+/* The book's art is black line work on white JPEGs. Multiply drops the white
+   on a light page; in dark mode, inverting and screening does the same on a
+   dark page, leaving light lines. */
+.opp-art,
+.opp-book img {
+  mix-blend-mode: multiply;
+}
+.dark .opp-art,
+.dark .opp-book img {
+  filter: invert(1);
+  mix-blend-mode: screen;
+}
+
+/* Section headings: the book sets them in capitals; give them a small accent
+   rule and left-align them (h3 in the print edition), even where the archive wrapped them in a center. */
+.opp-book h2,
+.opp-book h3 {
+  font-size: 1.3rem;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+  text-align: left;
+  margin-top: 2.75em;
+  margin-bottom: 0.75em;
+}
+.opp-book h2::before,
+.opp-book h3::before {
+  content: '';
+  display: block;
+  width: 2.5rem;
+  height: 3px;
+  border-radius: 3px;
+  margin-bottom: 0.6em;
+  background: var(--aw-color-primary);
+}
+
+/* Clear the sticky header when jumping to a game, dance, or song. */
+.opp-book [id] {
+  scroll-margin-top: 6rem;
+}
+
+.opp-book img {
+  margin: 0;
+}
+.opp-book .opp-center {
+  text-align: center;
+}
+.opp-book .opp-center img,
+.opp-book img.opp-figure,
+.opp-book img.opp-music {
+  display: inline-block;
+  max-width: 100%;
+  height: auto;
+  margin: 0.5em 0;
+}
+
+/* The book's marks (see its Introduction), as labeled tags. One that opens a
+   paragraph sits on its own line above the text it introduces. */
+.opp-tag {
+  --opp-tag: var(--aw-color-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0.2em 0.7em 0.2em 0.55em;
+  border-radius: 999px;
+  font-family: var(--aw-font-sans, inherit);
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  vertical-align: 0.15em;
+  white-space: nowrap;
+  color: var(--opp-tag);
+  background: color-mix(in srgb, var(--opp-tag) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--opp-tag) 30%, transparent);
+}
+.opp-tag svg {
+  width: 1.15em;
+  height: 1.15em;
+  flex: none;
+}
+.opp-tag-theory {
+  --opp-tag: #92400e;
+}
+.opp-tag-excerpt {
+  --opp-tag: #0369a1;
+}
+.dark .opp-tag-theory {
+  --opp-tag: #fbbf24;
+}
+.dark .opp-tag-excerpt {
+  --opp-tag: #7dd3fc;
+}
+.opp-book .opp-tag-lead {
+  display: flex;
+  width: fit-content;
+  margin-bottom: 0.6em;
+}
+
+/* The book uses <blockquote> to indent memories and music, not to quote:
+   undo the prose quote marks and italics, and keep a quiet rule. */
+.opp-book blockquote {
+  font-style: normal;
+  font-weight: inherit;
+  color: inherit;
+  quotes: none;
+  border-left: 3px solid color-mix(in srgb, var(--aw-color-primary) 25%, transparent);
+  margin-left: 0;
+  padding-left: 1.25em;
+}
+.opp-book blockquote p::before,
+.opp-book blockquote p::after {
+  content: none;
+}
+
+.opp-book .opp-signature {
+  text-align: right;
+  font-style: italic;
+  color: var(--aw-color-text-muted);
+}
+
+.opp-book .opp-table {
+  overflow-x: auto;
+  margin: 1em 0;
+}
+.opp-book .opp-table table {
+  margin: 0 auto;
+  width: auto;
+}
+.opp-book .opp-table td {
+  vertical-align: top;
+  padding: 0.25em 0.75em;
+}
+
+/* A game's, dance's, or song's particulars (Formation, Object, Action, ...):
+   a panel with each label over its text. Some labels are whole sentences, so
+   they stack rather than sit in a column. */
+.opp-book dl {
+  margin: 1.25em 0;
+  padding: 0.25em 1.25em 1em;
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--aw-color-primary) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--aw-color-primary) 15%, transparent);
+}
+.opp-book dt {
+  margin-top: 1em;
+  font-size: 0.8em;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--aw-color-secondary);
+}
+.opp-book dd {
+  margin-top: 0.25em;
+  padding-left: 0;
+}
+
+/* Previous and next chapter. */
+.opp-pager {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem 1.25rem;
+  border-radius: 1rem;
+  border: 1px solid rgb(229 231 235);
+  transition:
+    border-color 150ms,
+    box-shadow 150ms;
+}
+.opp-pager:hover {
+  border-color: var(--aw-color-primary);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.06);
+}
+.dark .opp-pager {
+  border-color: rgb(255 255 255 / 0.1);
+}
+.dark .opp-pager:hover {
+  border-color: var(--aw-color-primary);
+}
+
+/* A leader the book names: opens their card on hover or tap, as on the schedule. */
+.opp-book .opp-person {
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  transition: color 150ms;
+}
+.opp-book .opp-person:hover,
+.opp-book .opp-person:focus-visible {
+  color: var(--aw-color-primary);
+}
+/* Printed from the browser, a name is just a name. */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  .opp-book .opp-person {
+    text-decoration: none;
+    cursor: auto;
+  }
+}
+
+/* Book search (BookSearch.astro): results are built in bookSearch.ts. */
+.opp-search-dialog::backdrop {
+  background: rgb(0 0 0 / 0.4);
+  backdrop-filter: blur(2px);
+}
+.opp-search-results > li {
+  padding: 0.85rem 0;
+  border-bottom: 1px solid rgb(229 231 235);
+}
+.dark .opp-search-results > li {
+  border-color: rgb(255 255 255 / 0.1);
+}
+.opp-search-results .opp-search-chapter {
+  font-family: var(--aw-font-heading, inherit);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--aw-color-text-heading);
+}
+.opp-search-results ul {
+  margin-top: 0.4rem;
+}
+.opp-search-results ul a {
+  display: block;
+  padding: 0.4rem 0.6rem;
+  margin: 0 -0.6rem;
+  border-radius: 0.5rem;
+}
+.opp-search-results a:hover,
+.opp-search-results a:focus-visible {
+  background: color-mix(in srgb, var(--aw-color-primary) 8%, transparent);
+}
+.opp-search-results .opp-search-chapter:hover {
+  color: var(--aw-color-primary);
+  background: none;
+}
+.opp-search-section {
+  display: block;
+  font-weight: 600;
+  color: var(--aw-color-primary);
+}
+.opp-search-excerpt {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--aw-color-text-muted);
+}
+.opp-search-excerpt mark {
+  background: color-mix(in srgb, var(--aw-color-primary) 18%, transparent);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+/* Chapter sidebar ([chapter].astro): the open chapter's row stays pinned at
+   the top of the scrolling sidebar, so its collapse button is always in reach. */
+.opp-sidebar-current {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--aw-color-bg-page);
+}
+.opp-toggle svg {
+  transition: transform 150ms;
+}
+.opp-toggle[aria-expanded='false'] svg {
+  transform: rotate(-90deg);
+}
+
+/* Small rounded buttons above a chapter on phones (Search, PDF). */
+.opp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgb(209 213 219);
+  font-size: 0.875rem;
+  color: var(--aw-color-text-default);
+  transition:
+    border-color 150ms,
+    color 150ms;
+}
+.opp-chip:hover {
+  border-color: var(--aw-color-primary);
+  color: var(--aw-color-primary);
+}
+.dark .opp-chip {
+  border-color: rgb(255 255 255 / 0.2);
+}
+
+/* Tailwind v4 gives buttons the default arrow; these act like links. */
+[data-opp-search-open],
+[data-opp-search-close],
+[data-opp-toggle] {
+  cursor: pointer;
+}
+
+/* Words from a book search (bookHighlight.ts), and the bar to clear them. */
+mark.opp-hit {
+  background: #fde68a;
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+.opp-hit-bar {
+  position: fixed;
+  left: 50%;
+  /* Just under the sticky header: the bottom of the screen belongs to the
+     cookie banner and the back-to-top button. */
+  top: 4.75rem;
+  z-index: 40;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: calc(100vw - 2rem);
+  padding: 0.5rem 0.5rem 0.5rem 1rem;
+  border-radius: 999px;
+  background: var(--aw-color-text-heading);
+  color: var(--aw-color-bg-page);
+  font-size: 0.875rem;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.2);
+}
+.dark mark.opp-hit {
+  background: rgb(250 204 21 / 0.35);
+}
+.opp-hit-bar span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* While the bar shows, a jump to a game leaves room for it under the header. */
+body:has(#opp-hit-bar) .opp-book [id] {
+  scroll-margin-top: 9rem;
+}
+.opp-hit-bar button {
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--aw-color-bg-page) 18%, transparent);
+}
+.opp-hit-bar button:hover {
+  background: color-mix(in srgb, var(--aw-color-bg-page) 30%, transparent);
+}
+@media print {
+  mark.opp-hit {
+    background: none;
+  }
+}

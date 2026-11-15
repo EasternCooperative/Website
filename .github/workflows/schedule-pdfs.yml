@@ -1,9 +1,10 @@
-name: Schedule PDFs
+name: Rendered PDFs
 
-# Renders /events/<id>/schedule pages to static PDFs (public/schedules/<id>.pdf)
-# with headless Chrome and commits any changes back to main. Cloudflare Pages
-# then serves the PDFs as plain static files — no headless browser in the
-# Pages build.
+# Renders built pages to static PDFs with headless Chrome and commits any
+# changes back to main: each /events/<id>/schedule page to
+# public/schedules/<id>.pdf, and Of Play and Playfulness to
+# public/docs/of-play-and-playfulness.pdf. Cloudflare Pages then serves the
+# PDFs as plain static files — no headless browser in the Pages build.
 
 on:
   push:
@@ -15,6 +16,14 @@ on:
       - 'src/components/schedule/scheduleGrid.ts'
       - 'src/utils/eventSchedule.ts'
       - 'scripts/render-schedule-pdfs.mjs'
+      - 'src/data/of-play-and-playfulness/**'
+      - 'src/data/settings/of-play-and-playfulness.json'
+      - 'src/pages/of-play-and-playfulness/print.astro'
+      - 'src/assets/styles/of-play-and-playfulness.css'
+      - 'src/utils/ofPlayAndPlayfulness.ts'
+      - 'public/images/of-play-and-playfulness/**'
+      - 'scripts/render-book-pdf.mjs'
+      - 'scripts/lib/serve-dist.mjs'
       - '.github/workflows/schedule-pdfs.yml'
   workflow_dispatch:
 
@@ -30,6 +39,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # render-book-pdf.mjs dates the PDF by the book's last commit.
+          fetch-depth: 0
       - name: Use Node.js 22
         uses: actions/setup-node@v7
         with:
@@ -47,14 +59,15 @@ jobs:
           key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
       - run: npx playwright install chromium --with-deps
       - run: node scripts/render-schedule-pdfs.mjs
+      - run: node scripts/render-book-pdf.mjs
       - name: Commit updated PDFs
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add public/schedules
+          git add public/schedules public/docs/of-play-and-playfulness.pdf
           if git diff --staged --quiet; then
-            echo "No schedule PDF changes."
+            echo "No PDF changes."
           else
-            git commit -m "chore(schedule): regenerate master-schedule PDFs"
+            git commit -m "chore(pdf): regenerate rendered PDFs"
             git push
           fi

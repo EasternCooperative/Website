@@ -15,6 +15,7 @@ ECRS events are open to all ages and all levels of experience. Programs include 
 - [Activities](https://ecrs.org/activities): A library of games, dances, and songs with instructions for leading them.
 - [Connections](https://ecrs.org/connections): Related organizations and resources.
 - [Leadership Resources](https://ecrs.org/leadership-resources): PDF guides and handouts for ECRS leaders and staff.
+- [Of Play and Playfulness](https://ecrs.org/of-play-and-playfulness): ECRS's book of games, dances, songs, dramatics, crafts, and leadership writing, collected from 1940 to 1990. The whole book is also a PDF: https://ecrs.org/docs/of-play-and-playfulness.pdf
 - [Join the mailing list](https://ecrs.org/join-email-list): Get news about upcoming events by email.
 - [Contact](https://ecrs.org/contact): Send a question or message to ECRS.
 - [Donate](https://ecrs.org/donate): Support ECRS with a tax-deductible donation.

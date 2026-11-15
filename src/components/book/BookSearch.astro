@@ -1,0 +1,56 @@
+---
+// Search within Of Play and Playfulness: one dialog per page, opened by any
+// `[data-opp-search-open]` button (see src/utils/bookSearch.ts). It runs on
+// the built site's Pagefind index, so it has no results in `astro dev`.
+import { Icon } from 'astro-icon/components';
+import settings from '~/data/settings/of-play-and-playfulness.json';
+import { chapters } from '~/utils/ofPlayAndPlayfulness';
+
+// Results name a game the way the book's contents does ("Bat the Balloon"),
+// not in the capitals of its heading.
+const labels = Object.fromEntries(chapters.flatMap((ch) => ch.sections.map((s) => [`${ch.slug}#${s.id}`, s.label])));
+---
+
+<dialog
+  id="opp-search"
+  data-labels={JSON.stringify(labels)}
+  aria-labelledby="opp-search-label"
+  data-pagefind-ignore="all"
+  class="opp-search-dialog m-0 mx-auto mt-[8vh] w-[calc(100%-2rem)] max-w-2xl rounded-2xl border border-gray-200 bg-page p-0 text-default shadow-2xl dark:border-white/10"
+>
+  <div class="flex items-center gap-3 border-b border-gray-200 px-4 py-3 dark:border-white/10">
+    <Icon name="tabler:search" class="h-5 w-5 shrink-0 text-muted" aria-hidden="true" />
+    <label id="opp-search-label" for="opp-search-input" class="sr-only">
+      {settings.searchLabel}
+    </label>
+    <input
+      id="opp-search-input"
+      type="search"
+      autocomplete="off"
+      spellcheck="false"
+      placeholder={settings.searchPlaceholder}
+      class="min-w-0 flex-1 border-0 bg-transparent p-0 text-lg text-heading placeholder:text-muted focus:outline-none focus:ring-0"
+    />
+    <button
+      type="button"
+      data-opp-search-close
+      class="rounded-md px-2 py-1 text-sm text-muted hover:bg-gray-100 hover:text-heading dark:hover:bg-white/10"
+    >
+      Close
+    </button>
+  </div>
+  <div class="max-h-[65vh] overflow-y-auto px-4 pb-4">
+    <p id="opp-search-status" role="status" aria-live="polite" class="pt-3 text-sm text-muted"></p>
+    <ul id="opp-search-results" class="opp-search-results" role="list"></ul>
+  </div>
+</dialog>
+
+<script>
+  import { initBookSearch } from '~/utils/bookSearch';
+  import { initBookSidebar } from '~/utils/bookSidebar';
+  import { initBookHighlight } from '~/utils/bookHighlight';
+
+  initBookSearch();
+  initBookSidebar();
+  initBookHighlight();
+</script>
