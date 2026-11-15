@@ -1,10 +1,14 @@
 import { describe, it, expect, vi } from 'vitest';
-import { chapterHtml, chapters, rewriteImageSources } from './ofPlayAndPlayfulness';
+import { chapterHtml, chapterPath, chapters, rewriteImageSources } from './ofPlayAndPlayfulness';
 
 describe('chapters', () => {
   it('has a text fragment for every chapter in the contents', () => {
     expect(chapters).toHaveLength(19);
     for (const ch of chapters) expect(chapterHtml(ch.slug).length).toBeGreaterThan(0);
+  });
+
+  it('builds chapter URLs under the book path', () => {
+    expect(chapterPath('games')).toBe('/of-play-and-playfulness/games');
   });
 
   it('throws for a chapter that does not exist', () => {

@@ -49,8 +49,6 @@ const IMG_SRC = /(<img\b[^>]*?\bsrc=")([^"]+)(")/g;
 export async function rewriteImageSources(html: string, optimize: (src: string) => Promise<string>): Promise<string> {
   const sources = [...new Set(Array.from(html.matchAll(IMG_SRC), (m) => m[2]))];
   const urls = new Map(await Promise.all(sources.map(async (src) => [src, await optimize(src)] as const)));
-  return html.replace(
-    IMG_SRC,
-    (_, before: string, src: string, after: string) => before + (urls.get(src) ?? src) + after
-  );
+  // Every src the pattern can match was collected above, so the lookup always hits.
+  return html.replace(IMG_SRC, (_, before: string, src: string, after: string) => before + urls.get(src)! + after);
 }
