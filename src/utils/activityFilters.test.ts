@@ -376,6 +376,31 @@ describe('initActivityFiltersPage — wheelchair filter', () => {
     expect(visibleCards()).toHaveLength(4);
   });
 
+  it('drops the wheelchair-adaptable filter when switching to a type it does not apply to', async () => {
+    buildFixture();
+    document.getElementById('filter-wheelchair-adaptable')!.dataset.relevantTypes = 'game,dance';
+    const { initActivityFiltersPage } = await import('./activityFilters');
+    initActivityFiltersPage();
+
+    document.getElementById('filter-wheelchair-adaptable')!.click();
+    expect(visibleCards()).toEqual(['/c']);
+    document.querySelector<HTMLButtonElement>('[data-filter-type="song"]')!.click();
+    expect(document.getElementById('filter-wheelchair-adaptable')!.getAttribute('aria-pressed')).toBe('false');
+    expect(visibleCards()).toEqual(['/c']);
+  });
+
+  it('works on a page with no written-for-wheelchairs activities (and so no button)', async () => {
+    buildFixture();
+    document.getElementById('filter-wheelchair-first')!.remove();
+    const { initActivityFiltersPage } = await import('./activityFilters');
+    initActivityFiltersPage();
+
+    document.querySelector<HTMLButtonElement>('[data-filter-tag="fun"]')!.click();
+    document.getElementById('clear-all-filters')!.click();
+    await vi.advanceTimersByTimeAsync(200);
+    expect(visibleCards()).toEqual(['/a', '/b', '/c']);
+  });
+
   it('drops the written-for-wheelchairs filter when switching to a type it does not apply to', async () => {
     buildFixture();
     addWheelchairFirstCard();

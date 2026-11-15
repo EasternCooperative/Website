@@ -100,8 +100,9 @@ function initActivityFilters() {
     if (btn.dataset.filterPosture !== undefined) activePostures.delete(btn.dataset.filterPosture);
     else if (btn.dataset.filterMeter !== undefined) activeMeters.delete(btn.dataset.filterMeter);
     else if (btn.dataset.filterKey !== undefined) activeKeys.delete(btn.dataset.filterKey);
-    else if (btn === wheelchairButton) wheelchairOnly = false;
-    else if (btn === wheelchairFirstButton) wheelchairFirstOnly = false;
+    // The two wheelchair toggles are single buttons rather than chip sets.
+    if (btn === wheelchairButton) wheelchairOnly = false;
+    if (btn === wheelchairFirstButton) wheelchairFirstOnly = false;
     setActive(btn, false);
   }
 
