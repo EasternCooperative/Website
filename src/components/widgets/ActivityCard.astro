@@ -53,6 +53,7 @@ const searchText = [title, excerpt, ...tags].filter(Boolean).join(' ').toLowerCa
   data-group-min={groupSizeMin ?? ''}
   data-group-max={groupSizeMax ?? ''}
   data-wheelchair-adaptable={seatedOrWheelchairAdaptable || wheelchairFirst ? 'true' : 'false'}
+  data-wheelchair-first={wheelchairFirst ? 'true' : 'false'}
   data-called-live={isCalled ? 'true' : 'false'}
   data-is-round={isRound ? 'true' : 'false'}
   data-beginner-adaptable={beginnerAdaptable ? 'true' : 'false'}

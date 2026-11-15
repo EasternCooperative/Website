@@ -34,7 +34,8 @@ const allPostures: string[] = [
 ].sort();
 const allKeys = [...new Set(allActivities.map((a) => a.data.key).filter((v): v is string => !!v))].sort();
 const allMeters = [...new Set(allActivities.map((a) => a.data.meter).filter((v): v is string => !!v))].sort();
-const anyWheelchairAdaptable = allActivities.some((a) => a.data.seatedOrWheelchairAdaptable);
+const anyWheelchairAdaptable = allActivities.some((a) => a.data.seatedOrWheelchairAdaptable || a.data.wheelchairFirst);
+const anyWheelchairFirst = allActivities.some((a) => a.data.wheelchairFirst);
 const anyCalledLive = allActivities.some((a) => a.data.isCalled);
 const anyIsRound = allActivities.some((a) => a.data.isRound);
 const anyBeginnerAdaptable = allActivities.some((a) => a.data.beginnerAdaptable);
@@ -261,6 +262,18 @@ const itemListJsonLd = {
                         >
                           <Icon name="tabler:wheelchair" class="w-3.5 h-3.5" aria-hidden="true" />
                           Wheelchair Adaptable
+                        </button>
+                      )}
+                      {anyWheelchairFirst && (
+                        <button
+                          type="button"
+                          id="filter-wheelchair-first"
+                          data-relevant-types="game,dance"
+                          aria-pressed="false"
+                          class="inline-flex items-center gap-1 text-xs font-medium rounded-full px-3 py-2 border border-gray-200 dark:border-gray-700 text-default hover:border-primary/40 transition-colors cursor-pointer"
+                        >
+                          <Icon name="tabler:wheelchair" class="w-3.5 h-3.5" aria-hidden="true" />
+                          Written for Wheelchairs
                         </button>
                       )}
                     </div>
