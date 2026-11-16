@@ -22,7 +22,8 @@ The gallery captions were made with large-v3 on CUDA, then hand-edited, so
 rerunning will undo those edits:
   ice-cream-disaster  --condition --hotwords "raisins" --prompt "An improv
       skit at an ice cream factory. The owner tells the manager: I need
-      400,000 raisins by Tuesday."  (tail from 4:39 and the 5:14 line fixed by hand)
+      400,000 raisins by Tuesday."  (tail from 4:39 and the 5:14 line fixed by hand,
+      then 2:08-2:20 and 5:00-5:11 corrected by ear)
   spring-weekend-2009  --hotwords "elephant, palm tree, cow, stir the mush,
       ECRS" --prompt "Group games and dances at an ECRS weekend."  (dance calls
       and game lines the model dropped restored from the older base-model pass)
