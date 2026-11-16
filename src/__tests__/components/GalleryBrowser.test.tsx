@@ -313,14 +313,14 @@ describe('GalleryBrowser', () => {
   describe('lightbox', () => {
     // Just enough of PhotoSwipe for the open hook and the "open original" button.
     function fakeLightbox(src: string) {
-      const handlers: Record<string, (() => void)[]> = {};
+      const handlers: Record<string, ((arg?: unknown) => void)[]> = {};
       return {
         currSlide: { data: { src }, holderElement: document.createElement('div') },
         options: { bgOpacity: 0.8 },
         applyBgOpacity: vi.fn(),
         mainScroll: { moveIndexBy: vi.fn() },
-        on: (name: string, fn: () => void) => (handlers[name] ??= []).push(fn),
-        emit: (name: string) => handlers[name]?.forEach((fn) => fn()),
+        on: (name: string, fn: (arg?: unknown) => void) => (handlers[name] ??= []).push(fn),
+        emit: (name: string, arg?: unknown) => handlers[name]?.forEach((fn) => fn(arg)),
       };
     }
 
@@ -364,6 +364,24 @@ describe('GalleryBrowser', () => {
       pswp.emit('change');
       pswp.emit('close');
       expect(pause).toHaveBeenCalledTimes(2);
+    });
+
+    it('keeps drags on the video controls from swiping slides', async () => {
+      await mount();
+      const pswp = fakeLightbox('/p/1-full.webp');
+      galleryProps.current!.onOpen(pswp);
+      const pointerDown = (target: Element) => {
+        const e = { originalEvent: { target }, preventDefault: vi.fn() };
+        pswp.emit('pointerDown', e);
+        return e.preventDefault;
+      };
+      const player = document.createElement('media-controller');
+      const scrubber = document.createElement('media-time-range');
+      const video = document.createElement('video');
+      player.append(scrubber, video);
+      expect(pointerDown(scrubber)).toHaveBeenCalled();
+      // Swiping across the picture itself still changes slides.
+      expect(pointerDown(video)).not.toHaveBeenCalled();
     });
 
     it('gives video slides a solid backdrop and photos the usual one', async () => {
