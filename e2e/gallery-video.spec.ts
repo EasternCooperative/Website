@@ -13,7 +13,13 @@ const CURRENT = '.pswp__item:not([aria-hidden="true"])';
 
 async function openVideo(page: Page, title: RegExp) {
   await page.goto('/gallery');
-  await page.locator('select[data-track-filter="type"]').selectOption('video');
+  // The gallery is a client:visible island: a filter change made before it
+  // hydrates is lost, leaving only the first page of photos (where a video
+  // may not be). Retry until the grid really shows only the videos.
+  await expect(async () => {
+    await page.locator('select[data-track-filter="type"]').selectOption('video');
+    await expect(page.locator('p.text-muted', { hasText: /^\d+ videos?$/ })).toBeVisible({ timeout: 1000 });
+  }).toPass();
   await page.getByRole('button', { name: title }).click();
   await expect(player(page)).toBeVisible();
 }
@@ -68,8 +74,12 @@ test('space plays and pauses right after opening, without clicking into the play
 
 test('space works on the next video after swiping to it', async ({ page }) => {
   await openVideo(page, /Play video: Spring Weekend 2009/);
+  // Don't assume an order: the grid sorts by year, which changes as videos
+  // get dated. Just check the lightbox moved on to another video.
+  const counter = page.locator('.pswp__counter');
+  const before = await counter.textContent();
   await page.locator('.pswp__button--arrow--next').click();
-  await expect(page.locator('.pswp__counter')).toHaveText('2 / 3');
+  await expect(counter).not.toHaveText(before ?? '');
   const paused = () =>
     player(page)
       .locator('video')
