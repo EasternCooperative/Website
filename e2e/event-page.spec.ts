@@ -35,6 +35,10 @@ test.describe('past event', () => {
     await expect(page.getByRole('link', { name: 'Add to Calendar' })).not.toBeVisible();
   });
 
+  test('the date is plain text, not an add-to-calendar link', async ({ page }) => {
+    await expect(page.locator('a[href$=".ics"]')).toHaveCount(0);
+  });
+
   test('has a working ICS download link', async ({ page }) => {
     const response = await page.request.get('/events/e2e-past-event.ics');
     expect(response.status()).toBe(200);
@@ -63,6 +67,10 @@ test.describe('future event without registration options', () => {
 
   test('does not show "Past Event" badge', async ({ page }) => {
     await expect(page.getByText('Past Event')).not.toBeVisible();
+  });
+
+  test('the date links to the calendar file', async ({ page }) => {
+    await expect(page.locator('a[href="/events/e2e-future-event.ics"]').first()).toBeVisible();
   });
 
   test('does not show "Register Now" when no registrationUrl or cognitoFormId', async ({ page }) => {
