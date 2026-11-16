@@ -27,7 +27,7 @@ rerunning will undo those edits:
   spring-weekend-2009  --hotwords "elephant, palm tree, cow, stir the mush,
       ECRS" --prompt "Group games and dances at an ECRS weekend."  (dance calls
       and game lines the model dropped restored from the older base-model pass,
-      then 2:24-2:36 corrected by ear)
+      then 2:24-2:36, 3:21, and 3:37 corrected by ear)
   lets-play-2000  still the older base-model captions; large-v3 dropped words.
 """
 
