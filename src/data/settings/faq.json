@@ -1,0 +1,69 @@
+{
+  "heroTagline": "New to ECRS?",
+  "heroTitle": "Frequently Asked Questions",
+  "introText": "Answers to the questions newcomers ask most. If yours isn't here, [get in touch](/contact).",
+  "groups": [
+    {
+      "title": "Coming to an event",
+      "items": [
+        {
+          "question": "What happens at an ECRS event?",
+          "answer": "Daytime classes range from folk dancing and singing to informal dramatics, crafts, games, and more, and you choose which ones to try. After dinner, Evening Program brings everyone together for a sampling of everything: a sing-along, games, and international, square, and contra dances, followed by snacks. When the ECRS spirit is running high, late-night singing, dancing, and games often carry on after that. There's also plenty of free time to relax, walk, swim, or just talk."
+        },
+        {
+          "question": "Do I need any experience?",
+          "answer": "No. We teach most everything we do, and every class welcomes beginners. You can participate as much or as little as you like."
+        },
+        {
+          "question": "Do I have to be a member to come?",
+          "answer": "No. Anyone can register for any ECRS event. Members get discounts on events and a vote on Board members and issues; see [Membership](/membership) for details."
+        },
+        {
+          "question": "Are there discounts for newcomers?",
+          "answer": "Yes. Newcomers get free tuition at their first multi-day ECRS event, and other events have their own newcomer discounts. Each [event page](/events) lists its prices and discounts."
+        },
+        {
+          "question": "What if the cost is hard for me?",
+          "answer": "Many events offer pay-what-you-can pricing, where you choose the Reduced, Full, or Plus rate. If you have questions about cost or financial help, [contact us](/contact)."
+        },
+        {
+          "question": "Are children welcome?",
+          "answer": "Yes. ECRS is intergenerational, and many families come back year after year, sometimes across three generations. Many events include a children's program; the event page lists the ages and details."
+        },
+        {
+          "question": "Are meals provided?",
+          "answer": "It depends on the event. Residential weekends and Winter Adventure include meals, while camping weekends provide some meals and you bring the rest. Each event page says exactly what's included."
+        },
+        {
+          "question": "What should I bring?",
+          "answer": "Check the event page for anything specific to the site, such as bedding at a camping weekend. It's never a bad idea to bring a mug for hot drinks between meals, any musical instruments you play, comfortable shoes for dancing, and a swimsuit if the site has a pool. Most of all, bring your enthusiasm and a willingness to have fun!"
+        },
+        {
+          "question": "Are ECRS events drug and alcohol free?",
+          "answer": "Yes. ECRS events are drug-, alcohol-, and fragrance-free."
+        },
+        {
+          "question": "Is the site accessible?",
+          "answer": "Each event page includes accessibility notes for its venue. If you'd like to talk about your particular situation, [contact us](/contact) before you register."
+        }
+      ]
+    },
+    {
+      "title": "About ECRS",
+      "items": [
+        {
+          "question": "What makes ECRS a cooperative?",
+          "answer": "ECRS is run for and by its members, and everyone pitches in at events: moving chairs, chopping vegetables, setting up for snacks, or cleaning up. At registration you'll be asked to sign up for at least one job, and it's a great way to meet people."
+        },
+        {
+          "question": "Does ECRS discriminate based on race, religion, sexuality, or age?",
+          "answer": "No. ECRS does not discriminate on the basis of race, color, or national or ethnic origin in its admissions, scholarships, or other programs. We are an open community that welcomes people of all colors, ages, sexualities, and religious backgrounds, and we expect our participants to do the same."
+        },
+        {
+          "question": "How do I hear about upcoming events?",
+          "answer": "[Join our email list](/join-email-list) for event announcements, or check the [events page](/events)."
+        }
+      ]
+    }
+  ]
+}

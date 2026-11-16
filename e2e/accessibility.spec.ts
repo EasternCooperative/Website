@@ -16,6 +16,8 @@ import AxeBuilder from '@axe-core/playwright';
  *   /our-people    — leader cards, category sections
  *   /contact       — contact page
  *   /connections   — link lists + venue cards (feature-flagged, still built)
+ *   /faq           — FAQ accordion (draft, feature-flagged, still built)
+ *   /history       — name cards + milestone timeline (draft, feature-flagged)
  *   /leadership-resources — list of PDF links
  *   /of-play-and-playfulness         — book contents
  *   /of-play-and-playfulness/dancing — longest chapter: tables, sheet music, marks
@@ -113,6 +115,14 @@ test('contact page has no critical a11y violations', async ({ page }, testInfo) 
 
 test('connections page has no critical a11y violations', async ({ page }, testInfo) => {
   await audit(page, testInfo, '/connections');
+});
+
+test('FAQ page has no critical a11y violations', async ({ page }, testInfo) => {
+  await audit(page, testInfo, '/faq');
+});
+
+test('history page has no critical a11y violations', async ({ page }, testInfo) => {
+  await audit(page, testInfo, '/history');
 });
 
 test('leadership resources page has no critical a11y violations', async ({ page }, testInfo) => {

@@ -84,6 +84,115 @@
       "logo": "/images/logos/mount-airy-contra.webp"
     }
   ],
+  "recLabsTitle": "Recreation labs like ours",
+  "recLabsIntro": "The \"Eastern\" in our name dates from 1940, when cooperative recreation schools were starting up in other regions too. ECRS became one of several dozen regional recreation workshops, or \"rec labs,\" that began in the middle of the last century. Many have since closed, but these are still going.",
+  "recLabs": [
+    {
+      "name": "Buckeye Leadership Workshop",
+      "url": "https://buckeyeleadership.com/"
+    },
+    {
+      "name": "Chatcolab",
+      "url": "https://chatcolab.org/"
+    },
+    {
+      "name": "Folklore Village",
+      "url": "https://folklorevillage.org/"
+    },
+    {
+      "name": "Northland Recreation Lab",
+      "url": "https://www.northlandreclab.org/"
+    }
+  ],
+  "friendsTitle": "More folk and community groups",
+  "friendsIntro": "Organizations ECRS members have pointed each other to over the years.",
+  "friends": [
+    {
+      "name": "English Folk Dance and Song Society",
+      "url": "https://www.folkengland.org/"
+    },
+    {
+      "name": "The Folk Music Society of New York",
+      "url": "https://folkmusicny.org/"
+    },
+    {
+      "name": "The Folk Project",
+      "url": "https://folkproject.org/"
+    },
+    {
+      "name": "Foundation for Intentional Community",
+      "url": "https://www.ic.org/"
+    },
+    {
+      "name": "Games Kids Play",
+      "url": "https://www.gameskidsplay.net/"
+    },
+    {
+      "name": "International Association of Gay Square Dance Clubs",
+      "url": "https://iagsdc.org/"
+    },
+    {
+      "name": "KIDiddles",
+      "url": "https://kididdles.com/"
+    }
+  ],
+  "readingTitle": "Books and recordings",
+  "readingIntro": "Books ECRS leaders have recommended and sold at events, and recordings made by ECRS leaders.",
+  "reading": [
+    {
+      "title": "Of Play and Playfulness",
+      "by": "ECRS staff (1990)",
+      "url": "/of-play-and-playfulness"
+    },
+    {
+      "title": "Children's Games from Many Lands",
+      "by": "Nina Millen"
+    },
+    {
+      "title": "Great Games to Play with Groups",
+      "by": "Frank W. Harris"
+    },
+    {
+      "title": "Handbook of Recreational Games",
+      "by": "Neva L. Boyd"
+    },
+    {
+      "title": "Play and Game Theory",
+      "by": "Neva L. Boyd"
+    },
+    {
+      "title": "Handy Play Party Book",
+      "by": "World Around Songs"
+    },
+    {
+      "title": "Songs to Sing and Sing Again",
+      "by": "Shelley Gordon"
+    },
+    {
+      "title": "Rise Up Singing",
+      "by": "Peter Blood and Annie Patterson"
+    },
+    {
+      "title": "All Day Singing",
+      "by": "Dotti Siftar",
+      "note": "CD of song leadership, released 2006"
+    },
+    {
+      "title": "Banana Split and Going Bananas",
+      "by": "Shelley Gordon",
+      "note": "Recordings"
+    },
+    {
+      "title": "Precious Friends",
+      "by": "Mickey Reed",
+      "note": "Recording"
+    },
+    {
+      "title": "Rootwomen Stories",
+      "by": "Jay Goldspinner",
+      "note": "Recorded stories"
+    }
+  ],
   "venuesTitle": "Places we meet or have met",
   "venuesIntro": "Camps, retreat centers and meeting houses that have made room for us.",
   "currentVenuesTitle": "Where we gather now",

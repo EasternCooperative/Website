@@ -14,7 +14,9 @@
     "activitiesLibrary": true,
     "connectionsPage": true,
     "aboutPageMap": true,
-    "peopleWithoutPhotoOrBio": false
+    "peopleWithoutPhotoOrBio": false,
+    "faqPage": false,
+    "historyPage": false
   },
   "eventCtaSubtitleOneDay": "All ECRS events are open to all ages and experience levels.",
   "eventCtaTitleComingSoon": "Registration coming soon",

@@ -1,0 +1,61 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+import HeroText from '~/components/widgets/HeroText.astro';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+import CallToAction from '~/components/widgets/CallToAction.astro';
+import faq from '~/data/settings/faq.json';
+import siteSettings from '~/data/settings/site.json';
+import { renderInlineMarkdown, renderMarkdown, stripMarkdown } from '~/utils/markdown';
+
+const metadata = {
+  title: faq.heroTitle,
+  description: stripMarkdown(faq.introText),
+  openGraph: { images: [{ url: '/og/default.jpg', width: 1200, height: 630 }] },
+};
+
+// A draft until the feature flag is on: reachable by URL, but kept out of
+// search, the sitemap and the Pagefind index (same gating as /connections).
+const isPublished = siteSettings.featureFlags.faqPage;
+---
+
+<Layout metadata={metadata} noIndex={!isPublished}>
+  <HeroText tagline={faq.heroTagline} title={faq.heroTitle} content={renderInlineMarkdown(faq.introText)} />
+
+  <WidgetWrapper containerClass="pt-8 md:pt-10 lg:pt-12 max-w-3xl">
+    {faq.groups.map((group) => (
+      <section class="mb-10 last:mb-0" aria-labelledby={`faq-${group.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>
+        <h2
+          id={`faq-${group.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+          class="mb-4 font-heading text-2xl font-bold text-heading"
+        >
+          {group.title}
+        </h2>
+        <div class="divide-y divide-gray-200 rounded-lg border border-gray-200 dark:divide-gray-700 dark:border-gray-700">
+          {group.items.map((item) => (
+            <details class="group px-4">
+              <summary class="flex cursor-pointer list-none items-center justify-between gap-4 py-4 font-semibold text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary [&::-webkit-details-marker]:hidden">
+                {item.question}
+                <span
+                  class="shrink-0 text-primary transition-transform group-open:rotate-45 motion-reduce:transition-none"
+                  aria-hidden="true"
+                >
+                  +
+                </span>
+              </summary>
+              <div class="pb-4 text-default md-links" set:html={renderMarkdown(item.answer)} />
+            </details>
+          ))}
+        </div>
+      </section>
+    ))}
+  </WidgetWrapper>
+
+  <CallToAction
+    title="Still have a question?"
+    subtitle="We're happy to help."
+    actions={[
+      { text: 'Contact Us', href: '/contact', variant: 'primary' },
+      { text: 'See Events', href: '/events', variant: 'secondary' },
+    ]}
+  />
+</Layout>

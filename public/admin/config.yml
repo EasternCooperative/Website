@@ -134,6 +134,42 @@ collections:
                   hint: "Optional. The festival's logo, shown beside the name. Displays at 28px tall,
                     so a transparent PNG or SVG works best. Check it is still legible in dark mode.",
                 }
+          - { label: 'Rec Labs Heading', name: 'recLabsTitle', widget: 'string' }
+          - { label: 'Rec Labs Intro', name: 'recLabsIntro', widget: 'text' }
+          - label: 'Rec Labs'
+            name: 'recLabs'
+            widget: 'list'
+            hint: 'Other recreation labs and workshops like ECRS that are still running.'
+            fields:
+              - { label: 'Name', name: 'name', widget: 'string' }
+              - { label: 'URL', name: 'url', widget: 'string' }
+              - { label: 'Logo', name: 'logo', widget: 'image', required: false }
+          - { label: 'Folk and Community Groups Heading', name: 'friendsTitle', widget: 'string' }
+          - { label: 'Folk and Community Groups Intro', name: 'friendsIntro', widget: 'string' }
+          - label: 'Folk and Community Groups'
+            name: 'friends'
+            widget: 'list'
+            fields:
+              - { label: 'Name', name: 'name', widget: 'string' }
+              - { label: 'URL', name: 'url', widget: 'string' }
+              - { label: 'Logo', name: 'logo', widget: 'image', required: false }
+          - { label: 'Books and Recordings Heading', name: 'readingTitle', widget: 'string' }
+          - { label: 'Books and Recordings Intro', name: 'readingIntro', widget: 'string' }
+          - label: 'Books and Recordings'
+            name: 'reading'
+            widget: 'list'
+            summary: '{{fields.title}}'
+            fields:
+              - { label: 'Title', name: 'title', widget: 'string' }
+              - { label: 'Author or Performer', name: 'by', widget: 'string' }
+              - { label: 'Note', name: 'note', widget: 'string', required: false, hint: 'Optional, e.g. "Recording".' }
+              - {
+                  label: 'Link',
+                  name: 'url',
+                  widget: 'string',
+                  required: false,
+                  hint: 'Optional. A page on this site, e.g. /of-play-and-playfulness.',
+                }
           - { label: 'Venues Heading', name: 'venuesTitle', widget: 'string' }
           - { label: 'Venues Intro', name: 'venuesIntro', widget: 'string' }
           - {
@@ -149,6 +185,53 @@ collections:
           - { label: 'CTA Primary Button URL', name: 'ctaPrimaryHref', widget: 'string' }
           - { label: 'CTA Secondary Button Text', name: 'ctaSecondaryText', widget: 'string' }
           - { label: 'CTA Secondary Button URL', name: 'ctaSecondaryHref', widget: 'string' }
+
+      - name: 'faq'
+        label: 'FAQ'
+        file: 'src/data/settings/faq.json'
+        fields:
+          - { label: 'Hero Tagline', name: 'heroTagline', widget: 'string' }
+          - { label: 'Hero Title', name: 'heroTitle', widget: 'string' }
+          - { label: 'Intro Text', name: 'introText', widget: 'markdown' }
+          - label: 'Question Groups'
+            name: 'groups'
+            widget: 'list'
+            summary: '{{fields.title}}'
+            fields:
+              - { label: 'Group Heading', name: 'title', widget: 'string' }
+              - label: 'Questions'
+                name: 'items'
+                widget: 'list'
+                summary: '{{fields.question}}'
+                fields:
+                  - { label: 'Question', name: 'question', widget: 'string' }
+                  - { label: 'Answer', name: 'answer', widget: 'markdown' }
+
+      - name: 'history'
+        label: 'History'
+        file: 'src/data/settings/history.json'
+        fields:
+          - { label: 'Hero Tagline', name: 'heroTagline', widget: 'string' }
+          - { label: 'Hero Title', name: 'heroTitle', widget: 'string' }
+          - { label: 'Intro Text', name: 'introText', widget: 'text' }
+          - { label: 'Name Section Heading', name: 'nameTitle', widget: 'string' }
+          - label: 'Name Parts'
+            name: 'nameParts'
+            widget: 'list'
+            summary: '{{fields.word}}'
+            fields:
+              - { label: 'Word', name: 'word', widget: 'string' }
+              - { label: 'Text', name: 'text', widget: 'text' }
+          - { label: 'Timeline Heading', name: 'timelineTitle', widget: 'string' }
+          - label: 'Timeline'
+            name: 'timeline'
+            widget: 'list'
+            summary: '{{fields.year}}'
+            fields:
+              - { label: 'Year', name: 'year', widget: 'string' }
+              - { label: 'Text', name: 'text', widget: 'markdown' }
+          - { label: 'Closing Heading', name: 'evolvingTitle', widget: 'string' }
+          - { label: 'Closing Text', name: 'evolvingText', widget: 'markdown' }
 
       - name: 'leadership-resources'
         label: 'Leadership Resources'
@@ -1375,6 +1458,20 @@ collections:
                   widget: 'boolean',
                   default: false,
                   hint: 'Shows Connections in the nav and footer, and lets search engines index it. Off keeps the page reachable by URL only.',
+                }
+              - {
+                  label: 'Publish FAQ Page',
+                  name: 'faqPage',
+                  widget: 'boolean',
+                  default: false,
+                  hint: 'Lets search engines index /faq. Off keeps the draft reachable by URL only.',
+                }
+              - {
+                  label: 'Publish History Page',
+                  name: 'historyPage',
+                  widget: 'boolean',
+                  default: false,
+                  hint: 'Lets search engines index /history. Off keeps the draft reachable by URL only.',
                 }
               - { label: 'Show About Page Map', name: 'aboutPageMap', widget: 'boolean', default: false }
               - {

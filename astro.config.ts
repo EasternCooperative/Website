@@ -78,6 +78,8 @@ export default defineConfig({
         !/\/activities\/share\/?$/.test(page) &&
         !/\/of-play-and-playfulness\/print\/?$/.test(page) &&
         (siteSettings.featureFlags.connectionsPage || !/\/connections\/?$/.test(page)) &&
+        (siteSettings.featureFlags.faqPage || !/\/faq\/?$/.test(page)) &&
+        (siteSettings.featureFlags.historyPage || !/\/history\/?$/.test(page)) &&
         (siteSettings.featureFlags.activitiesLibrary || !/\/activities(?:\/|$)/.test(page)) &&
         !isDraftPage(page, '/events/', draftEventSlugs) &&
         !isDraftPage(page, '/activities/', draftActivitySlugs),
