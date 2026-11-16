@@ -4,6 +4,7 @@ import type PhotoSwipe from 'photoswipe';
 import RangeSlider from '~/components/ui/RangeSlider';
 import type { RangeLabelPhrasing } from '~/utils/rangeSlider';
 import 'photoswipe/style.css';
+import GalleryVideoPlayer from '~/components/widgets/GalleryVideoPlayer';
 
 // PhotoSwipe's arrow-key handler jumps to the next/prev slide instantly
 // (mainScroll.moveIndexBy without `animate`) — the spring-slide transition is
@@ -14,11 +15,12 @@ import 'photoswipe/style.css';
 //
 // Video slides: a video keeps playing after you swipe away from it unless it is
 // paused, so every video in the lightbox is paused on slide change and close.
-// Arrow keys pressed while a video has focus belong to its own seek controls.
+// Arrow keys pressed while the player has focus belong to its own seek controls
+// (focus may be on a media-chrome control rather than the <video> itself).
 export function onGalleryOpen(pswp: PhotoSwipe) {
   window.ecrsTrack?.('gallery_photo_open');
   const handleKeydown = (e: KeyboardEvent) => {
-    if (e.target instanceof HTMLVideoElement) return;
+    if (e.target instanceof Element && e.target.closest('media-controller')) return;
     if (e.key === 'ArrowLeft') pswp.mainScroll.moveIndexBy(-1, true);
     else if (e.key === 'ArrowRight') pswp.mainScroll.moveIndexBy(1, true);
   };
@@ -26,6 +28,27 @@ export function onGalleryOpen(pswp: PhotoSwipe) {
     pswp.element?.querySelectorAll('video').forEach((v) => v.pause());
   };
   document.addEventListener('keydown', handleKeydown);
+  // A drag on the video player's scrubber, volume slider, or speed menu would
+  // otherwise also count as a swipe to the next slide. (Shadow DOM retargets
+  // the event to the light-DOM control, so `closest` finds it.)
+  pswp.on('pointerDown', (e) => {
+    const t = e.originalEvent.target;
+    if (t instanceof Element && t.closest('media-time-range, media-control-bar, media-playback-rate-menu')) {
+      e.preventDefault();
+    }
+  });
+  // Video slides get a solid black backdrop instead of PhotoSwipe's
+  // translucent one, so the page doesn't show through around the player.
+  // (applyBgOpacity is a multiplier on options.bgOpacity, which the open,
+  // close, and drag-to-close animations also read, so switch the option.)
+  const photoBgOpacity = pswp.options.bgOpacity;
+  const backdrop = () => {
+    const isVideo = !!pswp.currSlide?.holderElement?.querySelector('media-controller');
+    pswp.options.bgOpacity = isVideo ? 1 : photoBgOpacity;
+    pswp.applyBgOpacity(1);
+  };
+  pswp.on('change', backdrop);
+  pswp.on('openingAnimationEnd', backdrop);
   pswp.on('change', pauseVideos);
   pswp.on('close', pauseVideos);
   pswp.on('destroy', () => document.removeEventListener('keydown', handleKeydown));
@@ -65,7 +88,8 @@ export interface GalleryPhoto {
   year?: number;
   photographer?: string;
   event?: string;
-  /** Present for videos: `src`/`full` then hold the poster image. */
+  /** Present for videos: `src`/`full` then hold the poster image, and
+   * `width`/`height` are the poster's (so the video's) dimensions. */
   video?: GalleryVideo;
 }
 
@@ -100,24 +124,6 @@ function countLabel(items: GalleryPhoto[]): string {
   if (!videos) return photoText;
   const videoText = `${videos} ${videos === 1 ? 'video' : 'videos'}`;
   return photos ? `${photoText}, ${videoText}` : videoText;
-}
-
-function VideoSlide({ video, poster, title }: { video: GalleryVideo; poster: string; title: string }) {
-  return (
-    <div className="flex h-full w-full items-center justify-center p-4 sm:p-12">
-      <video
-        controls
-        playsInline
-        preload="metadata"
-        poster={poster}
-        aria-label={title}
-        className="max-h-full max-w-full bg-black"
-      >
-        <source src={video.src} type="video/mp4" />
-        <track kind="captions" src={video.captions} srcLang="en" label="English" default />
-      </video>
-    </div>
-  );
 }
 
 export default function GalleryBrowser({ photos, years, photographers, events }: Props) {
@@ -316,7 +322,17 @@ export default function GalleryBrowser({ photos, years, photographers, events }:
               <li key={photo.id}>
                 <Item
                   {...(video
-                    ? { content: <VideoSlide video={video} poster={photo.full} title={photo.alt} /> }
+                    ? {
+                        content: (
+                          <GalleryVideoPlayer
+                            src={video.src}
+                            captions={video.captions}
+                            poster={photo.full}
+                            title={photo.alt}
+                            aspect={photo.width / photo.height}
+                          />
+                        ),
+                      }
                     : { original: photo.full, width: photo.width, height: photo.height })}
                   thumbnail={photo.src}
                   alt={photo.alt}

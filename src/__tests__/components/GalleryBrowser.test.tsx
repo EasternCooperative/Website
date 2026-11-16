@@ -54,6 +54,15 @@ beforeEach(() => {
       disconnect = disconnect;
     }
   );
+  // jsdom has no ResizeObserver; the video player uses one to keep captions
+  // clear of its controls.
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe = vi.fn();
+      disconnect = vi.fn();
+    }
+  );
   window.matchMedia = vi.fn().mockImplementation((query: string) => ({
     matches: true,
     media: query,
@@ -306,7 +315,9 @@ describe('GalleryBrowser', () => {
     function fakeLightbox(src: string) {
       const handlers: Record<string, (() => void)[]> = {};
       return {
-        currSlide: { data: { src } },
+        currSlide: { data: { src }, holderElement: document.createElement('div') },
+        options: { bgOpacity: 0.8 },
+        applyBgOpacity: vi.fn(),
         mainScroll: { moveIndexBy: vi.fn() },
         on: (name: string, fn: () => void) => (handlers[name] ??= []).push(fn),
         emit: (name: string) => handlers[name]?.forEach((fn) => fn()),
@@ -355,13 +366,30 @@ describe('GalleryBrowser', () => {
       expect(pause).toHaveBeenCalledTimes(2);
     });
 
-    it('leaves arrow keys to a focused video', async () => {
+    it('gives video slides a solid backdrop and photos the usual one', async () => {
       await mount();
       const pswp = fakeLightbox('/p/1-full.webp');
       galleryProps.current!.onOpen(pswp);
+      pswp.currSlide.holderElement.append(document.createElement('media-controller'));
+      pswp.emit('change');
+      expect(pswp.options.bgOpacity).toBe(1);
+      pswp.currSlide.holderElement.replaceChildren();
+      pswp.emit('change');
+      expect(pswp.options.bgOpacity).toBe(0.8);
+    });
+
+    it('leaves arrow keys to a focused video player', async () => {
+      await mount();
+      const pswp = fakeLightbox('/p/1-full.webp');
+      galleryProps.current!.onOpen(pswp);
+      // Focus may be on the <video> or on one of the player's own controls.
+      const player = document.createElement('media-controller');
       const v = document.createElement('video');
-      document.body.append(v);
+      const button = document.createElement('media-play-button');
+      player.append(v, button);
+      document.body.append(player);
       v.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+      button.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
       expect(pswp.mainScroll.moveIndexBy).not.toHaveBeenCalled();
       pswp.emit('change');
       pswp.emit('destroy');

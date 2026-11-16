@@ -51,6 +51,7 @@
     "astro-seo": "^1.1.0",
     "lodash.merge": "^4.6.2",
     "marked": "^18.0.14",
+    "media-chrome": "^4.19.5",
     "motion": "^14.10.1",
     "pdfmake": "^0.3.13",
     "photoswipe": "^5.4.4",

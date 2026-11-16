@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import { getImage } from 'astro:assets';
+import sharp from 'sharp';
 import Layout from '~/layouts/PageLayout.astro';
 import HeroText from '~/components/widgets/HeroText.astro';
 import GalleryBrowser, { type GalleryPhoto } from '~/components/widgets/GalleryBrowser';
@@ -38,15 +39,17 @@ const photos: GalleryPhoto[] = await Promise.all(
 
 // Videos stream from the R2 bucket at media.ecrs.org (Pages can't host files
 // over 25 MB); their posters and captions live in public/videos/gallery/.
-// They join the photo grid as items with a `video` field.
+// They join the photo grid as items with a `video` field. The poster is a frame
+// of the video, so its dimensions give the player its aspect ratio.
 for (const [i, v] of (gallery.videos ?? []).entries()) {
+  const poster = await sharp(`public${v.poster}`).metadata();
   photos.push({
     id: `video-${i}`,
     src: v.poster,
     full: v.poster,
     originalSrc: undefined,
-    width: 0,
-    height: 0,
+    width: poster.width ?? 16,
+    height: poster.height ?? 9,
     alt: v.title,
     caption: v.description ? `${v.title}${/[.!?]$/.test(v.title) ? '' : ':'} ${v.description}` : v.title,
     year: v.year,

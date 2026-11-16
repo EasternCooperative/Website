@@ -1,0 +1,145 @@
+/* The PhotoSwipe slide: a size container, so the player can fit it exactly. */
+.ecrs-player-slide {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  /* Clear PhotoSwipe's top bar and caption. */
+  padding: 56px 0 72px;
+  container-type: size;
+  box-sizing: border-box;
+}
+@media (min-width: 640px) {
+  .ecrs-player-slide {
+    padding: 64px 48px 88px;
+  }
+}
+
+/* Gallery lightbox video player (GalleryVideoPlayer.tsx, media-chrome).
+   It always sits on PhotoSwipe's black backdrop, so the colors are fixed
+   rather than theme-aware: white controls, ECRS pink (Neon Pink 300) for the
+   progress and volume fill. */
+.ecrs-player {
+  --media-primary-color: #fff;
+  --media-secondary-color: transparent;
+  --media-accent-color: rgb(244 113 172);
+  --media-range-track-background: rgb(255 255 255 / 0.25);
+  --media-range-bar-color: rgb(244 113 172);
+  --media-range-thumb-background: #fff;
+  --media-time-range-buffered-color: rgb(255 255 255 / 0.45);
+  --media-control-background: transparent;
+  --media-control-hover-background: rgb(255 255 255 / 0.12);
+  --media-menu-background: rgb(24 24 27 / 0.95);
+  --media-menu-border-radius: 0.5rem;
+  --media-font-family: inherit;
+  --media-font-size: 0.875rem;
+  --media-button-icon-width: 22px;
+  --media-control-padding: 8px;
+  --media-focus-box-shadow: 0 0 0 2px rgb(244 113 172);
+  --media-tooltip-display: none;
+
+  display: block;
+  /* As large as the slide allows while keeping the video's own shape. */
+  width: min(100cqw, 100cqh * var(--ecrs-aspect, 1.7778));
+  aspect-ratio: var(--ecrs-aspect, 16 / 9);
+  background: #000;
+}
+
+@media (min-width: 640px) {
+  .ecrs-player {
+    border-radius: 0.5rem;
+    box-shadow: 0 20px 50px rgb(0 0 0 / 0.6);
+  }
+}
+
+/* Fill the controller; the video letterboxes inside it. (Rounded by itself
+   rather than overflow: hidden on the player, which would clip the speed menu
+   on short phone-width players.) */
+.ecrs-player video {
+  border-radius: inherit;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Bigger, legible captions with a soft box, lifted clear of the controls. */
+.ecrs-player video::cue {
+  font-size: clamp(0.95rem, 2.4vw, 1.35rem);
+  line-height: 1.35;
+  background: rgb(0 0 0 / 0.72);
+  color: #fff;
+}
+
+/* Gradient under the controls so white icons read over bright footage. */
+.ecrs-player media-control-bar {
+  width: 100%;
+  padding: 0 6px 4px;
+  background: linear-gradient(to top, rgb(0 0 0 / 0.7), rgb(0 0 0 / 0));
+}
+
+.ecrs-player .ecrs-player__range {
+  width: 100%;
+  height: 20px;
+  padding: 0 14px;
+  --media-range-track-height: 4px;
+  --media-range-thumb-height: 14px;
+  --media-range-thumb-width: 14px;
+  --media-range-track-border-radius: 2px;
+  background: rgb(0 0 0 / 0.35);
+}
+
+.ecrs-player__spacer {
+  flex: 1 1 auto;
+}
+
+.ecrs-player media-time-display {
+  font-variant-numeric: tabular-nums;
+}
+
+/* The open menu overlaps the scrubber row; keep it on top so its lowest
+   option stays tappable. */
+.ecrs-player media-playback-rate-menu {
+  z-index: 2;
+}
+
+.ecrs-player media-playback-rate-menu-button {
+  min-width: 3.25rem;
+  font-weight: 600;
+}
+
+/* Big centered play button, shown only while paused. */
+.ecrs-player .ecrs-player__big-play {
+  --media-button-icon-width: 40px;
+  --media-control-padding: 18px;
+  --media-control-background: rgb(0 0 0 / 0.55);
+  --media-control-hover-background: rgb(189 15 93 / 0.9);
+  border-radius: 9999px;
+  transition:
+    opacity 0.2s,
+    background-color 0.2s;
+}
+.ecrs-player:not([mediapaused]) .ecrs-player__big-play {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Narrow screens (media-chrome sets breakpointmd at 576px of player width):
+   drop the skip buttons, volume slider, and picture-in-picture, which phones
+   cover with gestures and hardware buttons. */
+.ecrs-player:not([breakpointmd]) .ecrs-player__wide {
+  display: none;
+}
+
+/* A portrait phone's player is only ~220px tall; compact the speed menu so
+   all six rates fit without a scroll nobody would discover. */
+.ecrs-player:not([breakpointmd]) media-playback-rate-menu {
+  --media-font-size: 12px;
+  font-size: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ecrs-player .ecrs-player__big-play {
+    transition: none;
+  }
+}
