@@ -14,8 +14,14 @@ import { cleanup, render } from '../react';
 // Video.js needs a real browser (e2e/gallery-video.spec.ts drives the real
 // skin). Here the preset is a stand-in: plain elements plus a tiny store with
 // the slice of the player API the component uses (target, playbackRate,
-// setPlaybackRate, subscribe), so the tests cover the remembered speed.
+// paused, error, play, setPlaybackRate, dismissError, subscribe), so the tests
+// cover the remembered speed, play on open, and stale-error clearing.
 const fake = vi.hoisted(() => {
+  interface State {
+    playbackRate: number;
+    paused: boolean;
+    error: { code: number; message: string } | null;
+  }
   const listeners = new Set<() => void>();
   // Like the real store, notifications are batched per microtask.
   // `sync` notifies immediately instead, to check the restore can't recurse.
@@ -27,7 +33,16 @@ const fake = vi.hoisted(() => {
   const store = {
     sync: false,
     target: null as object | null,
-    state: { playbackRate: 1 },
+    state: { playbackRate: 1, paused: true, error: null } as State,
+    dismissError: vi.fn(() => {
+      store.state = { ...store.state, error: null };
+      notify();
+    }),
+    /** Simulates the <video> reporting state (playing, an error). */
+    set: (patch: Partial<State>) => {
+      store.state = { ...store.state, ...patch };
+      notify();
+    },
     play: vi.fn(() => Promise.resolve()),
     setPlaybackRate: (rate: number) => {
       store.state = { ...store.state, playbackRate: rate };
@@ -47,7 +62,8 @@ const fake = vi.hoisted(() => {
       store.target = null;
       store.sync = false;
       store.play.mockClear();
-      store.state = { playbackRate: 1 };
+      store.state = { playbackRate: 1, paused: true, error: null };
+      store.dismissError.mockClear();
     },
   };
   return { store, playerProps: {} as Record<string, unknown> };
@@ -102,7 +118,7 @@ describe('GalleryVideoPlayer', () => {
     expect(video.getAttribute('src')).toBe('https://media.example/v.mp4');
     expect(video.getAttribute('aria-label')).toBe('Skit');
     expect(video.querySelector('track')!.getAttribute('src')).toBe('/v.vtt');
-    expect(fake.playerProps).toMatchObject({ poster: '/v.jpg', defaultPlaybackRates: PLAYBACK_RATES });
+    expect(fake.playerProps).toMatchObject({ poster: '/v.jpg', title: 'Skit', defaultPlaybackRates: PLAYBACK_RATES });
     const skin = container.querySelector<HTMLElement>('.ecrs-player')!;
     expect(skin.style.getPropertyValue('--ecrs-aspect')).toBe(String(4 / 3));
   });
@@ -146,6 +162,24 @@ describe('GalleryVideoPlayer', () => {
       await act(async () => fake.store.attach());
       await act(async () => fake.store.setPlaybackRate(2));
       expect(localStorage.getItem(RATE_KEY)).toBe('2');
+    });
+  });
+
+  describe('error dialog', () => {
+    const err = { code: 2, message: 'A network error caused the media download to fail.' };
+
+    it('clears an error left over a video that is playing', async () => {
+      await mount();
+      await act(async () => fake.store.set({ error: err, paused: false }));
+      expect(fake.store.dismissError).toHaveBeenCalled();
+      expect(fake.store.state.error).toBeNull();
+    });
+
+    it('keeps the error showing when the video has stopped', async () => {
+      await mount();
+      await act(async () => fake.store.set({ error: err, paused: true }));
+      expect(fake.store.dismissError).not.toHaveBeenCalled();
+      expect(fake.store.state.error).toBe(err);
     });
   });
 

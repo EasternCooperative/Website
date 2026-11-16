@@ -373,11 +373,20 @@ export default function GalleryBrowser({ photos, years, photographers, events }:
                               <path d="M8 5v14l11-7z" />
                             </svg>
                           </span>
-                          {video.duration && (
-                            <span className="absolute bottom-2 right-2 rounded bg-black/70 px-1.5 py-0.5 text-xs font-medium text-white">
-                              {video.duration}
+                          {/* Title strip, so videos can be told apart before opening one. */}
+                          <span className="absolute inset-x-0 bottom-0 flex items-end gap-2 bg-gradient-to-t from-black/80 via-black/50 to-transparent px-2 pb-2 pt-6 text-white">
+                            <span
+                              data-video-title
+                              className="min-w-0 flex-1 line-clamp-2 text-left text-sm font-semibold leading-tight"
+                            >
+                              {photo.alt}
                             </span>
-                          )}
+                            {video.duration && (
+                              <span className="shrink-0 rounded bg-black/70 px-1.5 py-0.5 text-xs font-medium tabular-nums">
+                                {video.duration}
+                              </span>
+                            )}
+                          </span>
                         </span>
                       )}
                     </button>

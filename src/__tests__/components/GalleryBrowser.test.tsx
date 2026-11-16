@@ -272,6 +272,8 @@ describe('GalleryBrowser', () => {
       const tiles = [...container.querySelectorAll('button[aria-label^="Play video"]')];
       expect(tiles.map((b) => b.getAttribute('aria-label'))).toEqual(['Play video: Video 5', 'Play video: Video 6']);
       expect(textOf(tiles[0])).toContain('5:27');
+      // Each video tile names its video, so they can be told apart unopened.
+      expect(tiles.map((b) => textOf(b.querySelector('[data-video-title]')!))).toEqual(['Video 5', 'Video 6']);
     });
 
     it('plays each video in the lightbox with its captions', async () => {
@@ -317,7 +319,8 @@ describe('GalleryBrowser', () => {
     it('treats a lone video without a duration as one video', async () => {
       const container = await mount([video(7, { video: { src: '/7.mp4', captions: '/7.vtt' } })]);
       expect(count(container)).toBe('1 video');
-      expect(textOf(container.querySelector('button[aria-label^="Play video"]')!)).toBe('');
+      // Just the title in its strip: no empty duration badge.
+      expect(textOf(container.querySelector('button[aria-label^="Play video"]')!)).toBe('Video 7');
     });
   });
 

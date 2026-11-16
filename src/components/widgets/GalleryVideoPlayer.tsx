@@ -39,6 +39,7 @@ export function playOnOpen(src: string) {
 /**
  * Once the player attaches to the <video>: restores the saved speed, then
  * saves every change, and starts playback if the tile click asked for it.
+ * Also clears error dialogs left over a video that is playing.
  * Follows Video.js's "Remember user preferences" guide: actions throw before
  * the store has a media target, so this waits for one.
  */
@@ -51,6 +52,16 @@ function PlayerSetup({ src }: { src: string }) {
   useEffect(() => {
     if (restored.current) saveRate(rate);
   }, [rate]);
+
+  // The skin's error dialog shows any media error the <video> reports, but a
+  // real failure stops playback. An error that comes while (or before) the
+  // video goes on playing is stale, so clear it rather than leave the dialog
+  // over a working video.
+  const error = usePlayer((s) => s.error);
+  const paused = usePlayer((s) => s.paused);
+  useEffect(() => {
+    if (error && !paused) store.dismissError();
+  }, [error, paused, store]);
 
   useEffect(() => {
     const restore = () => {
@@ -149,7 +160,7 @@ export default function GalleryVideoPlayer({ src, captions, poster, title, aspec
 
   return (
     <div ref={slideRef} className="ecrs-player-slide">
-      <VideoPlayer poster={poster} defaultPlaybackRates={PLAYBACK_RATES}>
+      <VideoPlayer poster={poster} title={title} defaultPlaybackRates={PLAYBACK_RATES}>
         <VideoSkin className="ecrs-player" style={{ '--ecrs-aspect': aspect } as React.CSSProperties}>
           <Video src={src} playsInline preload="metadata" aria-label={title}>
             <track kind="captions" src={captions} srcLang="en" label="English" default />
