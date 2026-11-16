@@ -547,6 +547,13 @@ collections:
           hint: 'Default image shown on all events at this venue.',
         }
       - {
+          label: 'Image Credit',
+          name: 'imageCredit',
+          widget: 'string',
+          required: false,
+          hint: 'Needed when the photo is not ours, e.g. from Wikimedia Commons: Photo: [Name](link) / [CC BY 2.0](license link). Shown small over the photo.',
+        }
+      - {
           label: 'Website',
           name: 'website',
           widget: 'string',

@@ -279,6 +279,12 @@ const breadcrumbJsonLd = {
         <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" data-event-hero-overlay />
       </div>
     )}
+    {venue.image && venue.imageCredit && (
+      <p
+        class="absolute right-2 top-2 max-w-[90%] rounded bg-black/50 px-2 py-0.5 text-[11px] leading-snug text-white/90 [&_a]:underline [&_a]:text-white"
+        set:html={renderInlineMarkdown(venue.imageCredit)}
+      />
+    )}
 
     <div class="max-w-4xl mx-auto px-4 sm:px-6 py-10 md:py-14">
       <!-- Breadcrumb -->

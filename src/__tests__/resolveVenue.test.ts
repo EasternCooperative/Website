@@ -41,6 +41,14 @@ describe('resolveVenue', () => {
     });
   });
 
+  it('credits the venue photo only when the venue photo is shown', () => {
+    const credited = { ...site, imageCredit: 'Photo: Jane' };
+    expect(resolveVenue({}, credited).imageCredit).toBe('Photo: Jane');
+    expect(resolveVenue({ image: '/images/custom.jpg' }, credited).imageCredit).toBeUndefined();
+    expect(resolveVenue({}, { ...credited, imageCredit: '' }).imageCredit).toBeUndefined();
+    expect(resolveVenue({}, { name: 'No photo', imageCredit: 'Photo: Jane' }).imageCredit).toBeUndefined();
+  });
+
   it('uses event.location when provided, ignores site.name', () => {
     const result = resolveVenue({ location: 'Override Location' }, site);
     expect(result.location).toBe('Override Location');

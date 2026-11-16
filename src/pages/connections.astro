@@ -8,6 +8,7 @@ import Headline from '~/components/ui/Headline.astro';
 import Image from '~/components/common/Image.astro';
 import connections from '~/data/settings/connections.json';
 import siteSettings from '~/data/settings/site.json';
+import { renderInlineMarkdown } from '~/utils/markdown';
 
 const metadata = {
   title: connections.heroTitle,
@@ -135,6 +136,9 @@ const pastVenues = allSites.filter((s) => s.data.historical).sort(sortByName);
           <div class="flex flex-1 flex-col p-4">
             <p class="font-bold text-heading">{venue.data.name}</p>
             {venue.data.address && <p class="text-sm text-muted">{venue.data.address}</p>}
+            {venue.data.image && venue.data.imageCredit && (
+              <p class="mt-1 text-xs text-muted md-links" set:html={renderInlineMarkdown(venue.data.imageCredit)} />
+            )}
             {venue.data.website && (
               <a
                 href={venue.data.website}
