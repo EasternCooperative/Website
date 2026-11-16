@@ -76,6 +76,59 @@ function PlayerSetup({ src }: { src: string }) {
   return null;
 }
 
+/**
+ * Keeps captions above the control bar in Firefox, as the skin already does
+ * elsewhere. The skin lifts the caption layer while its controls show (its
+ * root gets data-controls-visible), but through ::-webkit-media-text-track-
+ * container, which only Chrome and Safari have. Without it, this moves the
+ * cues themselves: while the bar shows, each cue's bottom edge sits just above
+ * it (a percentage of the video's height); once the bar hides, cues return to
+ * their default spot. The bar is centered on the Seek slider's row, so its
+ * height plus its margin is about twice the slider's distance from the bottom.
+ */
+export function liftCaptions(slide: HTMLElement | null) {
+  if (CSS.supports('selector(::-webkit-media-text-track-container)')) return () => {};
+  const root = slide?.querySelector<HTMLElement>('.ecrs-player');
+  const video = slide?.querySelector('video');
+  const track = video?.textTracks?.[0];
+  if (!root || !video || !track) return () => {};
+
+  const place = () => {
+    if (!track.cues) return;
+    const box = root.getBoundingClientRect();
+    const seek = root.querySelector('[role="slider"][aria-label="Seek"]')?.getBoundingClientRect();
+    let line: number | null = null;
+    if (root.hasAttribute('data-controls-visible') && seek && seek.height > 0 && box.height > 0) {
+      // 24px more: Firefox draws the cue box's bottom about 13px past `line`.
+      const clearance = 2 * (box.bottom - (seek.top + seek.height / 2)) + 24;
+      line = Math.max(50, 100 - (clearance / box.height) * 100);
+    }
+    for (const cue of Array.from(track.cues) as VTTCue[]) {
+      if (line === null) {
+        cue.snapToLines = true;
+        cue.line = 'auto';
+      } else {
+        cue.snapToLines = false;
+        cue.lineAlign = 'end';
+        cue.line = line;
+      }
+    }
+  };
+
+  const trackEl = video.querySelector('track');
+  trackEl?.addEventListener('load', place);
+  const attrs = new MutationObserver(place);
+  attrs.observe(root, { attributes: true, attributeFilter: ['data-controls-visible'] });
+  const resize = new ResizeObserver(place);
+  resize.observe(root);
+  place();
+  return () => {
+    trackEl?.removeEventListener('load', place);
+    attrs.disconnect();
+    resize.disconnect();
+  };
+}
+
 interface Props {
   src: string;
   captions: string;
@@ -91,8 +144,11 @@ interface Props {
  * keyboard shortcuts while the player has focus), themed with ECRS pink.
  */
 export default function GalleryVideoPlayer({ src, captions, poster, title, aspect }: Props) {
+  const slideRef = useRef<HTMLDivElement>(null);
+  useEffect(() => liftCaptions(slideRef.current), []);
+
   return (
-    <div className="ecrs-player-slide">
+    <div ref={slideRef} className="ecrs-player-slide">
       <VideoPlayer poster={poster} defaultPlaybackRates={PLAYBACK_RATES}>
         <VideoSkin className="ecrs-player" style={{ '--ecrs-aspect': aspect } as React.CSSProperties}>
           <Video src={src} playsInline preload="metadata" aria-label={title}>

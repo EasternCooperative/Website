@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act } from 'react';
 import GalleryVideoPlayer, {
+  liftCaptions,
   PLAYBACK_RATES,
   RATE_KEY,
   playOnOpen,
@@ -176,6 +177,82 @@ describe('GalleryVideoPlayer', () => {
       await mount();
       await act(async () => fake.store.attach());
       expect(fake.store.play).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('captions above the control bar (Firefox)', () => {
+    // A 400px-tall player whose Seek slider is centered 30px above its bottom,
+    // so the bar plus margin takes 60px; Firefox needs 24px more.
+    let cues: VTTCue[];
+    function slide() {
+      const el = document.createElement('div');
+      el.innerHTML = '<div class="ecrs-player"><video><track></video><div role="slider" aria-label="Seek"></div></div>';
+      const root = el.querySelector<HTMLElement>('.ecrs-player')!;
+      const rect = (top: number, height: number) => ({ top, height, bottom: top + height }) as DOMRect;
+      root.getBoundingClientRect = () => rect(0, 400);
+      el.querySelector('[role="slider"]')!.getBoundingClientRect = () => rect(366, 8);
+      cues = [{}, {}] as VTTCue[];
+      Object.defineProperty(el.querySelector('video'), 'textTracks', { value: [{ cues }] });
+      document.body.append(el);
+      return { el, root };
+    }
+    const flush = () => act(async () => await new Promise((r) => setTimeout(r, 0)));
+
+    beforeEach(() => {
+      vi.stubGlobal('CSS', { supports: () => false });
+      vi.stubGlobal(
+        'ResizeObserver',
+        class {
+          observe = vi.fn();
+          disconnect = vi.fn();
+        }
+      );
+    });
+    afterEach(() => vi.unstubAllGlobals());
+
+    it('lifts cues above the bar while it shows, and drops them when it hides', async () => {
+      const { el, root } = slide();
+      root.setAttribute('data-controls-visible', '');
+      const stop = liftCaptions(el);
+      expect(cues[0]).toMatchObject({ snapToLines: false, lineAlign: 'end', line: 100 - (84 / 400) * 100 });
+      root.removeAttribute('data-controls-visible');
+      await flush();
+      expect(cues[1]).toMatchObject({ snapToLines: true, line: 'auto' });
+      stop();
+    });
+
+    it('places cues once the caption file loads', () => {
+      const { el, root } = slide();
+      root.setAttribute('data-controls-visible', '');
+      const track = el.querySelector('video')!.textTracks[0] as { cues: VTTCue[] | null };
+      track.cues = null;
+      const stop = liftCaptions(el);
+      track.cues = cues;
+      el.querySelector('track')!.dispatchEvent(new Event('load'));
+      expect(cues[0].line).toBe(79);
+      stop();
+    });
+
+    it('never pushes captions above the middle of a tiny player', () => {
+      const { el, root } = slide();
+      root.setAttribute('data-controls-visible', '');
+      root.getBoundingClientRect = () => ({ top: 300, height: 100, bottom: 400 }) as DOMRect;
+      const stop = liftCaptions(el);
+      expect(cues[0].line).toBe(50);
+      stop();
+    });
+
+    it('leaves captions to the skin where it can lift them (Chrome, Safari)', () => {
+      vi.stubGlobal('CSS', { supports: () => true });
+      const { el, root } = slide();
+      root.setAttribute('data-controls-visible', '');
+      liftCaptions(el)();
+      expect(cues[0]).toEqual({});
+    });
+
+    it('does nothing without a player in the slide', () => {
+      expect(() => liftCaptions(document.createElement('div'))()).not.toThrow();
+      expect(() => liftCaptions(null)()).not.toThrow();
     });
   });
 
