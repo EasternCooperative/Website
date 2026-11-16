@@ -1,0 +1,61 @@
+/* Gallery lightbox video player (GalleryVideoPlayer.tsx, Video.js 10).
+   Only the skin's public custom properties are set here; everything inside
+   the packaged skin is private to Video.js and may change between releases. */
+
+/* The PhotoSwipe slide: a size container, so the player can fit it exactly. */
+.ecrs-player-slide {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  /* Clear PhotoSwipe's top bar and caption. */
+  padding: 56px 0 72px;
+  container-type: size;
+  box-sizing: border-box;
+}
+@media (min-width: 640px) {
+  .ecrs-player-slide {
+    padding: 64px 48px 88px;
+  }
+}
+
+.ecrs-player {
+  --media-accent-color: rgb(189 15 93); /* ECRS Neon Pink 600 */
+  --media-accent-text-color: #fff;
+  --media-font-family: var(--aw-font-sans), ui-sans-serif, system-ui, sans-serif;
+  --media-border-radius: 0.5rem;
+
+  /* As large as the slide allows while keeping the video's own shape. Both
+     sides are explicit: the skin sizes itself to fill its parent, which
+     would override aspect-ratio and stretch the controls down the slide. */
+  width: min(100cqw, 100cqh * var(--ecrs-aspect, 1.7778));
+  height: min(100cqh, 100cqw / var(--ecrs-aspect, 1.7778));
+}
+
+/* Pointer cursor on everything clickable in the skin, matched by role (the
+   skin's own class names are private to Video.js). */
+.ecrs-player :is(button, [role='button'], [role='slider'], [role^='menuitem']) {
+  cursor: pointer;
+}
+
+/* The player root takes focus only by script (see onGalleryOpen), so no
+   ring around the whole video; its controls keep their own focus styles. */
+.ecrs-player:focus {
+  outline: none;
+}
+
+/* Edge to edge on phones, where every pixel of width counts. */
+@media (max-width: 639px) {
+  .ecrs-player {
+    --media-border-radius: 0;
+  }
+}
+
+/* Larger, legible captions with a soft box. */
+.ecrs-player video::cue {
+  font-size: clamp(0.95rem, 2.4vw, 1.35rem);
+  line-height: 1.35;
+  background: rgb(0 0 0 / 0.72);
+  color: #fff;
+}

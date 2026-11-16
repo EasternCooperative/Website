@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act } from 'react';
 import GalleryBrowser, { type GalleryPhoto } from '~/components/widgets/GalleryBrowser';
-import { cleanup, render, settle, textOf, type } from '../react';
+import { cleanup, click, render, settle, textOf, type } from '../react';
 
 // Opening the lightbox needs a real layout engine; the grid and filters do not.
 // The mock keeps the props the real Gallery hands to PhotoSwipe, so tests can
@@ -36,6 +36,13 @@ vi.mock('react-photoswipe-gallery', () => ({
   ),
 }));
 vi.mock('photoswipe/style.css', () => ({}));
+// The real player (Video.js) needs a browser; e2e/gallery-video.spec.ts drives
+// it. Here a stand-in records what each video slide hands it.
+const playOnOpen = vi.hoisted(() => vi.fn());
+vi.mock('~/components/widgets/GalleryVideoPlayer', () => ({
+  default: (props: Record<string, unknown>) => <div data-player={JSON.stringify(props)} />,
+  playOnOpen,
+}));
 
 let observe: ReturnType<typeof vi.fn>;
 let disconnect: ReturnType<typeof vi.fn>;
@@ -265,14 +272,29 @@ describe('GalleryBrowser', () => {
       const tiles = [...container.querySelectorAll('button[aria-label^="Play video"]')];
       expect(tiles.map((b) => b.getAttribute('aria-label'))).toEqual(['Play video: Video 5', 'Play video: Video 6']);
       expect(textOf(tiles[0])).toContain('5:27');
+      // Each video tile names its video, so they can be told apart unopened.
+      expect(tiles.map((b) => textOf(b.querySelector('[data-video-title]')!))).toEqual(['Video 5', 'Video 6']);
     });
 
     it('plays each video in the lightbox with its captions', async () => {
       const container = await mount([video(5)]);
-      const slide = container.querySelector('[data-slide] video')!;
-      expect(slide.getAttribute('aria-label')).toBe('Video 5');
-      expect(slide.querySelector('source')!.getAttribute('src')).toBe('https://media.example/5.mp4');
-      expect(slide.querySelector('track')!.getAttribute('src')).toBe('/v/5.vtt');
+      const slide = container.querySelector('[data-slide] [data-player]')!;
+      expect(JSON.parse(slide.getAttribute('data-player')!)).toEqual({
+        src: 'https://media.example/5.mp4',
+        captions: '/v/5.vtt',
+        poster: '/p/5-full.webp',
+        title: 'Video 5',
+        aspect: 800 / 600,
+      });
+    });
+
+    it('asks the player to start when a video tile is clicked, not a photo tile', async () => {
+      playOnOpen.mockClear();
+      const container = await mount(mixed);
+      await click(container.querySelector('button[aria-label="Play video: Video 5"]'));
+      expect(playOnOpen).toHaveBeenCalledWith('https://media.example/5.mp4');
+      await click(container.querySelector('[data-caption] button:not([aria-label])'));
+      expect(playOnOpen).toHaveBeenCalledTimes(1);
     });
 
     it('filters by type', async () => {
@@ -297,19 +319,22 @@ describe('GalleryBrowser', () => {
     it('treats a lone video without a duration as one video', async () => {
       const container = await mount([video(7, { video: { src: '/7.mp4', captions: '/7.vtt' } })]);
       expect(count(container)).toBe('1 video');
-      expect(textOf(container.querySelector('button[aria-label^="Play video"]')!)).toBe('');
+      // Just the title in its strip: no empty duration badge.
+      expect(textOf(container.querySelector('button[aria-label^="Play video"]')!)).toBe('Video 7');
     });
   });
 
   describe('lightbox', () => {
     // Just enough of PhotoSwipe for the open hook and the "open original" button.
     function fakeLightbox(src: string) {
-      const handlers: Record<string, (() => void)[]> = {};
+      const handlers: Record<string, ((arg?: unknown) => void)[]> = {};
       return {
-        currSlide: { data: { src } },
+        currSlide: { data: { src }, holderElement: document.createElement('div') },
+        options: { bgOpacity: 0.8 },
+        applyBgOpacity: vi.fn(),
         mainScroll: { moveIndexBy: vi.fn() },
-        on: (name: string, fn: () => void) => (handlers[name] ??= []).push(fn),
-        emit: (name: string) => handlers[name]?.forEach((fn) => fn()),
+        on: (name: string, fn: (arg?: unknown) => void) => (handlers[name] ??= []).push(fn),
+        emit: (name: string, arg?: unknown) => handlers[name]?.forEach((fn) => fn(arg)),
       };
     }
 
@@ -355,13 +380,103 @@ describe('GalleryBrowser', () => {
       expect(pause).toHaveBeenCalledTimes(2);
     });
 
-    it('leaves arrow keys to a focused video', async () => {
+    it('keeps drags on the video controls from swiping slides', async () => {
       await mount();
       const pswp = fakeLightbox('/p/1-full.webp');
       galleryProps.current!.onOpen(pswp);
+      const pointerDown = (target: Element) => {
+        const e = { originalEvent: { target }, preventDefault: vi.fn() };
+        pswp.emit('pointerDown', e);
+        return e.preventDefault;
+      };
+      const player = document.createElement('div');
+      player.className = 'ecrs-player';
+      const scrubber = document.createElement('div');
+      scrubber.setAttribute('role', 'slider');
+      scrubber.dataset.orientation = 'horizontal';
+      const settings = document.createElement('button');
+      const menuItem = document.createElement('div');
+      menuItem.setAttribute('role', 'menuitemradio');
+      const video = document.createElement('video');
+      player.append(scrubber, settings, menuItem, video);
+      expect(pointerDown(scrubber)).toHaveBeenCalled();
+      expect(pointerDown(settings)).toHaveBeenCalled();
+      expect(pointerDown(menuItem)).toHaveBeenCalled();
+      // Swiping across the picture itself still changes slides, and buttons
+      // outside a player (PhotoSwipe's own) are left alone.
+      expect(pointerDown(video)).not.toHaveBeenCalled();
+      expect(pointerDown(document.createElement('button'))).not.toHaveBeenCalled();
+    });
+
+    it("focuses the current video's player on open, so its shortcuts (space) work", async () => {
+      await mount();
+      const pswp = fakeLightbox('/p/1-full.webp');
+      galleryProps.current!.onOpen(pswp);
+      const player = document.createElement('div');
+      player.className = 'ecrs-player';
+      pswp.currSlide.holderElement.append(player);
+      document.body.append(pswp.currSlide.holderElement);
+      pswp.emit('openingAnimationEnd');
+      expect(document.activeElement).toBe(player);
+      expect(player.tabIndex).toBe(-1); // focusable, but not a Tab stop
+    });
+
+    it('waits a few frames for a video slide that mounts after the change', async () => {
+      await mount();
+      const pswp = fakeLightbox('/p/1-full.webp');
+      galleryProps.current!.onOpen(pswp);
+      document.body.append(pswp.currSlide.holderElement);
+      pswp.emit('change');
+      expect(pswp.options.bgOpacity).toBe(0.8);
+      const player = document.createElement('div');
+      player.className = 'ecrs-player';
+      player.tabIndex = -1;
+      pswp.currSlide.holderElement.append(player);
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      expect(pswp.options.bgOpacity).toBe(1);
+      expect(document.activeElement).toBe(player);
+    });
+
+    it('stops waiting once the lightbox moves on to another slide', async () => {
+      await mount();
+      const pswp = fakeLightbox('/p/1-full.webp');
+      galleryProps.current!.onOpen(pswp);
+      pswp.emit('change');
+      const late = document.createElement('div');
+      late.className = 'ecrs-player';
+      pswp.currSlide.holderElement.append(late);
+      pswp.currSlide = { ...pswp.currSlide, holderElement: document.createElement('div') };
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      expect(pswp.options.bgOpacity).toBe(0.8);
+    });
+
+    it('gives video slides a solid backdrop and photos the usual one', async () => {
+      await mount();
+      const pswp = fakeLightbox('/p/1-full.webp');
+      galleryProps.current!.onOpen(pswp);
+      const player = document.createElement('div');
+      player.className = 'ecrs-player';
+      pswp.currSlide.holderElement.append(player);
+      pswp.emit('change');
+      expect(pswp.options.bgOpacity).toBe(1);
+      pswp.currSlide.holderElement.replaceChildren();
+      pswp.emit('change');
+      expect(pswp.options.bgOpacity).toBe(0.8);
+    });
+
+    it('leaves arrow keys to a focused video player', async () => {
+      await mount();
+      const pswp = fakeLightbox('/p/1-full.webp');
+      galleryProps.current!.onOpen(pswp);
+      // Focus may be on the <video> or on one of the player's own controls.
+      const player = document.createElement('div');
+      player.className = 'ecrs-player';
       const v = document.createElement('video');
-      document.body.append(v);
+      const button = document.createElement('button');
+      player.append(v, button);
+      document.body.append(player);
       v.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+      button.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
       expect(pswp.mainScroll.moveIndexBy).not.toHaveBeenCalled();
       pswp.emit('change');
       pswp.emit('destroy');

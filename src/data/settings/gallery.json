@@ -29,9 +29,10 @@
       "src": "https://media.ecrs.org/gallery/ice-cream-disaster.mp4",
       "poster": "/videos/gallery/ice-cream-disaster-poster.jpg",
       "captions": "/videos/gallery/ice-cream-disaster.vtt",
-      "description": "A skit from Winter Workshop, posted in January 2011: something has gone awry at the ice cream factory.",
+      "year": 2010,
+      "description": "A skit from Winter Workshop, posted in January 2011, right after the 70th Anniversary Winter Workshop: something has gone awry at the ice cream factory.",
       "duration": "5:30",
-      "event": "Winter Workshop"
+      "event": "70th Anniversary Winter Workshop 2010-11"
     }
   ]
 }

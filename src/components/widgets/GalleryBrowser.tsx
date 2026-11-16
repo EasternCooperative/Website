@@ -4,6 +4,7 @@ import type PhotoSwipe from 'photoswipe';
 import RangeSlider from '~/components/ui/RangeSlider';
 import type { RangeLabelPhrasing } from '~/utils/rangeSlider';
 import 'photoswipe/style.css';
+import GalleryVideoPlayer, { playOnOpen } from '~/components/widgets/GalleryVideoPlayer';
 
 // PhotoSwipe's arrow-key handler jumps to the next/prev slide instantly
 // (mainScroll.moveIndexBy without `animate`) — the spring-slide transition is
@@ -14,11 +15,19 @@ import 'photoswipe/style.css';
 //
 // Video slides: a video keeps playing after you swipe away from it unless it is
 // paused, so every video in the lightbox is paused on slide change and close.
-// Arrow keys pressed while a video has focus belong to its own seek controls.
+// Arrow keys pressed while the player has focus belong to its own seek controls
+// (focus may be on one of the player's buttons rather than the <video> itself).
+const PLAYER = '.ecrs-player';
+// Player controls a pointer drag should operate rather than swipe slides:
+// buttons, menus, and slider parts (which all carry data-orientation). Matched
+// by role and data attribute, not Video.js's private class names.
+const PLAYER_CONTROL = ['button', '[role="button"]', '[role="menu"]', '[role^="menuitem"]', '[data-orientation]']
+  .map((c) => `${PLAYER} ${c}`)
+  .join(', ');
 export function onGalleryOpen(pswp: PhotoSwipe) {
   window.ecrsTrack?.('gallery_photo_open');
   const handleKeydown = (e: KeyboardEvent) => {
-    if (e.target instanceof HTMLVideoElement) return;
+    if (e.target instanceof Element && e.target.closest(PLAYER)) return;
     if (e.key === 'ArrowLeft') pswp.mainScroll.moveIndexBy(-1, true);
     else if (e.key === 'ArrowRight') pswp.mainScroll.moveIndexBy(1, true);
   };
@@ -26,6 +35,39 @@ export function onGalleryOpen(pswp: PhotoSwipe) {
     pswp.element?.querySelectorAll('video').forEach((v) => v.pause());
   };
   document.addEventListener('keydown', handleKeydown);
+  // A drag on the video player's scrubber, volume slider, or settings menu
+  // would otherwise also count as a swipe to the next slide. Swiping across
+  // the picture itself still changes slides.
+  pswp.on('pointerDown', (e) => {
+    const t = e.originalEvent.target;
+    if (t instanceof Element && t.closest(PLAYER_CONTROL)) {
+      e.preventDefault();
+    }
+  });
+  // Video slides get a solid black backdrop instead of PhotoSwipe's
+  // translucent one, so the page doesn't show through around the player.
+  // (applyBgOpacity is a multiplier on options.bgOpacity, which the open,
+  // close, and drag-to-close animations also read, so switch the option.)
+  const photoBgOpacity = pswp.options.bgOpacity;
+  // Video.js listens for its keyboard shortcuts (space to play and pause,
+  // and the rest) only while focus is inside its player, so that neighboring
+  // slides' players don't all react. Focus the current slide's player whenever
+  // it becomes current, or the shortcuts do nothing until it's clicked.
+  // A slide's content can mount a frame or more after `change` fires, so
+  // look again for a few frames (stopping if the slide changes meanwhile).
+  const onSlide = (slide = pswp.currSlide, tries = 10) => {
+    if (pswp.currSlide !== slide) return;
+    const player = slide?.holderElement?.querySelector<HTMLElement>(PLAYER);
+    pswp.options.bgOpacity = player ? 1 : photoBgOpacity;
+    pswp.applyBgOpacity(1);
+    if (player) {
+      // Focusable by script, but not an extra Tab stop.
+      if (!player.hasAttribute('tabindex')) player.tabIndex = -1;
+      player.focus({ preventScroll: true });
+    } else if (tries > 0) requestAnimationFrame(() => onSlide(slide, tries - 1));
+  };
+  pswp.on('change', () => onSlide());
+  pswp.on('openingAnimationEnd', () => onSlide());
   pswp.on('change', pauseVideos);
   pswp.on('close', pauseVideos);
   pswp.on('destroy', () => document.removeEventListener('keydown', handleKeydown));
@@ -65,7 +107,8 @@ export interface GalleryPhoto {
   year?: number;
   photographer?: string;
   event?: string;
-  /** Present for videos: `src`/`full` then hold the poster image. */
+  /** Present for videos: `src`/`full` then hold the poster image, and
+   * `width`/`height` are the poster's (so the video's) dimensions. */
   video?: GalleryVideo;
 }
 
@@ -100,24 +143,6 @@ function countLabel(items: GalleryPhoto[]): string {
   if (!videos) return photoText;
   const videoText = `${videos} ${videos === 1 ? 'video' : 'videos'}`;
   return photos ? `${photoText}, ${videoText}` : videoText;
-}
-
-function VideoSlide({ video, poster, title }: { video: GalleryVideo; poster: string; title: string }) {
-  return (
-    <div className="flex h-full w-full items-center justify-center p-4 sm:p-12">
-      <video
-        controls
-        playsInline
-        preload="metadata"
-        poster={poster}
-        aria-label={title}
-        className="max-h-full max-w-full bg-black"
-      >
-        <source src={video.src} type="video/mp4" />
-        <track kind="captions" src={video.captions} srcLang="en" label="English" default />
-      </video>
-    </div>
-  );
 }
 
 export default function GalleryBrowser({ photos, years, photographers, events }: Props) {
@@ -316,7 +341,17 @@ export default function GalleryBrowser({ photos, years, photographers, events }:
               <li key={photo.id}>
                 <Item
                   {...(video
-                    ? { content: <VideoSlide video={video} poster={photo.full} title={photo.alt} /> }
+                    ? {
+                        content: (
+                          <GalleryVideoPlayer
+                            src={video.src}
+                            captions={video.captions}
+                            poster={photo.full}
+                            title={photo.alt}
+                            aspect={photo.width / photo.height}
+                          />
+                        ),
+                      }
                     : { original: photo.full, width: photo.width, height: photo.height })}
                   thumbnail={photo.src}
                   alt={photo.alt}
@@ -325,7 +360,10 @@ export default function GalleryBrowser({ photos, years, photographers, events }:
                   {({ ref, open }) => (
                     <button
                       type="button"
-                      onClick={open}
+                      onClick={(e) => {
+                        if (video) playOnOpen(video.src);
+                        open(e);
+                      }}
                       aria-label={video ? `Play video: ${photo.alt}` : undefined}
                       className="relative block w-full aspect-square overflow-hidden rounded-md bg-gray-100 dark:bg-gray-800"
                     >
@@ -347,11 +385,20 @@ export default function GalleryBrowser({ photos, years, photographers, events }:
                               <path d="M8 5v14l11-7z" />
                             </svg>
                           </span>
-                          {video.duration && (
-                            <span className="absolute bottom-2 right-2 rounded bg-black/70 px-1.5 py-0.5 text-xs font-medium text-white">
-                              {video.duration}
+                          {/* Title strip, so videos can be told apart before opening one. */}
+                          <span className="absolute inset-x-0 bottom-0 flex items-end gap-2 bg-gradient-to-t from-black/80 via-black/50 to-transparent px-2 pb-2 pt-6 text-white">
+                            <span
+                              data-video-title
+                              className="min-w-0 flex-1 line-clamp-2 text-left text-sm font-semibold leading-tight"
+                            >
+                              {photo.alt}
                             </span>
-                          )}
+                            {video.duration && (
+                              <span className="shrink-0 rounded bg-black/70 px-1.5 py-0.5 text-xs font-medium tabular-nums">
+                                {video.duration}
+                              </span>
+                            )}
+                          </span>
                         </span>
                       )}
                     </button>
