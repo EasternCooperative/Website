@@ -2,31 +2,50 @@ import { test, expect, type Page } from '@playwright/test';
 
 /**
  * E2E tests for the gallery's lightbox video player (GalleryVideoPlayer.tsx,
- * media-chrome inside PhotoSwipe). PhotoSwipe owns pointer drags and arrow
- * keys for slide navigation, so these check that the player's own controls
- * win inside a video slide. None of them need the video file itself to load
- * (it streams from media.ecrs.org), only the player chrome.
+ * Video.js 10's packaged skin inside PhotoSwipe). PhotoSwipe owns pointer
+ * drags and arrow keys for slide navigation, so these check that the player's
+ * own controls win inside a video slide. Controls are found by role and label,
+ * not by Video.js's private class names.
  */
+
+/** The slide on screen (PhotoSwipe keeps its neighbors mounted, aria-hidden). */
+const CURRENT = '.pswp__item:not([aria-hidden="true"])';
 
 async function openVideo(page: Page, title: RegExp) {
   await page.goto('/gallery');
   await page.locator('select[data-track-filter="type"]').selectOption('video');
   await page.getByRole('button', { name: title }).click();
-  await expect(page.locator('.pswp media-controller').first()).toBeVisible();
+  await expect(player(page)).toBeVisible();
 }
 
-/** Playback rate of the player on the current slide (PhotoSwipe keeps neighbors mounted). */
-function currentVideoRate(page: Page) {
-  return page
-    .locator('.pswp__item:not([aria-hidden="true"]) media-controller video')
-    .first()
+const player = (page: Page) => page.locator(`${CURRENT} .ecrs-player`);
+const currentVideoRate = (page: Page) =>
+  player(page)
+    .locator('video')
     .evaluate((v: HTMLVideoElement) => v.playbackRate);
+
+/** Shows the controls (they wait for playback to start) without needing the video to load. */
+async function showControls(page: Page) {
+  await player(page)
+    .locator('video')
+    .evaluate((v: HTMLVideoElement) => {
+      v.muted = true;
+      return v.play().catch(() => {});
+    });
+  await player(page).hover();
+}
+
+async function chooseSpeed(page: Page, speed: string, tap = false) {
+  const go = (l: ReturnType<Page['locator']>) => (tap ? l.tap() : l.click());
+  await go(player(page).getByRole('button', { name: /settings/i }));
+  await go(player(page).getByRole('menuitem', { name: /speed/i }));
+  await go(player(page).getByRole('menuitemradio', { name: speed }));
 }
 
 test('speed menu changes the playback rate and remembers it', async ({ page }) => {
   await openVideo(page, /Play video: Ice Cream Disaster/);
-  await page.locator('media-playback-rate-menu-button').filter({ visible: true }).click();
-  await page.locator('media-playback-rate-menu').filter({ visible: true }).getByText('1.5x', { exact: true }).click();
+  await showControls(page);
+  await chooseSpeed(page, '1.5×');
   await expect.poll(() => currentVideoRate(page)).toBe(1.5);
 
   await page.keyboard.press('Escape');
@@ -38,9 +57,10 @@ test('speed menu changes the playback rate and remembers it', async ({ page }) =
 
 test('dragging the scrubber does not swipe to another slide', async ({ page }) => {
   await openVideo(page, /Play video: Ice Cream Disaster/);
+  await showControls(page);
   const counter = page.locator('.pswp__counter');
   const before = await counter.textContent();
-  const box = await page.locator('media-time-range').filter({ visible: true }).boundingBox();
+  const box = await player(page).getByRole('slider', { name: 'Seek' }).boundingBox();
   if (!box) throw new Error('scrubber not visible');
   await page.mouse.move(box.x + box.width * 0.8, box.y + box.height / 2);
   await page.mouse.down();
@@ -54,7 +74,7 @@ test('arrow keys inside the player seek instead of changing slides', async ({ pa
   await openVideo(page, /Play video: Ice Cream Disaster/);
   const counter = page.locator('.pswp__counter');
   const before = await counter.textContent();
-  await page.locator('media-play-button').filter({ visible: true }).last().focus();
+  await player(page).getByRole('button', { name: 'Play' }).first().focus();
   await page.keyboard.press('ArrowLeft');
   await page.keyboard.press('ArrowRight');
   await page.waitForTimeout(500);
@@ -66,8 +86,8 @@ test.describe('on a phone', () => {
 
   test('every speed in the menu is reachable', async ({ page }) => {
     await openVideo(page, /Play video: Ice Cream Disaster/);
-    await page.locator('media-playback-rate-menu-button').filter({ visible: true }).tap();
-    await page.locator('media-playback-rate-menu').filter({ visible: true }).getByText('2x', { exact: true }).tap();
+    await showControls(page);
+    await chooseSpeed(page, '2×', true);
     await expect.poll(() => currentVideoRate(page)).toBe(2);
   });
 });

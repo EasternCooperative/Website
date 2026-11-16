@@ -36,6 +36,11 @@ vi.mock('react-photoswipe-gallery', () => ({
   ),
 }));
 vi.mock('photoswipe/style.css', () => ({}));
+// The real player (Video.js) needs a browser; e2e/gallery-video.spec.ts drives
+// it. Here a stand-in records what each video slide hands it.
+vi.mock('~/components/widgets/GalleryVideoPlayer', () => ({
+  default: (props: Record<string, unknown>) => <div data-player={JSON.stringify(props)} />,
+}));
 
 let observe: ReturnType<typeof vi.fn>;
 let disconnect: ReturnType<typeof vi.fn>;
@@ -52,15 +57,6 @@ beforeEach(() => {
       }
       observe = observe;
       disconnect = disconnect;
-    }
-  );
-  // jsdom has no ResizeObserver; the video player uses one to keep captions
-  // clear of its controls.
-  vi.stubGlobal(
-    'ResizeObserver',
-    class {
-      observe = vi.fn();
-      disconnect = vi.fn();
     }
   );
   window.matchMedia = vi.fn().mockImplementation((query: string) => ({
@@ -278,10 +274,14 @@ describe('GalleryBrowser', () => {
 
     it('plays each video in the lightbox with its captions', async () => {
       const container = await mount([video(5)]);
-      const slide = container.querySelector('[data-slide] video')!;
-      expect(slide.getAttribute('aria-label')).toBe('Video 5');
-      expect(slide.querySelector('source')!.getAttribute('src')).toBe('https://media.example/5.mp4');
-      expect(slide.querySelector('track')!.getAttribute('src')).toBe('/v/5.vtt');
+      const slide = container.querySelector('[data-slide] [data-player]')!;
+      expect(JSON.parse(slide.getAttribute('data-player')!)).toEqual({
+        src: 'https://media.example/5.mp4',
+        captions: '/v/5.vtt',
+        poster: '/p/5-full.webp',
+        title: 'Video 5',
+        aspect: 800 / 600,
+      });
     });
 
     it('filters by type', async () => {
@@ -375,20 +375,32 @@ describe('GalleryBrowser', () => {
         pswp.emit('pointerDown', e);
         return e.preventDefault;
       };
-      const player = document.createElement('media-controller');
-      const scrubber = document.createElement('media-time-range');
+      const player = document.createElement('div');
+      player.className = 'ecrs-player';
+      const scrubber = document.createElement('div');
+      scrubber.setAttribute('role', 'slider');
+      scrubber.dataset.orientation = 'horizontal';
+      const settings = document.createElement('button');
+      const menuItem = document.createElement('div');
+      menuItem.setAttribute('role', 'menuitemradio');
       const video = document.createElement('video');
-      player.append(scrubber, video);
+      player.append(scrubber, settings, menuItem, video);
       expect(pointerDown(scrubber)).toHaveBeenCalled();
-      // Swiping across the picture itself still changes slides.
+      expect(pointerDown(settings)).toHaveBeenCalled();
+      expect(pointerDown(menuItem)).toHaveBeenCalled();
+      // Swiping across the picture itself still changes slides, and buttons
+      // outside a player (PhotoSwipe's own) are left alone.
       expect(pointerDown(video)).not.toHaveBeenCalled();
+      expect(pointerDown(document.createElement('button'))).not.toHaveBeenCalled();
     });
 
     it('gives video slides a solid backdrop and photos the usual one', async () => {
       await mount();
       const pswp = fakeLightbox('/p/1-full.webp');
       galleryProps.current!.onOpen(pswp);
-      pswp.currSlide.holderElement.append(document.createElement('media-controller'));
+      const player = document.createElement('div');
+      player.className = 'ecrs-player';
+      pswp.currSlide.holderElement.append(player);
       pswp.emit('change');
       expect(pswp.options.bgOpacity).toBe(1);
       pswp.currSlide.holderElement.replaceChildren();
@@ -401,9 +413,10 @@ describe('GalleryBrowser', () => {
       const pswp = fakeLightbox('/p/1-full.webp');
       galleryProps.current!.onOpen(pswp);
       // Focus may be on the <video> or on one of the player's own controls.
-      const player = document.createElement('media-controller');
+      const player = document.createElement('div');
+      player.className = 'ecrs-player';
       const v = document.createElement('video');
-      const button = document.createElement('media-play-button');
+      const button = document.createElement('button');
       player.append(v, button);
       document.body.append(player);
       v.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));

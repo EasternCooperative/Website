@@ -16,11 +16,18 @@ import GalleryVideoPlayer from '~/components/widgets/GalleryVideoPlayer';
 // Video slides: a video keeps playing after you swipe away from it unless it is
 // paused, so every video in the lightbox is paused on slide change and close.
 // Arrow keys pressed while the player has focus belong to its own seek controls
-// (focus may be on a media-chrome control rather than the <video> itself).
+// (focus may be on one of the player's buttons rather than the <video> itself).
+const PLAYER = '.ecrs-player';
+// Player controls a pointer drag should operate rather than swipe slides:
+// buttons, menus, and slider parts (which all carry data-orientation). Matched
+// by role and data attribute, not Video.js's private class names.
+const PLAYER_CONTROL = ['button', '[role="button"]', '[role="menu"]', '[role^="menuitem"]', '[data-orientation]']
+  .map((c) => `${PLAYER} ${c}`)
+  .join(', ');
 export function onGalleryOpen(pswp: PhotoSwipe) {
   window.ecrsTrack?.('gallery_photo_open');
   const handleKeydown = (e: KeyboardEvent) => {
-    if (e.target instanceof Element && e.target.closest('media-controller')) return;
+    if (e.target instanceof Element && e.target.closest(PLAYER)) return;
     if (e.key === 'ArrowLeft') pswp.mainScroll.moveIndexBy(-1, true);
     else if (e.key === 'ArrowRight') pswp.mainScroll.moveIndexBy(1, true);
   };
@@ -28,12 +35,12 @@ export function onGalleryOpen(pswp: PhotoSwipe) {
     pswp.element?.querySelectorAll('video').forEach((v) => v.pause());
   };
   document.addEventListener('keydown', handleKeydown);
-  // A drag on the video player's scrubber, volume slider, or speed menu would
-  // otherwise also count as a swipe to the next slide. (Shadow DOM retargets
-  // the event to the light-DOM control, so `closest` finds it.)
+  // A drag on the video player's scrubber, volume slider, or settings menu
+  // would otherwise also count as a swipe to the next slide. Swiping across
+  // the picture itself still changes slides.
   pswp.on('pointerDown', (e) => {
     const t = e.originalEvent.target;
-    if (t instanceof Element && t.closest('media-time-range, media-control-bar, media-playback-rate-menu')) {
+    if (t instanceof Element && t.closest(PLAYER_CONTROL)) {
       e.preventDefault();
     }
   });
@@ -43,7 +50,7 @@ export function onGalleryOpen(pswp: PhotoSwipe) {
   // close, and drag-to-close animations also read, so switch the option.)
   const photoBgOpacity = pswp.options.bgOpacity;
   const backdrop = () => {
-    const isVideo = !!pswp.currSlide?.holderElement?.querySelector('media-controller');
+    const isVideo = !!pswp.currSlide?.holderElement?.querySelector(PLAYER);
     pswp.options.bgOpacity = isVideo ? 1 : photoBgOpacity;
     pswp.applyBgOpacity(1);
   };

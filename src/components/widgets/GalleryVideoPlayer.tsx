@@ -1,35 +1,62 @@
-import { useEffect, useRef } from 'react';
-import {
-  MediaCaptionsButton,
-  MediaControlBar,
-  MediaController,
-  MediaFullscreenButton,
-  MediaLoadingIndicator,
-  MediaMuteButton,
-  MediaPipButton,
-  MediaPlayButton,
-  MediaSeekBackwardButton,
-  MediaSeekForwardButton,
-  MediaTimeDisplay,
-  MediaTimeRange,
-  MediaVolumeRange,
-} from 'media-chrome/react';
-import { MediaPlaybackRateMenu, MediaPlaybackRateMenuButton } from 'media-chrome/react/menu';
+import { useEffect, useRef, useState } from 'react';
+import { Video, VideoPlayer, VideoSkin, usePlayer } from '@videojs/react/video';
+import '@videojs/react/video/skin.css';
 import '~/assets/styles/gallery-video-player.css';
 
 export const PLAYBACK_RATES = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
 // Remembered across videos and visits, so someone who watches at 1.5x (or
 // slowed down to catch the words of a song) doesn't have to reset it each time.
-const RATE_KEY = 'ecrs-video-rate';
+export const RATE_KEY = 'ecrs-video-rate';
 
-function readSavedRate(): number | undefined {
+export function readSavedRate(): number | undefined {
   try {
     const rate = Number(localStorage.getItem(RATE_KEY));
     return PLAYBACK_RATES.includes(rate) ? rate : undefined;
   } catch {
     return undefined;
   }
+}
+
+export function saveRate(rate: number) {
+  try {
+    localStorage.setItem(RATE_KEY, String(rate));
+  } catch {
+    /* storage blocked: the speed just won't be remembered */
+  }
+}
+
+/**
+ * Restores the saved speed once the player attaches to the <video>, then saves
+ * every change. Follows Video.js's "Remember user preferences" guide: actions
+ * throw before the store has a media target, so the restore waits for one.
+ */
+function RememberSpeed() {
+  const store = usePlayer();
+  const rate = usePlayer((s) => s.playbackRate);
+  const [saved] = useState(readSavedRate);
+  const restored = useRef(false);
+
+  useEffect(() => {
+    if (restored.current) saveRate(rate);
+  }, [rate]);
+
+  useEffect(() => {
+    const restore = () => {
+      if (restored.current) return true;
+      if (!store.target) return false;
+      if (saved) store.setPlaybackRate(saved);
+      restored.current = true;
+      return true;
+    };
+    if (restore()) return;
+    const unsubscribe = store.subscribe(() => {
+      if (restore()) unsubscribe();
+    });
+    return unsubscribe;
+  }, [store, saved]);
+
+  return null;
 }
 
 interface Props {
@@ -42,103 +69,21 @@ interface Props {
 }
 
 /**
- * Lightbox video player: media-chrome controls around a native <video>, with
- * a speed menu, captions toggle, 10-second skips, picture-in-picture, and
- * fullscreen. Keyboard: space/k play, j/l or arrows seek, m mute, f fullscreen,
- * c captions, while the player has focus.
+ * Lightbox video player: Video.js 10's packaged video skin (play, seek, volume,
+ * a settings menu with speed and captions, picture-in-picture, fullscreen, and
+ * keyboard shortcuts while the player has focus), themed with ECRS pink.
  */
 export default function GalleryVideoPlayer({ src, captions, poster, title, aspect }: Props) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    const saved = readSavedRate();
-    if (saved) video.playbackRate = video.defaultPlaybackRate = saved;
-    const saveRate = () => {
-      try {
-        localStorage.setItem(RATE_KEY, String(video.playbackRate));
-      } catch {
-        /* storage blocked: the speed just won't be remembered */
-      }
-    };
-    video.addEventListener('ratechange', saveRate);
-
-    // Native cues sit at the very bottom of the video, under media-chrome's
-    // control bar. Lift them clear of it while the controls show, and let
-    // them drop back down once the controls auto-hide during playback.
-    const controller = video.closest('media-controller');
-    const track = video.textTracks[0];
-    const placeCues = () => {
-      if (!controller || !track?.cues) return;
-      const hidden = controller.hasAttribute('userinactive') && !controller.hasAttribute('mediapaused');
-      const clearance = hidden ? 24 : 76; // px: control bar plus scrubber
-      const line = Math.max(50, 100 - (clearance / Math.max(controller.clientHeight, 1)) * 100);
-      for (const cue of Array.from(track.cues) as VTTCue[]) {
-        cue.snapToLines = false;
-        cue.lineAlign = 'end';
-        cue.line = line;
-      }
-    };
-    const trackEl = video.querySelector('track');
-    trackEl?.addEventListener('load', placeCues);
-    placeCues();
-    const resize = new ResizeObserver(placeCues);
-    const attrs = new MutationObserver(placeCues);
-    if (controller) {
-      resize.observe(controller);
-      attrs.observe(controller, { attributes: true, attributeFilter: ['userinactive', 'mediapaused'] });
-    }
-
-    return () => {
-      video.removeEventListener('ratechange', saveRate);
-      trackEl?.removeEventListener('load', placeCues);
-      resize.disconnect();
-      attrs.disconnect();
-    };
-  }, []);
-
   return (
     <div className="ecrs-player-slide">
-      <MediaController
-        className="ecrs-player"
-        defaultSubtitles
-        aria-label={`Video: ${title}`}
-        style={{ '--ecrs-aspect': aspect } as React.CSSProperties}
-      >
-        <video
-          ref={videoRef}
-          slot="media"
-          playsInline
-          preload="metadata"
-          poster={poster}
-          aria-label={title}
-          suppressHydrationWarning
-        >
-          <source src={src} type="video/mp4" />
-          <track kind="captions" src={captions} srcLang="en" label="English" default />
-        </video>
-
-        <MediaLoadingIndicator slot="centered-chrome" noAutohide />
-        <MediaPlayButton slot="centered-chrome" className="ecrs-player__big-play" />
-
-        <MediaPlaybackRateMenu hidden anchor="auto" rates={PLAYBACK_RATES} />
-
-        <MediaTimeRange className="ecrs-player__range" />
-        <MediaControlBar>
-          <MediaPlayButton />
-          <MediaSeekBackwardButton seekOffset={10} className="ecrs-player__wide" />
-          <MediaSeekForwardButton seekOffset={10} className="ecrs-player__wide" />
-          <MediaMuteButton />
-          <MediaVolumeRange className="ecrs-player__wide" />
-          <MediaTimeDisplay showDuration />
-          <span className="ecrs-player__spacer" />
-          <MediaPlaybackRateMenuButton aria-label="Playback speed" />
-          <MediaCaptionsButton />
-          <MediaPipButton className="ecrs-player__wide" />
-          <MediaFullscreenButton />
-        </MediaControlBar>
-      </MediaController>
+      <VideoPlayer poster={poster} defaultPlaybackRates={PLAYBACK_RATES}>
+        <VideoSkin className="ecrs-player" style={{ '--ecrs-aspect': aspect } as React.CSSProperties}>
+          <Video src={src} playsInline preload="metadata" aria-label={title}>
+            <track kind="captions" src={captions} srcLang="en" label="English" default />
+          </Video>
+        </VideoSkin>
+        <RememberSpeed />
+      </VideoPlayer>
     </div>
   );
 }

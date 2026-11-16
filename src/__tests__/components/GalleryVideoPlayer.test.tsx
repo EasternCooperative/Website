@@ -1,86 +1,74 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, type ReactNode } from 'react';
-import GalleryVideoPlayer, { PLAYBACK_RATES } from '~/components/widgets/GalleryVideoPlayer';
+import { act } from 'react';
+import GalleryVideoPlayer, {
+  PLAYBACK_RATES,
+  RATE_KEY,
+  readSavedRate,
+  saveRate,
+} from '~/components/widgets/GalleryVideoPlayer';
 import { cleanup, render } from '../react';
 
-// media-chrome's custom elements need a real browser (the e2e spec drives
-// them). Here each wrapper renders as its plain tag, so the tests cover the
-// player's own logic: the remembered speed and caption placement.
-const { stubs } = vi.hoisted(() => ({
-  stubs: async (names: Record<string, string>) => {
-    const { createElement } = await import('react');
-    const tag =
-      (name: string) =>
-      ({
-        children,
-        className,
-        style,
-        rates,
-      }: {
-        children?: ReactNode;
-        className?: string;
-        style?: object;
-        rates?: number[];
-      }) =>
-        createElement(name, { class: className, style, 'data-rates': rates?.join(' ') }, children);
-    return Object.fromEntries(Object.entries(names).map(([k, v]) => [k, tag(v)]));
-  },
-}));
-vi.mock('media-chrome/react', () =>
-  stubs({
-    MediaCaptionsButton: 'media-captions-button',
-    MediaControlBar: 'media-control-bar',
-    MediaController: 'media-controller',
-    MediaFullscreenButton: 'media-fullscreen-button',
-    MediaLoadingIndicator: 'media-loading-indicator',
-    MediaMuteButton: 'media-mute-button',
-    MediaPipButton: 'media-pip-button',
-    MediaPlayButton: 'media-play-button',
-    MediaSeekBackwardButton: 'media-seek-backward-button',
-    MediaSeekForwardButton: 'media-seek-forward-button',
-    MediaTimeDisplay: 'media-time-display',
-    MediaTimeRange: 'media-time-range',
-    MediaVolumeRange: 'media-volume-range',
-  })
-);
-vi.mock('media-chrome/react/menu', () =>
-  stubs({
-    MediaPlaybackRateMenu: 'media-playback-rate-menu',
-    MediaPlaybackRateMenuButton: 'media-playback-rate-menu-button',
-  })
-);
-vi.mock('~/assets/styles/gallery-video-player.css', () => ({}));
+// Video.js needs a real browser (e2e/gallery-video.spec.ts drives the real
+// skin). Here the preset is a stand-in: plain elements plus a tiny store with
+// the slice of the player API the component uses (target, playbackRate,
+// setPlaybackRate, subscribe), so the tests cover the remembered speed.
+const fake = vi.hoisted(() => {
+  const listeners = new Set<() => void>();
+  // Like the real store, notifications are batched per microtask.
+  const notify = () => queueMicrotask(() => listeners.forEach((l) => l()));
+  const store = {
+    target: null as object | null,
+    state: { playbackRate: 1 },
+    setPlaybackRate: (rate: number) => {
+      store.state = { ...store.state, playbackRate: rate };
+      notify();
+    },
+    subscribe: (l: () => void) => {
+      listeners.add(l);
+      return () => listeners.delete(l);
+    },
+    /** Simulates the player attaching to its <video>. */
+    attach: () => {
+      store.target = {};
+      notify();
+    },
+    reset: () => {
+      listeners.clear();
+      store.target = null;
+      store.state = { playbackRate: 1 };
+    },
+  };
+  return { store, playerProps: {} as Record<string, unknown> };
+});
 
-const RATE_KEY = 'ecrs-video-rate';
-let cues: { line?: number; lineAlign?: string; snapToLines?: boolean }[];
-let resizeDisconnect: ReturnType<typeof vi.fn>;
+vi.mock('@videojs/react/video', async () => {
+  const { useSyncExternalStore } = await import('react');
+  const { store, playerProps } = fake;
+  return {
+    VideoPlayer: ({ children, ...props }: { children: React.ReactNode }) => {
+      Object.assign(playerProps, props);
+      return <div data-player>{children}</div>;
+    },
+    VideoSkin: ({ children, ...props }: { children: React.ReactNode }) => <div {...props}>{children}</div>,
+    Video: ({ children, ...props }: { children: React.ReactNode }) => <video {...props}>{children}</video>,
+    usePlayer: (selector?: (s: typeof store.state) => unknown) => {
+      const state = useSyncExternalStore(store.subscribe, () => store.state);
+      return selector ? selector(state) : store;
+    },
+  };
+});
+vi.mock('@videojs/react/video/skin.css', () => ({}));
+vi.mock('~/assets/styles/gallery-video-player.css', () => ({}));
 
 beforeEach(() => {
   localStorage.clear();
-  cues = [{}, {}];
-  resizeDisconnect = vi.fn();
-  vi.stubGlobal(
-    'ResizeObserver',
-    class {
-      observe = vi.fn();
-      disconnect = resizeDisconnect;
-    }
-  );
-  // jsdom implements neither text tracks nor layout.
-  Object.defineProperty(HTMLMediaElement.prototype, 'textTracks', {
-    configurable: true,
-    get: () => [{ cues }],
-  });
-  Object.defineProperty(HTMLElement.prototype, 'clientHeight', { configurable: true, get: () => 400 });
+  fake.store.reset();
 });
 
 afterEach(async () => {
   await cleanup();
-  vi.unstubAllGlobals();
   vi.restoreAllMocks();
-  delete (HTMLMediaElement.prototype as { textTracks?: unknown }).textTracks;
-  delete (HTMLElement.prototype as { clientHeight?: unknown }).clientHeight;
 });
 
 async function mount() {
@@ -93,103 +81,63 @@ async function mount() {
       aspect={4 / 3}
     />
   );
-  return {
-    container,
-    video: container.querySelector('video')!,
-    controller: container.querySelector('media-controller')!,
-  };
+  return container;
 }
 
 describe('GalleryVideoPlayer', () => {
-  it('renders the video, captions, poster, aspect, and speed choices', async () => {
-    const { container, video, controller } = await mount();
-    expect(video.getAttribute('poster')).toBe('/v.jpg');
+  it('hands Video.js the video, captions, poster, and speed choices', async () => {
+    const container = await mount();
+    const video = container.querySelector('video')!;
+    expect(video.getAttribute('src')).toBe('https://media.example/v.mp4');
     expect(video.getAttribute('aria-label')).toBe('Skit');
-    expect(video.querySelector('source')!.getAttribute('src')).toBe('https://media.example/v.mp4');
     expect(video.querySelector('track')!.getAttribute('src')).toBe('/v.vtt');
-    expect((controller as HTMLElement).style.getPropertyValue('--ecrs-aspect')).toBe(String(4 / 3));
-    expect(container.querySelector('media-playback-rate-menu')!.getAttribute('data-rates')).toBe(
-      PLAYBACK_RATES.join(' ')
-    );
+    expect(fake.playerProps).toMatchObject({ poster: '/v.jpg', defaultPlaybackRates: PLAYBACK_RATES });
+    const skin = container.querySelector<HTMLElement>('.ecrs-player')!;
+    expect(skin.style.getPropertyValue('--ecrs-aspect')).toBe(String(4 / 3));
   });
 
   describe('remembered speed', () => {
-    it('starts at the speed saved from an earlier video', async () => {
+    it('restores the saved speed once the player attaches to the video', async () => {
       localStorage.setItem(RATE_KEY, '1.5');
-      const { video } = await mount();
-      expect(video.playbackRate).toBe(1.5);
-      expect(video.defaultPlaybackRate).toBe(1.5);
+      await mount();
+      expect(fake.store.state.playbackRate).toBe(1); // actions would throw before attach
+      await act(async () => fake.store.attach());
+      expect(fake.store.state.playbackRate).toBe(1.5);
     });
 
-    it('ignores a saved value that is not one of the menu speeds', async () => {
+    it('restores right away when the player is already attached', async () => {
+      localStorage.setItem(RATE_KEY, '0.75');
+      fake.store.target = {};
+      await mount();
+      expect(fake.store.state.playbackRate).toBe(0.75);
+    });
+
+    it('saves each change after the restore, but not the starting speed', async () => {
+      await mount();
+      expect(localStorage.getItem(RATE_KEY)).toBeNull();
+      await act(async () => fake.store.attach());
+      await act(async () => fake.store.setPlaybackRate(2));
+      expect(localStorage.getItem(RATE_KEY)).toBe('2');
+    });
+  });
+
+  describe('storage helpers', () => {
+    it('accepts only speeds the menu offers', () => {
       localStorage.setItem(RATE_KEY, '7');
-      const { video } = await mount();
-      expect(video.playbackRate).toBe(1);
+      expect(readSavedRate()).toBeUndefined();
+      localStorage.setItem(RATE_KEY, '1.25');
+      expect(readSavedRate()).toBe(1.25);
     });
 
-    it('saves the speed whenever it changes', async () => {
-      const { video } = await mount();
-      video.playbackRate = 0.75;
-      video.dispatchEvent(new Event('ratechange'));
-      expect(localStorage.getItem(RATE_KEY)).toBe('0.75');
-    });
-
-    it('still plays when storage is blocked', async () => {
+    it('carries on when storage is blocked', () => {
       vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
         throw new Error('blocked');
       });
       vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
         throw new Error('blocked');
       });
-      const { video } = await mount();
-      expect(video.playbackRate).toBe(1);
-      expect(() => video.dispatchEvent(new Event('ratechange'))).not.toThrow();
-    });
-  });
-
-  describe('caption placement', () => {
-    const settleObservers = () => act(async () => await new Promise((r) => setTimeout(r, 0)));
-
-    it('lifts captions above the controls while they show', async () => {
-      await mount();
-      // 400px player, 76px of controls: cue bottoms at 81% down.
-      expect(cues).toEqual([
-        { snapToLines: false, lineAlign: 'end', line: 81 },
-        { snapToLines: false, lineAlign: 'end', line: 81 },
-      ]);
-    });
-
-    it('drops captions down once the controls auto-hide during playback', async () => {
-      const { controller } = await mount();
-      controller.setAttribute('userinactive', '');
-      await settleObservers();
-      expect(cues[0].line).toBe(94);
-      // Paused, the controls stay up even when the pointer is idle.
-      controller.setAttribute('mediapaused', '');
-      await settleObservers();
-      expect(cues[0].line).toBe(81);
-    });
-
-    it('re-places cues once the caption file loads', async () => {
-      cues = [];
-      const { video } = await mount();
-      cues.push({});
-      video.querySelector('track')!.dispatchEvent(new Event('load'));
-      expect(cues[0].line).toBe(81);
-    });
-
-    it('never pushes captions above the middle of a tiny player', async () => {
-      Object.defineProperty(HTMLElement.prototype, 'clientHeight', { configurable: true, get: () => 100 });
-      await mount();
-      expect(cues[0].line).toBe(50);
-    });
-
-    it('stops listening when the slide unmounts', async () => {
-      const { video } = await mount();
-      await cleanup();
-      expect(resizeDisconnect).toHaveBeenCalled();
-      video.dispatchEvent(new Event('ratechange'));
-      expect(localStorage.getItem(RATE_KEY)).toBeNull();
+      expect(readSavedRate()).toBeUndefined();
+      expect(() => saveRate(1.5)).not.toThrow();
     });
   });
 });
