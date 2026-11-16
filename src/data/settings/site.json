@@ -13,14 +13,14 @@
   "featureFlags": {
     "activitiesLibrary": true,
     "connectionsPage": true,
+    "faqPage": true,
+    "historyPage": true,
     "aboutPageMap": true,
-    "peopleWithoutPhotoOrBio": false,
-    "faqPage": false,
-    "historyPage": false
+    "peopleWithoutPhotoOrBio": false
   },
+  "eventCtaSubtitleComingSoon": "We're finalizing the details for this event. Check back soon, or contact us with any questions.",
+  "eventCtaSubtitleDropIn": "This event is free and open to everyone — no registration required, just show up. Questions? We're happy to help.",
   "eventCtaSubtitleOneDay": "All ECRS events are open to all ages and experience levels.",
   "eventCtaTitleComingSoon": "Registration coming soon",
-  "eventCtaSubtitleComingSoon": "We're finalizing the details for this event. Check back soon, or contact us with any questions.",
-  "eventCtaTitleDropIn": "See you there!",
-  "eventCtaSubtitleDropIn": "This event is free and open to everyone — no registration required, just show up. Questions? We're happy to help."
+  "eventCtaTitleDropIn": "See you there!"
 }
