@@ -3,14 +3,14 @@ import { getCollection } from 'astro:content';
 import { getImage } from 'astro:assets';
 import Layout from '~/layouts/PageLayout.astro';
 import HeroText from '~/components/widgets/HeroText.astro';
-import GalleryBrowser from '~/components/widgets/GalleryBrowser';
+import GalleryBrowser, { type GalleryPhoto } from '~/components/widgets/GalleryBrowser';
 import { findImage } from '~/utils/images';
 import gallery from '~/data/settings/gallery.json';
 import { renderInlineMarkdown } from '~/utils/markdown';
 
 const allPhotos = await getCollection('galleryPhoto');
 
-const photos = await Promise.all(
+const photos: GalleryPhoto[] = await Promise.all(
   allPhotos.map(async (photo) => {
     const resolved = await findImage(photo.data.image);
     const isLocal = resolved && typeof resolved === 'object';
@@ -36,6 +36,26 @@ const photos = await Promise.all(
   })
 );
 
+// Videos stream from the R2 bucket at media.ecrs.org (Pages can't host files
+// over 25 MB); their posters and captions live in public/videos/gallery/.
+// They join the photo grid as items with a `video` field.
+for (const [i, v] of (gallery.videos ?? []).entries()) {
+  photos.push({
+    id: `video-${i}`,
+    src: v.poster,
+    full: v.poster,
+    originalSrc: undefined,
+    width: 0,
+    height: 0,
+    alt: v.title,
+    caption: v.description ? `${v.title}${/[.!?]$/.test(v.title) ? '' : ':'} ${v.description}` : v.title,
+    year: v.year,
+    photographer: v.photographer,
+    event: v.event,
+    video: { src: v.src, captions: v.captions, duration: v.duration },
+  });
+}
+
 photos.sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
 
 const years = [...new Set(photos.map((p) => p.year).filter((y): y is number => y != null))].sort((a, b) => b - a);
@@ -45,20 +65,6 @@ const photographers = [...new Set(photos.map((p) => p.photographer).filter((v): 
 const events = [...new Set(photos.map((p) => p.event).filter((v): v is string => !!v))].sort((a, b) =>
   a.localeCompare(b)
 );
-
-// Self-hosted videos (public/videos/gallery). `event` is an optional event id,
-// linked from the card; `year` and `event` are both optional.
-type GalleryVideo = {
-  title: string;
-  src: string;
-  poster: string;
-  captions: string;
-  description?: string;
-  duration?: string;
-  year?: number;
-  event?: string;
-};
-const videos: GalleryVideo[] = gallery.videos ?? [];
 
 const metadata = {
   title: gallery.heroTitle,
@@ -72,45 +78,6 @@ const metadata = {
     title={gallery.heroTitle}
     subtitle={renderInlineMarkdown(gallery.heroSubtitle)}
   />
-  {videos.length > 0 && (
-    <section class="px-4 max-w-7xl mx-auto pb-12" aria-labelledby="gallery-videos-heading">
-      <h2 id="gallery-videos-heading" class="mb-6 font-heading text-3xl font-bold text-heading">
-        {gallery.videosTitle}
-      </h2>
-      <ul class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 list-none p-0 m-0" role="list">
-        {videos.map((video) => (
-          <li class="flex flex-col overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
-            <video
-              controls
-              preload="none"
-              playsinline
-              poster={video.poster}
-              class="aspect-video w-full bg-black object-contain"
-              aria-label={video.title}
-            >
-              <source src={video.src} type="video/mp4" />
-              <track kind="captions" src={video.captions} srclang="en" label="English" default />
-            </video>
-            <div class="flex flex-1 flex-col gap-1 p-4">
-              <p class="font-bold text-heading">
-                {video.title}
-                {video.duration && <span class="ml-2 text-sm font-normal text-muted">{video.duration}</span>}
-              </p>
-              {video.description && <p class="text-sm text-muted">{video.description}</p>}
-              {video.event && (
-                <a
-                  href={`/events/${video.event}`}
-                  class="mt-1 text-sm text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                >
-                  See the event
-                </a>
-              )}
-            </div>
-          </li>
-        ))}
-      </ul>
-    </section>
-  )}
   <section class="px-4 max-w-7xl mx-auto pb-16">
     <GalleryBrowser photos={photos} years={years} photographers={photographers} events={events} client:visible />
   </section>
