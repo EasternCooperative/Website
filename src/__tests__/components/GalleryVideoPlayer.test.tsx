@@ -16,8 +16,14 @@ import { cleanup, render } from '../react';
 const fake = vi.hoisted(() => {
   const listeners = new Set<() => void>();
   // Like the real store, notifications are batched per microtask.
-  const notify = () => queueMicrotask(() => listeners.forEach((l) => l()));
+  // `sync` notifies immediately instead, to check the restore can't recurse.
+  const notify = () => {
+    const run = () => listeners.forEach((l) => l());
+    if (store.sync) run();
+    else queueMicrotask(run);
+  };
   const store = {
+    sync: false,
     target: null as object | null,
     state: { playbackRate: 1 },
     setPlaybackRate: (rate: number) => {
@@ -36,6 +42,7 @@ const fake = vi.hoisted(() => {
     reset: () => {
       listeners.clear();
       store.target = null;
+      store.sync = false;
       store.state = { playbackRate: 1 };
     },
   };
@@ -101,6 +108,23 @@ describe('GalleryVideoPlayer', () => {
       localStorage.setItem(RATE_KEY, '1.5');
       await mount();
       expect(fake.store.state.playbackRate).toBe(1); // actions would throw before attach
+      await act(async () => fake.store.attach());
+      expect(fake.store.state.playbackRate).toBe(1.5);
+    });
+
+    it('keeps waiting through state changes that come before the player attaches', async () => {
+      localStorage.setItem(RATE_KEY, '1.25');
+      await mount();
+      await act(async () => fake.store.setPlaybackRate(1)); // e.g. metadata, still no target
+      expect(fake.store.state.playbackRate).toBe(1);
+      await act(async () => fake.store.attach());
+      expect(fake.store.state.playbackRate).toBe(1.25);
+    });
+
+    it('restores only once even if the store notifies synchronously', async () => {
+      localStorage.setItem(RATE_KEY, '1.5');
+      fake.store.sync = true;
+      await mount();
       await act(async () => fake.store.attach());
       expect(fake.store.state.playbackRate).toBe(1.5);
     });

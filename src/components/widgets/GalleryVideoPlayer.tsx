@@ -45,8 +45,9 @@ function RememberSpeed() {
     const restore = () => {
       if (restored.current) return true;
       if (!store.target) return false;
-      if (saved) store.setPlaybackRate(saved);
+      // Mark first: setPlaybackRate notifies subscribers, including this one.
       restored.current = true;
+      if (saved) store.setPlaybackRate(saved);
       return true;
     };
     if (restore()) return;
