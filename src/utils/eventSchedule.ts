@@ -94,6 +94,7 @@ export function parseDays(days: string | undefined): { startDay: number; endDay:
   const norm = raw.toLowerCase().replace(/[‒-―]/g, '-');
 
   if (/all\b.*day/.test(norm) || /\bday(s)?\b.*\ball\b/.test(norm)) return { startDay: 1, endDay: 4 };
+  if (/^4\s*days?$/.test(norm)) return { startDay: 1, endDay: 4 };
 
   const range = norm.match(/day(?:s)?\s*(\d)\s*-\s*(\d)/);
   if (range) {

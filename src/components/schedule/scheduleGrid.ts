@@ -33,6 +33,11 @@ export type ScheduleGridRow =
 export interface ScheduleGridModel {
   locations: string[];
   landscape: boolean;
+  /**
+   * True when some class runs only days 1–2 or 3–4, so each period needs the
+   * two half-rows and a Days column. Weekends and one-day events never do.
+   */
+  splitDays: boolean;
   rows: ScheduleGridRow[];
 }
 
@@ -77,5 +82,7 @@ export function buildScheduleGrid(data: MasterScheduleData): ScheduleGridModel {
     };
   });
 
-  return { locations, landscape, rows };
+  const splitDays = rows.some((r) => r.kind === 'period' && r.cells.some((c) => c.half12 || c.half34));
+
+  return { locations, landscape, splitDays, rows };
 }

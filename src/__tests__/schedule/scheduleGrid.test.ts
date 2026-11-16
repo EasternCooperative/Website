@@ -45,6 +45,18 @@ describe('buildScheduleGrid', () => {
     expect(row.cells[1].half34).toBeUndefined();
   });
 
+  it('splits periods into day halves only when some class runs half the days', () => {
+    const fullOnly: MasterScheduleData = {
+      locations: ['Hall'],
+      timeslots,
+      workshops: [ws('Yoga', 'Hall', 'am1', 1, 4)],
+    };
+    expect(buildScheduleGrid(fullOnly).splitDays).toBe(false);
+    expect(
+      buildScheduleGrid({ ...fullOnly, workshops: [...fullOnly.workshops, ws('Clay', 'Hall', 'am1', 3, 4)] }).splitDays
+    ).toBe(true);
+  });
+
   it('sets landscape past 4 locations', () => {
     const base: MasterScheduleData = { locations: ['a', 'b', 'c', 'd'], timeslots: [], workshops: [] };
     expect(buildScheduleGrid(base).landscape).toBe(false);

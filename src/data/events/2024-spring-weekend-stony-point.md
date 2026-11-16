@@ -44,22 +44,64 @@ tags:
 classes:
   - name: 'Games'
     leaderId: arnie-zacharias
+    period: 'Saturday morning'
+    room: 'Maple A'
   - name: 'Flower Power Crafts'
     leaderId: kay-gering
+    period: 'Saturday morning'
+    room: 'Maple B'
   - name: 'Improv'
     leaderId: isaac-lebwohl-steiner
+    period: 'Sunday morning'
+    room: 'Maple B'
   - name: 'Small Scenes'
     leaderId: isaac-lebwohl-steiner
+    period: 'Saturday afternoon'
+    room: 'Maple B'
   - name: "Let's Make Music Together"
     leaders:
       - id: fern-lox
       - id: bonnie-ostrofsky
+    period: 'Saturday afternoon'
+    room: 'Maple C'
   - name: 'Folk Dancing'
     leaderId: sharon-underberg
+    period: 'Sunday morning'
+    room: 'Maple A'
   - name: 'Smorgasbord'
     leaderId: frank-baskin
+    period: 'Saturday afternoon'
+    room: 'Maple A'
     description: 'An opportunity for any participant to lead an activity — singing, games, dance, or other creative pursuits.'
   - name: 'Exploring the Outdoors in Early Spring'
     leaders:
       - id: kirk-wattles
+    period: 'Saturday morning'
+    room: 'Maple C, then outside'
+schedule:
+  timeslots:
+    - label: 'Saturday: Program for All'
+      start: '09:00'
+      end: '09:45'
+      isBreak: true
+    - label: 'Saturday morning'
+      start: '10:00'
+      end: '11:45'
+    - label: 'Saturday lunch'
+      start: '12:00'
+      end: '13:00'
+      isBreak: true
+    - label: 'Saturday afternoon'
+      start: '14:00'
+      end: '15:45'
+    - label: 'Saturday evening program'
+      start: '19:30'
+      isBreak: true
+    - label: 'Sunday morning'
+      start: '09:15'
+      end: '11:00'
+    - label: 'Closing program'
+      start: '11:15'
+      end: '12:00'
+      isBreak: true
 ---

@@ -48,92 +48,169 @@ classes:
   - name: 'Folk Dancing'
     leaderId: patricia-williams
     period: 'Morning, first period'
+    room: 'Dining Room'
     description: 'Experience the magic of folk dances from all over the world — fun, exercise, connection to other cultures, great music, and a sense of community. All are welcome, from new dancers to experts. (Ages 11+)'
   - name: 'Crank It Up: An Introduction to the Cranky'
     leaders:
       - id: teri-wilkinson
       - id: julie-siftar
     period: 'Morning, first period'
+    room: 'Craft Room'
     description: 'A "cranky" is a folk-art form — a hand-cranked scroll of scenery creating a slow-moving picture story, often narrated or accompanied by music. Create your own using paper tubes, cardboard boxes, and scrolls of thin paper. (Age 12+, class size limited to 16)'
   - name: "Children's Program"
     leaderId: tim-siftar
     period: 'Morning, first period'
     restriction: 'Ages 5-11'
+    room: 'Elm Room'
   - name: 'Conscious Communication'
     leaderId: howard-moody
     period: 'Morning, first period'
+    days: 'Days 1-2'
+    room: 'Library'
     description: 'Learn the basic principles of communicating your feelings and needs in an environment of acceptance and empathy, with an emphasis on supportive deep listening. (Age 16+, class size limited to 20)'
   - name: 'Laughter Wellness'
     leader: 'Trevor Smith'
     period: 'Morning, first period'
+    days: 'Days 3-4'
+    room: 'Library'
     description: 'A performance-based, structured health and wellness mini using interactive exercises and games to explore laughter for stress management, community-building, and strengthening the immune system.'
   - name: 'Informal Dramatics'
     leaderId: lane-neubauer
     period: 'Morning, first period'
+    days: 'Days 1-2'
+    room: 'Chapel'
     description: 'Use your imagination to bring whatever you choose to life through creative dramatic warm-ups, exercises, and games, culminating in small group skits. (Age 11+)'
   - name: 'Joy of Singing'
     leaderId: mark-schwartz
-    period: 'Morning, first and second period'
+    period: 'Morning, first period'
+    days: 'Days 3-4'
+    room: 'Chapel'
+    description: 'For anyone who loves to sing — folk and folk/rock standards, rounds, doo-wop/a cappella, blues, Broadway, and more. (Age 9+)'
+  - name: 'Joy of Singing'
+    leaderId: mark-schwartz
+    period: 'Morning, second period'
+    days: 'Days 1-2'
+    room: 'Rec Hall'
     description: 'For anyone who loves to sing — folk and folk/rock standards, rounds, doo-wop/a cappella, blues, Broadway, and more. (Age 9+)'
   - name: 'Small Scenes'
     leaderId: glenn-lebwohl-steiner
     period: 'Morning, second period'
+    room: 'Chapel A'
     description: 'Read actual scenes from plays and screen, rehearse, perform for the class, and discuss them afterward. No prior experience necessary. (Age 15+, class size limited to 16)'
   - name: "Children's Cooperative Program"
     period: 'Morning, second period'
+    room: 'Elm Room'
     description: 'A volunteer effort — parents of young children and other ECRS adults sign up to nurture and play with ECRS members-in-development.'
   - name: 'Active Games'
     leaderId: howard-moody
     period: 'Morning, second period'
+    days: 'Days 1-2'
+    room: 'Dining Room'
+    description: 'New games, energizers, tag games, circle games, team-building games, trust activities, and more. (Ages 10+)'
+  - name: 'Active Games'
+    leaderId: howard-moody
+    period: 'Morning, second period'
+    days: 'Days 3-4'
+    room: 'Rec Hall'
     description: 'New games, energizers, tag games, circle games, team-building games, trust activities, and more. (Ages 10+)'
   - name: 'Story Theater'
     leaderId: robin-bady
     period: 'Morning, second period'
+    days: 'Days 1-2'
+    room: 'Library'
     description: 'Learn about story theater and improvisation, then choose or create a fairy or folk tale to develop in small groups and present. (Ages 9+)'
   - name: 'Building Better Groups: Understanding Group Dynamics'
     leaderId: lane-neubauer
     period: 'Morning, second period'
+    days: 'Days 3-4'
+    room: 'Library'
     description: 'A theory course helping participants develop a working knowledge of group dynamics through experiential exercises and discussions. (Age 15+)'
   - name: 'Artful Affirmations Cards'
     leaderId: teri-wilkinson
     period: 'Morning, second period'
+    days: 'Days 3-4'
+    room: 'Craft Room'
     description: 'Create postcard-size cards from cut letters, words, and pictures expressing supportive, empowering statements. (Age 8+, class size limited to 16)'
   - name: 'Woodcarving: Discover Your Hidden Potential'
     leaderId: stephen-kaye
     period: 'Afternoon'
+    room: 'Martin Room'
     description: 'Learn the basics of carving small instruments from wood — spoons, wands, drumsticks, totems. (Age 12+, class size limited to 12)'
   - name: 'An Improv Adventure'
     leaders:
       - name: 'Debra Robert'
       - id: heather-klemanski
     period: 'Afternoon'
+    room: 'Rec Hall'
     description: 'Embrace improv, games, and story building as a team, with a dash of mindfulness for good measure.'
   - name: 'Art and Mindfulness'
     leaderId: rain-woods
     period: 'Afternoon'
+    days: 'Days 1-2'
+    room: 'Craft Room'
     description: 'Experience creativity in a quiet, introspective environment, exploring new mediums and our own thoughts about the creative process. (Age 12+)'
   - name: 'Food, Glorious Food!'
     leaders:
       - name: 'Donna Miller-Small'
       - name: 'Frank Miller-Small'
     period: 'Afternoon'
+    days: 'Days 1-2'
+    room: 'Library'
     description: 'Explores the joys and challenges of food through film clips, read-aloud stories, music, art, and creative activities. (Age 15+, class size limited to 15)'
   - name: 'Late Night Dance'
     leader: 'David Sherman'
     period: 'Afternoon'
+    days: 'Days 1-2'
+    room: 'Dining Room'
     description: "Learn dances from late-night dancing and the New Year's Eve after-party — a variety of circle, couple, and line dances. (Age 11+)"
   - name: 'Percussion Circle'
     leaderId: dan-nicholson
     period: 'Afternoon'
+    days: 'Days 3-4'
+    room: 'Dining Room'
     description: 'Expands a drum circle beyond just drums — an improvisational conversation where everyone has a voice. Share any instrument, or find something to jam with. (Age 12+)'
   - name: 'Personal Stories'
     leaderId: robin-bady
     period: 'Afternoon'
+    days: 'Days 3-4'
+    room: 'Library'
     description: 'Craft ordinary life experiences into compelling narratives, leaving with at least two unique stories and a process for telling more. (Ages 9+ and families)'
   - name: "Children's Program"
     leaderId: tim-siftar
     period: 'Afternoon'
     restriction: 'Ages 5-11'
+    room: 'Elm Room'
 staff:
   - id: donna-miller-small
+schedule:
+  timeslots:
+    - label: 'Breakfast'
+      start: '08:00'
+      isBreak: true
+    - label: 'Morning, first period'
+      start: '09:00'
+      end: '10:40'
+    - label: 'Morning, second period'
+      start: '10:50'
+      end: '12:30'
+    - label: 'Lunch'
+      start: '12:45'
+      isBreak: true
+    - label: 'Free time activities'
+      start: '13:30'
+      end: '15:35'
+      isBreak: true
+    - label: 'Afternoon'
+      start: '15:45'
+      end: '17:45'
+    - label: 'Dinner'
+      start: '18:00'
+      isBreak: true
+    - label: 'Evening Program'
+      start: '19:30'
+      end: '22:00'
+      isBreak: true
+    - label: 'Late night activities'
+      start: '22:15'
+      isBreak: true
 ---

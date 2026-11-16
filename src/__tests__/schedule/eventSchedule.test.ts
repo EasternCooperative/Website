@@ -77,6 +77,7 @@ describe('parseDays', () => {
     expect(parseDays('Days 1–2')).toEqual({ startDay: 1, endDay: 2 }); // en-dash
     expect(parseDays('Days 3-4')).toEqual({ startDay: 3, endDay: 4 });
     expect(parseDays('Days 1-4')).toEqual({ startDay: 1, endDay: 4 }); // explicit full span
+    expect(parseDays('4 days')).toEqual({ startDay: 1, endDay: 4 }); // how older flyers wrote it
   });
 
   it('warns and falls back to full span for a numeric range with no bucket', () => {

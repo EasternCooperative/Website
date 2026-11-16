@@ -82,71 +82,122 @@ classes:
   - name: 'International Folk Dance'
     leaderId: patricia-williams
     days: 'All 4 days'
+    period: 'Morning class, first period'
+    room: 'Dining Room'
   - name: 'Scottish Country Dancing'
     leaderId: patricia-williams
     days: 'Days 3–4'
+    period: 'Morning class, second period'
+    room: 'Dining Room'
   - name: 'Wood Carving'
     leaderId: stephen-kaye
     days: 'All 4 days'
+    period: 'Morning class, first period'
+    room: 'Martin Room'
   - name: 'Informal Dramatics'
     leaderId: lane-neubauer
     days: 'Days 3–4'
+    period: 'Morning class, first period'
+    room: 'Rec Hall'
   - name: 'Storytelling'
     leaderId: frank-baskin
     days: 'Days 1–2'
+    period: 'Morning class, first period'
+    room: 'Rec Hall'
   - name: 'Sing and Play Instruments'
     leaders:
       - id: bonnie-ostrofsky
     days: 'Days 1–2'
+    period: 'Morning class, first period'
+    room: 'Chapel A'
   - name: 'A Cappella Songs from the Sea and the City'
     leaderId: mark-schwartz
     days: 'Days 3–4'
+    period: 'Morning class, first period'
+    room: 'Chapel A'
   - name: 'Late Night Dance'
     leaders:
       - id: celia-nicholson
       - id: carmen-siftar
       - id: sonia-nicholson
     days: 'Days 1–2'
+    period: 'Morning class, second period'
+    room: 'Dining Room'
   - name: 'Breakthrough Decluttering'
     leaderId: bari-prince
     days: 'Days 1–2'
+    period: 'Morning class, second period'
+    room: 'Chapel A'
   - name: 'A Journey to Self-Kindness'
     leaders:
       - id: heather-klemanski
     days: 'Days 3–4'
+    period: 'Morning class, second period'
+    room: 'Chapel A'
   - name: 'The Write Stuff'
     leaders:
       - id: beverly-pincus
+    period: 'Morning class, second period'
+    room: 'Library'
     description: "Through fun original writing exercises we'll stimulate creativity and break through writing blocks. You'll write the stories of your lives in a safe, supportive environment."
     days: 'All 4 days'
   - name: 'Party Games for All Ages'
     leaders:
       - id: trevor
     days: 'Days 3–4'
+    period: 'Morning class, second period'
+    room: 'Rec Hall'
   - name: 'Improv Theater'
     leaderId: howard-moody
     days: 'Days 1–2'
+    period: 'Morning class, second period'
+    room: 'Rec Hall'
   - name: 'Small Scenes'
     leaderId: glenn-lebwohl-steiner
+    period: 'Afternoon class'
+    room: 'Chapel A'
     description: 'Using scripts, we rehearse, perform, and discuss a collection of comedic and dramatic scenes. Explore, discover, and create!'
     days: 'All 4 days'
   - name: 'Posters with Wings'
     leaderId: teri-wilkinson
     days: 'All 4 days'
+    period: 'Afternoon class'
+    room: 'Craft Room'
   - name: 'Dynamic Group Leadership'
     leaderId: lane-neubauer
     days: 'Days 1–2'
+    period: 'Afternoon class'
+    room: 'Hillside'
   - name: 'Collaborative Board Games'
     leaderId: max-kaye
     days: 'Days 3–4'
+    period: 'Afternoon class'
+    room: 'Rec Hall'
   - name: 'Active Games for Teens and Adults'
     leaders:
       - id: trevor
     days: 'Days 1–2'
+    period: 'Afternoon class'
+    room: 'Rec Hall'
   - name: "The Children's March"
     leaderId: carolyn-peters-michener
     days: 'Days 3–4'
+    period: 'Afternoon class'
+    room: 'Hillside'
   - name: 'Joy of Movement'
     leaderId: judi-powers
     days: 'Days 3–4'
+    period: 'Afternoon class'
+    room: 'Dining Room'
+schedule:
+  timeslots:
+    - label: 'Morning class, first period'
+      start: '09:00'
+      end: '10:40'
+    - label: 'Morning class, second period'
+      start: '10:50'
+      end: '12:30'
+    - label: 'Afternoon class'
+      start: '15:45'
+      end: '17:45'
 ---

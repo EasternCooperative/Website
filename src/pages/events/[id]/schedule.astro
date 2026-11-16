@@ -111,7 +111,7 @@ const leaderPopoverIds = [
         <thead>
           <tr>
             <th class="border px-3 py-2 text-left">Time</th>
-            <th class="border px-3 py-2 text-left">Days</th>
+            {grid.splitDays && <th class="border px-3 py-2 text-left">Days</th>}
             {grid.locations.map((loc) => (
               <th class="border px-3 py-2 text-left">{loc}</th>
             ))}
@@ -121,9 +121,39 @@ const leaderPopoverIds = [
           {grid.rows.map((row) =>
             row.kind === 'break' ? (
               <tr class="schedule-break">
-                <td class="border px-3 py-2 text-center font-semibold" colspan={2 + grid.locations.length}>
+                <td
+                  class="border px-3 py-2 text-center font-semibold"
+                  colspan={(grid.splitDays ? 2 : 1) + grid.locations.length}
+                >
                   {row.timeText ? `${row.label} · ${row.timeText}` : row.label}
                 </td>
+              </tr>
+            ) : !grid.splitDays ? (
+              <tr class="schedule-period-start">
+                <td class="schedule-time border px-3 py-2 align-middle font-semibold">
+                  {row.startText ? (
+                    <>
+                      <span class="block whitespace-nowrap">{row.endText ? `${row.startText} -` : row.startText}</span>
+                      {row.endText && <span class="block whitespace-nowrap">{row.endText}</span>}
+                    </>
+                  ) : (
+                    row.displayName
+                  )}
+                </td>
+                {row.cells.map((cell) => (
+                  <td class="border px-3 py-2 align-middle">
+                    {cell.fourDay ? (
+                      <ScheduleCellItem
+                        item={cell.fourDay}
+                        classes={classes}
+                        leaderMap={leaderMap}
+                        peopleFlag={peopleFlag}
+                      />
+                    ) : (
+                      <>&nbsp;</>
+                    )}
+                  </td>
+                ))}
               </tr>
             ) : (
               <>
