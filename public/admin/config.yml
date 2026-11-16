@@ -340,6 +340,32 @@ collections:
               widget: 'text',
               hint: 'Plain text shown in Google results and link previews. Aim for one sentence.',
             }
+          - { label: 'Videos Heading', name: 'videosTitle', widget: 'string' }
+          - label: 'Videos'
+            name: 'videos'
+            widget: 'list'
+            summary: '{{fields.title}}'
+            hint: 'Videos live in the Cloudflare R2 bucket "videos" (served from media.ecrs.org) because Pages cannot host files over 25 MB. Upload the MP4 there first, then paste its URL here. Posters and captions live in /videos/gallery/.'
+            fields:
+              - { label: 'Title', name: 'title', widget: 'string' }
+              - {
+                  label: 'Video URL',
+                  name: 'src',
+                  widget: 'string',
+                  hint: 'e.g. https://media.ecrs.org/gallery/my-video.mp4',
+                }
+              - { label: 'Poster Image', name: 'poster', widget: 'image' }
+              - { label: 'Captions (WebVTT)', name: 'captions', widget: 'file' }
+              - { label: 'Description', name: 'description', widget: 'text', required: false }
+              - { label: 'Duration', name: 'duration', widget: 'string', required: false, hint: 'e.g. 5:27' }
+              - { label: 'Year', name: 'year', widget: 'number', value_type: 'int', required: false }
+              - {
+                  label: 'Event',
+                  name: 'event',
+                  widget: 'string',
+                  required: false,
+                  hint: 'Optional event id to link, e.g. 2009-spring-weekend-stony-point.',
+                }
 
       - name: 'contact'
         label: 'Contact'
