@@ -4,7 +4,7 @@ import type PhotoSwipe from 'photoswipe';
 import RangeSlider from '~/components/ui/RangeSlider';
 import type { RangeLabelPhrasing } from '~/utils/rangeSlider';
 import 'photoswipe/style.css';
-import GalleryVideoPlayer from '~/components/widgets/GalleryVideoPlayer';
+import GalleryVideoPlayer, { playOnOpen } from '~/components/widgets/GalleryVideoPlayer';
 
 // PhotoSwipe's arrow-key handler jumps to the next/prev slide instantly
 // (mainScroll.moveIndexBy without `animate`) — the spring-slide transition is
@@ -348,7 +348,10 @@ export default function GalleryBrowser({ photos, years, photographers, events }:
                   {({ ref, open }) => (
                     <button
                       type="button"
-                      onClick={open}
+                      onClick={(e) => {
+                        if (video) playOnOpen(video.src);
+                        open(e);
+                      }}
                       aria-label={video ? `Play video: ${photo.alt}` : undefined}
                       className="relative block w-full aspect-square overflow-hidden rounded-md bg-gray-100 dark:bg-gray-800"
                     >

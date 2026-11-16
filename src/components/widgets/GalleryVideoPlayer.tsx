@@ -26,12 +26,23 @@ export function saveRate(rate: number) {
   }
 }
 
+// Clicking a video's tile should start it, not just open the lightbox on a
+// paused player. The tile records which video it opened; that player starts
+// itself once it attaches. Swiping onto a video in the lightbox doesn't.
+let pendingPlay: string | undefined;
+
+/** Call from the tile's click, before opening the lightbox. */
+export function playOnOpen(src: string) {
+  pendingPlay = src;
+}
+
 /**
- * Restores the saved speed once the player attaches to the <video>, then saves
- * every change. Follows Video.js's "Remember user preferences" guide: actions
- * throw before the store has a media target, so the restore waits for one.
+ * Once the player attaches to the <video>: restores the saved speed, then
+ * saves every change, and starts playback if the tile click asked for it.
+ * Follows Video.js's "Remember user preferences" guide: actions throw before
+ * the store has a media target, so this waits for one.
  */
-function RememberSpeed() {
+function PlayerSetup({ src }: { src: string }) {
   const store = usePlayer();
   const rate = usePlayer((s) => s.playbackRate);
   const [saved] = useState(readSavedRate);
@@ -48,6 +59,11 @@ function RememberSpeed() {
       // Mark first: setPlaybackRate notifies subscribers, including this one.
       restored.current = true;
       if (saved) store.setPlaybackRate(saved);
+      if (pendingPlay === src) {
+        pendingPlay = undefined;
+        // A browser that still blocks it leaves the big play button showing.
+        store.play().catch(() => {});
+      }
       return true;
     };
     if (restore()) return;
@@ -55,7 +71,7 @@ function RememberSpeed() {
       if (restore()) unsubscribe();
     });
     return unsubscribe;
-  }, [store, saved]);
+  }, [store, saved, src]);
 
   return null;
 }
@@ -83,7 +99,7 @@ export default function GalleryVideoPlayer({ src, captions, poster, title, aspec
             <track kind="captions" src={captions} srcLang="en" label="English" default />
           </Video>
         </VideoSkin>
-        <RememberSpeed />
+        <PlayerSetup src={src} />
       </VideoPlayer>
     </div>
   );

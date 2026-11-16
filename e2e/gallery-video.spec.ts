@@ -42,6 +42,26 @@ async function chooseSpeed(page: Page, speed: string, tap = false) {
   await go(player(page).getByRole('menuitemradio', { name: speed }));
 }
 
+test('clicking a video tile opens it already playing', async ({ page }) => {
+  await openVideo(page, /Play video: Ice Cream Disaster/);
+  await expect
+    .poll(() =>
+      player(page)
+        .locator('video')
+        .evaluate((v: HTMLVideoElement) => !v.paused)
+    )
+    .toBe(true);
+});
+
+test('the player buttons show a pointer cursor', async ({ page }) => {
+  await openVideo(page, /Play video: Ice Cream Disaster/);
+  const cursor = await player(page)
+    .getByRole('button', { name: /^(Play|Pause)$/ })
+    .first()
+    .evaluate((b) => getComputedStyle(b).cursor);
+  expect(cursor).toBe('pointer');
+});
+
 test('speed menu changes the playback rate and remembers it', async ({ page }) => {
   await openVideo(page, /Play video: Ice Cream Disaster/);
   await showControls(page);
@@ -74,7 +94,11 @@ test('arrow keys inside the player seek instead of changing slides', async ({ pa
   await openVideo(page, /Play video: Ice Cream Disaster/);
   const counter = page.locator('.pswp__counter');
   const before = await counter.textContent();
-  await player(page).getByRole('button', { name: 'Play' }).first().focus();
+  // The video opens playing, so its play button reads "Pause".
+  await player(page)
+    .getByRole('button', { name: /^(Play|Pause)$/ })
+    .first()
+    .focus();
   await page.keyboard.press('ArrowLeft');
   await page.keyboard.press('ArrowRight');
   await page.waitForTimeout(500);

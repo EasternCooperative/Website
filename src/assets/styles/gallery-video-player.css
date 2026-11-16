@@ -33,6 +33,12 @@
   height: min(100cqh, 100cqw / var(--ecrs-aspect, 1.7778));
 }
 
+/* Pointer cursor on everything clickable in the skin, matched by role (the
+   skin's own class names are private to Video.js). */
+.ecrs-player :is(button, [role='button'], [role='slider'], [role^='menuitem']) {
+  cursor: pointer;
+}
+
 /* Edge to edge on phones, where every pixel of width counts. */
 @media (max-width: 639px) {
   .ecrs-player {

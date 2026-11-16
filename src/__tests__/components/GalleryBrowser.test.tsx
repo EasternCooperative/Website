@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act } from 'react';
 import GalleryBrowser, { type GalleryPhoto } from '~/components/widgets/GalleryBrowser';
-import { cleanup, render, settle, textOf, type } from '../react';
+import { cleanup, click, render, settle, textOf, type } from '../react';
 
 // Opening the lightbox needs a real layout engine; the grid and filters do not.
 // The mock keeps the props the real Gallery hands to PhotoSwipe, so tests can
@@ -38,8 +38,10 @@ vi.mock('react-photoswipe-gallery', () => ({
 vi.mock('photoswipe/style.css', () => ({}));
 // The real player (Video.js) needs a browser; e2e/gallery-video.spec.ts drives
 // it. Here a stand-in records what each video slide hands it.
+const playOnOpen = vi.hoisted(() => vi.fn());
 vi.mock('~/components/widgets/GalleryVideoPlayer', () => ({
   default: (props: Record<string, unknown>) => <div data-player={JSON.stringify(props)} />,
+  playOnOpen,
 }));
 
 let observe: ReturnType<typeof vi.fn>;
@@ -282,6 +284,15 @@ describe('GalleryBrowser', () => {
         title: 'Video 5',
         aspect: 800 / 600,
       });
+    });
+
+    it('asks the player to start when a video tile is clicked, not a photo tile', async () => {
+      playOnOpen.mockClear();
+      const container = await mount(mixed);
+      await click(container.querySelector('button[aria-label="Play video: Video 5"]'));
+      expect(playOnOpen).toHaveBeenCalledWith('https://media.example/5.mp4');
+      await click(container.querySelector('[data-caption] button:not([aria-label])'));
+      expect(playOnOpen).toHaveBeenCalledTimes(1);
     });
 
     it('filters by type', async () => {

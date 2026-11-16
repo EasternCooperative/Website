@@ -4,6 +4,7 @@ import { act } from 'react';
 import GalleryVideoPlayer, {
   PLAYBACK_RATES,
   RATE_KEY,
+  playOnOpen,
   readSavedRate,
   saveRate,
 } from '~/components/widgets/GalleryVideoPlayer';
@@ -26,6 +27,7 @@ const fake = vi.hoisted(() => {
     sync: false,
     target: null as object | null,
     state: { playbackRate: 1 },
+    play: vi.fn(() => Promise.resolve()),
     setPlaybackRate: (rate: number) => {
       store.state = { ...store.state, playbackRate: rate };
       notify();
@@ -43,6 +45,7 @@ const fake = vi.hoisted(() => {
       listeners.clear();
       store.target = null;
       store.sync = false;
+      store.play.mockClear();
       store.state = { playbackRate: 1 };
     },
   };
@@ -142,6 +145,37 @@ describe('GalleryVideoPlayer', () => {
       await act(async () => fake.store.attach());
       await act(async () => fake.store.setPlaybackRate(2));
       expect(localStorage.getItem(RATE_KEY)).toBe('2');
+    });
+  });
+
+  describe('play on open', () => {
+    it('starts the video whose tile was clicked, once, after it attaches', async () => {
+      playOnOpen('https://media.example/v.mp4');
+      await mount();
+      expect(fake.store.play).not.toHaveBeenCalled();
+      await act(async () => fake.store.attach());
+      expect(fake.store.play).toHaveBeenCalledTimes(1);
+      // The request is used up: reopening the same video by swiping doesn't play it.
+      await cleanup();
+      fake.store.reset();
+      await mount();
+      await act(async () => fake.store.attach());
+      expect(fake.store.play).not.toHaveBeenCalled();
+    });
+
+    it('leaves other videos (neighboring slides) paused', async () => {
+      playOnOpen('https://media.example/other.mp4');
+      await mount();
+      await act(async () => fake.store.attach());
+      expect(fake.store.play).not.toHaveBeenCalled();
+    });
+
+    it('stays paused quietly when the browser blocks playback', async () => {
+      fake.store.play.mockImplementationOnce(() => Promise.reject(new DOMException('blocked', 'NotAllowedError')));
+      playOnOpen('https://media.example/v.mp4');
+      await mount();
+      await act(async () => fake.store.attach());
+      expect(fake.store.play).toHaveBeenCalledTimes(1);
     });
   });
 
