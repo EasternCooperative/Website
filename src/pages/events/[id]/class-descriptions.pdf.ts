@@ -2,7 +2,7 @@ import type { APIRoute, GetStaticPaths } from 'astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
-import { baseEventTitle } from '~/utils/eventSchedule';
+import { eventLabel as labelFor } from '~/utils/eventSchedule';
 import {
   buildClassDescriptionGroups,
   classDescriptionsDocDefinition,
@@ -30,7 +30,7 @@ export const GET: APIRoute = async ({ props }) => {
   const leaders = await getCollection('leader');
   const leaderMap = new Map(leaders.map((l) => [l.id, l.data]));
 
-  const eventLabel = `${baseEventTitle(data.title)} ${data.date.getUTCFullYear()}`;
+  const eventLabel = labelFor(data.title, data.date);
   const docDefinition = classDescriptionsDocDefinition(buildClassDescriptionGroups(data, leaderMap), eventLabel);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -62,6 +62,15 @@ export function baseEventTitle(title: string): string {
 }
 
 /**
+ * Title plus year for headings like "Winter Adventure 2026". A title that
+ * already names its year ("Winter Workshop 2011-12", "Fun Day in Town, Fall
+ * 2000") is used as is, so the year is never doubled.
+ */
+export function eventLabel(title: string, date: Date): string {
+  return /\b(19|20)\d{2}\b/.test(title) ? title.trim() : `${title.trim()} ${date.getUTCFullYear()}`;
+}
+
+/**
  * Normalise a period / timeslot label to a stable key. Both a class's `period`
  * string and a timeslot's `label` run through this, so "Morning, first period"
  * and "Morning, First Period" land in the same grid row.

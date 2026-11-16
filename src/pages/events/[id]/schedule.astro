@@ -4,7 +4,7 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 import Layout from '~/layouts/PageLayout.astro';
 import LeaderPopover from '~/components/ui/LeaderPopover.astro';
 import ScheduleCellItem from '~/components/schedule/ScheduleCellItem.astro';
-import { buildEventMasterSchedule, hasMasterSchedule, baseEventTitle } from '~/utils/eventSchedule';
+import { buildEventMasterSchedule, hasMasterSchedule, eventLabel as labelFor } from '~/utils/eventSchedule';
 import { buildScheduleGrid } from '~/components/schedule/scheduleGrid';
 import { renderInlineMarkdown } from '~/utils/markdown';
 import { formatEventDateRange } from '~/utils/dates';
@@ -38,8 +38,7 @@ const leaderMap = new Map(leaders.map((l) => [l.id, l.data]));
 const peopleFlag = siteSettings.featureFlags.peopleWithoutPhotoOrBio;
 
 const grid = buildScheduleGrid(buildEventMasterSchedule(data, leaderMap));
-const year = data.date.getUTCFullYear();
-const eventLabel = `${baseEventTitle(data.title)} ${year}`;
+const eventLabel = labelFor(data.title, data.date);
 
 // Dates and venue under the title, so a printed sheet says which event it is for.
 const whenWhere = [formatEventDateRange(data.date, data.endDate), resolveVenue(data, siteData).location]

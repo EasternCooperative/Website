@@ -7,6 +7,7 @@ import {
   buildEventMasterSchedule,
   buildScheduleGroups,
   baseEventTitle,
+  eventLabel,
   looksLikeTimeRange,
   resolveClassRoom,
   classKey,
@@ -38,6 +39,19 @@ function makeEvent(overrides: Partial<EventScheduleData> = {}): EventScheduleDat
     ...overrides,
   };
 }
+
+describe('eventLabel', () => {
+  const d = new Date('2011-12-27T00:00:00Z');
+  it('adds the year to a title without one', () => {
+    expect(eventLabel('Winter Adventure', d)).toBe('Winter Adventure 2011');
+    expect(eventLabel('ECRS 75th Anniversary Weekend', d)).toBe('ECRS 75th Anniversary Weekend 2011');
+  });
+  it('keeps a title that already names its year', () => {
+    expect(eventLabel('Winter Workshop 2011-12', d)).toBe('Winter Workshop 2011-12');
+    expect(eventLabel('Winter Adventure 2026', d)).toBe('Winter Adventure 2026');
+    expect(eventLabel('Fun Day in Town, Fall 2000', d)).toBe('Fun Day in Town, Fall 2000');
+  });
+});
 
 describe('baseEventTitle', () => {
   it('strips a trailing year but leaves other text alone', () => {

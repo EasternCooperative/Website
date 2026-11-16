@@ -3,7 +3,7 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 import CognitoForm from '~/components/widgets/CognitoForm.astro';
 import HeroText from '~/components/widgets/HeroText.astro';
 import Layout from '~/layouts/PageLayout.astro';
-import { baseEventTitle } from '~/utils/eventSchedule';
+import { baseEventTitle, eventLabel as labelFor } from '~/utils/eventSchedule';
 import { hasClassDescriptions } from '~/utils/classDescriptionsPdf';
 
 export async function getStaticPaths() {
@@ -19,7 +19,7 @@ interface Props {
 
 const { event } = Astro.props;
 const { data } = event;
-const eventLabel = `${baseEventTitle(data.title)} ${data.date.getUTCFullYear()}`;
+const eventLabel = labelFor(data.title, data.date);
 
 const metadata = {
   title: `${eventLabel} Class Registration`,
