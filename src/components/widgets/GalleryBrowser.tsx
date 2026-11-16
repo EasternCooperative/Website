@@ -49,13 +49,25 @@ export function onGalleryOpen(pswp: PhotoSwipe) {
   // (applyBgOpacity is a multiplier on options.bgOpacity, which the open,
   // close, and drag-to-close animations also read, so switch the option.)
   const photoBgOpacity = pswp.options.bgOpacity;
-  const backdrop = () => {
-    const isVideo = !!pswp.currSlide?.holderElement?.querySelector(PLAYER);
-    pswp.options.bgOpacity = isVideo ? 1 : photoBgOpacity;
+  // Video.js listens for its keyboard shortcuts (space to play and pause,
+  // and the rest) only while focus is inside its player, so that neighboring
+  // slides' players don't all react. Focus the current slide's player whenever
+  // it becomes current, or the shortcuts do nothing until it's clicked.
+  // A slide's content can mount a frame or more after `change` fires, so
+  // look again for a few frames (stopping if the slide changes meanwhile).
+  const onSlide = (slide = pswp.currSlide, tries = 10) => {
+    if (pswp.currSlide !== slide) return;
+    const player = slide?.holderElement?.querySelector<HTMLElement>(PLAYER);
+    pswp.options.bgOpacity = player ? 1 : photoBgOpacity;
     pswp.applyBgOpacity(1);
+    if (player) {
+      // Focusable by script, but not an extra Tab stop.
+      if (!player.hasAttribute('tabindex')) player.tabIndex = -1;
+      player.focus({ preventScroll: true });
+    } else if (tries > 0) requestAnimationFrame(() => onSlide(slide, tries - 1));
   };
-  pswp.on('change', backdrop);
-  pswp.on('openingAnimationEnd', backdrop);
+  pswp.on('change', () => onSlide());
+  pswp.on('openingAnimationEnd', () => onSlide());
   pswp.on('change', pauseVideos);
   pswp.on('close', pauseVideos);
   pswp.on('destroy', () => document.removeEventListener('keydown', handleKeydown));

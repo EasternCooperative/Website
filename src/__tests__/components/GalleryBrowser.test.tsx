@@ -408,6 +408,48 @@ describe('GalleryBrowser', () => {
       expect(pointerDown(document.createElement('button'))).not.toHaveBeenCalled();
     });
 
+    it("focuses the current video's player on open, so its shortcuts (space) work", async () => {
+      await mount();
+      const pswp = fakeLightbox('/p/1-full.webp');
+      galleryProps.current!.onOpen(pswp);
+      const player = document.createElement('div');
+      player.className = 'ecrs-player';
+      pswp.currSlide.holderElement.append(player);
+      document.body.append(pswp.currSlide.holderElement);
+      pswp.emit('openingAnimationEnd');
+      expect(document.activeElement).toBe(player);
+      expect(player.tabIndex).toBe(-1); // focusable, but not a Tab stop
+    });
+
+    it('waits a few frames for a video slide that mounts after the change', async () => {
+      await mount();
+      const pswp = fakeLightbox('/p/1-full.webp');
+      galleryProps.current!.onOpen(pswp);
+      document.body.append(pswp.currSlide.holderElement);
+      pswp.emit('change');
+      expect(pswp.options.bgOpacity).toBe(0.8);
+      const player = document.createElement('div');
+      player.className = 'ecrs-player';
+      player.tabIndex = -1;
+      pswp.currSlide.holderElement.append(player);
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      expect(pswp.options.bgOpacity).toBe(1);
+      expect(document.activeElement).toBe(player);
+    });
+
+    it('stops waiting once the lightbox moves on to another slide', async () => {
+      await mount();
+      const pswp = fakeLightbox('/p/1-full.webp');
+      galleryProps.current!.onOpen(pswp);
+      pswp.emit('change');
+      const late = document.createElement('div');
+      late.className = 'ecrs-player';
+      pswp.currSlide.holderElement.append(late);
+      pswp.currSlide = { ...pswp.currSlide, holderElement: document.createElement('div') };
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      expect(pswp.options.bgOpacity).toBe(0.8);
+    });
+
     it('gives video slides a solid backdrop and photos the usual one', async () => {
       await mount();
       const pswp = fakeLightbox('/p/1-full.webp');

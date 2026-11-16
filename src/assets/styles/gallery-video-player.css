@@ -39,6 +39,12 @@
   cursor: pointer;
 }
 
+/* The player root takes focus only by script (see onGalleryOpen), so no
+   ring around the whole video; its controls keep their own focus styles. */
+.ecrs-player:focus {
+  outline: none;
+}
+
 /* Edge to edge on phones, where every pixel of width counts. */
 @media (max-width: 639px) {
   .ecrs-player {

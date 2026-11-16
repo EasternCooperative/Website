@@ -53,6 +53,32 @@ test('clicking a video tile opens it already playing', async ({ page }) => {
     .toBe(true);
 });
 
+test('space plays and pauses right after opening, without clicking into the player', async ({ page }) => {
+  await openVideo(page, /Play video: Ice Cream Disaster/);
+  const paused = () =>
+    player(page)
+      .locator('video')
+      .evaluate((v: HTMLVideoElement) => v.paused);
+  await expect.poll(paused).toBe(false); // opened playing
+  await page.keyboard.press('Space');
+  await expect.poll(paused).toBe(true);
+  await page.keyboard.press('Space');
+  await expect.poll(paused).toBe(false);
+});
+
+test('space works on the next video after swiping to it', async ({ page }) => {
+  await openVideo(page, /Play video: Spring Weekend 2009/);
+  await page.locator('.pswp__button--arrow--next').click();
+  await expect(page.locator('.pswp__counter')).toHaveText('2 / 3');
+  const paused = () =>
+    player(page)
+      .locator('video')
+      .evaluate((v: HTMLVideoElement) => v.paused);
+  await expect.poll(paused).toBe(true); // swiped-to videos don't autoplay
+  await page.keyboard.press('Space');
+  await expect.poll(paused).toBe(false);
+});
+
 test('the player buttons show a pointer cursor', async ({ page }) => {
   await openVideo(page, /Play video: Ice Cream Disaster/);
   const cursor = await player(page)
