@@ -21,11 +21,54 @@
       "text": "ECRS emphasizes learning and leadership. It has served as a training ground for many professionals and volunteers in recreation leadership, with mentors who support, encourage, and help guide each new leader."
     }
   ],
+  "rootsTitle": "Where ECRS came from",
+  "rootsParagraphs": [
+    "ECRS grew out of the Play Co-op, a recreation group in New York City that its members ran democratically. In the late 1930s they met for three-hour evenings of games, crafts, folk dancing, and dramatics at the Hudson Guild Settlement House and in Greenwich Village, led by Ruth and Jimmy Norris, Frank Harris, and Pat Emerson. Through the Cooperative Recreation Service, the same leaders brought evenings of play to cooperatives and community groups around the city.",
+    "Ruth and Jimmy Norris had also helped start the National Cooperative Recreation School in the Midwest, together with Neva Boyd of Northwestern University and others. Neva Boyd's ideas about play, group work, and leadership shaped ECRS from the start, and they still guide how we teach.",
+    "In 1940, a group of Play Co-op leaders established the first Eastern Cooperative Recreation School at the Hudson Shore Labor School. Two principles guided it. Growth in an activity comes from inner motivation, not from drilling a skill, and everyone can find their own place in it. And the school's purpose was to train leaders who would carry the ECRS approach home to their own communities.",
+    "Read the founders' own accounts, including Eddie Moyer's 1986 recollections, in [ECRS: Past, Present and Future](/of-play-and-playfulness/past-present-future)."
+  ],
+  "rootsQuote": {
+    "text": "For the first time I experienced folk dancing, folksinging, crafts and games, led in a manner that included each of us.",
+    "attribution": "Frank Harris, on his first evening at the Play Co-op in 1939"
+  },
   "timelineTitle": "Milestones",
   "timeline": [
     {
+      "year": "1930s",
+      "text": "Ruth and Jimmy Norris lead the Play Co-op in New York City. With Neva Boyd and other Midwestern colleagues, they also start what becomes the National Cooperative Recreation School."
+    },
+    {
       "year": "1940",
-      "text": "ECRS is founded. Its early decades are told in the words of the people who lived them in [Of Play and Playfulness](/of-play-and-playfulness/past-present-future)."
+      "text": "Play Co-op leaders found the first Eastern Cooperative Recreation School at the Hudson Shore Labor School."
+    },
+    {
+      "year": "1942",
+      "text": "The third session of ECRS meets at Massachusetts State College, alongside the Eastern Cooperative League's meeting."
+    },
+    {
+      "year": "1960",
+      "text": "Summer School is held at the NYU camp at Lake Sebago, New York."
+    },
+    {
+      "year": "1964",
+      "text": "Jimmy Norris retires, a few years after Ruth Norris. A new generation of leaders, including Sy Kantor, Dotti Siftar, and Eddie Moyer, has been training to carry on their work."
+    },
+    {
+      "year": "1969",
+      "text": "Summer School meets at Geneva Point Center, its home for five summers in a row."
+    },
+    {
+      "year": "1972",
+      "text": "The first Winter School at Watson Homestead, December 27 to January 1. It is renamed Winter Workshop in 1975, and the winter event has met at Watson nearly every year since."
+    },
+    {
+      "year": "1974",
+      "text": "Summer School runs for two weeks for the first time, at Frost Valley. Many summers over the next decade offer two weeks at two different camps."
+    },
+    {
+      "year": "1976",
+      "text": "Summer School comes to Crystal Lake for the first time. Crystal Lake becomes its regular home through 1988."
     },
     {
       "year": "1990",
@@ -33,7 +76,15 @@
     },
     {
       "year": "2000",
-      "text": "ECRS celebrates 60 years with an anniversary weekend at the Hemlocks Conference Center in Hebron, Connecticut. The year's calendar includes a Spring Weekend at Stony Point, two camping weekends at Camp Onas, Summer School and Winter Workshop at Watson Homestead, and fun days in town."
+      "text": "ECRS celebrates 60 years with an [anniversary weekend](/events/2000-fall-weekend-hemlocks) at the Hemlocks Conference Center in Hebron, Connecticut. The year's calendar includes a Spring Weekend at Stony Point, two camping weekends at Camp Onas, Summer School and Winter Workshop at Watson Homestead, and fun days in town."
+    },
+    {
+      "year": "2002",
+      "text": "Summer School returns to Crystal Lake Camp for three summers."
+    },
+    {
+      "year": "2006",
+      "text": "A [release party](/events/2006-all-day-singing-cd-release-amherst) in Amherst, Massachusetts, celebrates \"All Day Singing,\" the ECRS CD of Dotti Siftar's song leadership."
     },
     {
       "year": "2007",
@@ -41,17 +92,21 @@
     },
     {
       "year": "2010",
-      "text": "The 70th Anniversary Winter Workshop at Watson Homestead."
+      "text": "The [70th Anniversary Winter Workshop](/events/2010-70th-anniversary-winter-workshop) at Watson Homestead."
     },
     {
       "year": "2015",
-      "text": "About 100 people of all ages celebrate 75 years at Camp Harlam in the Poconos. Winter Workshop becomes Winter Adventure."
+      "text": "About 100 people of all ages celebrate 75 years at [Camp Harlam](/events/2015-75th-anniversary-camp-harlam) in the Poconos. Winter Workshop becomes [Winter Adventure](/events/2015-winter-adventure)."
     },
     {
       "year": "2020",
       "text": "During the pandemic, ECRS moves online with virtual weekends, ice cream socials, and Winter Connections, then returns to in-person events."
     }
   ],
-  "evolvingTitle": "ECRS evolving",
-  "evolvingText": "Classes at ECRS events have expanded beyond the traditional core of games, informal dramatics, and song. Newer experiences include self-exploration (Making the Change You Want; Taking Stock and Moving Forward), live-action role playing (Adventure Games), and forays into drumming and puppetry. Browse [past events](/events) to see how the program has grown."
+  "leadershipTitle": "Growing new leaders",
+  "leadershipParagraphs": [
+    "Training leaders has been part of ECRS since the Play Co-op, where apprentices went along with Ruth and Jimmy Norris to lead evenings around New York. They helped lead, sometimes ran a play party themselves, and afterward joined a \"spilled milk\" session to talk over how the program and the leadership had gone.",
+    "When the founding leaders began to retire in the 1960s, the staff started training their successors on purpose. In 1974, the dramatics leaders wrote down the series of experiences a new dramatics leader should have, and an Intensive Leadership class followed.",
+    "Today, each new leader works closely with one or more mentors who support, encourage, and help guide their learning. The Leadership Development Committee follows that progress using the [ECRS Leadership Competency Model](/leadership-resources). ECRS has been a training ground for many professionals and volunteers in recreation leadership."
+  ]
 }

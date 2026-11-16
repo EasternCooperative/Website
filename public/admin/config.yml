@@ -222,6 +222,17 @@ collections:
             fields:
               - { label: 'Word', name: 'word', widget: 'string' }
               - { label: 'Text', name: 'text', widget: 'text' }
+          - { label: 'Origins Heading', name: 'rootsTitle', widget: 'string' }
+          - label: 'Origins Paragraphs'
+            name: 'rootsParagraphs'
+            widget: 'list'
+            field: { label: 'Paragraph', name: 'paragraph', widget: 'markdown' }
+          - label: 'Origins Quote'
+            name: 'rootsQuote'
+            widget: 'object'
+            fields:
+              - { label: 'Quote', name: 'text', widget: 'text' }
+              - { label: 'Attribution', name: 'attribution', widget: 'string' }
           - { label: 'Timeline Heading', name: 'timelineTitle', widget: 'string' }
           - label: 'Timeline'
             name: 'timeline'
@@ -230,8 +241,11 @@ collections:
             fields:
               - { label: 'Year', name: 'year', widget: 'string' }
               - { label: 'Text', name: 'text', widget: 'markdown' }
-          - { label: 'Closing Heading', name: 'evolvingTitle', widget: 'string' }
-          - { label: 'Closing Text', name: 'evolvingText', widget: 'markdown' }
+          - { label: 'Leadership Heading', name: 'leadershipTitle', widget: 'string' }
+          - label: 'Leadership Paragraphs'
+            name: 'leadershipParagraphs'
+            widget: 'list'
+            field: { label: 'Paragraph', name: 'paragraph', widget: 'markdown' }
 
       - name: 'leadership-resources'
         label: 'Leadership Resources'

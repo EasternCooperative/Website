@@ -35,6 +35,19 @@ const isPublished = siteSettings.featureFlags.historyPage;
   </WidgetWrapper>
 
   <WidgetWrapper>
+    <Headline title={history.rootsTitle} />
+    <div class="max-w-3xl space-y-4 text-default">
+      {history.rootsParagraphs.map((para) => (
+        <p class="md-links" set:html={renderInlineMarkdown(para)} />
+      ))}
+    </div>
+    <figure class="mt-8 max-w-3xl border-l-4 border-primary pl-5">
+      <blockquote class="font-heading text-xl italic text-heading">“{history.rootsQuote.text}”</blockquote>
+      <figcaption class="mt-2 text-sm text-muted">{history.rootsQuote.attribution}</figcaption>
+    </figure>
+  </WidgetWrapper>
+
+  <WidgetWrapper>
     <Headline title={history.timelineTitle} />
     <ol class="relative ml-3 border-l border-gray-200 dark:border-gray-700" role="list">
       {history.timeline.map((item) => (
@@ -51,8 +64,12 @@ const isPublished = siteSettings.featureFlags.historyPage;
   </WidgetWrapper>
 
   <WidgetWrapper>
-    <Headline title={history.evolvingTitle} />
-    <p class="max-w-3xl text-default md-links" set:html={renderInlineMarkdown(history.evolvingText)} />
+    <Headline title={history.leadershipTitle} />
+    <div class="max-w-3xl space-y-4 text-default">
+      {history.leadershipParagraphs.map((para) => (
+        <p class="md-links" set:html={renderInlineMarkdown(para)} />
+      ))}
+    </div>
   </WidgetWrapper>
 
   <CallToAction
