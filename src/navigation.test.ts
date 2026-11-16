@@ -74,7 +74,13 @@ describe('headerData', () => {
 
     const community = (headerData.links as HeaderLink[]).find((l) => l.text === 'Community');
     expect(community?.href).toBeUndefined();
-    expect(community?.links?.map((c) => c.href)).toEqual(['/membership', '/activities', '/connections']);
+    expect(community?.links?.map((c) => c.href)).toEqual([
+      '/membership',
+      '/activities',
+      '/of-play-and-playfulness',
+      '/leadership-resources',
+      '/connections',
+    ]);
   });
 
   // The real menu always keeps About/Our People/Gallery, so only a synthetic nav
