@@ -70,71 +70,108 @@ classes:
   - name: 'International Dance'
     leaderId: patricia-williams
     days: 'All 4 days'
+    period: 'Morning class, first period'
+    room: 'Dining Room'
     description: 'An experience of other cultures through a variety of dances from around the world, chosen to move body, mind, and spirit. (Ages 9+)'
   - name: 'Posters with Lungs: Making Our Voices Visible About Contemporary Challenges'
     leaderId: teri-wilkinson
     days: 'All 4 days'
+    period: 'Morning class, first period'
+    room: 'Craft Room'
     description: 'Design visual message boards using paper cutting, layering, and collage that speak to change, rooted in cooperative playful community.'
   - name: 'Singing for Every Body and Soul'
     leader: 'Roberta Kirn'
     days: 'All 4 days'
+    period: 'Morning class, first period'
+    room: 'Chapel A'
     description: 'Roberta Kirn is a singer, percussionist, and dancer who shares easy-to-learn songs and chants from around the world, along with improvisational Circlesongs and body percussion, collected during her travels with The Song Exchange Project.'
   - name: 'The Write Stuff'
     leaderId: beverly-pincus
     days: 'All 4 days'
+    period: 'Morning class, second period'
+    room: 'Library'
     description: 'Original writing exercises to stimulate creativity and break through writing blocks, then write from what you know best — the stories of your lives. (Age 15+, class size limited to 12)'
   - name: 'Songful Games'
     leaderId: julie-lipson
     days: 'Days 1-2 and Days 3-4'
+    period: 'Morning class, second period'
+    room: 'Dining Room'
     description: 'Fast-paced and silly games with elements of improv and teamwork.'
   - name: 'Playing Music for Dance'
     leaderId: mark-schwartz
     days: 'Days 1-2'
+    period: 'Morning class, second period'
+    room: 'Chapel A'
     description: 'Playing a variety of tunes for square, contra, and international folk dancing, waltzes, and polkas. Bring an instrument.'
   - name: 'Informal Dramatics'
     leaderId: lane-neubauer
     days: 'Days 1-2'
+    period: 'Morning class, second period'
+    room: 'Rec Hall'
     description: 'Use your imagination to bring whatever you choose to life through dramatic warm-ups, exercises, and games culminating in group skits.'
   - name: 'Transition with Intention'
     leaderId: reed-dewey
     days: 'Days 3-4'
+    period: 'Morning class, second period'
+    room: 'Chapel A'
     description: 'Addresses any kind of life transition — get clearer about where you are and where you want to go, and leave with an action plan.'
   - name: 'Improv'
     leaderId: isaac-lebwohl-steiner
     days: 'Days 3-4'
+    period: 'Morning class, second period'
+    room: 'Rec Hall'
     description: 'Come make it up as you go — no experience needed; newcomers and experienced improvisers equally welcome.'
   - name: 'Small Scenes'
     leaderId: isaac-lebwohl-steiner
     days: 'All 4 days'
+    period: 'Afternoon class'
+    room: 'Chapel A'
     description: 'Using scripts, rehearse, perform, and discuss a collection of comedic and dramatic scenes.'
   - name: 'Israeli Dance'
     leaderId: sharon-underberg
     days: 'Days 1-2'
+    period: 'Afternoon class'
+    room: 'Dining Room'
     description: 'A two-day dive into the diversity and origins of Israeli dance, from the classics of the 40s and 50s to modern day. All levels welcome.'
   - name: 'Table Games'
     leaderId: jack-marquess
     days: 'Days 1-2'
+    period: 'Afternoon class'
+    room: 'Rec Hall'
     description: 'A rotating selection of games introduced each day, then available in free time and late-night evening program.'
   - name: 'Singing Together Is Fun!'
     leader: 'Barb Siftar'
     days: 'Days 1-2'
+    period: 'Afternoon class'
+    room: 'Elm Room'
     description: 'A two-day singing mini including singing and clapping games, rounds, harmonies, improvisations, and vocal warm-ups. Open to all ages.'
   - name: 'Games'
     leaderId: lane-neubauer
     days: 'Days 3-4'
+    period: 'Afternoon class'
+    room: 'Rec Hall'
     description: 'Games for all ages and abilities, with leadership strategies for bringing ECRS fun into other groups.'
   - name: 'Joy of Movement'
     leaders:
       - id: judi-powers
       - id: marko-schmale
     days: 'Days 3-4'
+    period: 'Afternoon class'
+    room: 'Dining Room'
     description: 'Explore and unleash your potential through joyful movement, dance, and purposeful moving. (Ages 11+)'
   - name: 'Printing Adinkra Symbols'
     leaderId: julie-siftar
     days: 'Days 3-4'
+    period: 'Afternoon class'
+    room: 'Craft Room'
     description: 'Create simplified Adinkra stamps for printing on paper, reflecting on the deeper meaning of the symbols, inspired by a trip to Ghana with the Witness Tree Institute.'
   - name: "Children's Program"
     restriction: 'Ages 5-11'
     days: 'Days 1-2 and Days 3-4'
     description: 'A completely integrated program mirroring the cooperative play ECRS is built on, cooperative-led during the remaining class period.'
+schedule:
+  timeslots:
+    - label: 'Morning class, first period'
+    - label: 'Morning class, second period'
+    - label: 'Afternoon class'
 ---

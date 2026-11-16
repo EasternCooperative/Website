@@ -1,6 +1,37 @@
 {
   "heroTagline": "Browse decades of ECRS memories.",
-  "heroTitle": "Photo Gallery",
+  "heroTitle": "Gallery",
   "heroSubtitle": "Scroll through the rich history of ECRS! Are there any faces you recognize?",
-  "metaDescription": "Browse photos from ECRS events and workshops over the years."
+  "metaDescription": "Browse photos and videos from ECRS events and workshops over the years.",
+  "videos": [
+    {
+      "title": "Let's Play!",
+      "src": "https://media.ecrs.org/gallery/lets-play-2000.mp4",
+      "poster": "/videos/gallery/lets-play-2000-poster.jpg",
+      "captions": "/videos/gallery/lets-play-2000.vtt",
+      "year": 2000,
+      "description": "ECRS's promotional video, released in 2000. Filmed by Steve Sherman; other credits at the end.",
+      "duration": "7:44",
+      "photographer": "Steve Sherman"
+    },
+    {
+      "title": "Spring Weekend 2009",
+      "src": "https://media.ecrs.org/gallery/spring-weekend-2009.mp4",
+      "poster": "/videos/gallery/spring-weekend-2009-poster.jpg",
+      "captions": "/videos/gallery/spring-weekend-2009.vtt",
+      "year": 2009,
+      "description": "Group activities from the Spring Leadership Development Weekend at Stony Point Center, April 24-26, 2009.",
+      "duration": "5:27",
+      "event": "Spring Weekend 2009"
+    },
+    {
+      "title": "Ice Cream Disaster",
+      "src": "https://media.ecrs.org/gallery/ice-cream-disaster.mp4",
+      "poster": "/videos/gallery/ice-cream-disaster-poster.jpg",
+      "captions": "/videos/gallery/ice-cream-disaster.vtt",
+      "description": "A skit from Winter Workshop, posted in January 2011: something has gone awry at the ice cream factory.",
+      "duration": "5:30",
+      "event": "Winter Workshop"
+    }
+  ]
 }

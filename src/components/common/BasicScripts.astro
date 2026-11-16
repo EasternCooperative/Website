@@ -88,9 +88,11 @@ import { UI } from 'astrowind:config';
       function applyHeaderStylesOnScroll() {
         const header = document.querySelector('#header[data-aw-sticky-header]');
         if (!header) return;
-        if (lastKnownScrollPosition > 60 && !header.classList.contains('scroll')) {
+        // Any scroll at all gets the solid background: below that, content slides
+        // under a transparent header (most visibly an event page's hero photo).
+        if (lastKnownScrollPosition > 0 && !header.classList.contains('scroll')) {
           header.classList.add('scroll');
-        } else if (lastKnownScrollPosition <= 60 && header.classList.contains('scroll')) {
+        } else if (lastKnownScrollPosition <= 0 && header.classList.contains('scroll')) {
           header.classList.remove('scroll');
         }
         ticking = false;

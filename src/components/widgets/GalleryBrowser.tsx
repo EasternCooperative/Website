@@ -11,13 +11,23 @@ import 'photoswipe/style.css';
 // Gallery `options`) turns that instant jump off, and this reproduces
 // arrow-key navigation ourselves via the same internal method, but passing
 // `animate: true` so it takes the animated path instead.
-function onGalleryOpen(pswp: PhotoSwipe) {
+//
+// Video slides: a video keeps playing after you swipe away from it unless it is
+// paused, so every video in the lightbox is paused on slide change and close.
+// Arrow keys pressed while a video has focus belong to its own seek controls.
+export function onGalleryOpen(pswp: PhotoSwipe) {
   window.ecrsTrack?.('gallery_photo_open');
   const handleKeydown = (e: KeyboardEvent) => {
+    if (e.target instanceof HTMLVideoElement) return;
     if (e.key === 'ArrowLeft') pswp.mainScroll.moveIndexBy(-1, true);
     else if (e.key === 'ArrowRight') pswp.mainScroll.moveIndexBy(1, true);
   };
+  const pauseVideos = () => {
+    pswp.element?.querySelectorAll('video').forEach((v) => v.pause());
+  };
   document.addEventListener('keydown', handleKeydown);
+  pswp.on('change', pauseVideos);
+  pswp.on('close', pauseVideos);
   pswp.on('destroy', () => document.removeEventListener('keydown', handleKeydown));
 }
 
@@ -55,6 +65,16 @@ export interface GalleryPhoto {
   year?: number;
   photographer?: string;
   event?: string;
+  /** Present for videos: `src`/`full` then hold the poster image. */
+  video?: GalleryVideo;
+}
+
+export interface GalleryVideo {
+  src: string;
+  /** WebVTT captions file. */
+  captions: string;
+  /** Display length, e.g. "5:27". */
+  duration?: string;
 }
 
 interface Props {
@@ -70,6 +90,35 @@ const PAGE_SIZE = 48;
 // distinct from '' (no filter applied), and from any real photographer/event
 // name since those come from CMS-authored strings.
 const UNKNOWN = '__unknown__';
+
+type MediaType = '' | 'photo' | 'video';
+
+function countLabel(items: GalleryPhoto[]): string {
+  const videos = items.filter((p) => p.video).length;
+  const photos = items.length - videos;
+  const photoText = `${photos} ${photos === 1 ? 'photo' : 'photos'}`;
+  if (!videos) return photoText;
+  const videoText = `${videos} ${videos === 1 ? 'video' : 'videos'}`;
+  return photos ? `${photoText}, ${videoText}` : videoText;
+}
+
+function VideoSlide({ video, poster, title }: { video: GalleryVideo; poster: string; title: string }) {
+  return (
+    <div className="flex h-full w-full items-center justify-center p-4 sm:p-12">
+      <video
+        controls
+        playsInline
+        preload="metadata"
+        poster={poster}
+        aria-label={title}
+        className="max-h-full max-w-full bg-black"
+      >
+        <source src={video.src} type="video/mp4" />
+        <track kind="captions" src={video.captions} srcLang="en" label="English" default />
+      </video>
+    </div>
+  );
+}
 
 export default function GalleryBrowser({ photos, years, photographers, events }: Props) {
   const yearBoundMin = years.length ? Math.min(...years) : 0;
@@ -108,6 +157,8 @@ export default function GalleryBrowser({ photos, years, photographers, events }:
   const [yearRange, setYearRange] = useState<[number, number]>([yearBoundMin, yearBoundMax]);
   const [photographer, setPhotographer] = useState('');
   const [event, setEvent] = useState('');
+  const [mediaType, setMediaType] = useState<MediaType>('');
+  const hasVideos = useMemo(() => photos.some((p) => p.video), [photos]);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const yearFilterActive = yearRange[0] > yearBoundMin || yearRange[1] < yearBoundMax;
@@ -115,6 +166,8 @@ export default function GalleryBrowser({ photos, years, photographers, events }:
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return photos.filter((p) => {
+      if (mediaType === 'video' && !p.video) return false;
+      if (mediaType === 'photo' && p.video) return false;
       if (yearFilterActive) {
         if (p.year == null) return false;
         if (p.year < yearRange[0] || p.year > yearRange[1]) return false;
@@ -131,7 +184,7 @@ export default function GalleryBrowser({ photos, years, photographers, events }:
       }
       return true;
     });
-  }, [photos, search, yearFilterActive, yearRange, photographer, event]);
+  }, [photos, search, yearFilterActive, yearRange, photographer, event, mediaType]);
 
   const visible = filtered.slice(0, visibleCount);
 
@@ -176,9 +229,25 @@ export default function GalleryBrowser({ photos, years, photographers, events }:
             resetPaging();
           }}
           className={`${selectClass} grow min-w-[200px]`}
-          aria-label="Search photos"
+          aria-label={hasVideos ? 'Search photos and videos' : 'Search photos'}
           data-track-search="gallery"
         />
+        {hasVideos && (
+          <select
+            value={mediaType}
+            onChange={(e) => {
+              setMediaType(e.target.value as MediaType);
+              resetPaging();
+            }}
+            className={selectClass}
+            aria-label="Filter by type"
+            data-track-filter="type"
+          >
+            <option value="">Photos and videos</option>
+            <option value="photo">Photos only</option>
+            <option value="video">Videos only</option>
+          </select>
+        )}
         <select
           value={photographer}
           onChange={(e) => {
@@ -233,44 +302,64 @@ export default function GalleryBrowser({ photos, years, photographers, events }:
         />
       )}
 
-      <p className="text-sm text-muted mb-4">
-        {filtered.length} {filtered.length === 1 ? 'photo' : 'photos'}
-      </p>
+      <p className="text-sm text-muted mb-4">{countLabel(filtered)}</p>
 
       <Gallery withCaption options={{ arrowKeys: false }} onOpen={onGalleryOpen} uiElements={lightboxUiElements}>
         <ul
           className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 list-none p-0 m-0"
           role="list"
         >
-          {visible.map((photo) => (
-            <li key={photo.id}>
-              <Item
-                original={photo.full}
-                thumbnail={photo.src}
-                width={photo.width}
-                height={photo.height}
-                alt={photo.alt}
-                caption={photo.year ? `${photo.year} — ${photo.caption ?? photo.alt}` : (photo.caption ?? photo.alt)}
-              >
-                {({ ref, open }) => (
-                  <button
-                    type="button"
-                    onClick={open}
-                    className="block w-full aspect-square overflow-hidden rounded-md bg-gray-100 dark:bg-gray-800"
-                  >
-                    <img
-                      ref={ref as React.Ref<HTMLImageElement>}
-                      src={photo.src}
-                      alt={photo.alt}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
-                    />
-                  </button>
-                )}
-              </Item>
-            </li>
-          ))}
+          {visible.map((photo) => {
+            const caption = photo.year ? `${photo.year} — ${photo.caption ?? photo.alt}` : (photo.caption ?? photo.alt);
+            const { video } = photo;
+            return (
+              <li key={photo.id}>
+                <Item
+                  {...(video
+                    ? { content: <VideoSlide video={video} poster={photo.full} title={photo.alt} /> }
+                    : { original: photo.full, width: photo.width, height: photo.height })}
+                  thumbnail={photo.src}
+                  alt={photo.alt}
+                  caption={caption}
+                >
+                  {({ ref, open }) => (
+                    <button
+                      type="button"
+                      onClick={open}
+                      aria-label={video ? `Play video: ${photo.alt}` : undefined}
+                      className="relative block w-full aspect-square overflow-hidden rounded-md bg-gray-100 dark:bg-gray-800"
+                    >
+                      <img
+                        ref={ref as React.Ref<HTMLImageElement>}
+                        src={photo.src}
+                        alt={video ? '' : photo.alt}
+                        loading="lazy"
+                        decoding="async"
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
+                      />
+                      {video && (
+                        <span
+                          className="pointer-events-none absolute inset-0 flex items-center justify-center"
+                          aria-hidden="true"
+                        >
+                          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-black/60 text-white">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                              <path d="M8 5v14l11-7z" />
+                            </svg>
+                          </span>
+                          {video.duration && (
+                            <span className="absolute bottom-2 right-2 rounded bg-black/70 px-1.5 py-0.5 text-xs font-medium text-white">
+                              {video.duration}
+                            </span>
+                          )}
+                        </span>
+                      )}
+                    </button>
+                  )}
+                </Item>
+              </li>
+            );
+          })}
         </ul>
       </Gallery>
 
@@ -279,7 +368,11 @@ export default function GalleryBrowser({ photos, years, photographers, events }:
           torn down and silently stop working. */}
       <div ref={sentinelRef} className="h-1" aria-hidden="true" />
 
-      {filtered.length === 0 && <p className="text-muted text-lg py-12 text-center">No photos match your filters.</p>}
+      {filtered.length === 0 && (
+        <p className="text-muted text-lg py-12 text-center">
+          {hasVideos ? 'Nothing matches your filters.' : 'No photos match your filters.'}
+        </p>
+      )}
     </div>
   );
 }

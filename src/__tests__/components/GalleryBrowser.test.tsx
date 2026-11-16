@@ -23,10 +23,17 @@ vi.mock('react-photoswipe-gallery', () => ({
   Item: ({
     children,
     caption,
+    content,
   }: {
     children: (api: { ref: () => void; open: () => void }) => React.ReactNode;
     caption: string;
-  }) => <div data-caption={caption}>{children({ ref: () => {}, open: () => {} })}</div>,
+    content?: React.ReactNode;
+  }) => (
+    <div data-caption={caption}>
+      {children({ ref: () => {}, open: () => {} })}
+      {content && <div data-slide>{content}</div>}
+    </div>
+  ),
 }));
 vi.mock('photoswipe/style.css', () => ({}));
 
@@ -232,6 +239,68 @@ describe('GalleryBrowser', () => {
     expect(count(container)).toBe('1 photo');
   });
 
+  describe('videos', () => {
+    const video = (id: number, over: Partial<GalleryPhoto> = {}): GalleryPhoto =>
+      photo(id, {
+        alt: `Video ${id}`,
+        video: { src: `https://media.example/${id}.mp4`, captions: `/v/${id}.vtt`, duration: '5:27' },
+        ...over,
+      });
+    const mixed = [...photos, video(5, { year: 2009, event: 'Spring Weekend 2009' }), video(6)];
+    const typeSelect = (root: ParentNode) =>
+      root.querySelector<HTMLSelectElement>('select[aria-label="Filter by type"]');
+
+    it('has no type filter when there are only photos', async () => {
+      const container = await mount();
+      expect(typeSelect(container)).toBeNull();
+      expect(container.querySelector('input[type=search]')!.getAttribute('aria-label')).toBe('Search photos');
+    });
+
+    it('mixes videos into the grid and counts them separately', async () => {
+      const container = await mount(mixed);
+      expect(count(container)).toBe('4 photos, 2 videos');
+      expect(container.querySelector('input[type=search]')!.getAttribute('aria-label')).toBe(
+        'Search photos and videos'
+      );
+      const tiles = [...container.querySelectorAll('button[aria-label^="Play video"]')];
+      expect(tiles.map((b) => b.getAttribute('aria-label'))).toEqual(['Play video: Video 5', 'Play video: Video 6']);
+      expect(textOf(tiles[0])).toContain('5:27');
+    });
+
+    it('plays each video in the lightbox with its captions', async () => {
+      const container = await mount([video(5)]);
+      const slide = container.querySelector('[data-slide] video')!;
+      expect(slide.getAttribute('aria-label')).toBe('Video 5');
+      expect(slide.querySelector('source')!.getAttribute('src')).toBe('https://media.example/5.mp4');
+      expect(slide.querySelector('track')!.getAttribute('src')).toBe('/v/5.vtt');
+    });
+
+    it('filters by type', async () => {
+      const container = await mount(mixed);
+      const select = typeSelect(container)!;
+
+      await choose(select, 'video');
+      expect(count(container)).toBe('2 videos');
+      await choose(select, 'photo');
+      expect(count(container)).toBe('4 photos');
+      await choose(select, '');
+      expect(count(container)).toBe('4 photos, 2 videos');
+    });
+
+    it('says nothing matches when filters leave no photos or videos', async () => {
+      const container = await mount(mixed);
+      await type(container.querySelector<HTMLInputElement>('input[type=search]')!, 'zzz');
+      expect(count(container)).toBe('0 photos');
+      expect(textOf(container)).toContain('Nothing matches your filters.');
+    });
+
+    it('treats a lone video without a duration as one video', async () => {
+      const container = await mount([video(7, { video: { src: '/7.mp4', captions: '/7.vtt' } })]);
+      expect(count(container)).toBe('1 video');
+      expect(textOf(container.querySelector('button[aria-label^="Play video"]')!)).toBe('');
+    });
+  });
+
   describe('lightbox', () => {
     // Just enough of PhotoSwipe for the open hook and the "open original" button.
     function fakeLightbox(src: string) {
@@ -270,6 +339,32 @@ describe('GalleryBrowser', () => {
       pswp.emit('destroy');
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
       expect(pswp.mainScroll.moveIndexBy).toHaveBeenCalledTimes(2);
+    });
+
+    it('pauses videos when the slide changes or the lightbox closes', async () => {
+      await mount();
+      const element = document.createElement('div');
+      const v = document.createElement('video');
+      const pause = vi.spyOn(v, 'pause').mockImplementation(() => {});
+      element.append(v);
+      const pswp = { ...fakeLightbox('/p/1-full.webp'), element };
+      galleryProps.current!.onOpen(pswp);
+
+      pswp.emit('change');
+      pswp.emit('close');
+      expect(pause).toHaveBeenCalledTimes(2);
+    });
+
+    it('leaves arrow keys to a focused video', async () => {
+      await mount();
+      const pswp = fakeLightbox('/p/1-full.webp');
+      galleryProps.current!.onOpen(pswp);
+      const v = document.createElement('video');
+      document.body.append(v);
+      v.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+      expect(pswp.mainScroll.moveIndexBy).not.toHaveBeenCalled();
+      pswp.emit('change');
+      pswp.emit('destroy');
     });
 
     it('opens and counts the original only for photos that have one', async () => {

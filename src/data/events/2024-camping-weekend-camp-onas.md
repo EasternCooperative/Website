@@ -41,36 +41,92 @@ classes:
       - id: celia-nicholson
       - id: carmen-siftar
       - id: sonia-nicholson
+    period: 'Saturday morning'
+    room: 'Dining Hall'
     description: 'Back by popular demand, the Siftar cousins are offering a dance class! Classics like New York, New York, Suavemente, and Ciuleandra — broken down step by step so your body will know what to do when the music comes on.'
   - name: 'Chair Yoga'
     leaderId: judi-powers
+    period: 'Saturday morning'
+    room: 'Dellview'
     description: 'Relax and renew. Slow yoga-infused routines to gently stretch and ease your body and mind, done sitting in a chair and moving to music.'
   - name: 'Reading the Landscape in Late Spring'
     leaders:
       - id: kirk-wattles
+    period: 'Saturday morning'
+    room: 'Pavilion'
     description: "June at Onas is our chance to observe the natural world at its peak. We'll look most closely at trees, rocks, and soil. Rain or shine."
   - name: 'Relax with Board and Word Games'
     leaders:
       - id: bonnie-ostrofsky
       - id: jack-marquess
+    period: 'Saturday afternoon'
+    room: 'Dining Hall'
     description: 'Enjoy relaxing with friends over new or old games. Bananagrams, Upwords, Scrabble, Boggle, Backgammon, Rummikub, and more.'
   - name: 'Crafts: Zines!'
     leaders:
       - id: celia-nicholson
       - id: carmen-siftar
       - id: sonia-nicholson
+    period: 'Saturday afternoon'
+    room: 'Dellview'
     description: 'Making zines — small paper books that anyone can make about anything. Colorful supplies, good vibes, and endless creative possibilities.'
   - name: 'Informal Dramatics'
     leaderId: arnie-zacharias
+    period: 'Saturday afternoon'
+    room: 'Texas House'
     description: 'Dramatic games and exercises including verbal and pantomime, with an emphasis on fun and creativity. No previous experience needed.'
   - name: 'Games'
     leaderId: arnie-zacharias
+    period: 'Sunday morning'
+    room: 'Dining Hall'
     description: 'Active and semi-active games for all levels of ability from other countries and other eras. All you need is a willingness to have fun.'
   - name: 'Joy of Movement'
     leaderId: judi-powers
+    period: 'Sunday morning'
+    room: 'Dellview'
     description: 'Explore and unleash your potential through joyful movement. Engage your senses and listen to your body as you dance and move to an eclectic mix of music from around the globe. All levels welcome.'
   - name: 'Water Games'
     leaders:
       - id: jack-marquess
+    period: 'Saturday pool time'
+    room: 'Pool'
     description: 'An ECRS Camp Onas tradition. Games, activities and dances adapted for the swimming pool. Age 5+.'
+schedule:
+  timeslots:
+    - label: 'Saturday: Program for All'
+      start: '09:00'
+      end: '09:45'
+      isBreak: true
+    - label: 'Saturday morning'
+      start: '10:00'
+      end: '12:00'
+    - label: 'Lunch on your own'
+      start: '12:00'
+      end: '13:00'
+      isBreak: true
+    - label: 'Saturday pool time'
+      start: '14:00'
+      end: '14:45'
+    - label: 'Saturday afternoon'
+      start: '15:30'
+      end: '17:30'
+    - label: 'Dinner'
+      start: '18:15'
+      end: '19:00'
+      isBreak: true
+    - label: 'Campfire and Evening Program'
+      start: '19:30'
+      end: '22:00'
+      isBreak: true
+    - label: 'Sunday: Program for All'
+      start: '09:00'
+      end: '09:45'
+      isBreak: true
+    - label: 'Sunday morning'
+      start: '10:00'
+      end: '11:45'
+    - label: 'Closing program'
+      start: '12:00'
+      end: '12:30'
+      isBreak: true
 ---

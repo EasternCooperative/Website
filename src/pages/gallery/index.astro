@@ -3,14 +3,14 @@ import { getCollection } from 'astro:content';
 import { getImage } from 'astro:assets';
 import Layout from '~/layouts/PageLayout.astro';
 import HeroText from '~/components/widgets/HeroText.astro';
-import GalleryBrowser from '~/components/widgets/GalleryBrowser';
+import GalleryBrowser, { type GalleryPhoto } from '~/components/widgets/GalleryBrowser';
 import { findImage } from '~/utils/images';
 import gallery from '~/data/settings/gallery.json';
 import { renderInlineMarkdown } from '~/utils/markdown';
 
 const allPhotos = await getCollection('galleryPhoto');
 
-const photos = await Promise.all(
+const photos: GalleryPhoto[] = await Promise.all(
   allPhotos.map(async (photo) => {
     const resolved = await findImage(photo.data.image);
     const isLocal = resolved && typeof resolved === 'object';
@@ -35,6 +35,26 @@ const photos = await Promise.all(
     };
   })
 );
+
+// Videos stream from the R2 bucket at media.ecrs.org (Pages can't host files
+// over 25 MB); their posters and captions live in public/videos/gallery/.
+// They join the photo grid as items with a `video` field.
+for (const [i, v] of (gallery.videos ?? []).entries()) {
+  photos.push({
+    id: `video-${i}`,
+    src: v.poster,
+    full: v.poster,
+    originalSrc: undefined,
+    width: 0,
+    height: 0,
+    alt: v.title,
+    caption: v.description ? `${v.title}${/[.!?]$/.test(v.title) ? '' : ':'} ${v.description}` : v.title,
+    year: v.year,
+    photographer: v.photographer,
+    event: v.event,
+    video: { src: v.src, captions: v.captions, duration: v.duration },
+  });
+}
 
 photos.sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
 

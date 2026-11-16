@@ -102,6 +102,7 @@ classes:
     restriction: 'Ages 12+'
     description: 'Come connect with cultures from around the world through dance. Whether fast or slow, in circles or in lines, serene, joyful, or anything in between, every dance can move us in body, mind, and spirit. Great music, great exercise, great fun, great community! No partner necessary, and absolutely no need to do them "right"!'
     days: 'All 4 days'
+    room: 'Dining Room'
   - name: 'Leadership Playground'
     leaderId: kim-neubauer
     period: 'Morning, first period'
@@ -110,12 +111,14 @@ classes:
     description: "Welcome experienced and aspiring leaders! We'll unpack ECRS's magic and emerge with insights, ideas, sharpened skills, and greater self-awareness. You are encouraged to propose — in advance — an activity (game, dance, song, craft, or discussion) you'd like to lead. Come to play, lead, reflect, learn, and to become an integral part of ECRS's future."
     callout: 'Class size is limited. Please register in advance. We will keep a wait list once we have reached capacity.'
     days: 'All 4 days'
+    room: 'Rec Hall'
   - name: 'Chair Yoga'
     leaderId: judi-powers
     period: 'Morning, first period'
     restriction: 'Ages 12+'
     description: 'Stretch your body, relax and feel renewed with Chair Yoga. Yoga poses and exercises done in a chair or standing next to a chair. Wear comfortable clothes and bring a water bottle.'
     days: 'Days 1–2'
+    room: 'Chapel A'
   - name: 'Breathe and Be'
     leaders:
       - id: heather-klemanski
@@ -123,6 +126,7 @@ classes:
     restriction: 'Ages 12+'
     description: "A gentle introduction to mindfulness through breath, easy movement, and self-compassion. You'll explore simple practices to slow down, reconnect, and manage stress. The final session closes with a calming sound bath. No experience is needed — come as you are."
     days: 'Days 3–4'
+    room: 'Library'
   - name: "Children's Program/Preschool"
     leaders:
       - id: lisa-natale
@@ -134,18 +138,21 @@ classes:
     description: "Why should the grown-ups have all the fun? ECRS offers a completely integrated program for children ages 2–11 during two class periods. Children may learn new games, create new crafts, sing silly songs, or even get the chance to share activities they have fun doing at home. Depending on age and interest, they may take a field trip to experience the more kid-friendly adult classes! Children's Program is first and third periods only; a cooperatively-led Children's Program staffed by parents and volunteers runs second period."
     callout: 'Children are expected to stay for the entire program, and are the responsibility of their guardians at all other times.'
     days: 'All 4 days'
+    room: 'Elm Room'
   - name: 'Sketch 101: From Blank Page to Big Laughs'
     leaderId: allie-cliffe
     period: 'Morning, second period'
     restriction: 'Ages 12+'
     description: "Turn your everyday observations into laugh-out-loud sketches! Learn the fundamentals of sketch comedy writing through a proven step-by-step process. We'll work in small groups to craft original three-minute scenes from the funny moments hiding in your daily life. No experience required — just bring your sense of humor and willingness to play."
     days: 'All 4 days'
+    room: 'Chapel A'
   - name: 'Sacred Circle Dances'
     leaderId: sharon-underberg
     period: 'Morning, second period'
     restriction: 'Ages 12+'
     description: 'Circle Dancing is a folk art danced together around a central focus point. These tend to be simpler dances held for a longer period of time, encouraging each of us to sink into the rhythmic movement. Open to all levels of experience and fitness.'
     days: 'Days 1–2'
+    room: 'Dining Room'
   - name: 'Games!'
     leaders:
       - id: lane-neubauer
@@ -155,6 +162,7 @@ classes:
     restriction: 'Ages 12+'
     description: 'Lots of games! Some new, some old, some active, some quiet, lots of laughter, ALL FUN! For all ages and abilities, with leadership strategies to bring the ECRS spirit into your everyday groups.'
     days: 'Days 1–2'
+    room: 'Rec Hall'
   - name: 'Crafts: Deck the Halls'
     leaderId: kay-gering
     period: 'Morning, second period'
@@ -163,6 +171,7 @@ classes:
     description: "Join the merriment as we create décor for our New Year's Eve celebration. Follow preplanned designs or bring your festive imagination to make a winter wonderland for a peace- and wonder-full New Year."
     callout: 'Class size is limited. Please register in advance. We will keep a wait list once we have reached capacity.'
     days: 'Days 1–2'
+    room: 'Crafts Room'
   - name: 'Empathy Games'
     leaders:
       - id: rob-eames
@@ -170,15 +179,18 @@ classes:
     restriction: 'Ages 12+'
     description: "In this interactive workshop, we'll use empathy games to explore interpersonal connection and support. Each activity builds toward deeper connection and a shared understanding of the meaning of interdependence. Come curious, leave connected."
     days: 'Days 3–4'
+    room: 'Rec Hall'
   - name: 'Joy of Movement: Moving to Heal'
     leaderId: judi-powers
     period: 'Morning, second period'
     description: "Let's dance and stretch your body's way. Music and dance will be fun, playful, and healing. All levels invited — you'll be encouraged to modify to your body's needs. All ages welcome."
     days: 'Days 3–4'
+    room: 'Dining Room'
   - name: "Cooperative Children's Program/Preschool"
     period: 'Morning, second period'
     description: 'Group activities organized and staffed by parents and volunteers. We will create a sign-up sheet and there will be a room designated with some materials to share.'
     days: 'All 4 days'
+    room: 'Elm Room'
   - name: 'Relax with Board and Word Games'
     leaders:
       - id: bonnie-ostrofsky
@@ -186,6 +198,7 @@ classes:
     restriction: 'Ages 12+'
     description: 'Enjoy relaxing with friends over new or old games. Play an old favorite, or learn a new game. Bring your own to share!'
     days: 'Days 1–2'
+    room: 'Dining Room'
   - name: 'Small Scenes'
     leaderId: isaac-lebwohl-steiner
     period: 'Afternoon'
@@ -194,6 +207,7 @@ classes:
     description: "Using scripts (no memorizing required!) we'll rehearse, perform, and discuss a collection of scenes. Comedy, drama, we have it all. Explore, discover, and create!"
     callout: 'Class size is limited. Please register in advance. We will keep a wait list once we have reached capacity.'
     days: 'Days 1–2'
+    room: 'Chapel A'
   - name: 'Hat Game'
     leaders:
       - id: josh-silverbauer
@@ -204,12 +218,14 @@ classes:
     description: 'Equal parts ice-breaker, improv lab, and rapid-fire creativity workshop. Every participant writes a brief activity prompt and drops it into a hat — then we bring them to life.'
     callout: 'Class size is limited. Please register in advance. We will keep a wait list once we have reached capacity.'
     days: 'Days 1–2'
+    room: 'Rec Hall'
   - name: 'Improv Games'
     leaderId: isaac-lebwohl-steiner
     period: 'Afternoon'
     restriction: 'Ages 12+'
     description: "Are you ready? No? Perfect! Come make it up as you go. We'll learn a little, play a lot, and laugh too much. No experience needed."
     days: 'Days 3–4'
+    room: 'Dining Room'
   - name: 'Explore Your Encore'
     leaders:
       - id: reed-dewey
@@ -217,6 +233,7 @@ classes:
     restriction: 'Ages 50+'
     description: 'Explore your post-career ideas for life with others. Geared to anyone age 50 and older. Leave with new ideas, insights, and an action plan.'
     days: 'Days 3–4'
+    room: 'Chapel A'
   - name: 'Rock Opera Build'
     leaders:
       - id: josh-silverbauer
@@ -227,6 +244,7 @@ classes:
     description: 'A mini-lab guiding participants through the creative arc of producing an original rock opera — from seed idea to song building. No prior music theory required.'
     callout: 'Class size is limited. Please register in advance. We will keep a wait list once we have reached capacity.'
     days: 'Days 3–4'
+    room: 'Rec Hall'
   - name: "Children's Program"
     leaders:
       - id: lisa-natale
@@ -237,4 +255,39 @@ classes:
     period: 'Afternoon'
     description: 'Why should the grown-ups have all the fun? ECRS offers a completely integrated program for children ages 2–11 during two class periods. Children may learn new games, create new crafts, sing silly songs, and more.'
     days: 'All 4 days'
+    room: 'Elm Room'
+schedule:
+  timeslots:
+    - label: 'Breakfast'
+      start: '08:00'
+      isBreak: true
+    - label: 'Morning, first period'
+      start: '09:00'
+      end: '10:40'
+    - label: 'Morning, second period'
+      start: '10:50'
+      end: '12:30'
+    - label: 'Lunch'
+      start: '12:45'
+      isBreak: true
+    - label: 'Free time activities'
+      start: '13:30'
+      end: '15:45'
+      isBreak: true
+    - label: 'Afternoon'
+      start: '15:45'
+      end: '17:45'
+    - label: 'Dinner'
+      start: '18:00'
+      isBreak: true
+    - label: 'Evening Program'
+      start: '19:30'
+      end: '21:00'
+      isBreak: true
+    - label: 'Snacks'
+      start: '21:00'
+      isBreak: true
+    - label: 'Late(r) Night Activities'
+      start: '21:15'
+      isBreak: true
 ---

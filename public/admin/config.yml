@@ -134,6 +134,42 @@ collections:
                   hint: "Optional. The festival's logo, shown beside the name. Displays at 28px tall,
                     so a transparent PNG or SVG works best. Check it is still legible in dark mode.",
                 }
+          - { label: 'Rec Labs Heading', name: 'recLabsTitle', widget: 'string' }
+          - { label: 'Rec Labs Intro', name: 'recLabsIntro', widget: 'text' }
+          - label: 'Rec Labs'
+            name: 'recLabs'
+            widget: 'list'
+            hint: 'Other recreation labs and workshops like ECRS that are still running.'
+            fields:
+              - { label: 'Name', name: 'name', widget: 'string' }
+              - { label: 'URL', name: 'url', widget: 'string' }
+              - { label: 'Logo', name: 'logo', widget: 'image', required: false }
+          - { label: 'Folk and Community Groups Heading', name: 'friendsTitle', widget: 'string' }
+          - { label: 'Folk and Community Groups Intro', name: 'friendsIntro', widget: 'string' }
+          - label: 'Folk and Community Groups'
+            name: 'friends'
+            widget: 'list'
+            fields:
+              - { label: 'Name', name: 'name', widget: 'string' }
+              - { label: 'URL', name: 'url', widget: 'string' }
+              - { label: 'Logo', name: 'logo', widget: 'image', required: false }
+          - { label: 'Books and Recordings Heading', name: 'readingTitle', widget: 'string' }
+          - { label: 'Books and Recordings Intro', name: 'readingIntro', widget: 'string' }
+          - label: 'Books and Recordings'
+            name: 'reading'
+            widget: 'list'
+            summary: '{{fields.title}}'
+            fields:
+              - { label: 'Title', name: 'title', widget: 'string' }
+              - { label: 'Author or Performer', name: 'by', widget: 'string' }
+              - { label: 'Note', name: 'note', widget: 'string', required: false, hint: 'Optional, e.g. "Recording".' }
+              - {
+                  label: 'Link',
+                  name: 'url',
+                  widget: 'string',
+                  required: false,
+                  hint: 'Optional. A page on this site, e.g. /of-play-and-playfulness.',
+                }
           - { label: 'Venues Heading', name: 'venuesTitle', widget: 'string' }
           - { label: 'Venues Intro', name: 'venuesIntro', widget: 'string' }
           - {
@@ -149,6 +185,67 @@ collections:
           - { label: 'CTA Primary Button URL', name: 'ctaPrimaryHref', widget: 'string' }
           - { label: 'CTA Secondary Button Text', name: 'ctaSecondaryText', widget: 'string' }
           - { label: 'CTA Secondary Button URL', name: 'ctaSecondaryHref', widget: 'string' }
+
+      - name: 'faq'
+        label: 'FAQ'
+        file: 'src/data/settings/faq.json'
+        fields:
+          - { label: 'Hero Tagline', name: 'heroTagline', widget: 'string' }
+          - { label: 'Hero Title', name: 'heroTitle', widget: 'string' }
+          - { label: 'Intro Text', name: 'introText', widget: 'markdown' }
+          - label: 'Question Groups'
+            name: 'groups'
+            widget: 'list'
+            summary: '{{fields.title}}'
+            fields:
+              - { label: 'Group Heading', name: 'title', widget: 'string' }
+              - label: 'Questions'
+                name: 'items'
+                widget: 'list'
+                summary: '{{fields.question}}'
+                fields:
+                  - { label: 'Question', name: 'question', widget: 'string' }
+                  - { label: 'Answer', name: 'answer', widget: 'markdown' }
+
+      - name: 'history'
+        label: 'History'
+        file: 'src/data/settings/history.json'
+        fields:
+          - { label: 'Hero Tagline', name: 'heroTagline', widget: 'string' }
+          - { label: 'Hero Title', name: 'heroTitle', widget: 'string' }
+          - { label: 'Intro Text', name: 'introText', widget: 'text' }
+          - { label: 'Name Section Heading', name: 'nameTitle', widget: 'string' }
+          - label: 'Name Parts'
+            name: 'nameParts'
+            widget: 'list'
+            summary: '{{fields.word}}'
+            fields:
+              - { label: 'Word', name: 'word', widget: 'string' }
+              - { label: 'Text', name: 'text', widget: 'text' }
+          - { label: 'Origins Heading', name: 'rootsTitle', widget: 'string' }
+          - label: 'Origins Paragraphs'
+            name: 'rootsParagraphs'
+            widget: 'list'
+            field: { label: 'Paragraph', name: 'paragraph', widget: 'markdown' }
+          - label: 'Origins Quote'
+            name: 'rootsQuote'
+            widget: 'object'
+            fields:
+              - { label: 'Quote', name: 'text', widget: 'text' }
+              - { label: 'Attribution', name: 'attribution', widget: 'string' }
+          - { label: 'Timeline Heading', name: 'timelineTitle', widget: 'string' }
+          - label: 'Timeline'
+            name: 'timeline'
+            widget: 'list'
+            summary: '{{fields.year}}'
+            fields:
+              - { label: 'Year', name: 'year', widget: 'string' }
+              - { label: 'Text', name: 'text', widget: 'markdown' }
+          - { label: 'Leadership Heading', name: 'leadershipTitle', widget: 'string' }
+          - label: 'Leadership Paragraphs'
+            name: 'leadershipParagraphs'
+            widget: 'list'
+            field: { label: 'Paragraph', name: 'paragraph', widget: 'markdown' }
 
       - name: 'leadership-resources'
         label: 'Leadership Resources'
@@ -243,7 +340,7 @@ collections:
               hint: 'Number from the Cognito Forms embed URL',
             }
 
-      # Copy only — the photos themselves live in the "Photo Gallery" collection.
+      # Copy only — the photos themselves live in the "Gallery Photos" collection; videos are listed below.
       - name: 'gallery'
         label: 'Gallery'
         file: 'src/data/settings/gallery.json'
@@ -257,6 +354,32 @@ collections:
               widget: 'text',
               hint: 'Plain text shown in Google results and link previews. Aim for one sentence.',
             }
+          - label: 'Videos'
+            name: 'videos'
+            widget: 'list'
+            summary: '{{fields.title}}'
+            hint: 'Videos appear in the photo grid with a play button. They live in the Cloudflare R2 bucket "videos" (served from media.ecrs.org) because Pages cannot host files over 25 MB. Upload the MP4 there first, then paste its URL here. Posters and captions live in /videos/gallery/.'
+            fields:
+              - { label: 'Title', name: 'title', widget: 'string' }
+              - {
+                  label: 'Video URL',
+                  name: 'src',
+                  widget: 'string',
+                  hint: 'e.g. https://media.ecrs.org/gallery/my-video.mp4',
+                }
+              - { label: 'Poster Image', name: 'poster', widget: 'image' }
+              - { label: 'Captions (WebVTT)', name: 'captions', widget: 'file' }
+              - { label: 'Description', name: 'description', widget: 'text', required: false }
+              - { label: 'Duration', name: 'duration', widget: 'string', required: false, hint: 'e.g. 5:27' }
+              - { label: 'Year', name: 'year', widget: 'number', value_type: 'int', required: false }
+              - { label: 'Filmed by', name: 'photographer', widget: 'string', required: false }
+              - {
+                  label: 'Event',
+                  name: 'event',
+                  widget: 'string',
+                  required: false,
+                  hint: 'Shown in the gallery event filter, like the event on a photo, e.g. Spring Weekend 2009.',
+                }
 
       - name: 'contact'
         label: 'Contact'
@@ -436,6 +559,13 @@ collections:
           widget: 'image',
           required: false,
           hint: 'Default image shown on all events at this venue.',
+        }
+      - {
+          label: 'Image Credit',
+          name: 'imageCredit',
+          widget: 'string',
+          required: false,
+          hint: 'Needed when the photo is not ours, e.g. from Wikimedia Commons: Photo: [Name](link) / [CC BY 2.0](license link). Shown small over the photo.',
         }
       - {
           label: 'Website',
@@ -1314,7 +1444,7 @@ collections:
 
   # --- PHOTO GALLERY (folder collection — one file per photo) ---
   - name: 'galleryPhoto'
-    label: 'Photo Gallery'
+    label: 'Gallery Photos'
     label_singular: 'Photo'
     folder: 'src/data/gallery'
     create: true
@@ -1375,6 +1505,20 @@ collections:
                   widget: 'boolean',
                   default: false,
                   hint: 'Shows Connections in the nav and footer, and lets search engines index it. Off keeps the page reachable by URL only.',
+                }
+              - {
+                  label: 'Publish FAQ Page',
+                  name: 'faqPage',
+                  widget: 'boolean',
+                  default: false,
+                  hint: 'Lets search engines index /faq. Off keeps the draft reachable by URL only.',
+                }
+              - {
+                  label: 'Publish History Page',
+                  name: 'historyPage',
+                  widget: 'boolean',
+                  default: false,
+                  hint: 'Lets search engines index /history. Off keeps the draft reachable by URL only.',
                 }
               - { label: 'Show About Page Map', name: 'aboutPageMap', widget: 'boolean', default: false }
               - {

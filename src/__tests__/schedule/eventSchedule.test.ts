@@ -7,6 +7,7 @@ import {
   buildEventMasterSchedule,
   buildScheduleGroups,
   baseEventTitle,
+  eventLabel,
   looksLikeTimeRange,
   resolveClassRoom,
   classKey,
@@ -39,6 +40,19 @@ function makeEvent(overrides: Partial<EventScheduleData> = {}): EventScheduleDat
   };
 }
 
+describe('eventLabel', () => {
+  const d = new Date('2011-12-27T00:00:00Z');
+  it('adds the year to a title without one', () => {
+    expect(eventLabel('Winter Adventure', d)).toBe('Winter Adventure 2011');
+    expect(eventLabel('ECRS 75th Anniversary Weekend', d)).toBe('ECRS 75th Anniversary Weekend 2011');
+  });
+  it('keeps a title that already names its year', () => {
+    expect(eventLabel('Winter Workshop 2011-12', d)).toBe('Winter Workshop 2011-12');
+    expect(eventLabel('Winter Adventure 2026', d)).toBe('Winter Adventure 2026');
+    expect(eventLabel('Fun Day in Town, Fall 2000', d)).toBe('Fun Day in Town, Fall 2000');
+  });
+});
+
 describe('baseEventTitle', () => {
   it('strips a trailing year but leaves other text alone', () => {
     expect(baseEventTitle('Winter Adventure 2026')).toBe('Winter Adventure');
@@ -63,6 +77,7 @@ describe('parseDays', () => {
     expect(parseDays('Days 1–2')).toEqual({ startDay: 1, endDay: 2 }); // en-dash
     expect(parseDays('Days 3-4')).toEqual({ startDay: 3, endDay: 4 });
     expect(parseDays('Days 1-4')).toEqual({ startDay: 1, endDay: 4 }); // explicit full span
+    expect(parseDays('4 days')).toEqual({ startDay: 1, endDay: 4 }); // how older flyers wrote it
   });
 
   it('warns and falls back to full span for a numeric range with no bucket', () => {

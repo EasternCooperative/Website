@@ -1,0 +1,83 @@
+---
+import Layout from '~/layouts/PageLayout.astro';
+import HeroText from '~/components/widgets/HeroText.astro';
+import WidgetWrapper from '~/components/ui/WidgetWrapper.astro';
+import Headline from '~/components/ui/Headline.astro';
+import CallToAction from '~/components/widgets/CallToAction.astro';
+import history from '~/data/settings/history.json';
+import siteSettings from '~/data/settings/site.json';
+import { renderInlineMarkdown, stripMarkdown } from '~/utils/markdown';
+
+const metadata = {
+  title: history.heroTitle,
+  description: stripMarkdown(history.introText),
+  openGraph: { images: [{ url: '/og/default.jpg', width: 1200, height: 630 }] },
+};
+
+// A draft until the feature flag is on: reachable by URL, but kept out of
+// search, the sitemap and the Pagefind index (same gating as /connections).
+const isPublished = siteSettings.featureFlags.historyPage;
+---
+
+<Layout metadata={metadata} noIndex={!isPublished}>
+  <HeroText tagline={history.heroTagline} title={history.heroTitle} content={history.introText} />
+
+  <WidgetWrapper containerClass="pt-8 md:pt-10 lg:pt-12">
+    <Headline title={history.nameTitle} />
+    <dl class="grid gap-6 sm:grid-cols-2">
+      {history.nameParts.map((part) => (
+        <div class="rounded-lg border border-gray-200 p-5 dark:border-gray-700">
+          <dt class="mb-2 font-heading text-xl font-bold text-heading">{part.word}</dt>
+          <dd class="text-default">{part.text}</dd>
+        </div>
+      ))}
+    </dl>
+  </WidgetWrapper>
+
+  <WidgetWrapper>
+    <Headline title={history.rootsTitle} />
+    <div class="mx-auto max-w-3xl space-y-4 text-default">
+      {history.rootsParagraphs.map((para) => (
+        <p class="md-links" set:html={renderInlineMarkdown(para)} />
+      ))}
+    </div>
+    <figure class="mx-auto mt-8 max-w-3xl border-l-4 border-primary pl-5">
+      <blockquote class="font-heading text-xl italic text-heading">“{history.rootsQuote.text}”</blockquote>
+      <figcaption class="mt-2 text-sm text-muted">{history.rootsQuote.attribution}</figcaption>
+    </figure>
+  </WidgetWrapper>
+
+  <WidgetWrapper>
+    <Headline title={history.timelineTitle} />
+    <ol class="relative ml-3 border-l border-gray-200 dark:border-gray-700" role="list">
+      {history.timeline.map((item) => (
+        <li class="mb-8 ml-6 last:mb-0">
+          <span
+            class="absolute -left-1.5 mt-2 h-3 w-3 rounded-full border border-white bg-primary dark:border-gray-900"
+            aria-hidden="true"
+          ></span>
+          <p class="font-heading text-lg font-bold text-heading">{item.year}</p>
+          <p class="text-default md-links" set:html={renderInlineMarkdown(item.text)} />
+        </li>
+      ))}
+    </ol>
+  </WidgetWrapper>
+
+  <WidgetWrapper>
+    <Headline title={history.leadershipTitle} />
+    <div class="mx-auto max-w-3xl space-y-4 text-default">
+      {history.leadershipParagraphs.map((para) => (
+        <p class="md-links" set:html={renderInlineMarkdown(para)} />
+      ))}
+    </div>
+  </WidgetWrapper>
+
+  <CallToAction
+    title="Be part of what comes next"
+    subtitle="Newcomers receive free tuition at their first multi-day event."
+    actions={[
+      { text: 'See Events', href: '/events', variant: 'primary' },
+      { text: 'About ECRS', href: '/about', variant: 'secondary' },
+    ]}
+  />
+</Layout>

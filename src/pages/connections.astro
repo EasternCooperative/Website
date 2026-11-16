@@ -8,6 +8,7 @@ import Headline from '~/components/ui/Headline.astro';
 import Image from '~/components/common/Image.astro';
 import connections from '~/data/settings/connections.json';
 import siteSettings from '~/data/settings/site.json';
+import { renderInlineMarkdown } from '~/utils/markdown';
 
 const metadata = {
   title: connections.heroTitle,
@@ -26,8 +27,16 @@ const isPublished = siteSettings.featureFlags.connectionsPage;
 // most org logos are SVG, which astro:assets cannot process, and findImage
 // deliberately passes `/images/…` through untouched for exactly this case.
 type LinkItem = { name: string; url: string; logo?: string };
-const affiliations: LinkItem[] = connections.affiliations;
-const festivals: LinkItem[] = connections.festivals;
+const linkSections: { title: string; intro: string; items: LinkItem[] }[] = [
+  { title: connections.affiliationsTitle, intro: connections.affiliationsIntro, items: connections.affiliations },
+  { title: connections.festivalsTitle, intro: connections.festivalsIntro, items: connections.festivals },
+  { title: connections.recLabsTitle, intro: connections.recLabsIntro, items: connections.recLabs },
+  { title: connections.friendsTitle, intro: connections.friendsIntro, items: connections.friends },
+];
+
+// Books and recordings: `url` (an on-site link) and `note` are optional.
+type ReadingItem = { title: string; by: string; note?: string; url?: string };
+const reading: ReadingItem[] = connections.reading;
 
 const allSites = await getCollection('site');
 const sortByName = (a: { data: { name: string } }, b: { data: { name: string } }) =>
@@ -44,57 +53,63 @@ const pastVenues = allSites.filter((s) => s.data.historical).sort(sortByName);
        reads as belonging with the first list, but kept a step above
        about.astro's equivalent because a large heading follows here rather than
        body copy, and it needs the breathing room. -->
-  <WidgetWrapper containerClass="pt-8 md:pt-10 lg:pt-12">
-    <Headline title={connections.affiliationsTitle} subtitle={connections.affiliationsIntro} />
-    <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" role="list">
-      {affiliations.map((item) => (
-        <li>
-          <a
-            href={item.url}
-            rel="noopener noreferrer"
-            class="flex h-full items-center gap-3 rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-3 text-default transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-          >
-            {item.logo && (
-              <img
-                src={item.logo}
-                alt=""
-                height="32"
-                class="h-8 w-auto max-w-28 shrink-0 object-contain dark:rounded dark:bg-white/90 dark:p-0.5"
-                loading="lazy"
-                decoding="async"
-              />
-            )}
-            {item.name}
-          </a>
-        </li>
-      ))}
-    </ul>
-  </WidgetWrapper>
+  {linkSections.map((section, i) => (
+    <WidgetWrapper containerClass={i === 0 ? 'pt-8 md:pt-10 lg:pt-12' : undefined}>
+      <Headline title={section.title} subtitle={section.intro} />
+      <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" role="list">
+        {section.items.map((item) => (
+          <li>
+            <a
+              href={item.url}
+              rel="noopener noreferrer"
+              class="flex h-full items-center gap-3 rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-3 text-default transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            >
+              {item.logo && (
+                <img
+                  src={item.logo}
+                  alt=""
+                  height="32"
+                  class="h-8 w-auto max-w-28 shrink-0 object-contain dark:rounded dark:bg-white/90 dark:p-0.5"
+                  loading="lazy"
+                  decoding="async"
+                />
+              )}
+              {item.name}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </WidgetWrapper>
+  ))}
 
   <WidgetWrapper>
-    <Headline title={connections.festivalsTitle} subtitle={connections.festivalsIntro} />
+    <Headline title={connections.readingTitle} subtitle={connections.readingIntro} />
     <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" role="list">
-      {festivals.map((item) => (
-        <li>
-          <a
-            href={item.url}
-            rel="noopener noreferrer"
-            class="flex h-full items-center gap-3 rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-3 text-default transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-          >
-            {item.logo && (
-              <img
-                src={item.logo}
-                alt=""
-                height="32"
-                class="h-8 w-auto max-w-28 shrink-0 object-contain dark:rounded dark:bg-white/90 dark:p-0.5"
-                loading="lazy"
-                decoding="async"
-              />
+      {reading.map((item) => {
+        const body = (
+          <>
+            <span class="font-semibold text-heading">{item.title}</span>
+            <span class="text-sm text-muted">{item.by}</span>
+            {item.note && <span class="text-sm text-muted">{item.note}</span>}
+          </>
+        );
+        const boxClass =
+          'flex h-full flex-col justify-center rounded-lg border border-gray-200 dark:border-gray-700 px-4 py-3';
+        return (
+          <li>
+            {item.url ? (
+              <a
+                href={item.url}
+                class={`${boxClass} transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`}
+              >
+                {body}
+              </a>
+            ) : (
+              <div class={boxClass}>{body}</div>
             )}
-            {item.name}
-          </a>
-        </li>
-      ))}
+          </li>
+        );
+      })}
     </ul>
   </WidgetWrapper>
 
@@ -121,6 +136,9 @@ const pastVenues = allSites.filter((s) => s.data.historical).sort(sortByName);
           <div class="flex flex-1 flex-col p-4">
             <p class="font-bold text-heading">{venue.data.name}</p>
             {venue.data.address && <p class="text-sm text-muted">{venue.data.address}</p>}
+            {venue.data.image && venue.data.imageCredit && (
+              <p class="mt-1 text-xs text-muted md-links" set:html={renderInlineMarkdown(venue.data.imageCredit)} />
+            )}
             {venue.data.website && (
               <a
                 href={venue.data.website}

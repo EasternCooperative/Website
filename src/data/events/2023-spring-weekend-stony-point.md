@@ -36,15 +36,53 @@ tags:
   - weekend
 classes:
   - name: 'Games'
+    period: 'Sunday morning'
+    room: 'Maple A'
     description: 'Come and play! Energizers, ice-breakers, tag games, old games, new games. Lots of games and just pure fun.'
   - name: 'Improv'
+    period: 'Saturday afternoon'
+    room: 'Maple A'
     description: "We'll start with simple theater games that teach the basic skills of successful improvisational theater, and lead into fun, hilarious scenes where we make stuff up!"
   - name: 'Sing and Play Instruments'
+    period: 'Saturday afternoon'
+    room: 'Maple B/C'
     description: 'Bring your voice and any instruments you want to play — the daytime version of "late night music" from Winter Adventure.'
   - name: 'Relax with Board and Word Games'
+    period: 'Sunday morning'
+    room: 'Maple B/C'
     description: 'Word games (Bananagrams, Scrabble, Boggle, Upwords), strategy games (chess, checkers, mancala, backgammon, Risk), card games, and family board games. Something for everyone!'
   - name: 'Line Dancing'
+    period: 'Saturday morning'
+    room: 'Maple A'
     description: 'Learn a variety of line dances in a range of music and dance styles, including Soul, Oldies, Country-Western, Waltz, Polka, and Latin. Even beginners can have fun!'
   - name: 'Spring Crafts'
+    period: 'Saturday morning'
+    room: 'Maple B/C'
     description: 'Using colorful tissue paper brushed onto card stock with a liquid medium, create spring-inspired compositions. This easy-to-learn technique gives beautiful results.'
+schedule:
+  timeslots:
+    - label: 'Saturday: Program for All'
+      start: '09:00'
+      end: '09:45'
+      isBreak: true
+    - label: 'Saturday morning'
+      start: '10:00'
+      end: '11:45'
+    - label: 'Saturday lunch'
+      start: '12:00'
+      end: '13:00'
+      isBreak: true
+    - label: 'Saturday afternoon'
+      start: '14:00'
+      end: '15:45'
+    - label: 'Saturday evening program'
+      start: '19:30'
+      isBreak: true
+    - label: 'Sunday morning'
+      start: '09:15'
+      end: '11:00'
+    - label: 'Closing program'
+      start: '11:15'
+      end: '12:00'
+      isBreak: true
 ---

@@ -157,6 +157,9 @@ const siteCollection = defineCollection({
     phone: z.string().optional(),
     accessibilityNote: z.string().optional(),
     image: z.string().optional(),
+    // Credit line for `image` (inline markdown), required by CC BY / BY-SA photos,
+    // e.g. "Photo: [Jane Doe](https://commons...) / [CC BY 2.0](https://...)".
+    imageCredit: z.string().optional(),
     // Overrides geocoding the address text for the map link when it's imprecise
     // (e.g. "Wilmington, DE") — displayed address text is unaffected.
     lat: z.number().optional(),

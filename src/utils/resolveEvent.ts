@@ -4,6 +4,7 @@ interface SiteData {
   phone?: string;
   accessibilityNote?: string;
   image?: string;
+  imageCredit?: string;
   lat?: number;
   lng?: number;
 }
@@ -14,6 +15,8 @@ export interface ResolvedVenue {
   phone?: string;
   accessibilityNote?: string;
   image?: string;
+  /** Credit for `image`, only when the image is the venue's own photo. */
+  imageCredit?: string;
   lat?: number;
   lng?: number;
 }
@@ -39,6 +42,8 @@ export function resolveVenue(
     phone: event.phone || site?.phone,
     accessibilityNote: event.accessibilityNote || site?.accessibilityNote,
     image: event.image || site?.image,
+    // An event's own image replaces the venue photo, so its credit no longer applies.
+    imageCredit: event.image ? undefined : site?.image ? site.imageCredit || undefined : undefined,
     lat: event.lat ?? site?.lat,
     lng: event.lng ?? site?.lng,
   };
