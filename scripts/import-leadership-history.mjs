@@ -30,6 +30,7 @@ import {
   classRoles,
   classifyActivity,
   csv,
+  dedupeRoles,
   defaultStatus,
   eventType,
   isYes,
@@ -124,7 +125,7 @@ for (const file of readdirSync(path.join(DATA, 'events'))
 // ---- Roles, activities, people ---------------------------------------------
 const activities = new Map(); // norm(name) -> info
 const people = new Map(); // norm(name) -> info
-const roles = [];
+const allRoles = [];
 
 function noteActivity(rawName, year) {
   const key = norm(rawName);
@@ -186,14 +187,22 @@ function collect(event, into) {
     }
   }
 }
-for (const e of included) collect(e, roles);
+for (const e of included) collect(e, allRoles);
+const roles = dedupeRoles(allRoles);
 
 // ---- Cross-check the rules against the sheet, on an event that is in both ----
 const checks = [];
 for (const [slug, reason, d] of skipped) {
   if (reason !== 'already in the database') continue;
-  const mine = [];
-  collect({ slug, year: Number(String(d.date).slice(0, 4)), classes: d.classes }, mine);
+  // Read-only: this event is not being imported, so it must not register anyone
+  // or any class as new. (It once did, and created a person with no roles.)
+  const mine = d.classes.flatMap((cls) =>
+    classRoles(cls, resolve).map(({ person, leadership_type }) => ({
+      person: person.name,
+      activity: tidy(cls.name),
+      leadership_type,
+    }))
+  );
   const key = (p, a, t) => `${norm(p)}|${norm(a)}|${t}`;
   const sheetClassRoles = sheetRoles.filter((r) => existingActivities.get(norm(r[1]))?.scope === 'class');
   const have = new Set(sheetClassRoles.map((r) => key(r[0], r[1], String(r[3]).toLowerCase())));
@@ -252,6 +261,10 @@ write(
 );
 
 // ---- SQL ---------------------------------------------------------------------
+// Only create what a role will point at. A class or event with no leader recorded
+// would be a row nobody is linked to.
+const usedActivities = new Set(roles.map((r) => norm(r.activity)));
+const usedEvents = new Set(roles.map((r) => r.event));
 let wroteSql = false;
 if (sqlOut && (problems.length || needStatus.length)) {
   console.error(
@@ -266,12 +279,13 @@ if (sqlOut && (problems.length || needStatus.length)) {
     );
   }
   for (const e of included) {
+    if (!usedEvents.has(e.slug)) continue; // no leader recorded for any class: nothing to link
     out.push(
       `INSERT INTO event (name, event_type, year, site_event_id) SELECT ${sql(e.title)}, ${sql(e.type)}, ${e.year}, ${sql(e.slug)} WHERE NOT EXISTS (SELECT 1 FROM event WHERE site_event_id = ${sql(e.slug)});`
     );
   }
   for (const a of activities.values()) {
-    if (a.existing || a.skip) continue;
+    if (a.existing || a.skip || !usedActivities.has(norm(a.name))) continue; // no leader recorded: nothing to link
     out.push(
       `INSERT INTO activity (name, scope, type, subtype) SELECT ${sql(a.name)}, 'class', ${sql(a.type)}, ${sql(a.subtype)} WHERE NOT EXISTS (SELECT 1 FROM activity WHERE name = ${sql(a.name)} AND deleted_at IS NULL);`
     );
@@ -291,7 +305,9 @@ if (sqlOut && (problems.length || needStatus.length)) {
 // ---- Console summary (counts only: names stay in the review files) -----------
 const count = (xs, f) => xs.reduce((m, x) => m.set(f(x), (m.get(f(x)) ?? 0) + 1), new Map());
 const show = (m) => [...m].map(([k, v]) => `${k} ${v}`).join(', ');
-console.log(`Events: ${included.length} included. Skipped: ${show(count(skipped, (s) => s[1]))}.`);
+console.log(
+  `Events: ${usedEvents.size} of ${included.length} have a leader recorded. Skipped: ${show(count(skipped, (s) => s[1]))}.`
+);
 console.log(`Event types: ${show(count(included, (e) => e.type))}`);
 console.log(`Roles: ${roles.length} (${show(count(roles, (r) => r.leadership_type))})`);
 console.log(

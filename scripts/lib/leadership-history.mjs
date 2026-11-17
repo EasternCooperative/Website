@@ -136,6 +136,21 @@ export function classRoles(cls, resolve) {
   return [...roles.values()];
 }
 
+/**
+ * One role per person, class, and event: the same person leading a class of the
+ * same name twice in one event (say, in two periods) is one role. If the two
+ * disagree, the stronger one is kept; otherwise the first.
+ */
+export function dedupeRoles(roles) {
+  const kept = new Map();
+  for (const r of roles) {
+    const key = `${norm(r.person)}|${norm(r.activity)}|${r.event}`;
+    const prior = kept.get(key);
+    if (!prior || PRECEDENCE[r.leadership_type] > PRECEDENCE[prior.leadership_type]) kept.set(key, r);
+  }
+  return [...kept.values()];
+}
+
 /** extended (4+ days), weekend (2 to 3), or one_day, from the event's dates. */
 export function eventType(date, endDate) {
   const start = Date.parse(String(date).slice(0, 10));

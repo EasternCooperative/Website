@@ -5,6 +5,7 @@ import {
   classRoles,
   classifyActivity,
   csv,
+  dedupeRoles,
   defaultStatus,
   eventType,
   isYes,
@@ -138,6 +139,46 @@ describe('class roles', () => {
 
   it('gives a class with no leader no roles', () => {
     expect(roles({ name: 'Orphan class' })).toEqual([]);
+  });
+});
+
+describe('dedupeRoles', () => {
+  const role = (person: string, activity: string, event: string, leadership_type: string) => ({
+    person,
+    activity,
+    event,
+    leadership_type,
+  });
+
+  it('collapses the same person leading the same class twice in one event', () => {
+    const out = dedupeRoles([
+      role('Person A', "Children's Program", 'e1', 'solo'),
+      role('person  a', "children's program", 'e1', 'solo'),
+    ]);
+    expect(out).toHaveLength(1);
+  });
+
+  it('keeps roles that differ by person, class, or event', () => {
+    const out = dedupeRoles([
+      role('Person A', 'Games', 'e1', 'solo'),
+      role('Person B', 'Games', 'e1', 'solo'),
+      role('Person A', 'Crafts', 'e1', 'solo'),
+      role('Person A', 'Games', 'e2', 'solo'),
+    ]);
+    expect(out).toHaveLength(4);
+  });
+
+  it('keeps the stronger role when two disagree, in either order', () => {
+    expect(
+      dedupeRoles([role('A', 'Games', 'e1', 'assisting'), role('A', 'Games', 'e1', 'partner')]).map(
+        (r) => r.leadership_type
+      )
+    ).toEqual(['partner']);
+    expect(
+      dedupeRoles([role('A', 'Games', 'e1', 'partner'), role('A', 'Games', 'e1', 'assisting')]).map(
+        (r) => r.leadership_type
+      )
+    ).toEqual(['partner']);
   });
 });
 
