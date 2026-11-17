@@ -101,11 +101,14 @@
     "esbuild": ">=0.28.1",
     "uuid": ">=11.1.1",
     "tmp": ">=0.2.6",
+    "deepmerge-ts": "^8.0.2",
+    "fflate": "^0.8.3",
     "astro-compress": {
       "sharp": ">=0.35.0",
       "svgo": ">=4.1.0"
     },
     "@lhci/cli": {
+      "chrome-launcher": "^1.2.3",
       "@lhci/utils": {
         "js-yaml": ">=3.15.0"
       }
