@@ -4,15 +4,15 @@
 
 export type LeadershipType = 'solo' | 'partner' | 'assisting';
 export type Scope = 'class' | 'activity';
-export type Status = 'active' | 'hiatus' | 'do_not_ask' | 'mentor';
+// Whether someone is available to LEAD. Mentoring is a separate yes/no on Person.
+export type Status = 'active' | 'hiatus' | 'inactive';
 
 export const LEADERSHIP_TYPES: LeadershipType[] = ['solo', 'partner', 'assisting'];
-export const STATUSES: Status[] = ['active', 'mentor', 'hiatus', 'do_not_ask'];
+export const STATUSES: Status[] = ['active', 'hiatus', 'inactive'];
 export const STATUS_LABELS: Record<Status, string> = {
   active: 'Active',
-  mentor: 'Mentor',
   hiatus: 'On hiatus',
-  do_not_ask: 'Do not ask',
+  inactive: 'Inactive',
 };
 
 export interface Person {
@@ -21,6 +21,8 @@ export interface Person {
   email: string | null;
   leader_slug: string | null;
   status: Status;
+  /** 1 when available as a mentor (D1 stores yes/no as 1/0). */
+  mentor: number;
   notes: string | null;
 }
 export interface Activity {
@@ -132,12 +134,16 @@ export type SortKey = 'name' | 'total' | 'recent' | `type:${string}`;
 export interface Filters {
   query: string;
   status: Status | 'all';
+  mentorsOnly: boolean;
 }
 
-export function filterRows(rows: PersonRow[], { query, status }: Filters): PersonRow[] {
+export function filterRows(rows: PersonRow[], { query, status, mentorsOnly }: Filters): PersonRow[] {
   const q = query.trim().toLowerCase();
   return rows.filter(
-    (r) => (status === 'all' || r.person.status === status) && (!q || r.person.name.toLowerCase().includes(q))
+    (r) =>
+      (status === 'all' || r.person.status === status) &&
+      (!mentorsOnly || r.person.mentor === 1) &&
+      (!q || r.person.name.toLowerCase().includes(q))
   );
 }
 

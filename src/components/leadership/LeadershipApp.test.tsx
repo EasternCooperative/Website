@@ -9,8 +9,8 @@ import type { Data } from './model';
 const base: Data = {
   me: 'board@example.org',
   people: [
-    { id: 1, name: 'Person A', email: 'a@example.org', leader_slug: null, status: 'active', notes: null },
-    { id: 2, name: 'Person B', email: null, leader_slug: null, status: 'hiatus', notes: null },
+    { id: 1, name: 'Person A', email: 'a@example.org', leader_slug: null, status: 'active', mentor: 0, notes: null },
+    { id: 2, name: 'Person B', email: null, leader_slug: null, status: 'hiatus', mentor: 1, notes: null },
   ],
   activities: [{ id: 1, name: 'Games Class', scope: 'class', type: 'Games', subtype: null }],
   events: [{ id: 1, name: 'Event One', event_type: 'extended', year: 2025 }],
@@ -47,7 +47,8 @@ beforeEach(() => {
       const person = url.match(/\/person\/(\d+)$/);
       if (person && method === 'PUT') {
         const p = current.people.find((x) => x.id === Number(person[1]))!;
-        Object.assign(p, JSON.parse(init!.body as string));
+        const body = JSON.parse(init!.body as string);
+        Object.assign(p, { ...body, mentor: body.mentor ? 1 : 0 });
         return json({ ok: true });
       }
       const note = url.match(/\/note\/(\d+)$/);
@@ -160,8 +161,18 @@ describe('LeadershipApp: dashboard controls', () => {
     await setField(container.querySelector('select'), 'hiatus');
     expect(rowNames(container)).toEqual(['Person B']);
     expect(container.textContent).toContain('On hiatus');
-    await setField(container.querySelector('select'), 'mentor');
+    await setField(container.querySelector('select'), 'inactive');
     expect(container.textContent).toContain('No one matches.');
+  });
+
+  it('shows mentors, and can list only mentors whatever their leading status', async () => {
+    const { container } = await render(<LeadershipApp />);
+    await settle();
+    expect(container.querySelector('tbody')?.textContent).toContain('On hiatus · Mentor');
+    await click(container.querySelector('input[type="checkbox"]'));
+    expect(rowNames(container)).toEqual(['Person B']);
+    await click(container.querySelector('input[type="checkbox"]'));
+    expect(rowNames(container)).toEqual(['Person A', 'Person B']);
   });
 
   it('shows the latest "ready" note on the person’s row', async () => {
@@ -202,7 +213,8 @@ describe('LeadershipApp: person panel', () => {
     const aside = await open(container);
     expect((button(aside, 'Save') as HTMLButtonElement).disabled).toBe(true);
 
-    await setField(aside.querySelector('select'), 'mentor');
+    await setField(aside.querySelector('select'), 'inactive');
+    await click(aside.querySelector('input[type="checkbox"]'));
     await setField(aside.querySelector('textarea'), 'Knows the games well');
     expect((button(aside, 'Save') as HTMLButtonElement).disabled).toBe(false);
     await click(button(aside, 'Save'));
@@ -210,8 +222,23 @@ describe('LeadershipApp: person panel', () => {
 
     const put = calls.find((c) => c.method === 'PUT')!;
     expect(put.url).toBe('/api/internal/leadership/person/1');
-    expect(JSON.parse(put.body!)).toMatchObject({ status: 'mentor', notes: 'Knows the games well', name: 'Person A' });
-    expect(container.querySelector('tbody')?.textContent).toContain('Mentor');
+    expect(JSON.parse(put.body!)).toMatchObject({
+      status: 'inactive',
+      mentor: true,
+      notes: 'Knows the games well',
+      name: 'Person A',
+    });
+    expect(container.querySelector('tbody')?.textContent).toContain('Inactive · Mentor');
+  });
+
+  it('treats a mentoring change alone as unsaved, and undoing it as clean', async () => {
+    const { container } = await render(<LeadershipApp />);
+    const aside = await open(container);
+    const save = () => button(aside, 'Save') as HTMLButtonElement;
+    await click(aside.querySelector('input[type="checkbox"]'));
+    expect(save().disabled).toBe(false);
+    await click(aside.querySelector('input[type="checkbox"]'));
+    expect(save().disabled).toBe(true);
   });
 
   it('adds a "ready" note with a focus', async () => {

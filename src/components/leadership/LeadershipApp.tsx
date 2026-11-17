@@ -8,7 +8,7 @@ export default function LeadershipApp() {
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [filters, setFilters] = useState<Filters>({ query: '', status: 'all' });
+  const [filters, setFilters] = useState<Filters>({ query: '', status: 'all', mentorsOnly: false });
   const [sort, setSort] = useState<{ key: SortKey; descending: boolean }>({ key: 'name', descending: false });
 
   const reload = useCallback(async () => {

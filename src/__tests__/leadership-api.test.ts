@@ -139,3 +139,41 @@ describe('validators and bulk add', () => {
     await expect(bulkAddRoles(fakeDb(), Array(201).fill(rows[0]))).rejects.toThrow(ValidationError);
   });
 });
+
+describe('person availability', () => {
+  it('accepts the three leading statuses', () => {
+    for (const status of ['active', 'hiatus', 'inactive']) {
+      expect(validators.person({ name: 'Person A', status }).status).toBe(status);
+    }
+    expect(validators.person({ name: 'Person A' }).status).toBe('active');
+  });
+
+  it('rejects the retired statuses, since mentoring is a separate flag now', () => {
+    for (const status of ['mentor', 'do_not_ask']) {
+      expect(() => validators.person({ name: 'Person A', status })).toThrow(ValidationError);
+    }
+  });
+
+  it('reads mentor as yes or no, and defaults to no', () => {
+    const mentor = (v: unknown) => validators.person({ name: 'Person A', mentor: v }).mentor;
+    expect([mentor(true), mentor(1), mentor(false), mentor(0), mentor(undefined), mentor(null)]).toEqual([
+      1, 1, 0, 0, 0, 0,
+    ]);
+    expect(() => mentor('yes')).toThrow(ValidationError);
+    expect(() => mentor(2)).toThrow(ValidationError);
+  });
+
+  it('saves the mentor flag with the person', async () => {
+    const db = fakeDb();
+    const res = await call(
+      ['person', '3'],
+      { method: 'PUT', body: JSON.stringify({ name: 'Person A', status: 'inactive', mentor: true }) },
+      { ...dev, DB: db }
+    );
+    expect(res.status).toBe(200);
+    const update = db.calls.find((c) => c.sql.startsWith('UPDATE person SET'))!;
+    expect(update.sql).toContain('mentor = ?');
+    expect(update.params).toContain(1);
+    expect(update.params).toContain('inactive');
+  });
+});

@@ -14,6 +14,7 @@ const input = 'w-full rounded border border-gray-300 dark:border-gray-600 bg-tra
 
 export default function PersonPanel({ data, person, onChanged, onClose }: Props) {
   const [status, setStatus] = useState<Status>(person.status);
+  const [mentor, setMentor] = useState(person.mentor === 1);
   const [about, setAbout] = useState(person.notes ?? '');
   const [kind, setKind] = useState<'note' | 'ready'>('note');
   const [focus, setFocus] = useState('');
@@ -25,7 +26,7 @@ export default function PersonPanel({ data, person, onChanged, onClose }: Props)
   const notes = data.notes
     .filter((n) => n.person_id === person.id)
     .sort((a, b) => b.created_at.localeCompare(a.created_at));
-  const dirty = status !== person.status || about !== (person.notes ?? '');
+  const dirty = status !== person.status || mentor !== (person.mentor === 1) || about !== (person.notes ?? '');
 
   const run = async (fn: () => Promise<unknown>) => {
     setBusy(true);
@@ -40,7 +41,8 @@ export default function PersonPanel({ data, person, onChanged, onClose }: Props)
     }
   };
 
-  const onSave = () => run(() => savePerson({ ...person, status, notes: about.trim() || null }));
+  const onSave = () =>
+    run(() => savePerson({ ...person, status, mentor: mentor ? 1 : 0, notes: about.trim() || null }));
 
   const onAddNote = (e: SyntheticEvent) => {
     e.preventDefault();
@@ -73,7 +75,7 @@ export default function PersonPanel({ data, person, onChanged, onClose }: Props)
 
       <div className="mt-4 space-y-3">
         <label className="block text-sm">
-          <span className="block text-muted mb-1">Status</span>
+          <span className="block text-muted mb-1">Leading</span>
           <select value={status} onChange={(e) => setStatus(e.target.value as Status)} className={input}>
             {STATUSES.map((s) => (
               <option key={s} value={s}>
@@ -81,6 +83,10 @@ export default function PersonPanel({ data, person, onChanged, onClose }: Props)
               </option>
             ))}
           </select>
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={mentor} onChange={(e) => setMentor(e.target.checked)} />
+          Available as a mentor
         </label>
         <label className="block text-sm">
           <span className="block text-muted mb-1">About this person (private)</span>
