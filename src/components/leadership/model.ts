@@ -113,13 +113,13 @@ export function buildRows(data: Data): PersonRow[] {
   return [...rows.values()];
 }
 
-const LETTER: Record<LeadershipType, string> = { solo: 'S', partner: 'P', assisting: 'A' };
+export const ROLE_LABELS: Record<LeadershipType, string> = { solo: 'Solo', partner: 'Partner', assisting: 'Assisting' };
 
-/** "S2 P1" style summary, omitting zeros. Empty string when there is nothing. */
-export function formatCounts(counts: Counts): string {
+/** "2 solo, 1 assisting", omitting zeros. Used for screen readers and tooltips. */
+export function describeCounts(counts: Counts): string {
   return LEADERSHIP_TYPES.filter((t) => counts[t] > 0)
-    .map((t) => `${LETTER[t]}${counts[t]}`)
-    .join(' ');
+    .map((t) => `${counts[t]} ${ROLE_LABELS[t].toLowerCase()}`)
+    .join(', ');
 }
 
 /** 0 (none) to 3 (a lot): shading only, not a readiness score. */
@@ -130,33 +130,75 @@ export function intensity(total: number): 0 | 1 | 2 | 3 {
   return 3;
 }
 
+/** Which roles count: classes and activities together, or one of them. */
+export type ScopeFilter = 'all' | Scope;
+
+/** A cell's counts for the chosen scope, with their total. */
+export function scopedCounts(cell: Cell | undefined, scope: ScopeFilter): { counts: Counts; total: number } {
+  if (!cell) return { counts: emptyCounts(), total: 0 };
+  const counts =
+    scope === 'all'
+      ? {
+          solo: cell.class.solo + cell.activity.solo,
+          partner: cell.class.partner + cell.activity.partner,
+          assisting: cell.class.assisting + cell.activity.assisting,
+        }
+      : cell[scope];
+  return { counts, total: counts.solo + counts.partner + counts.assisting };
+}
+
 export type SortKey = 'name' | 'total' | 'recent' | `type:${string}`;
 export interface Filters {
   query: string;
-  status: Status | 'all';
+  /** Leading statuses to show. Inactive people are hidden until asked for. */
+  statuses: Status[];
   mentorsOnly: boolean;
+  scope: ScopeFilter;
 }
+export const DEFAULT_FILTERS: Filters = { query: '', statuses: ['active', 'hiatus'], mentorsOnly: false, scope: 'all' };
 
-export function filterRows(rows: PersonRow[], { query, status, mentorsOnly }: Filters): PersonRow[] {
+export function filterRows(rows: PersonRow[], { query, statuses, mentorsOnly }: Filters): PersonRow[] {
   const q = query.trim().toLowerCase();
   return rows.filter(
     (r) =>
-      (status === 'all' || r.person.status === status) &&
+      statuses.includes(r.person.status) &&
       (!mentorsOnly || r.person.mentor === 1) &&
       (!q || r.person.name.toLowerCase().includes(q))
   );
 }
 
-export function sortRows(rows: PersonRow[], key: SortKey, descending: boolean): PersonRow[] {
+/** How many people have each leading status, and how many mentor. */
+export function statusCounts(rows: PersonRow[]): Record<Status | 'mentor', number> {
+  const counts = { active: 0, hiatus: 0, inactive: 0, mentor: 0 };
+  for (const { person } of rows) {
+    counts[person.status] += 1;
+    if (person.mentor === 1) counts.mentor += 1;
+  }
+  return counts;
+}
+
+export function sortRows(
+  rows: PersonRow[],
+  key: SortKey,
+  descending: boolean,
+  scope: ScopeFilter = 'all'
+): PersonRow[] {
   const byName = (a: PersonRow, b: PersonRow) => a.person.name.localeCompare(b.person.name);
   const value = (r: PersonRow): number => {
-    if (key === 'total') return r.total;
+    if (key === 'total') return scope === 'all' ? r.total : totalIn(r, scope);
     if (key === 'recent') return r.lastYear ?? -1;
-    return r.cells.get(key.slice(5))?.total ?? 0; // "type:<name>"
+    return scopedCounts(r.cells.get(key.slice(5)), scope).total; // "type:<name>"
   };
   const sign = descending ? -1 : 1;
   if (key === 'name') return [...rows].sort((a, b) => byName(a, b) * sign);
   return [...rows].sort((a, b) => (value(a) - value(b)) * sign || byName(a, b));
+}
+
+/** A person's roles in one scope, across every activity type. */
+export function totalIn(row: PersonRow, scope: Scope): number {
+  let total = 0;
+  for (const cell of row.cells.values()) total += scopedCounts(cell, scope).total;
+  return total;
 }
 
 export interface RoleLine {
@@ -175,7 +217,55 @@ export function roleHistory(data: Data, personId: number): RoleLine[] {
     const activity = activities.get(role.activity_id);
     if (activity) lines.push({ role, activity, event: events.get(role.event_id) });
   }
+  // Same-year events stay apart (by name, then id) so the history can group by event.
   return lines.sort(
-    (a, b) => (b.event?.year ?? 0) - (a.event?.year ?? 0) || a.activity.name.localeCompare(b.activity.name)
+    (a, b) =>
+      (b.event?.year ?? 0) - (a.event?.year ?? 0) ||
+      (a.event?.name ?? '').localeCompare(b.event?.name ?? '') ||
+      (a.event?.id ?? 0) - (b.event?.id ?? 0) ||
+      a.activity.name.localeCompare(b.activity.name)
   );
+}
+
+export interface EventGroup {
+  event: EventRow | undefined;
+  lines: RoleLine[];
+}
+
+/** Role history grouped by event, keeping roleHistory's order (newest first). */
+export function groupByEvent(lines: RoleLine[]): EventGroup[] {
+  const groups: EventGroup[] = [];
+  for (const line of lines) {
+    const last = groups[groups.length - 1];
+    if (last && last.event?.id === line.event?.id) last.lines.push(line);
+    else groups.push({ event: line.event, lines: [line] });
+  }
+  return groups;
+}
+
+export interface TypeSummary {
+  type: string;
+  counts: Counts;
+  total: number;
+}
+
+/** A person's roles per activity type, busiest type first. */
+export function summarizeByType(lines: RoleLine[]): TypeSummary[] {
+  const byType = new Map<string, TypeSummary>();
+  for (const { role, activity } of lines) {
+    const entry = byType.get(activity.type) ?? { type: activity.type, counts: emptyCounts(), total: 0 };
+    entry.counts[role.leadership_type] += 1;
+    entry.total += 1;
+    byType.set(activity.type, entry);
+  }
+  return [...byType.values()].sort((a, b) => b.total - a.total || a.type.localeCompare(b.type));
+}
+
+/** An event's name without its year, which the history already shows beside it. */
+export function eventLabel(event: EventRow): string {
+  const trimmed = event.name
+    .replace(new RegExp(`\\b${event.year}\\b`, 'g'), '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+  return trimmed || event.name;
 }

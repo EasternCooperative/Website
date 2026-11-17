@@ -1,11 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import {
+  DEFAULT_FILTERS,
   buildRows,
+  describeCounts,
+  eventLabel,
   filterRows,
-  formatCounts,
+  groupByEvent,
   intensity,
   roleHistory,
+  scopedCounts,
   sortRows,
+  statusCounts,
+  summarizeByType,
   type Data,
   type Filters,
   type Person,
@@ -92,9 +98,28 @@ describe('buildRows', () => {
 });
 
 describe('display helpers', () => {
-  it('formats counts, omitting zeros', () => {
-    expect(formatCounts({ solo: 2, partner: 0, assisting: 1 })).toBe('S2 A1');
-    expect(formatCounts({ solo: 0, partner: 0, assisting: 0 })).toBe('');
+  it('describes counts in words, omitting zeros', () => {
+    expect(describeCounts({ solo: 2, partner: 0, assisting: 1 })).toBe('2 solo, 1 assisting');
+    expect(describeCounts({ solo: 0, partner: 0, assisting: 0 })).toBe('');
+  });
+
+  it('counts a cell for classes, activities, or both', () => {
+    const games = buildRows(data)
+      .find((r) => r.person.id === 1)!
+      .cells.get('Games');
+    expect(scopedCounts(games, 'all')).toEqual({ counts: { solo: 1, partner: 0, assisting: 1 }, total: 2 });
+    expect(scopedCounts(games, 'class')).toEqual({ counts: { solo: 0, partner: 0, assisting: 1 }, total: 1 });
+    expect(scopedCounts(games, 'activity').total).toBe(1);
+    expect(scopedCounts(undefined, 'all').total).toBe(0);
+  });
+
+  it('drops the year from an event name, unless that leaves nothing', () => {
+    const e = (name: string) => eventLabel({ id: 1, name, event_type: 'weekend', year: 2025 });
+    expect(e('Camping Weekend 2025')).toBe('Camping Weekend');
+    expect(e('2025 Summer  Weekend')).toBe('Summer Weekend');
+    expect(e('Winter Adventure')).toBe('Winter Adventure');
+    expect(e('Event 20251')).toBe('Event 20251'); // only the whole year
+    expect(e('2025')).toBe('2025');
   });
 
   it('buckets shading', () => {
@@ -106,13 +131,28 @@ describe('filter and sort', () => {
   const rows = buildRows(data);
 
   it('filters by name, leading status, and mentoring', () => {
-    const ids = (f: Partial<Filters>) =>
-      filterRows(rows, { query: '', status: 'all', mentorsOnly: false, ...f }).map((r) => r.person.id);
+    const all: Filters = { ...DEFAULT_FILTERS, statuses: ['active', 'hiatus', 'inactive'] };
+    const ids = (f: Partial<Filters>) => filterRows(rows, { ...all, ...f }).map((r) => r.person.id);
     expect(ids({ query: ' person b' })).toEqual([2]);
-    expect(ids({ status: 'hiatus' })).toEqual([2]);
+    expect(ids({ statuses: ['hiatus'] })).toEqual([2]);
     expect(ids({})).toHaveLength(3);
+    expect(ids({ statuses: [] })).toEqual([]);
     expect(ids({ mentorsOnly: true })).toEqual([2, 3]); // mentors, whatever their leading status
-    expect(ids({ mentorsOnly: true, status: 'inactive' })).toEqual([3]); // a mentor who no longer leads
+    expect(ids({ mentorsOnly: true, statuses: ['inactive'] })).toEqual([3]); // a mentor who no longer leads
+    expect(filterRows(rows, DEFAULT_FILTERS).map((r) => r.person.id)).toEqual([1, 2]); // inactive hidden at first
+  });
+
+  it('counts people by status and mentoring', () => {
+    expect(statusCounts(rows)).toEqual({ active: 1, hiatus: 1, inactive: 1, mentor: 2 });
+  });
+
+  it('sorts by the chosen scope only', () => {
+    const ids = (key: Parameters<typeof sortRows>[1], scope: 'class' | 'activity') =>
+      sortRows(rows, key, true, scope).map((r) => r.person.id);
+    expect(ids('type:Games', 'class')).toEqual([1, 2, 3]);
+    expect(ids('type:Dancing', 'class')).toEqual([1, 2, 3]); // nobody: all tie, by name
+    expect(ids('total', 'class')).toEqual([1, 2, 3]); // 1 class role against none
+    expect(ids('total', 'activity')).toEqual([1, 2, 3]); // 2 against 1 against 0
   });
 
   it('sorts by name, total, a type column, and recency, breaking ties by name', () => {
@@ -131,6 +171,39 @@ describe('roleHistory', () => {
     const lines = roleHistory(data, 1);
     expect(lines.map((l) => l.activity.name)).toEqual(['Folk Dance', 'Tag', 'Games Class']);
     expect(roleHistory(data, 3)).toEqual([]);
+  });
+
+  it('groups by event, keeping same-year events apart', () => {
+    const sameYear: Data = {
+      ...data,
+      events: [
+        { id: 1, name: 'Spring', event_type: 'weekend', year: 2025 },
+        { id: 2, name: 'Fall', event_type: 'weekend', year: 2025 },
+        { id: 3, name: 'Fall', event_type: 'weekend', year: 2025 },
+      ],
+      roles: [
+        { id: 1, person_id: 1, activity_id: 1, event_id: 1, leadership_type: 'solo', how_it_went: null },
+        { id: 2, person_id: 1, activity_id: 2, event_id: 2, leadership_type: 'solo', how_it_went: null },
+        { id: 3, person_id: 1, activity_id: 3, event_id: 1, leadership_type: 'solo', how_it_went: null },
+        { id: 4, person_id: 1, activity_id: 1, event_id: 3, leadership_type: 'solo', how_it_went: null },
+      ],
+    };
+    const groups = groupByEvent(roleHistory(sameYear, 1));
+    expect(groups.map((g) => [g.event?.id, g.lines.map((l) => l.activity.name)])).toEqual([
+      [2, ['Tag']],
+      [3, ['Games Class']],
+      [1, ['Folk Dance', 'Games Class']],
+    ]);
+    expect(groupByEvent([])).toEqual([]);
+  });
+
+  it('sums roles per type, busiest first, then by name', () => {
+    expect(summarizeByType(roleHistory(data, 1))).toEqual([
+      { type: 'Games', counts: { solo: 1, partner: 0, assisting: 1 }, total: 2 },
+      { type: 'Dancing', counts: { solo: 0, partner: 1, assisting: 0 }, total: 1 },
+    ]);
+    const tie = summarizeByType(roleHistory({ ...data, roles: data.roles.filter((r) => r.id !== 1) }, 1));
+    expect(tie.map((t) => t.type)).toEqual(['Dancing', 'Games']);
   });
 });
 

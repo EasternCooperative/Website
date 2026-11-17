@@ -2,13 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ApiError, loadAll } from './api';
 import Dashboard from './Dashboard';
 import PersonPanel from './PersonPanel';
-import { buildRows, type Data, type Filters, type SortKey } from './model';
+import { DEFAULT_FILTERS, buildRows, type Data, type Filters, type SortKey } from './model';
 
 export default function LeadershipApp() {
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [filters, setFilters] = useState<Filters>({ query: '', status: 'all', mentorsOnly: false });
+  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [sort, setSort] = useState<{ key: SortKey; descending: boolean }>({ key: 'name', descending: false });
 
   const reload = useCallback(async () => {
@@ -39,9 +39,10 @@ export default function LeadershipApp() {
   return (
     <section className="py-10 px-4 max-w-[96rem] mx-auto">
       <h1 className="font-heading text-heading text-3xl font-bold mb-1">Leadership Tracker</h1>
-      <p className="text-muted mb-6">
-        Everyone’s leading experience at a glance. Private to the board and leadership team.
-        {data?.me && <span className="block text-xs">Signed in as {data.me}</span>}
+      <p className="text-muted mb-6 max-w-prose">
+        Who has led what, at every event on record. Use it to see who is ready for something new and who could staff a
+        class. Open a person to record availability and readiness notes. Private to the board and leadership team.
+        {data?.me && <span className="mt-1 block text-xs">Signed in as {data.me}</span>}
       </p>
 
       {error && !data && (
@@ -52,7 +53,7 @@ export default function LeadershipApp() {
       {!data && !error && <p className="text-muted">Loading…</p>}
 
       {data && (
-        <div className={selected ? 'grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] items-start' : ''}>
+        <div className={selected ? 'grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_26rem]' : ''}>
           <Dashboard
             rows={rows}
             activityTypes={data.activityTypes}
@@ -64,13 +65,19 @@ export default function LeadershipApp() {
             onSelect={setSelectedId}
           />
           {selected && (
-            <div className="lg:sticky lg:top-4">
+            <div className="lg:sticky lg:top-20">
               <PersonPanel
                 key={selected.id}
                 data={data}
                 person={selected}
                 onChanged={reload}
-                onClose={() => setSelectedId(null)}
+                onClose={() => {
+                  setSelectedId(null);
+                  // Hand focus back to the person's row, so keyboard users keep their place.
+                  requestAnimationFrame(() =>
+                    document.querySelector<HTMLElement>(`[data-person-id="${selected.id}"]`)?.focus()
+                  );
+                }}
               />
             </div>
           )}
