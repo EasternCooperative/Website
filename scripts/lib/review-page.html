@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Leadership history review</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #faf9f8;
+        --fg: #1f1f1f;
+        --muted: #6b6b6b;
+        --line: #d9d6d2;
+        --accent: #b30f61;
+        --todo: #fff3cd;
+        --done: #e6f4ea;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #1b1a1a;
+          --fg: #ece9e6;
+          --muted: #a09b96;
+          --line: #3a3737;
+          --accent: #f06aa6;
+          --todo: #4a3d12;
+          --done: #17331f;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font:
+          15px/1.45 system-ui,
+          sans-serif;
+      }
+      header,
+      main {
+        max-width: 78rem;
+        margin: 0 auto;
+        padding: 1rem;
+      }
+      h1 {
+        margin: 0;
+        font-size: 1.4rem;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        align-items: end;
+        margin: 0.75rem 0;
+      }
+      nav {
+        display: flex;
+        gap: 0.25rem;
+        border-bottom: 1px solid var(--line);
+        padding: 0 1rem;
+        max-width: 78rem;
+        margin: 0 auto;
+        overflow-x: auto;
+      }
+      nav button {
+        border: 0;
+        background: none;
+        color: var(--fg);
+        padding: 0.6rem 0.9rem;
+        font: inherit;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        white-space: nowrap;
+      }
+      nav button[aria-selected='true'] {
+        border-color: var(--accent);
+        font-weight: 600;
+      }
+      input,
+      select,
+      button.act {
+        font: inherit;
+        color: inherit;
+        background: transparent;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 0.3rem 0.5rem;
+      }
+      button.act {
+        cursor: pointer;
+      }
+      button.act.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+      label.field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      .tablewrap {
+        overflow-x: auto;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 0.4rem 0.6rem;
+        border-top: 1px solid var(--line);
+        vertical-align: middle;
+      }
+      th {
+        border-top: 0;
+        font-size: 0.8rem;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      tr.todo td {
+        background: var(--todo);
+      }
+      tr.done td {
+        background: var(--done);
+      }
+      td.num {
+        font-variant-numeric: tabular-nums;
+      }
+      td input[type='text'] {
+        width: 100%;
+        min-width: 12rem;
+      }
+      #saved {
+        margin-left: auto;
+        font-size: 0.85rem;
+      }
+      #saved.bad {
+        color: #c62828;
+        font-weight: 600;
+      }
+      pre {
+        white-space: pre-wrap;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 0.75rem;
+      }
+      .pair {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
+      }
+      .pair .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="bar" style="margin: 0">
+        <div>
+          <h1>Leadership history review</h1>
+          <div class="muted" id="progress">Loading…</div>
+        </div>
+        <span id="saved" class="muted" role="status"></span>
+      </div>
+    </header>
+    <nav role="tablist" id="tabs"></nav>
+    <main id="view"></main>
+
+    <script>
+      const token = new URLSearchParams(location.search).get('t') || '';
+      const STATUS_LABEL = { active: 'Active', hiatus: 'On hiatus', inactive: 'Inactive' };
+      const TABS = [
+        ['people', 'People'],
+        ['types', 'Classes'],
+        ['dupes', 'Possible duplicates'],
+        ['check', 'Check my work'],
+      ];
+      let data = null;
+      let tab = 'people';
+      const filters = { people: 'todo', types: 'proposed', search: '' };
+      const pending = { status: new Map(), types: new Map() };
+      let timer = null;
+
+      // Build elements with text only, never HTML, so a name cannot inject anything.
+      function h(tag, attrs = {}, ...kids) {
+        const el = document.createElement(tag);
+        for (const [k, v] of Object.entries(attrs)) {
+          if (k === 'class') el.className = v;
+          else if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+          else if (v === true) el.setAttribute(k, '');
+          else if (v !== false && v != null) el.setAttribute(k, v);
+        }
+        for (const kid of kids.flat()) el.append(kid instanceof Node ? kid : document.createTextNode(String(kid)));
+        return el;
+      }
+
+      async function api(method, path, body) {
+        const res = await fetch(path, {
+          method,
+          headers: { 'x-token': token, 'content-type': 'application/json' },
+          body: body === undefined ? undefined : JSON.stringify(body),
+        });
+        const out = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(out.error || `Request failed (${res.status})`);
+        return out;
+      }
+
+      const saved = document.getElementById('saved');
+      function say(text, bad = false) {
+        saved.textContent = text;
+        saved.className = bad ? 'bad' : 'muted';
+      }
+
+      // Edits are batched and sent a moment after you stop typing.
+      function queue(kind, key, change) {
+        const map = pending[kind];
+        map.set(key, { ...(map.get(key) || { key }), ...change });
+        say('Saving…');
+        clearTimeout(timer);
+        timer = setTimeout(flush, 500);
+      }
+      async function flush() {
+        const jobs = [
+          ['status', 'PUT', '/api/status'],
+          ['types', 'PUT', '/api/types'],
+        ];
+        try {
+          for (const [kind, method, path] of jobs) {
+            const edits = [...pending[kind].values()];
+            if (!edits.length) continue;
+            pending[kind].clear();
+            await api(method, path, { edits });
+          }
+          say('Saved ' + new Date().toLocaleTimeString());
+        } catch (err) {
+          say('NOT SAVED: ' + err.message, true);
+        }
+      }
+      addEventListener('beforeunload', (e) => {
+        if (pending.status.size || pending.types.size) e.preventDefault();
+      });
+
+      const needsStatus = () => data.people.filter((p) => !p.status).length;
+      function progress() {
+        const left = needsStatus();
+        const proposed = data.classes.filter((c) => /^proposed/.test(c.basis)).length;
+        const total = data.people.length;
+        document.getElementById('progress').textContent =
+          `${left} of ${total} new ${total === 1 ? 'person' : 'people'} still ${left === 1 ? 'needs' : 'need'} a status. ` +
+          `${proposed} ${proposed === 1 ? 'class is' : 'classes are'} still ${proposed === 1 ? 'a proposal' : 'proposals'}.` +
+          (left === 0 ? ' Statuses are all set.' : '');
+      }
+
+      function renderTabs() {
+        const nav = document.getElementById('tabs');
+        nav.replaceChildren(
+          ...TABS.map(([id, label]) =>
+            h(
+              'button',
+              {
+                role: 'tab',
+                'aria-selected': String(tab === id),
+                onclick: () => {
+                  tab = id;
+                  render();
+                },
+              },
+              id === 'dupes' ? `${label} (${data.pairs.length})` : label
+            )
+          )
+        );
+      }
+
+      function searchBox() {
+        return h(
+          'label',
+          { class: 'field' },
+          'Search',
+          h('input', {
+            type: 'search',
+            value: filters.search,
+            oninput: (e) => {
+              filters.search = e.target.value;
+              renderBody();
+            },
+          })
+        );
+      }
+      const matches = (name) => name.toLowerCase().includes(filters.search.trim().toLowerCase());
+
+      function peopleView() {
+        const rows = data.people
+          .filter((p) => matches(p.name))
+          .filter((p) =>
+            filters.people === 'todo' ? !p.status : filters.people === 'mentors' ? p.mentor === 'yes' : true
+          )
+          .sort(
+            (a, b) =>
+              !a.status - !b.status || Number(b['last year']) - Number(a['last year']) || a.name.localeCompare(b.name)
+          );
+
+        const tr = (p) => {
+          const row = h('tr');
+          const paint = () => {
+            row.className = p.status ? 'done' : 'todo';
+          };
+          paint();
+          const statusSel = h(
+            'select',
+            {
+              'aria-label': `Leading status for ${p.name}`,
+              onchange: (e) => {
+                p.status = e.target.value;
+                p.basis = 'you';
+                paint();
+                progress();
+                queue('status', p.name, { status: p.status, basis: 'you' });
+              },
+            },
+            h('option', { value: '' }, '— choose —'),
+            ...Object.entries(STATUS_LABEL).map(([v, l]) => h('option', { value: v, selected: p.status === v }, l))
+          );
+          const mentor = h('input', {
+            type: 'checkbox',
+            checked: p.mentor === 'yes',
+            'aria-label': `${p.name} is available as a mentor`,
+            onchange: (e) => {
+              p.mentor = e.target.checked ? 'yes' : '';
+              queue('status', p.name, { mentor: p.mentor });
+            },
+          });
+          const note = h('input', {
+            type: 'text',
+            value: p.note,
+            placeholder: 'Private note, e.g. retired 2024',
+            'aria-label': `Note for ${p.name}`,
+            oninput: (e) => {
+              p.note = e.target.value;
+              queue('status', p.name, { note: p.note });
+            },
+          });
+          row.append(
+            h('td', {}, h('strong', {}, p.name)),
+            h('td', { class: 'num' }, p['last year']),
+            h(
+              'td',
+              { class: 'num' },
+              `${p.events} event${p.events === '1' ? '' : 's'}, ${p.roles} role${p.roles === '1' ? '' : 's'}`
+            ),
+            h('td', {}, statusSel),
+            h('td', {}, mentor),
+            h('td', {}, note),
+            h('td', { class: 'muted' }, p.basis)
+          );
+          return row;
+        };
+
+        return [
+          h(
+            'div',
+            { class: 'bar' },
+            h(
+              'label',
+              { class: 'field' },
+              'Show',
+              h(
+                'select',
+                {
+                  onchange: (e) => {
+                    filters.people = e.target.value;
+                    renderBody();
+                  },
+                },
+                ...[
+                  ['todo', 'Needs my call'],
+                  ['all', 'Everyone'],
+                  ['mentors', 'Mentors'],
+                ].map(([v, l]) => h('option', { value: v, selected: filters.people === v }, l))
+              )
+            ),
+            searchBox(),
+            h(
+              'span',
+              { class: 'muted' },
+              `${rows.length} shown. Blank status means you decide; the rest are proposals you can change.`
+            )
+          ),
+          h(
+            'div',
+            { class: 'tablewrap' },
+            h(
+              'table',
+              {},
+              h(
+                'thead',
+                {},
+                h(
+                  'tr',
+                  {},
+                  ...['Name', 'Last led', 'History', 'Leading', 'Mentor', 'Note', 'Basis'].map((t) =>
+                    h('th', { scope: 'col' }, t)
+                  )
+                )
+              ),
+              h('tbody', {}, rows.map(tr))
+            )
+          ),
+        ];
+      }
+
+      function typesView() {
+        const rows = data.classes
+          .filter((c) => matches(c.class))
+          .filter((c) =>
+            filters.types === 'proposed'
+              ? /^proposed/.test(c.basis)
+              : filters.types === 'other'
+                ? c.type === 'Other'
+                : true
+          );
+        const tr = (c) => {
+          const row = h('tr', { class: /^proposed/.test(c.basis) ? 'todo' : 'done' });
+          const sel = h(
+            'select',
+            {
+              'aria-label': `Type for ${c.class}`,
+              onchange: (e) => {
+                c.type = e.target.value;
+                c.basis = 'you';
+                row.className = 'done';
+                progress();
+                queue('types', c.class, { type: c.type, basis: 'you' });
+              },
+            },
+            ...data.types.map((t) =>
+              h('option', { value: t, selected: c.type === t }, t === 'SKIP' ? 'SKIP (not a class)' : t)
+            )
+          );
+          row.append(
+            h('td', {}, h('strong', {}, c.class)),
+            h('td', {}, sel),
+            h('td', { class: 'num' }, `${c.times}×, ${c['last year']}`),
+            h('td', { class: 'muted' }, c.basis)
+          );
+          return row;
+        };
+        return [
+          h(
+            'div',
+            { class: 'bar' },
+            h(
+              'label',
+              { class: 'field' },
+              'Show',
+              h(
+                'select',
+                {
+                  onchange: (e) => {
+                    filters.types = e.target.value;
+                    renderBody();
+                  },
+                },
+                ...[
+                  ['proposed', 'Proposals to review'],
+                  ['other', 'Typed Other'],
+                  ['all', 'All classes'],
+                ].map(([v, l]) => h('option', { value: v, selected: filters.types === v }, l))
+              )
+            ),
+            searchBox(),
+            h(
+              'span',
+              { class: 'muted' },
+              `${rows.length} shown. Classes already in your sheet are not listed. Choosing SKIP leaves a class out entirely.`
+            )
+          ),
+          h(
+            'div',
+            { class: 'tablewrap' },
+            h(
+              'table',
+              {},
+              h(
+                'thead',
+                {},
+                h('tr', {}, ...['Class', 'Type', 'Seen', 'Basis'].map((t) => h('th', { scope: 'col' }, t)))
+              ),
+              h('tbody', {}, rows.map(tr))
+            )
+          ),
+        ];
+      }
+
+      async function decide(path, body) {
+        try {
+          say('Working…');
+          await api('POST', path, body);
+          await api('POST', '/api/check'); // rebuilds the review files from the new decision
+          data = await api('GET', '/api/data');
+          say('Saved ' + new Date().toLocaleTimeString());
+          render();
+        } catch (err) {
+          say('NOT SAVED: ' + err.message, true);
+        }
+      }
+
+      function dupesView() {
+        if (!data.pairs.length) return [h('p', { class: 'muted' }, 'No possible duplicates left to review.')];
+        return [
+          h(
+            'p',
+            { class: 'muted' },
+            'These names look alike. If they are one person, pick the spelling to keep; the other is folded into it everywhere.'
+          ),
+          ...data.pairs.map(([a, b]) =>
+            h(
+              'div',
+              { class: 'pair' },
+              h('div', {}, h('strong', {}, a), '  and  ', h('strong', {}, b)),
+              h(
+                'div',
+                { class: 'row' },
+                h(
+                  'button',
+                  { class: 'act primary', onclick: () => decide('/api/merge', { from: b, into: a }) },
+                  `Same person: keep “${a}”`
+                ),
+                h(
+                  'button',
+                  { class: 'act primary', onclick: () => decide('/api/merge', { from: a, into: b }) },
+                  `Same person: keep “${b}”`
+                ),
+                h('button', { class: 'act', onclick: () => decide('/api/different', { a, b }) }, 'Different people')
+              )
+            )
+          ),
+        ];
+      }
+
+      function checkView() {
+        const out = h('pre', {}, 'Nothing run yet.');
+        return [
+          h(
+            'p',
+            { class: 'muted' },
+            'Runs the importer as a dry run on your current choices. Nothing is loaded into any database.'
+          ),
+          h(
+            'button',
+            {
+              class: 'act primary',
+              onclick: async () => {
+                out.textContent = 'Running…';
+                try {
+                  const r = await api('POST', '/api/check');
+                  out.textContent = r.output || '(no output)';
+                  data = await api('GET', '/api/data');
+                  progress();
+                  renderTabs();
+                } catch (err) {
+                  out.textContent = err.message;
+                }
+              },
+            },
+            'Check my work'
+          ),
+          out,
+        ];
+      }
+
+      function renderBody() {
+        const view = document.getElementById('view');
+        const views = { people: peopleView, types: typesView, dupes: dupesView, check: checkView };
+        view.replaceChildren(...views[tab]());
+      }
+      function render() {
+        renderTabs();
+        progress();
+        renderBody();
+      }
+
+      api('GET', '/api/data')
+        .then((d) => {
+          data = d;
+          render();
+        })
+        .catch((err) => {
+          document.getElementById('progress').textContent =
+            'Could not load: ' + err.message + '. Open the link the script printed.';
+        });
+    </script>
+  </body>
+</html>
