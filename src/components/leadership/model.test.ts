@@ -1,18 +1,29 @@
 import { describe, expect, it } from 'vitest';
-import { buildRows, filterRows, formatCounts, intensity, roleHistory, sortRows, type Data, type Person } from './model';
+import {
+  buildRows,
+  filterRows,
+  formatCounts,
+  intensity,
+  roleHistory,
+  sortRows,
+  type Data,
+  type Filters,
+  type Person,
+} from './model';
 
-const person = (id: number, name: string, status: Person['status'] = 'active'): Person => ({
+const person = (id: number, name: string, status: Person['status'] = 'active', mentor = 0): Person => ({
   id,
   name,
   email: null,
   leader_slug: null,
   status,
+  mentor,
   notes: null,
 });
 
 // Placeholder names only.
 const data: Data = {
-  people: [person(1, 'Person A'), person(2, 'Person B', 'hiatus'), person(3, 'Person C')],
+  people: [person(1, 'Person A'), person(2, 'Person B', 'hiatus', 1), person(3, 'Person C', 'inactive', 1)],
   activities: [
     { id: 1, name: 'Games Class', scope: 'class', type: 'Games', subtype: null },
     { id: 2, name: 'Tag', scope: 'activity', type: 'Games', subtype: 'Active' },
@@ -94,10 +105,14 @@ describe('display helpers', () => {
 describe('filter and sort', () => {
   const rows = buildRows(data);
 
-  it('filters by name and status', () => {
-    expect(filterRows(rows, { query: ' person b', status: 'all' }).map((r) => r.person.id)).toEqual([2]);
-    expect(filterRows(rows, { query: '', status: 'hiatus' }).map((r) => r.person.id)).toEqual([2]);
-    expect(filterRows(rows, { query: '', status: 'all' })).toHaveLength(3);
+  it('filters by name, leading status, and mentoring', () => {
+    const ids = (f: Partial<Filters>) =>
+      filterRows(rows, { query: '', status: 'all', mentorsOnly: false, ...f }).map((r) => r.person.id);
+    expect(ids({ query: ' person b' })).toEqual([2]);
+    expect(ids({ status: 'hiatus' })).toEqual([2]);
+    expect(ids({})).toHaveLength(3);
+    expect(ids({ mentorsOnly: true })).toEqual([2, 3]); // mentors, whatever their leading status
+    expect(ids({ mentorsOnly: true, status: 'inactive' })).toEqual([3]); // a mentor who no longer leads
   });
 
   it('sorts by name, total, a type column, and recency, breaking ties by name', () => {

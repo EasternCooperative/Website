@@ -41,6 +41,7 @@ export const savePerson = (p: Person) =>
       email: p.email,
       leader_slug: p.leader_slug,
       status: p.status,
+      mentor: p.mentor === 1,
       notes: p.notes,
     }),
   });

@@ -1,7 +1,7 @@
 // Leadership tracker data layer (D1). Pure functions over a D1 binding so they
 // can be tested with a stub. All SQL is parameterized; every table soft-deletes.
 
-const STATUSES = ['active', 'hiatus', 'do_not_ask', 'mentor'];
+const STATUSES = ['active', 'hiatus', 'inactive'];
 const SCOPES = ['class', 'activity'];
 const EVENT_TYPES = ['extended', 'one_day', 'weekend'];
 const LEADERSHIP_TYPES = ['solo', 'partner', 'assisting'];
@@ -26,6 +26,13 @@ const oneOf = (v, field, allowed) => {
   return v;
 };
 
+// A yes/no sent as true/false or 1/0. Missing means no.
+const flag = (v, field) => {
+  if (v === undefined || v === null || v === false || v === 0) return 0;
+  if (v === true || v === 1) return 1;
+  throw new ValidationError(`${field} must be yes or no`);
+};
+
 const id = (v, field) => {
   if (!Number.isInteger(v) || v < 1) throw new ValidationError(`${field} must be an id`);
   return v;
@@ -37,6 +44,7 @@ export const validators = {
     email: str(b.email, 'email', { max: 200 }),
     leader_slug: str(b.leader_slug, 'leader_slug', { max: 120 }),
     status: oneOf(b.status ?? 'active', 'status', STATUSES),
+    mentor: flag(b.mentor, 'mentor'),
     notes: str(b.notes, 'notes', { max: 4000 }),
   }),
   activity: (b) => ({
@@ -73,7 +81,7 @@ export const validators = {
 
 // Table name and column list come from this allowlist, never from the request.
 const TABLES = {
-  person: ['name', 'email', 'leader_slug', 'status', 'notes'],
+  person: ['name', 'email', 'leader_slug', 'status', 'mentor', 'notes'],
   activity: ['name', 'scope', 'type', 'subtype', 'site_activity_id'],
   event: ['name', 'event_type', 'year', 'site_event_id'],
   role: ['person_id', 'activity_id', 'event_id', 'leadership_type', 'how_it_went', 'source'],

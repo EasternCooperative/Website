@@ -87,7 +87,7 @@ export default function Dashboard({
           />
         </label>
         <label className="text-sm">
-          <span className="block text-muted mb-1">Status</span>
+          <span className="block text-muted mb-1">Leading</span>
           <select
             value={filters.status}
             onChange={(e) => onFilters({ ...filters, status: e.target.value as Filters['status'] })}
@@ -100,6 +100,14 @@ export default function Dashboard({
               </option>
             ))}
           </select>
+        </label>
+        <label className="flex items-center gap-2 text-sm pb-1">
+          <input
+            type="checkbox"
+            checked={filters.mentorsOnly}
+            onChange={(e) => onFilters({ ...filters, mentorsOnly: e.target.checked })}
+          />
+          Mentors only
         </label>
         <p className="text-xs text-muted basis-full sm:basis-auto">
           S = solo, P = partner, A = assisting. Shading shows how much, not who is ready.
@@ -137,8 +145,15 @@ export default function Dashboard({
                   >
                     {row.person.name}
                   </button>
-                  {row.person.status !== 'active' && (
-                    <span className="block text-xs text-muted">{STATUS_LABELS[row.person.status]}</span>
+                  {(row.person.status !== 'active' || row.person.mentor === 1) && (
+                    <span className="block text-xs text-muted">
+                      {[
+                        row.person.status !== 'active' && STATUS_LABELS[row.person.status],
+                        row.person.mentor === 1 && 'Mentor',
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </span>
                   )}
                 </th>
                 {activityTypes.map((t) => {
