@@ -12,7 +12,9 @@ import {
   makeResolver,
   nearDuplicates,
   norm,
+  normalizeType,
   parseCsv,
+  refreshProposal,
   sql,
   tidy,
 } from '../../scripts/lib/leadership-history.mjs';
@@ -152,7 +154,7 @@ describe('eventType', () => {
 describe('classifyActivity', () => {
   it.each([
     ['Folk Dancing', 'Dancing'],
-    ['Evening Sing', 'Singing'],
+    ['Evening Sing', 'Music'],
     ['Informal Dramatics', 'Drama'],
     ['Water Games', 'Games'],
     ['Chair Yoga', 'Movement'],
@@ -172,7 +174,64 @@ describe('classifyActivity', () => {
   });
 
   it('reports no rule when nothing matches', () => {
-    expect(classifyActivity('Quarterly Zorp')).toEqual({ type: 'Other', rule: null, weak: true });
+    expect(classifyActivity('Quarterly Zorp')).toEqual({ type: 'Other', subtype: '', rule: null, weak: true });
+  });
+});
+
+describe('Music and its subtypes', () => {
+  it.each([
+    ['Evening Sing', 'Singing'],
+    ['Beatlesing Plus', 'Singing'],
+    ['Songlibs', 'Singing'],
+    ['Introduction to the Ukulele', 'Instruments'],
+    ['Introduction to the Tin Whistle', 'Instruments'],
+    ['African Drumming for Beginners!', 'Rhythm'],
+    ['Body Percussion', 'Rhythm'],
+    ['Make Music Together', ''],
+  ])('%s is Music with subtype "%s"', (name, subtype) => {
+    expect(classifyActivity(name)).toMatchObject({ type: 'Music', subtype });
+  });
+
+  it('does not mistake a drummer in a title for a drum class', () => {
+    expect(classifyActivity('Moving to a Different Drummer').type).toBe('Other');
+  });
+
+  it('has Music as a type and no longer Singing', () => {
+    expect(TYPES).toContain('Music');
+    expect(TYPES).not.toContain('Singing');
+  });
+
+  it('turns an old Singing type into Music with the subtype Singing, and keeps any subtype', () => {
+    expect(normalizeType('Singing')).toEqual({ type: 'Music', subtype: 'Singing' });
+    expect(normalizeType('Singing', 'Rounds')).toEqual({ type: 'Music', subtype: 'Rounds' });
+    expect(normalizeType('Games', 'Active')).toEqual({ type: 'Games', subtype: 'Active' });
+    expect(normalizeType('Drama')).toEqual({ type: 'Drama', subtype: '' });
+  });
+});
+
+describe('refreshProposal', () => {
+  const music = { type: 'Music', subtype: 'Rhythm', rule: 'drumming' };
+
+  it('refreshes an unconfirmed Other proposal when a rule now matches', () => {
+    expect(refreshProposal({ type: 'Other', basis: 'proposed: review' }, music)).toEqual({
+      type: 'Music',
+      subtype: 'Rhythm',
+      basis: 'proposed: rule drumming',
+    });
+  });
+
+  it('never touches a row a person has set', () => {
+    expect(refreshProposal({ type: 'Other', basis: 'you' }, music)).toBeNull();
+    expect(refreshProposal({ type: 'Other', basis: '' }, music)).toBeNull();
+  });
+
+  it('leaves proposals alone unless they are Other and the rules have a real match', () => {
+    expect(refreshProposal({ type: 'Crafts', basis: 'proposed: review' }, music)).toBeNull();
+    expect(refreshProposal({ type: 'Other', basis: 'proposed: review' }, { type: 'Other', rule: null })).toBeNull();
+    expect(
+      refreshProposal({ type: 'Other', basis: 'proposed: review' }, { type: 'Music', subtype: '', rule: null })
+    ).toBeNull();
+    expect(refreshProposal(undefined, music)).toBeNull();
   });
 });
 

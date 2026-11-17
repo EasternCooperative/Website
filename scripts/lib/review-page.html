@@ -423,6 +423,9 @@
         ];
       }
 
+      // Subtypes are free text; these are suggestions, plus any already in use.
+      const SUBTYPES = ['Singing', 'Instruments', 'Rhythm'];
+
       function typesView() {
         const rows = data.classes
           .filter((c) => matches(c.class))
@@ -433,18 +436,44 @@
                 ? c.type === 'Other'
                 : true
           );
+        const suggestions = [...new Set([...SUBTYPES, ...data.classes.map((c) => c.subtype).filter(Boolean)])].sort();
+        const list = h('datalist', { id: 'subtypes' }, ...suggestions.map((v) => h('option', { value: v })));
+
         const tr = (c) => {
           const row = h('tr', { class: /^proposed/.test(c.basis) ? 'todo' : 'done' });
+          const basisCell = h('td', { class: 'muted' }, c.basis);
+          const decided = () => {
+            c.basis = 'you';
+            basisCell.textContent = 'you';
+            row.className = 'done';
+            progress();
+          };
+          const subtype = h('input', {
+            type: 'text',
+            list: 'subtypes',
+            value: c.subtype || '',
+            placeholder: 'optional',
+            'aria-label': `Subtype for ${c.class}`,
+            oninput: (e) => {
+              c.subtype = e.target.value;
+              decided();
+              queue('types', c.class, { subtype: c.subtype, basis: 'you' });
+            },
+          });
           const sel = h(
             'select',
             {
               'aria-label': `Type for ${c.class}`,
               onchange: (e) => {
                 c.type = e.target.value;
-                c.basis = 'you';
-                row.className = 'done';
-                progress();
-                queue('types', c.class, { type: c.type, basis: 'you' });
+                // A Music subtype means nothing under another type, so it is cleared.
+                const clear = c.type !== 'Music' && SUBTYPES.includes(c.subtype);
+                if (clear) {
+                  c.subtype = '';
+                  subtype.value = '';
+                }
+                decided();
+                queue('types', c.class, { type: c.type, basis: 'you', ...(clear ? { subtype: '' } : {}) });
               },
             },
             ...data.types.map((t) =>
@@ -454,12 +483,14 @@
           row.append(
             h('td', {}, h('strong', {}, c.class)),
             h('td', {}, sel),
+            h('td', {}, subtype),
             h('td', { class: 'num' }, `${c.times}×, ${c['last year']}`),
-            h('td', { class: 'muted' }, c.basis)
+            basisCell
           );
           return row;
         };
         return [
+          list,
           h(
             'div',
             { class: 'bar' },
@@ -498,7 +529,7 @@
               h(
                 'thead',
                 {},
-                h('tr', {}, ...['Class', 'Type', 'Seen', 'Basis'].map((t) => h('th', { scope: 'col' }, t)))
+                h('tr', {}, ...['Class', 'Type', 'Subtype', 'Seen', 'Basis'].map((t) => h('th', { scope: 'col' }, t)))
               ),
               h('tbody', {}, rows.map(tr))
             )

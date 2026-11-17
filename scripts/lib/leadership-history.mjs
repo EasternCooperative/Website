@@ -149,42 +149,72 @@ export function eventType(date, endDate) {
 // First matching rule wins, so order matters: more specific kinds come first.
 // `weak` rules are broad words, so the review file flags them for a human look.
 const TYPE_RULES = [
-  ['Play Parties', /play ?part(y|ies)/, false],
-  ['Singing', /\b(sing|singing|singalong|sing along|song|songs|chorus|choir|rounds?|harmon\w*)\b/, false],
-  ['Dancing', /danc|contra|square|waltz|\bfolk\b|swing|tango|salsa|cajun|\breel\b|ceilidh/, false],
+  // [type, pattern, weak, subtype]
+  ['Play Parties', /play ?part(y|ies)/, false, ''],
+  [
+    'Music',
+    /\b(sing|singing|singalong|sing along|song|songs|songlibs|beatlesing|chorus|choir|rounds?|harmon\w*)\b/,
+    false,
+    'Singing',
+  ],
+  [
+    'Music',
+    /ukulele|whistle|guitar|banjo|fiddle|recorder|harmonica|mandolin|dulcimer|instrument|orchestra/,
+    false,
+    'Instruments',
+  ],
+  ['Music', /\bdrum(s|ming)?\b|percussion|rhythm/, false, 'Rhythm'],
+  ['Music', /\bmusic(al)?\b/, false, ''],
+  ['Dancing', /danc|contra|square|waltz|\bfolk\b|swing|tango|salsa|cajun|\breel\b|ceilidh/, false, ''],
   [
     'Drama',
     /dram|improv|theat|scenes?\b|acting|story ?tell|skit|puppet|clown|\bmime\b|comedy|monologue|play ?writ|\bplays?\b/,
     false,
+    '',
   ],
-  ['Games', /game|\btag\b|team ?build|cooperative|initiative|icebreaker/, false],
+  ['Games', /game|\btag\b|team ?build|cooperative|initiative|icebreaker/, false, ''],
   [
     'Crafts',
     /craft|\bart\b|paint|draw|knit|sew|pottery|mosaic|collage|origami|jewel|weav|print ?making|sketch|bead|\bclay\b|woodwork|calligraph/,
     false,
+    '',
   ],
   [
     'Movement',
     /yoga|movement|tai ?chi|qi ?gong|stretch|fitness|exercise|pilates|feldenkrais|walk|hik|swim|\bmove\b/,
     false,
+    '',
   ],
   [
     'Personal Development',
     /mindful|meditat|empathy|encore|retire|journal|well ?being|heal|resilien|grief|gratitude|spiritual|reflect|\blife\b|coach|self/,
     false,
+    '',
   ],
-  ['Theory', /leader|facilitat|philosoph|history|theory|teaching|training|smorgasbord|\bdiscussion\b/, false],
-  ['Other', /child|kids|preschool|family|youth|teen|\bwrite\b|writing/, false],
+  ['Theory', /leader|facilitat|philosoph|history|theory|teaching|training|smorgasbord|\bdiscussion\b/, false, ''],
+  ['Other', /child|kids|preschool|family|youth|teen|\bwrite\b|writing/, false, ''],
 ];
 
-/** { type, rule } for a class name, or { type: 'Other', rule: null } when nothing matches. */
+/**
+ * A saved review row that is still only a proposal (not confirmed by a person) and
+ * is typed Other can be refreshed when the rules learn something. Returns the new
+ * { type, subtype, basis }, or null to leave the row exactly as it is. A row a
+ * person has set (any basis not starting with "proposed") is never changed.
+ */
+export function refreshProposal(saved, guess) {
+  const unconfirmed = /^proposed/.test(saved?.basis ?? '');
+  if (!unconfirmed || saved.type !== 'Other' || guess.type === 'Other' || !guess.rule) return null;
+  return { type: guess.type, subtype: guess.subtype, basis: `proposed: rule ${guess.rule}` };
+}
+
+/** { type, subtype, rule } for a class name, or { type: 'Other', rule: null } when nothing matches. */
 export function classifyActivity(name) {
   const n = norm(name);
-  for (const [type, re, weak] of TYPE_RULES) {
+  for (const [type, re, weak, subtype] of TYPE_RULES) {
     const m = n.match(re);
-    if (m) return { type, rule: m[0], weak };
+    if (m) return { type, subtype, rule: m[0], weak };
   }
-  return { type: 'Other', rule: null, weak: true };
+  return { type: 'Other', subtype: '', rule: null, weak: true };
 }
 
 /** Quote a field for CSV. */
@@ -209,9 +239,19 @@ export const TYPES = [
   'Personal Development',
   'Other',
   'Crafts',
-  'Singing',
+  'Music',
   'Play Parties',
 ];
+
+// Singing used to be a type of its own. It is now a subtype of Music, so an old
+// 'Singing' (in a review file or the sheet) becomes Music with the subtype Singing.
+const LEGACY_TYPES = { Singing: { type: 'Music', subtype: 'Singing' } };
+
+/** { type, subtype } with any retired type name translated to its replacement. */
+export function normalizeType(type, subtype = '') {
+  const legacy = LEGACY_TYPES[type];
+  return legacy ? { type: legacy.type, subtype: subtype || legacy.subtype } : { type, subtype: subtype || '' };
+}
 
 /** In history-types.csv, marks a "class" that is not really one (such as a break), so it is left out. */
 export const SKIP = 'SKIP';

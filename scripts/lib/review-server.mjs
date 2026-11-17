@@ -78,7 +78,7 @@ export const STATUS_COLUMNS = {
   note: free(2000),
   basis: free(200),
 };
-export const TYPE_COLUMNS = { type: oneOf([...TYPES, SKIP]), basis: free(200) };
+export const TYPE_COLUMNS = { type: oneOf([...TYPES, SKIP]), subtype: free(80), basis: free(200) };
 
 const pairKey = (a, b) => [norm(a), norm(b)].sort().join('|');
 

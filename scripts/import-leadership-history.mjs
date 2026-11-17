@@ -10,7 +10,7 @@
 //
 // Without --sql this is a dry run. It writes review files into <export-dir>, and
 // reads them back on the next run, so your edits are kept:
-//   history-types.csv    class, type, ...        edit "type" to fix a class; SKIP drops it
+//   history-types.csv    class, type, subtype, ...   edit "type" to fix a class; SKIP drops it
 //   history-status.csv   name, ..., status, mentor, note
 //                        new people only. Anyone who last led in 2018 or later is
 //                        left BLANK for a person to decide; older ones get a proposal.
@@ -35,8 +35,10 @@ import {
   isYes,
   makeResolver,
   nearDuplicates,
+  normalizeType,
   norm,
   parseCsv,
+  refreshProposal,
   sql,
   tidy,
 } from './lib/leadership-history.mjs';
@@ -79,7 +81,10 @@ const existingPeople = readJson('people.json', [])
 const existingActivities = new Map(
   readJson('activities.json', [])
     .slice(1)
-    .map((r) => [norm(r[0]), { name: tidy(r[0]), scope: String(r[1]).toLowerCase(), type: tidy(r[2]) }])
+    .map((r) => [
+      norm(r[0]),
+      { name: tidy(r[0]), scope: String(r[1]).toLowerCase(), ...normalizeType(tidy(r[2]), tidy(r[3])) },
+    ])
 );
 const existingEvents = readJson('events.json', [])
   .slice(1)
@@ -128,14 +133,24 @@ function noteActivity(rawName, year) {
     const known = existingActivities.get(key);
     const saved = typesTable.get(key);
     const guess = classifyActivity(rawName);
-    const type = known?.type ?? (saved?.type || guess.type);
+    // The sheet wins, then whatever is saved in the review file, then the rules.
+    // A saved row keeps its own subtype (blank included): only rules fill gaps.
+    const refreshed = !known && saved?.type ? refreshProposal(saved, guess) : null;
+    const { type, subtype } = known
+      ? known
+      : refreshed
+        ? normalizeType(refreshed.type, refreshed.subtype)
+        : saved?.type
+          ? normalizeType(saved.type, saved.subtype)
+          : normalizeType(guess.type, guess.subtype);
     if (type !== SKIP && !TYPES.includes(type)) problems.push(`"${tidy(rawName)}" has an unknown type "${type}"`);
     a = {
       name: known?.name ?? tidy(rawName),
       existing: !!known,
       skip: type === SKIP,
       type,
-      basis: known ? 'sheet' : saved?.basis || (guess.rule ? `rule: ${guess.rule}` : 'no match'),
+      subtype,
+      basis: known ? 'sheet' : refreshed?.basis || saved?.basis || (guess.rule ? `rule: ${guess.rule}` : 'no match'),
       times: 0,
       lastYear: year,
     };
@@ -217,11 +232,11 @@ write(
 );
 write(
   'history-types.csv',
-  ['class', 'type', 'basis', 'times', 'last year'],
+  ['class', 'type', 'subtype', 'basis', 'times', 'last year'],
   [...activities.values()]
     .filter((a) => !a.existing)
     .sort((a, b) => b.times - a.times || a.name.localeCompare(b.name))
-    .map((a) => [a.name, a.type, a.basis, a.times, a.lastYear])
+    .map((a) => [a.name, a.type, a.subtype, a.basis, a.times, a.lastYear])
 );
 write(
   'history-status.csv',
@@ -258,7 +273,7 @@ if (sqlOut && (problems.length || needStatus.length)) {
   for (const a of activities.values()) {
     if (a.existing || a.skip) continue;
     out.push(
-      `INSERT INTO activity (name, scope, type) SELECT ${sql(a.name)}, 'class', ${sql(a.type)} WHERE NOT EXISTS (SELECT 1 FROM activity WHERE name = ${sql(a.name)} AND deleted_at IS NULL);`
+      `INSERT INTO activity (name, scope, type, subtype) SELECT ${sql(a.name)}, 'class', ${sql(a.type)}, ${sql(a.subtype)} WHERE NOT EXISTS (SELECT 1 FROM activity WHERE name = ${sql(a.name)} AND deleted_at IS NULL);`
     );
   }
   for (const r of roles) {

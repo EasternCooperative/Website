@@ -20,10 +20,10 @@ const STATUS = [
   '"Person, C",inactive,yes,"said ""hi""",led once,1,1,2009,2009',
 ].join('\n');
 const TYPES = [
-  'class,type,basis,times,last year',
-  'Felting,Crafts,proposed: review,1,2024',
-  'Break,SKIP,"proposed: not a class, drops out",2,2023',
-  'Folk Dance,Dancing,rule: danc,9,2025',
+  'class,type,subtype,basis,times,last year',
+  'Felting,Crafts,,proposed: review,1,2024',
+  'Break,SKIP,,"proposed: not a class, drops out",2,2023',
+  'Ukulele,Music,Instruments,rule: ukulele,9,2025',
 ].join('\n');
 const DUPES = ['a,b', 'Pat Lee,Patricia Lee', 'Sam Roe,Samuel Roe'].join('\n');
 
@@ -107,6 +107,9 @@ describe('reading', () => {
     expect(data.pairs).toHaveLength(2);
     expect(data.statuses).toEqual(['active', 'hiatus', 'inactive']);
     expect(data.types).toContain('SKIP');
+    expect(data.types).toContain('Music');
+    expect(data.types).not.toContain('Singing');
+    expect(data.classes[2]).toMatchObject({ type: 'Music', subtype: 'Instruments' });
   });
 
   it('copes with missing files', () => {
@@ -144,12 +147,19 @@ describe('editing', () => {
     expect(data.classes[0]).toMatchObject({ type: 'SKIP', basis: 'you' });
   });
 
+  it('saves a type together with a subtype', async () => {
+    await call('PUT', '/api/types', { edits: [{ key: 'Felting', type: 'Music', subtype: 'Rhythm', basis: 'you' }] });
+    const data = await (await call('GET', '/api/data')).json();
+    expect(data.classes[0]).toMatchObject({ type: 'Music', subtype: 'Rhythm', basis: 'you' });
+  });
+
   it.each([
     ['an unknown status', '/api/status', { edits: [{ key: 'Person A', status: 'dead' }] }],
     ['a retired status', '/api/status', { edits: [{ key: 'Person A', status: 'mentor' }] }],
     ['a bad mentor value', '/api/status', { edits: [{ key: 'Person A', mentor: 'maybe' }] }],
     ['an unknown row', '/api/status', { edits: [{ key: 'Nobody', status: 'active' }] }],
-    ['an unknown type', '/api/types', { edits: [{ key: 'Felting', type: 'Music' }] }],
+    ['an unknown type', '/api/types', { edits: [{ key: 'Felting', type: 'Singing' }] }],
+    ['a huge subtype', '/api/types', { edits: [{ key: 'Felting', subtype: 'x'.repeat(100) }] }],
     ['edits that are not a list', '/api/status', { edits: 'all' }],
     ['a non-text value', '/api/status', { edits: [{ key: 'Person A', note: 5 }] }],
     ['a huge note', '/api/status', { edits: [{ key: 'Person A', note: 'x'.repeat(3000) }] }],
