@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { loadAll } from './api';
+import { ApiError, loadAll } from './api';
 import Dashboard from './Dashboard';
 import PersonPanel from './PersonPanel';
 import { buildRows, type Data, type Filters, type SortKey } from './model';
@@ -16,7 +16,7 @@ export default function LeadershipApp() {
       setData(await loadAll());
       setError(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not load the leadership data.');
+      setError(e instanceof ApiError ? e.message : 'Could not load the leadership data.');
       throw e;
     }
   }, []);

@@ -25,16 +25,19 @@ const json = (body: unknown, status = 200) =>
 let calls: { url: string; method: string; body?: string }[];
 let current: Data;
 let failWrites: string | null;
+let rawWrite: (() => Promise<Response>) | null;
 
 beforeEach(() => {
   calls = [];
   failWrites = null;
+  rawWrite = null;
   current = structuredClone(base);
   vi.stubGlobal(
     'fetch',
     vi.fn((url: string, init?: RequestInit) => {
       const method = init?.method ?? 'GET';
       calls.push({ url, method, body: init?.body as string | undefined });
+      if (method !== 'GET' && rawWrite) return rawWrite();
       if (method !== 'GET' && failWrites) return json({ error: failWrites }, 400);
       if (url.endsWith('/note') && method === 'POST') {
         const n = JSON.parse(init!.body as string);
@@ -271,5 +274,96 @@ describe('LeadershipApp: person panel', () => {
     await settle();
     await click(button(container, 'Person B'));
     expect(container.querySelector('aside')?.textContent).toContain('No roles recorded.');
+  });
+});
+
+describe('LeadershipApp: unusual data and failures', () => {
+  const openByName = async (container: Element, name: string) => {
+    await settle();
+    await click(button(container, name));
+    return container.querySelector('aside') as HTMLElement;
+  };
+
+  it('shows a plain message when a successful response is not JSON', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.resolve(new Response('<html>oops</html>', { status: 200 })))
+    );
+    const { container } = await render(<LeadershipApp />);
+    await settle();
+    expect(container.querySelector('[role="alert"]')?.textContent).toContain('Could not load the leadership data.');
+  });
+
+  it('shows activity-level experience, subtype, notes, and a role with no known event', async () => {
+    current.activities.push({ id: 2, name: 'Tag', scope: 'activity', type: 'Games', subtype: 'Active' });
+    current.roles.push({
+      id: 2,
+      person_id: 2,
+      activity_id: 2,
+      event_id: 99,
+      leadership_type: 'partner',
+      how_it_went: 'Went smoothly',
+    });
+    const { container } = await render(<LeadershipApp />);
+    await settle();
+    expect(container.querySelector('tbody')?.textContent).toContain('Act. P1');
+    await click(button(container, 'Person B'));
+    const text = container.querySelector('aside')?.textContent ?? '';
+    expect(text).toContain('Tag');
+    expect(text).toContain('Partner · Activity · Games / Active');
+    expect(text).toContain('Went smoothly');
+    expect(text).not.toContain('Event One');
+  });
+
+  it('lists a person’s notes newest first', async () => {
+    const note = (id: number, body: string, created_at: string) =>
+      ({ id, person_id: 1, kind: 'note', focus: null, body, author: 'x@example.org', created_at }) as const;
+    current.notes.push(
+      note(5, 'Older remark', '2025-01-01T00:00:00Z'),
+      note(6, 'Newer remark', '2025-09-01T00:00:00Z')
+    );
+    const { container } = await render(<LeadershipApp />);
+    const aside = await openByName(container, 'Person A');
+    const text = aside.textContent ?? '';
+    expect(text.indexOf('Newer remark')).toBeLessThan(text.indexOf('Older remark'));
+  });
+
+  it('saves a cleared private note as empty', async () => {
+    current.people[0].notes = 'Old private note';
+    const { container } = await render(<LeadershipApp />);
+    const aside = await openByName(container, 'Person A');
+    await setField(aside.querySelector('textarea'), '   ');
+    await click(button(aside, 'Save'));
+    await settle();
+    expect(JSON.parse(calls.find((c) => c.method === 'PUT')!.body!).notes).toBeNull();
+  });
+
+  it('does nothing when the note form is submitted empty', async () => {
+    const { container } = await render(<LeadershipApp />);
+    const aside = await openByName(container, 'Person A');
+    await act(async () => {
+      aside.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    });
+    expect(calls.filter((c) => c.method !== 'GET')).toHaveLength(0);
+  });
+
+  it('falls back to the status code when an error response has no JSON body', async () => {
+    const { container } = await render(<LeadershipApp />);
+    const aside = await openByName(container, 'Person A');
+    rawWrite = () => Promise.resolve(new Response('Bad gateway', { status: 502 }));
+    await setField(aside.querySelector('textarea[aria-label="Note"]'), 'x');
+    await click(button(aside, 'Add note'));
+    await settle();
+    expect(container.querySelector('aside [role="alert"]')?.textContent).toContain('Request failed (502)');
+  });
+
+  it('shows a generic message for an unexpected failure', async () => {
+    const { container } = await render(<LeadershipApp />);
+    const aside = await openByName(container, 'Person A');
+    rawWrite = () => Promise.resolve(new Response('not json', { status: 200 }));
+    await setField(aside.querySelector('textarea[aria-label="Note"]'), 'x');
+    await click(button(aside, 'Add note'));
+    await settle();
+    expect(container.querySelector('aside [role="alert"]')?.textContent).toContain('Something went wrong.');
   });
 });

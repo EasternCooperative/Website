@@ -142,23 +142,15 @@ export function filterRows(rows: PersonRow[], { query, status }: Filters): Perso
 }
 
 export function sortRows(rows: PersonRow[], key: SortKey, descending: boolean): PersonRow[] {
+  const byName = (a: PersonRow, b: PersonRow) => a.person.name.localeCompare(b.person.name);
   const value = (r: PersonRow): number => {
     if (key === 'total') return r.total;
     if (key === 'recent') return r.lastYear ?? -1;
-    if (key.startsWith('type:')) return r.cells.get(key.slice(5))?.total ?? 0;
-    return 0;
+    return r.cells.get(key.slice(5))?.total ?? 0; // "type:<name>"
   };
   const sign = descending ? -1 : 1;
-  return [...rows].sort((a, b) => {
-    if (key !== 'name') {
-      const diff = value(a) - value(b);
-      if (diff) return diff * sign;
-    } else {
-      const diff = a.person.name.localeCompare(b.person.name);
-      if (diff) return diff * sign;
-    }
-    return a.person.name.localeCompare(b.person.name);
-  });
+  if (key === 'name') return [...rows].sort((a, b) => byName(a, b) * sign);
+  return [...rows].sort((a, b) => (value(a) - value(b)) * sign || byName(a, b));
 }
 
 export interface RoleLine {

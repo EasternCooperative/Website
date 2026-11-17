@@ -118,3 +118,41 @@ describe('roleHistory', () => {
     expect(roleHistory(data, 3)).toEqual([]);
   });
 });
+
+describe('edge cases', () => {
+  it('keeps the newest "ready" note even when an older one is listed after it', () => {
+    const reversed: Data = { ...data, notes: [...data.notes].reverse() };
+    expect(buildRows(reversed).find((r) => r.person.id === 1)!.latestReady?.body).toBe('new');
+  });
+
+  it('skips roles whose activity is gone and sorts roles with no event last', () => {
+    const odd: Data = {
+      ...data,
+      roles: [
+        { id: 1, person_id: 1, activity_id: 42, event_id: 1, leadership_type: 'solo', how_it_went: null },
+        { id: 2, person_id: 1, activity_id: 1, event_id: 99, leadership_type: 'solo', how_it_went: null },
+        { id: 3, person_id: 1, activity_id: 2, event_id: 2, leadership_type: 'solo', how_it_went: null },
+      ],
+    };
+    const lines = roleHistory(odd, 1);
+    expect(lines.map((l) => l.activity.name)).toEqual(['Tag', 'Games Class']);
+    expect(lines[1].event).toBeUndefined();
+  });
+
+  it('orders several roles with no known event by activity name', () => {
+    const odd: Data = {
+      ...data,
+      roles: [
+        { id: 1, person_id: 1, activity_id: 2, event_id: 98, leadership_type: 'solo', how_it_went: null },
+        { id: 2, person_id: 1, activity_id: 1, event_id: 99, leadership_type: 'solo', how_it_went: null },
+        { id: 3, person_id: 1, activity_id: 3, event_id: 97, leadership_type: 'solo', how_it_went: null },
+      ],
+    };
+    expect(roleHistory(odd, 1).map((l) => l.activity.name)).toEqual(['Folk Dance', 'Games Class', 'Tag']);
+  });
+
+  it('breaks ties by name when sorting a type column ascending', () => {
+    const ids = sortRows(buildRows(data), 'type:Dancing', false).map((r) => r.person.id);
+    expect(ids).toEqual([3, 1, 2]); // no dancing, then the 1-and-1 tie broken by name
+  });
+});

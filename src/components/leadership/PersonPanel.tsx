@@ -1,5 +1,5 @@
 import { useState, type SyntheticEvent } from 'react';
-import { addNote, deleteNote, savePerson } from './api';
+import { ApiError, addNote, deleteNote, savePerson } from './api';
 import { STATUSES, STATUS_LABELS, roleHistory, type Data, type Person, type Status } from './model';
 
 interface Props {
@@ -34,7 +34,7 @@ export default function PersonPanel({ data, person, onChanged, onClose }: Props)
       await fn();
       await onChanged();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Something went wrong.');
+      setError(e instanceof ApiError ? e.message : 'Something went wrong.');
     } finally {
       setBusy(false);
     }
