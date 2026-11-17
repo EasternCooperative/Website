@@ -18,6 +18,7 @@ import {
   parseCsv,
   refreshProposal,
   sql,
+  personName,
   tidy,
 } from '../../scripts/lib/leadership-history.mjs';
 
@@ -34,6 +35,12 @@ describe('names', () => {
     expect(norm("  J.P.  McDévitt-O'Neil ")).toBe('jp mcdevitt oneil');
     expect(norm(null)).toBe('');
     expect(tidy('  A   B  ')).toBe('A B');
+    // Placeholder names only.
+    expect(personName('Person A (Caller)')).toBe('Person A');
+    expect(personName(' Person  A ')).toBe('Person A');
+    expect(personName('Person (A) B')).toBe('Person (A) B'); // only a trailing note
+    expect(personName('(Caller)')).toBe('(Caller)'); // never empties a name
+    expect(personName(undefined)).toBe('');
   });
 
   it('measures edit distance', () => {
@@ -48,6 +55,13 @@ describe('names', () => {
     expect(flat).toContain('Debra Roberts|Debra Robert');
     expect(flat).toContain('Sam Lee|Samuel Lee');
     expect(flat.some((p: string) => p.includes('Pat Quinn'))).toBe(false);
+  });
+});
+
+describe('makeResolver: role notes', () => {
+  it('matches a leader whose name carries a note about their part', () => {
+    const resolve = makeResolver({ directory: [], existing: ['Person A'] });
+    expect(resolve({ name: 'Person A (Caller)' })).toMatchObject({ name: 'Person A' });
   });
 });
 

@@ -25,7 +25,7 @@ classes:
     description: 'Do you enjoy making things up on the spot? Join Improv class with Cassie! Come learn interactive improv games like "1-4, 4-1," "Rock, Paper, Scissors Infinity," and "Late for work." Symptoms may include: laughter, happiness, innovative ideas, bonding, pure joy, and the lovely feeling of satisfaction.'
   - name: 'Discover Nia, and Yourself!'
     leaders:
-      - name: 'and yourself! - Judi Powers'
+      - id: judi-powers
     restriction: 'Ages 12+'
     description: 'Explore, unleash, and enhance your individual potential to live a fulfilling and meaningful life - by engaging your senses and listening to your body. Nia is a sensory-based movement practice that draws from martial arts, dance arts, and healing arts. The class intensity level can be adapted to accommodate everyone from stiff beginners to highly fit athletes; all levels welcome! Bring flexible shoes and be ready to positively shape the way you feel, look, think, and live by stepping into your own journey with Nia.'
   - name: 'Math Through Excursions, Tricks and Fun!'

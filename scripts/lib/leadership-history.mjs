@@ -19,6 +19,9 @@ export const tidy = (s) =>
     .replace(/\s+/g, ' ')
     .trim();
 
+/** A leader's name without a trailing note about their part, such as "Donna Hunt (Caller)". */
+export const personName = (s) => tidy(String(s ?? '').replace(/\s*\([^()]*\)\s*$/, '')) || tidy(s);
+
 export function levenshtein(a, b) {
   if (a === b) return 0;
   const row = Array.from({ length: b.length + 1 }, (_, i) => i);
@@ -61,7 +64,7 @@ export function makeResolver({ directory, existing, overrides = {} }) {
       const canonical = byId.get(id);
       return { name: lookup(canonical)?.name ?? canonical, how: 'id' };
     }
-    const raw = tidy(name || (id ? id.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : ''));
+    const raw = personName(name || (id ? id.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : ''));
     if (!raw) return null;
     const key = norm(raw);
 

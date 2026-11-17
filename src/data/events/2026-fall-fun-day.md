@@ -90,7 +90,7 @@ classes:
     callout: ''
   - name: Contras and Community Dances
     leaderId: ''
-    leader: Donna Hunt (Caller)
+    leader: Donna Hunt
     ageRange: ''
     period: Evening Workshops
     days: ''
