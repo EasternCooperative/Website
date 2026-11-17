@@ -80,6 +80,13 @@ async function setField(el: HTMLTextAreaElement | HTMLSelectElement | HTMLInputE
   });
 }
 
+/** A filter chip, whose text is its label followed by a count. */
+const chip = (root: Element, label: string) =>
+  [...root.querySelectorAll('button[aria-pressed]')].find((b) => b.textContent?.startsWith(label)) ?? null;
+const radio = (root: Element, name: string, value: string) =>
+  root.querySelector(`input[name="${name}"][value="${value}"]`) as HTMLInputElement;
+const closeButton = (root: Element) => root.querySelector('button[aria-label="Close"]');
+
 const rowNames = (root: Element) => [...root.querySelectorAll('tbody th button')].map((b) => b.textContent);
 
 afterEach(async () => {
@@ -93,7 +100,8 @@ describe('LeadershipApp', () => {
     await settle();
     expect(container.textContent).toContain('Person A');
     expect(container.textContent).toContain('Person B');
-    expect(container.textContent).toContain('Class S1');
+    expect(container.querySelector('tbody td[title]')?.getAttribute('title')).toBe('Games: 1 solo');
+    expect(container.textContent).toContain('Showing 2 of 2');
     expect(container.textContent).toContain('Signed in as board@example.org');
   });
 
@@ -119,7 +127,7 @@ describe('LeadershipApp', () => {
     const { container } = await render(<LeadershipApp />);
     await settle();
     await click([...container.querySelectorAll('button')].find((b) => b.textContent === 'Person A') ?? null);
-    expect(container.querySelector('aside')?.textContent).toContain('Experience');
+    expect(container.querySelector('aside')?.textContent).toContain('History');
 
     const textarea = container.querySelector('textarea[aria-label="Note"]') as HTMLTextAreaElement;
     const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')!.set!;
@@ -143,35 +151,66 @@ describe('LeadershipApp: dashboard controls', () => {
     await settle();
     expect(rowNames(container)).toEqual(['Person A', 'Person B']);
 
+    const sortOf = (label: string) => button(container, label)?.closest('th')?.getAttribute('aria-sort');
     await click(button(container, 'Total'));
-    expect(button(container, 'Total ▼')).not.toBeNull(); // biggest first
+    expect(sortOf('Total')).toBe('descending'); // biggest first
     expect(rowNames(container)).toEqual(['Person A', 'Person B']);
-    await click(button(container, 'Total ▼'));
-    expect(button(container, 'Total ▲')).not.toBeNull(); // flipped
+    await click(button(container, 'Total'));
+    expect(sortOf('Total')).toBe('ascending'); // flipped
     expect(rowNames(container)).toEqual(['Person B', 'Person A']);
     await click(button(container, 'Person')); // back to names, A to Z
+    expect(sortOf('Total')).toBe('none');
     expect(rowNames(container)).toEqual(['Person A', 'Person B']);
-    await click(button(container, 'Person ▲'));
+    await click(button(container, 'Person'));
     expect(rowNames(container)).toEqual(['Person B', 'Person A']); // names flip too
   });
 
-  it('filters by status and says so when no one matches', async () => {
+  it('filters by status chips, hiding inactive people at first, and says so when no one matches', async () => {
+    current.people.push({ ...current.people[0], id: 3, name: 'Person C', status: 'inactive', mentor: 0 });
     const { container } = await render(<LeadershipApp />);
     await settle();
-    await setField(container.querySelector('select'), 'hiatus');
-    expect(rowNames(container)).toEqual(['Person B']);
-    expect(container.textContent).toContain('On hiatus');
-    await setField(container.querySelector('select'), 'inactive');
+    expect(rowNames(container)).toEqual(['Person A', 'Person B']);
+    expect(chip(container, 'Inactive')?.getAttribute('aria-pressed')).toBe('false');
+    expect(chip(container, 'Inactive')?.textContent).toBe('Inactive1');
+
+    await click(chip(container, 'Inactive'));
+    expect(rowNames(container)).toEqual(['Person A', 'Person B', 'Person C']);
+    await click(chip(container, 'Active'));
+    expect(rowNames(container)).toEqual(['Person B', 'Person C']);
+    await click(chip(container, 'On hiatus'));
+    await click(chip(container, 'Inactive'));
     expect(container.textContent).toContain('No one matches.');
+    expect(container.textContent).toContain('Showing 0 of 3');
+  });
+
+  it('counts classes, activities, or both', async () => {
+    current.activities.push({ id: 2, name: 'Tag', scope: 'activity', type: 'Games', subtype: null });
+    current.roles.push({
+      id: 2,
+      person_id: 1,
+      activity_id: 2,
+      event_id: 1,
+      leadership_type: 'assisting',
+      how_it_went: null,
+    });
+    const { container } = await render(<LeadershipApp />);
+    await settle();
+    const games = () => container.querySelector('tbody td[title]')?.getAttribute('title');
+    expect(games()).toBe('Games: 1 solo, 1 assisting');
+    await click(button(container, 'Total')); // sort follows the scope too
+    await click(radio(container, 'scope', 'activity'));
+    expect(games()).toBe('Games: 1 assisting');
+    await click(radio(container, 'scope', 'class'));
+    expect(games()).toBe('Games: 1 solo');
   });
 
   it('shows mentors, and can list only mentors whatever their leading status', async () => {
     const { container } = await render(<LeadershipApp />);
     await settle();
-    expect(container.querySelector('tbody')?.textContent).toContain('On hiatus · Mentor');
-    await click(container.querySelector('input[type="checkbox"]'));
+    expect(container.querySelector('tbody')?.textContent).toContain('Person BOn hiatusMentor');
+    await click(chip(container, 'Mentors only'));
     expect(rowNames(container)).toEqual(['Person B']);
-    await click(container.querySelector('input[type="checkbox"]'));
+    await click(chip(container, 'Mentors only'));
     expect(rowNames(container)).toEqual(['Person A', 'Person B']);
   });
 
@@ -213,12 +252,14 @@ describe('LeadershipApp: person panel', () => {
     const aside = await open(container);
     expect((button(aside, 'Save') as HTMLButtonElement).disabled).toBe(true);
 
-    await setField(aside.querySelector('select'), 'inactive');
+    await click(radio(aside, 'status', 'inactive'));
+    expect(aside.textContent).toContain('Not leading any more');
     await click(aside.querySelector('input[type="checkbox"]'));
     await setField(aside.querySelector('textarea'), 'Knows the games well');
     expect((button(aside, 'Save') as HTMLButtonElement).disabled).toBe(false);
     await click(button(aside, 'Save'));
     await settle();
+    expect(aside.querySelector('[role="status"]')?.textContent).toContain('Saved');
 
     const put = calls.find((c) => c.method === 'PUT')!;
     expect(put.url).toBe('/api/internal/leadership/person/1');
@@ -228,7 +269,12 @@ describe('LeadershipApp: person panel', () => {
       notes: 'Knows the games well',
       name: 'Person A',
     });
-    expect(container.querySelector('tbody')?.textContent).toContain('Inactive · Mentor');
+    // Now inactive, the row is hidden until inactive people are shown.
+    expect(rowNames(container)).toEqual(['Person B']);
+    await click(chip(container, 'Inactive'));
+    expect(container.querySelector('tbody')?.textContent).toContain('Person AInactiveMentor');
+    await setField(aside.querySelector('textarea'), 'Edited again');
+    expect(aside.querySelector('[role="status"]')).toBeNull(); // a new edit clears "Saved"
   });
 
   it('treats a mentoring change alone as unsaved, and undoing it as clean', async () => {
@@ -244,8 +290,9 @@ describe('LeadershipApp: person panel', () => {
   it('adds a "ready" note with a focus', async () => {
     const { container } = await render(<LeadershipApp />);
     const aside = await open(container);
-    await setField(aside.querySelector('select[aria-label="Note type"]'), 'ready');
-    await setField(aside.querySelector('input[aria-label="Focus (optional)"]'), 'dance class');
+    expect(aside.querySelector('input[aria-label="Ready for what"]')).toBeNull();
+    await click(radio(aside, 'note-kind', 'ready'));
+    await setField(aside.querySelector('input[aria-label="Ready for what"]'), 'dance class');
     await setField(aside.querySelector('textarea[aria-label="Note"]'), 'Partnered well');
     await click(button(aside, 'Add note'));
     await settle();
@@ -291,7 +338,7 @@ describe('LeadershipApp: person panel', () => {
     const { container } = await render(<LeadershipApp />);
     const aside = await open(container);
     expect((button(aside, 'Add note') as HTMLButtonElement).disabled).toBe(true);
-    await click(button(aside, 'Close'));
+    await click(closeButton(aside));
     expect(container.querySelector('aside')).toBeNull();
     expect(calls.filter((c) => c.method !== 'GET')).toHaveLength(0);
   });
@@ -333,12 +380,15 @@ describe('LeadershipApp: unusual data and failures', () => {
     });
     const { container } = await render(<LeadershipApp />);
     await settle();
-    expect(container.querySelector('tbody')?.textContent).toContain('Act. P1');
+    await click(radio(container, 'scope', 'activity'));
+    expect(container.querySelector('tbody')?.textContent).toContain('1 partner');
     await click(button(container, 'Person B'));
     const text = container.querySelector('aside')?.textContent ?? '';
     expect(text).toContain('Tag');
-    expect(text).toContain('Partner · Activity · Games / Active');
+    expect(text).toContain('Partner, Games (Active), activity');
     expect(text).toContain('Went smoothly');
+    expect(text).toContain('Unknown event');
+    expect(text).toContain('1 role across 1 event');
     expect(text).not.toContain('Event One');
   });
 
@@ -392,5 +442,52 @@ describe('LeadershipApp: unusual data and failures', () => {
     await click(button(aside, 'Add note'));
     await settle();
     expect(container.querySelector('aside [role="alert"]')?.textContent).toContain('Something went wrong.');
+  });
+
+  it('closes on Escape, but not while typing, and hands focus back to the row', async () => {
+    vi.stubGlobal('requestAnimationFrame', (fn: () => void) => fn());
+    const { container } = await render(<LeadershipApp />);
+    const aside = await openByName(container, 'Person A');
+    expect(document.activeElement?.tagName).toBe('H2');
+    const textarea = aside.querySelector('textarea[aria-label="Note"]') as HTMLTextAreaElement;
+    await act(async () => {
+      textarea.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    });
+    expect(container.querySelector('aside')).not.toBeNull();
+    await act(async () => {
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    });
+    expect(container.querySelector('aside')).toBeNull();
+    expect(document.activeElement?.textContent).toBe('Person A');
+  });
+
+  it('opens a person by clicking anywhere on their row', async () => {
+    const { container } = await render(<LeadershipApp />);
+    await settle();
+    await click(container.querySelector('tbody tr td'));
+    expect(container.querySelector('aside')?.getAttribute('aria-label')).toBe('Person A details');
+  });
+
+  it('keeps "Saved" hidden when saving fails, and pluralizes the summary', async () => {
+    current.events.push({ id: 2, name: 'Event Two 2024', event_type: 'weekend', year: 2024 });
+    current.roles.push({
+      id: 2,
+      person_id: 1,
+      activity_id: 1,
+      event_id: 2,
+      leadership_type: 'partner',
+      how_it_went: null,
+    });
+    const { container } = await render(<LeadershipApp />);
+    const aside = await openByName(container, 'Person A');
+    expect(aside.textContent).toContain('2 roles across 2 events');
+    expect(aside.textContent).toContain('2024Event Two'); // the year is not repeated in the name
+    failWrites = 'person not found';
+    await click(radio(aside, 'status', 'hiatus'));
+    await click(button(aside, 'Save'));
+    await settle();
+    expect(aside.querySelector('[role="alert"]')?.textContent).toContain('person not found');
+    expect(aside.querySelector('[role="status"]')).toBeNull();
   });
 });
