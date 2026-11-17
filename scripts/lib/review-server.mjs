@@ -18,6 +18,9 @@ const IMPORTER = path.join(here, '..', 'import-leadership-history.mjs');
 
 class BadRequest extends Error {}
 
+// Never accepted as a name. They mean nothing here, and are what an attack on an object would use.
+const RESERVED = new Set(['__proto__', 'constructor', 'prototype']);
+
 const readCsv = (dir, name) => {
   const p = path.join(dir, name);
   if (!existsSync(p)) return { header: [], rows: [] };
@@ -37,6 +40,11 @@ const readJson = (dir, name, fallback) => {
   const p = path.join(dir, name);
   return existsSync(p) ? JSON.parse(readFileSync(p, 'utf8')) : fallback;
 };
+
+/** A JSON object file as a Map. Keys that came from a request never touch an object's prototype. */
+const readMap = (dir, name) => new Map(Object.entries(readJson(dir, name, {})));
+const writeMap = (dir, name, map) =>
+  writeAtomic(path.join(dir, name), JSON.stringify(Object.fromEntries(map), null, 2) + '\n');
 
 const text = (v, field, max) => {
   if (typeof v !== 'string') throw new BadRequest(`${field} must be text`);
@@ -86,11 +94,10 @@ const pairKey = (a, b) => [norm(a), norm(b)].sort().join('|');
 export function loadData(dir) {
   const status = readCsv(dir, 'history-status.csv');
   const types = readCsv(dir, 'history-types.csv');
-  const decided = readJson(dir, 'history-duplicates-reviewed.json', {});
-  const overrides = readJson(dir, 'history-name-overrides.json', {});
-  const overridden = new Set(Object.keys(overrides).map(norm));
+  const decided = readMap(dir, 'history-duplicates-reviewed.json');
+  const overridden = new Set([...readMap(dir, 'history-name-overrides.json').keys()].map(norm));
   const pairs = readCsv(dir, 'history-possible-duplicates.csv').rows.filter(
-    ([a, b]) => !decided[pairKey(a, b)] && !overridden.has(norm(a)) && !overridden.has(norm(b))
+    ([a, b]) => !decided.has(pairKey(a, b)) && !overridden.has(norm(a)) && !overridden.has(norm(b))
   );
   const asObjects = ({ header, rows }) => rows.map((r) => Object.fromEntries(header.map((h, i) => [h, r[i] ?? ''])));
   return {
@@ -177,19 +184,18 @@ export function createReviewServer({ dir, token, run = runImporter }) {
         const a = text(from, 'from', 200);
         const b = text(into, 'into', 200);
         if (!a || !b || norm(a) === norm(b)) throw new BadRequest('pick two different names');
-        const overrides = readJson(dir, 'history-name-overrides.json', {});
-        writeAtomic(
-          path.join(dir, 'history-name-overrides.json'),
-          JSON.stringify({ ...overrides, [a]: b }, null, 2) + '\n'
-        );
+        if ([a, b].some((n) => RESERVED.has(n))) throw new BadRequest('that name is not allowed');
+        const overrides = readMap(dir, 'history-name-overrides.json');
+        overrides.set(a, b);
+        writeMap(dir, 'history-name-overrides.json', overrides);
         return json(res, 200, { ok: true });
       }
 
       if (route === 'POST /api/different') {
         const { a, b } = await readBody(req);
-        const decided = readJson(dir, 'history-duplicates-reviewed.json', {});
-        decided[pairKey(text(a, 'a', 200), text(b, 'b', 200))] = 'different';
-        writeAtomic(path.join(dir, 'history-duplicates-reviewed.json'), JSON.stringify(decided, null, 2) + '\n');
+        const decided = readMap(dir, 'history-duplicates-reviewed.json');
+        decided.set(pairKey(text(a, 'a', 200), text(b, 'b', 200)), 'different');
+        writeMap(dir, 'history-duplicates-reviewed.json', decided);
         return json(res, 200, { ok: true });
       }
 

@@ -209,6 +209,27 @@ describe('duplicates', () => {
     expect((await call('POST', '/api/merge', { from: 5, into: 'Pat Lee' })).status).toBe(400);
   });
 
+  it.each(['__proto__', 'constructor', 'prototype'])(
+    'refuses %s as a name, so a request cannot touch an object prototype',
+    async (name) => {
+      expect((await call('POST', '/api/merge', { from: name, into: 'Pat Lee' })).status).toBe(400);
+      expect((await call('POST', '/api/merge', { from: 'Patricia Lee', into: name })).status).toBe(400);
+      // Nothing was written, and nothing leaked onto every object.
+      expect(() => readFileSync(path.join(dir, 'history-name-overrides.json'))).toThrow();
+      expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+      expect((await call('GET', '/api/data')).status).toBe(200);
+    }
+  );
+
+  it('keeps the overrides file well-formed after several merges', async () => {
+    await call('POST', '/api/merge', { from: 'Patricia Lee', into: 'Pat Lee' });
+    await call('POST', '/api/merge', { from: 'Samuel Roe', into: 'Sam Roe' });
+    expect(JSON.parse(read('history-name-overrides.json'))).toEqual({
+      'Patricia Lee': 'Pat Lee',
+      'Samuel Roe': 'Sam Roe',
+    });
+  });
+
   it('remembers a "different people" decision either way round', async () => {
     expect((await call('POST', '/api/different', { a: 'Samuel Roe', b: 'Sam Roe' })).status).toBe(200);
     const data = await (await call('GET', '/api/data')).json();
