@@ -32,6 +32,7 @@ import {
   csv,
   dedupeRoles,
   defaultStatus,
+  extraAssistingRoles,
   eventType,
   isYes,
   makeResolver,
@@ -162,36 +163,40 @@ function noteActivity(rawName, year) {
   return a;
 }
 
+function register(person, slug, year) {
+  const key = norm(person.name);
+  const p = people.get(key) ?? {
+    name: person.name,
+    hows: new Set(),
+    events: new Set(),
+    roles: 0,
+    first: year,
+    last: year,
+    isNew: !existingPeople.some((n) => norm(n) === key),
+  };
+  p.hows.add(person.how);
+  p.events.add(slug);
+  p.roles++;
+  p.first = Math.min(p.first, year);
+  p.last = Math.max(p.last, year);
+  people.set(key, p);
+}
+
 function collect(event, into) {
   for (const cls of event.classes) {
     const activity = noteActivity(cls.name, event.year);
     if (activity.skip) continue; // marked SKIP in history-types.csv: not a class
     for (const { person, leadership_type } of classRoles(cls, resolve)) {
-      const key = norm(person.name);
-      const p = people.get(key) ?? {
-        name: person.name,
-        hows: new Set(),
-        events: new Set(),
-        roles: 0,
-        first: event.year,
-        last: event.year,
-        isNew: !existingPeople.some((n) => norm(n) === key),
-      };
-      p.hows.add(person.how);
-      p.events.add(event.slug);
-      p.roles++;
-      p.first = Math.min(p.first, event.year);
-      p.last = Math.max(p.last, event.year);
-      people.set(key, p);
+      register(person, event.slug, event.year);
       into.push({ event: event.slug, activity: activity.name, person: person.name, leadership_type });
     }
   }
 }
 for (const e of included) collect(e, allRoles);
-const roles = dedupeRoles(allRoles);
 
 // ---- Cross-check the rules against the sheet, on an event that is in both ----
 const checks = [];
+let extraRoles = 0;
 for (const [slug, reason, d] of skipped) {
   if (reason !== 'already in the database') continue;
   // Read-only: this event is not being imported, so it must not register anyone
@@ -207,6 +212,23 @@ for (const [slug, reason, d] of skipped) {
   const sheetClassRoles = sheetRoles.filter((r) => existingActivities.get(norm(r[1]))?.scope === 'class');
   const have = new Set(sheetClassRoles.map((r) => key(r[0], r[1], String(r[3]).toLowerCase())));
   const got = new Set(mine.map((m) => key(m.person, m.activity, m.leadership_type)));
+  // Assistants the sheet lacks, on classes it has. These attach to the event and
+  // class rows already in the database, so they reference the event by name and year.
+  const year = Number(String(d.date).slice(0, 4));
+  const event = existingEvents.find(
+    (e) => e.year === year && tidy(d.title).toLowerCase().includes(e.name.toLowerCase())
+  );
+  const sheetPairs = new Set(sheetRoles.map((r) => `${norm(r[0])}|${norm(r[1])}`));
+  for (const r of extraAssistingRoles(mine, sheetPairs, new Set(existingActivities.keys()))) {
+    register({ name: r.person, how: 'existing-event' }, slug, year);
+    allRoles.push({
+      ...r,
+      event: slug,
+      eventRef: event,
+      activity: existingActivities.get(norm(r.activity)).name,
+    });
+    extraRoles++;
+  }
   checks.push({
     slug,
     sheet: have.size,
@@ -215,6 +237,8 @@ for (const [slug, reason, d] of skipped) {
     extraInDerived: [...got].filter((k) => !have.has(k)),
   });
 }
+
+const roles = dedupeRoles(allRoles);
 
 // ---- Statuses for new people -------------------------------------------------
 const newPeople = [...people.values()].filter((p) => p.isNew);
@@ -264,7 +288,7 @@ write(
 // Only create what a role will point at. A class or event with no leader recorded
 // would be a row nobody is linked to.
 const usedActivities = new Set(roles.map((r) => norm(r.activity)));
-const usedEvents = new Set(roles.map((r) => r.event));
+const usedEvents = new Set(roles.filter((r) => !r.eventRef).map((r) => r.event));
 let wroteSql = false;
 if (sqlOut && (problems.length || needStatus.length)) {
   console.error(
@@ -295,7 +319,11 @@ if (sqlOut && (problems.length || needStatus.length)) {
       `INSERT OR IGNORE INTO role (person_id, activity_id, event_id, leadership_type, source) VALUES (` +
         `(SELECT id FROM person WHERE name = ${sql(r.person)} AND deleted_at IS NULL ORDER BY id LIMIT 1), ` +
         `(SELECT id FROM activity WHERE name = ${sql(r.activity)} AND deleted_at IS NULL ORDER BY id LIMIT 1), ` +
-        `(SELECT id FROM event WHERE site_event_id = ${sql(r.event)}), ${sql(r.leadership_type)}, 'event_import');`
+        `${
+          r.eventRef
+            ? `(SELECT id FROM event WHERE name = ${sql(r.eventRef.name)} AND year = ${r.eventRef.year} ORDER BY id LIMIT 1)`
+            : `(SELECT id FROM event WHERE site_event_id = ${sql(r.event)})`
+        }, ${sql(r.leadership_type)}, 'event_import');`
     );
   }
   writeFileSync(sqlOut, out.join('\n') + '\n');
@@ -309,6 +337,7 @@ console.log(
   `Events: ${usedEvents.size} of ${included.length} have a leader recorded. Skipped: ${show(count(skipped, (s) => s[1]))}.`
 );
 console.log(`Event types: ${show(count(included, (e) => e.type))}`);
+console.log(`Extra assisting roles added to events already in the database: ${extraRoles}`);
 console.log(`Roles: ${roles.length} (${show(count(roles, (r) => r.leadership_type))})`);
 console.log(
   `Activities: ${activities.size} (${[...activities.values()].filter((a) => a.existing).length} already in the sheet)`

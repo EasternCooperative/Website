@@ -137,6 +137,23 @@ export function classRoles(cls, resolve) {
 }
 
 /**
+ * Roles the site's roster knows about for an event that is already in the
+ * database, that the database lacks. Only Assisting roles, and only on classes the
+ * database already has, qualify: assistants are what the sheet tends to omit,
+ * while a disagreement about a leader's role (solo or partner) is not ours to
+ * override. `haveKeys` holds "person|class" pairs the database already records,
+ * and `knownActivities` the normalized names of classes it has.
+ */
+export function extraAssistingRoles(derived, haveKeys, knownActivities) {
+  return derived.filter(
+    (r) =>
+      r.leadership_type === 'assisting' &&
+      knownActivities.has(norm(r.activity)) &&
+      !haveKeys.has(`${norm(r.person)}|${norm(r.activity)}`)
+  );
+}
+
+/**
  * One role per person, class, and event: the same person leading a class of the
  * same name twice in one event (say, in two periods) is one role. If the two
  * disagree, the stronger one is kept; otherwise the first.

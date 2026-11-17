@@ -8,6 +8,7 @@ import {
   dedupeRoles,
   defaultStatus,
   eventType,
+  extraAssistingRoles,
   isYes,
   levenshtein,
   makeResolver,
@@ -139,6 +140,30 @@ describe('class roles', () => {
 
   it('gives a class with no leader no roles', () => {
     expect(roles({ name: 'Orphan class' })).toEqual([]);
+  });
+});
+
+describe('extraAssistingRoles', () => {
+  const r = (person: string, activity: string, leadership_type: string) => ({ person, activity, leadership_type });
+  const known = new Set(['childrens program', 'games']);
+  const have = new Set(['person a|games']);
+
+  it('keeps an assisting role on a known class that the database lacks', () => {
+    expect(extraAssistingRoles([r('Person B', "Children's Program", 'assisting')], have, known)).toHaveLength(1);
+  });
+
+  it('skips roles the database already records, whatever the person did there', () => {
+    expect(extraAssistingRoles([r('Person A', 'Games', 'assisting')], have, known)).toEqual([]);
+  });
+
+  it('skips classes the database does not have, so no new class is invented', () => {
+    expect(extraAssistingRoles([r('Person B', 'Brand New Class', 'assisting')], have, known)).toEqual([]);
+  });
+
+  it('never overrides a leader’s role, so solo and partner disagreements are left alone', () => {
+    expect(
+      extraAssistingRoles([r('Person B', 'Games', 'solo'), r('Person C', 'Games', 'partner')], have, known)
+    ).toEqual([]);
   });
 });
 
