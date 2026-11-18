@@ -38,6 +38,7 @@ interface Props {
   onSort: (key: SortKey) => void;
   selectedId: number | null;
   onSelect: (id: number) => void;
+  onAdd: () => void;
 }
 
 /** A toggle chip: pressed means "show these people". */
@@ -78,6 +79,7 @@ export default function Dashboard({
   onSort,
   selectedId,
   onSelect,
+  onAdd,
 }: Props) {
   const visible = sortRows(filterRows(rows, filters), sort.key, sort.descending, filters.scope);
   const counts = statusCounts(rows);
@@ -178,6 +180,14 @@ export default function Dashboard({
             ))}
           </div>
         </fieldset>
+
+        <button
+          type="button"
+          onClick={onAdd}
+          className="ml-auto rounded-full border border-primary px-4 py-1.5 text-sm font-medium text-primary"
+        >
+          Add a person
+        </button>
       </div>
 
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">

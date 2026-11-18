@@ -1,5 +1,19 @@
-import { useEffect, useRef, useState, type SyntheticEvent } from 'react';
-import { ApiError, addNote, deleteNote, savePerson } from './api';
+import { useState, type SyntheticEvent } from 'react';
+import { addNote, deleteNote, deleteRole, savePerson } from './api';
+import {
+  ConfirmRemove,
+  ErrorNote,
+  Field,
+  PanelFrame,
+  Section,
+  Segmented,
+  inputCls,
+  linkBtn,
+  primaryBtn,
+  secondaryBtn,
+  surface,
+  useAction,
+} from './forms';
 import { Icon, PersonTags, RoleCounts, RoleMark, TONES } from './marks';
 import {
   ROLE_LABELS,
@@ -12,17 +26,18 @@ import {
   type Data,
   type Person,
   type Status,
+  type View,
 } from './model';
+import RoleForm from './RoleForm';
 
 interface Props {
   data: Data;
   person: Person;
   onChanged: () => Promise<void>;
   onClose: () => void;
+  goTo?: (view: View) => void;
 }
 
-const input =
-  'w-full rounded-lg border border-gray-300 bg-transparent px-2.5 py-1.5 text-sm dark:border-gray-600 focus-visible:outline-2 focus-visible:outline-primary';
 const STATUS_HINT: Record<Status, string> = {
   active: 'Can be asked to lead',
   hiatus: 'Taking a break for now',
@@ -37,41 +52,19 @@ const SELECTED_TONE: Record<Status, string> = {
 const date = (iso: string) =>
   new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="border-t border-gray-200 pt-4 mt-5 dark:border-gray-700">
-      <h3 className="font-heading text-heading mb-3 text-lg font-semibold">{title}</h3>
-      {children}
-    </section>
-  );
-}
-
-export default function PersonPanel({ data, person, onChanged, onClose }: Props) {
+export default function PersonPanel({ data, person, onChanged, onClose, goTo }: Props) {
+  const [name, setName] = useState(person.name);
+  const [email, setEmail] = useState(person.email ?? '');
   const [status, setStatus] = useState<Status>(person.status);
   const [mentor, setMentor] = useState(person.mentor === 1);
   const [about, setAbout] = useState(person.notes ?? '');
   const [kind, setKind] = useState<'note' | 'ready'>('note');
   const [focus, setFocus] = useState('');
   const [body, setBody] = useState('');
-  const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const heading = useRef<HTMLHeadingElement>(null);
-  const close = useRef(onClose);
-  close.current = onClose;
-
-  // Move focus into the panel when it opens (it remounts per person), and let
-  // Escape close it, except while typing, so a half-written note is not lost.
-  useEffect(() => {
-    heading.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      const typing =
-        e.target instanceof Element && e.target.matches('textarea, input:not([type=radio]):not([type=checkbox])');
-      if (e.key === 'Escape' && !typing) close.current();
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, []);
+  const [addingRole, setAddingRole] = useState(false);
+  const [editingRole, setEditingRole] = useState<number | null>(null);
+  const { busy, error, run } = useAction(onChanged);
 
   const history = roleHistory(data, person.id);
   const byType = summarizeByType(history);
@@ -79,26 +72,25 @@ export default function PersonPanel({ data, person, onChanged, onClose }: Props)
   const notes = data.notes
     .filter((n) => n.person_id === person.id)
     .sort((a, b) => b.created_at.localeCompare(a.created_at));
-  const dirty = status !== person.status || mentor !== (person.mentor === 1) || about !== (person.notes ?? '');
-
-  const run = async (fn: () => Promise<unknown>) => {
-    setBusy(true);
-    setError(null);
-    try {
-      await fn();
-      await onChanged();
-      return true;
-    } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Something went wrong.');
-      return false;
-    } finally {
-      setBusy(false);
-    }
-  };
+  const dirty =
+    name.trim() !== person.name ||
+    email.trim() !== (person.email ?? '') ||
+    status !== person.status ||
+    mentor !== (person.mentor === 1) ||
+    about !== (person.notes ?? '');
 
   const onSave = async () => {
-    if (await run(() => savePerson({ ...person, status, mentor: mentor ? 1 : 0, notes: about.trim() || null })))
-      setSaved(true);
+    const { ok } = await run(() =>
+      savePerson({
+        ...person,
+        name: name.trim(),
+        email: email.trim() || null,
+        status,
+        mentor: mentor ? 1 : 0,
+        notes: about.trim() || null,
+      })
+    );
+    if (ok) setSaved(true);
   };
   const edit =
     <T,>(set: (v: T) => void) =>
@@ -118,45 +110,23 @@ export default function PersonPanel({ data, person, onChanged, onClose }: Props)
   };
 
   return (
-    <aside
-      aria-label={`${person.name} details`}
-      className="fixed inset-0 z-50 overflow-y-auto bg-page p-4 sm:p-5 lg:static lg:z-auto lg:max-h-[calc(100dvh-2rem)] lg:rounded-xl lg:border lg:border-gray-200 lg:dark:border-gray-700"
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h2
-            ref={heading}
-            tabIndex={-1}
-            className="font-heading text-heading text-2xl font-bold leading-tight focus:outline-none"
-          >
-            {person.name}
-          </h2>
+    <PanelFrame
+      label={`${person.name} details`}
+      title={person.name}
+      onClose={onClose}
+      meta={
+        <>
           {person.email && <p className="break-all text-sm text-muted">{person.email}</p>}
           <p className="mt-1 flex flex-wrap gap-1 empty:hidden">
             <PersonTags person={person} />
           </p>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="-mr-1 rounded-full p-1.5 text-muted hover:text-default hover:bg-[color-mix(in_srgb,var(--aw-color-text-default)_6%,var(--aw-color-bg-page))]"
-        >
-          <Icon name="close" size={20} />
-        </button>
-      </div>
-
-      {error && (
-        <p
-          role="alert"
-          className="mt-3 rounded-lg bg-red-50 p-2 text-sm text-red-800 dark:bg-red-900/30 dark:text-red-200"
-        >
-          {error}
-        </p>
-      )}
+        </>
+      }
+    >
+      <ErrorNote message={error} />
 
       {byType.length > 0 && (
-        <div className="mt-4 rounded-lg p-3 bg-[color-mix(in_srgb,var(--aw-color-text-default)_6%,var(--aw-color-bg-page))]">
+        <div className={`mt-4 rounded-lg p-3 ${surface}`}>
           <p className="mb-2 text-sm text-muted">
             {history.length} {history.length === 1 ? 'role' : 'roles'} across {groups.length}{' '}
             {groups.length === 1 ? 'event' : 'events'}
@@ -174,31 +144,27 @@ export default function PersonPanel({ data, person, onChanged, onClose }: Props)
         </div>
       )}
 
-      <Section title="Availability">
-        <fieldset>
-          <legend className="mb-1.5 text-sm text-muted">Leading</legend>
-          <div className="grid grid-cols-3 gap-1 rounded-lg border border-gray-300 p-1 dark:border-gray-600">
-            {STATUSES.map((s) => (
-              <label
-                key={s}
-                className={`cursor-pointer rounded-md px-2 py-1.5 text-center text-sm has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-primary ${
-                  status === s ? `font-medium ${SELECTED_TONE[s]}` : 'text-muted hover:text-default'
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="status"
-                  value={s}
-                  checked={status === s}
-                  onChange={() => edit(setStatus)(s)}
-                  className="sr-only"
-                />
-                {STATUS_LABELS[s]}
-              </label>
-            ))}
-          </div>
+      <Section title="Details">
+        <div className="space-y-3">
+          <Field label="Name">
+            <input value={name} onChange={(e) => edit(setName)(e.target.value)} className={inputCls} />
+          </Field>
+          <Field label="Email (optional)">
+            <input type="email" value={email} onChange={(e) => edit(setEmail)(e.target.value)} className={inputCls} />
+          </Field>
+        </div>
+
+        <div className="mt-3">
+          <Segmented
+            name="status"
+            legend="Leading"
+            value={status}
+            options={STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] }))}
+            tones={SELECTED_TONE}
+            onChange={edit(setStatus)}
+          />
           <p className="mt-1 text-xs text-muted">{STATUS_HINT[status]}</p>
-        </fieldset>
+        </div>
 
         <label className="mt-3 flex cursor-pointer items-center justify-between gap-3 text-sm">
           <span className="inline-flex items-center gap-1.5">
@@ -218,17 +184,13 @@ export default function PersonPanel({ data, person, onChanged, onClose }: Props)
           />
         </label>
 
-        <label className="mt-3 block text-sm">
-          <span className="mb-1 block text-muted">Private notes about this person</span>
-          <textarea rows={3} value={about} onChange={(e) => edit(setAbout)(e.target.value)} className={input} />
-        </label>
+        <div className="mt-3">
+          <Field label="Private notes about this person">
+            <textarea rows={3} value={about} onChange={(e) => edit(setAbout)(e.target.value)} className={inputCls} />
+          </Field>
+        </div>
         <div className="mt-2 flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onSave}
-            disabled={!dirty || busy}
-            className="rounded-full bg-(--aw-color-primary-strong) px-4 py-1.5 text-sm font-medium text-white disabled:opacity-40"
-          >
+          <button type="button" onClick={onSave} disabled={!dirty || !name.trim() || busy} className={primaryBtn}>
             Save
           </button>
           {saved && !dirty && (
@@ -275,7 +237,7 @@ export default function PersonPanel({ data, person, onChanged, onClose }: Props)
               placeholder="What for, e.g. co-leading a games class"
               value={focus}
               onChange={(e) => setFocus(e.target.value)}
-              className={input}
+              className={inputCls}
             />
           )}
           <textarea
@@ -284,13 +246,9 @@ export default function PersonPanel({ data, person, onChanged, onClose }: Props)
             placeholder={kind === 'ready' ? 'What you saw that makes them ready' : 'What you saw'}
             value={body}
             onChange={(e) => setBody(e.target.value)}
-            className={input}
+            className={inputCls}
           />
-          <button
-            type="submit"
-            disabled={!body.trim() || busy}
-            className="rounded-full border border-primary px-4 py-1.5 text-sm font-medium text-primary disabled:opacity-40"
-          >
+          <button type="submit" disabled={!body.trim() || busy} className={secondaryBtn}>
             Add note
           </button>
         </form>
@@ -328,6 +286,21 @@ export default function PersonPanel({ data, person, onChanged, onClose }: Props)
       </Section>
 
       <Section title="History">
+        {addingRole ? (
+          <div className="mb-4 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+            <RoleForm
+              data={data}
+              personId={person.id}
+              onChanged={onChanged}
+              onDone={() => setAddingRole(false)}
+              goTo={goTo}
+            />
+          </div>
+        ) : (
+          <button type="button" onClick={() => setAddingRole(true)} className={`${secondaryBtn} mb-4`}>
+            Add a role
+          </button>
+        )}
         {groups.length === 0 ? (
           <p className="text-sm text-muted">No roles recorded.</p>
         ) : (
@@ -338,21 +311,49 @@ export default function PersonPanel({ data, person, onChanged, onClose }: Props)
                   <span className="font-semibold tabular-nums">{event?.year ?? ''}</span>
                   <span className="text-muted">{event ? eventLabel(event) : 'Unknown event'}</span>
                 </h4>
-                <ul className="space-y-1 border-l border-gray-200 pl-3 dark:border-gray-700">
+                <ul className="space-y-2 border-l border-gray-200 pl-3 dark:border-gray-700">
                   {lines.map(({ role, activity }) => (
                     <li key={role.id} className="text-sm">
-                      <span className="flex items-start gap-2">
-                        <RoleMark type={role.leadership_type} className="mt-1" />
-                        <span>
-                          <span className="font-medium">{activity.name}</span>{' '}
-                          <span className="text-muted">
-                            {ROLE_LABELS[role.leadership_type]}, {activity.type}
-                            {activity.subtype ? ` (${activity.subtype})` : ''}
-                            {activity.scope === 'activity' ? ', activity' : ''}
+                      {editingRole === role.id ? (
+                        <RoleForm
+                          data={data}
+                          personId={person.id}
+                          role={role}
+                          onChanged={onChanged}
+                          onDone={() => setEditingRole(null)}
+                        />
+                      ) : (
+                        <>
+                          <span className="flex items-start gap-2">
+                            <RoleMark type={role.leadership_type} className="mt-1" />
+                            <span>
+                              <span className="font-medium">{activity.name}</span>{' '}
+                              <span className="text-muted">
+                                {ROLE_LABELS[role.leadership_type]}, {activity.type}
+                                {activity.subtype ? ` (${activity.subtype})` : ''}
+                                {activity.scope === 'activity' ? ', activity' : ''}
+                              </span>
+                              {role.how_it_went && <span className="block text-xs">{role.how_it_went}</span>}
+                            </span>
                           </span>
-                          {role.how_it_went && <span className="block text-xs">{role.how_it_went}</span>}
-                        </span>
-                      </span>
+                          <span className="mt-0.5 flex items-center gap-3 pl-5">
+                            <button
+                              type="button"
+                              onClick={() => setEditingRole(role.id)}
+                              className={linkBtn}
+                              aria-label={`Change ${activity.name}`}
+                            >
+                              Change
+                            </button>
+                            <ConfirmRemove
+                              what={activity.name}
+                              short
+                              disabled={busy}
+                              onConfirm={() => void run(() => deleteRole(role.id))}
+                            />
+                          </span>
+                        </>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -361,6 +362,6 @@ export default function PersonPanel({ data, person, onChanged, onClose }: Props)
           </ol>
         )}
       </Section>
-    </aside>
+    </PanelFrame>
   );
 }

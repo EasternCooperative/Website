@@ -19,6 +19,7 @@ import {
   bulkAddRoles,
   createRow,
   exportAll,
+  findDuplicate,
   softDelete,
   updateRow,
   validators,
@@ -63,12 +64,13 @@ export const onRequest = async ({ request, env, params }) => {
     }
     if (method === 'POST' && first === 'roles' && second === 'bulk') {
       const { rows } = await readBody(request);
-      return json(200, { added: await bulkAddRoles(env.DB, rows) });
+      return json(200, { added: await bulkAddRoles(env.DB, rows, auth.email) });
     }
     if (!RESOURCES.includes(first)) return json(404, { error: 'not found' });
 
     if (method === 'POST' && !second) {
       const values = validators[first](await readBody(request));
+      if (await findDuplicate(env.DB, first, values)) return json(409, { error: 'already exists' });
       return json(201, { id: await createRow(env.DB, first, values, auth.email) });
     }
 
@@ -77,12 +79,15 @@ export const onRequest = async ({ request, env, params }) => {
 
     if (method === 'PUT') {
       const values = validators[first](await readBody(request));
-      return (await updateRow(env.DB, first, rowId, values))
+      if (await findDuplicate(env.DB, first, values, rowId)) return json(409, { error: 'already exists' });
+      return (await updateRow(env.DB, first, rowId, values, auth.email))
         ? json(200, { ok: true })
         : json(404, { error: 'not found' });
     }
     if (method === 'DELETE') {
-      return (await softDelete(env.DB, first, rowId)) ? json(200, { ok: true }) : json(404, { error: 'not found' });
+      return (await softDelete(env.DB, first, rowId, auth.email))
+        ? json(200, { ok: true })
+        : json(404, { error: 'not found' });
     }
     return json(405, { error: 'method not allowed' });
   } catch (err) {

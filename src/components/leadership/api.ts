@@ -1,6 +1,6 @@
 // Client for /api/internal/leadership. Same-origin only: Cloudflare Access puts
 // the session cookie on these requests, and the Function checks the JWT.
-import type { Data, Person } from './model';
+import type { Activity, Data, EventRow, Person, Role } from './model';
 
 const BASE = '/api/internal/leadership';
 
@@ -33,20 +33,59 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const loadAll = () => request<Data>('/bootstrap');
 
+const send = <T>(method: 'POST' | 'PUT' | 'DELETE', path: string, body?: unknown) =>
+  request<T>(path, { method, body: body === undefined ? undefined : JSON.stringify(body) });
+
+export interface PersonInput {
+  name: string;
+  email: string | null;
+  leader_slug?: string | null;
+  status: Person['status'];
+  mentor: boolean;
+  notes: string | null;
+}
+
+export const createPerson = (p: PersonInput) => send<{ id: number }>('POST', '/person', p);
+
 export const savePerson = (p: Person) =>
-  request<{ ok: true }>(`/person/${p.id}`, {
-    method: 'PUT',
-    body: JSON.stringify({
-      name: p.name,
-      email: p.email,
-      leader_slug: p.leader_slug,
-      status: p.status,
-      mentor: p.mentor === 1,
-      notes: p.notes,
-    }),
+  send<{ ok: true }>('PUT', `/person/${p.id}`, {
+    name: p.name,
+    email: p.email,
+    leader_slug: p.leader_slug,
+    status: p.status,
+    mentor: p.mentor === 1,
+    notes: p.notes,
   });
 
-export const addNote = (note: { person_id: number; kind: 'note' | 'ready'; focus: string; body: string }) =>
-  request<{ id: number }>('/note', { method: 'POST', body: JSON.stringify(note) });
+export interface RoleInput {
+  person_id: number;
+  activity_id: number;
+  event_id: number;
+  leadership_type: Role['leadership_type'];
+  how_it_went: string | null;
+  source?: string;
+}
 
-export const deleteNote = (id: number) => request<{ ok: true }>(`/note/${id}`, { method: 'DELETE' });
+export const createRole = (r: RoleInput) => send<{ id: number }>('POST', '/role', r);
+export const saveRole = (id: number, r: RoleInput) => send<{ ok: true }>('PUT', `/role/${id}`, r);
+export const deleteRole = (id: number) => send<{ ok: true }>('DELETE', `/role/${id}`);
+/** Adds the same role at one event for several people. Repeats are skipped. */
+export const addRoles = (rows: RoleInput[]) => send<{ added: number }>('POST', '/roles/bulk', { rows });
+
+export type ActivityInput = Pick<Activity, 'name' | 'scope' | 'type'> & {
+  subtype: string | null;
+  site_activity_id?: string | null;
+};
+export const createActivity = (a: ActivityInput) => send<{ id: number }>('POST', '/activity', a);
+export const saveActivity = (id: number, a: ActivityInput) => send<{ ok: true }>('PUT', `/activity/${id}`, a);
+export const deleteActivity = (id: number) => send<{ ok: true }>('DELETE', `/activity/${id}`);
+
+export type EventInput = Pick<EventRow, 'name' | 'event_type' | 'year'> & { site_event_id?: string | null };
+export const createEvent = (e: EventInput) => send<{ id: number }>('POST', '/event', e);
+export const saveEvent = (id: number, e: EventInput) => send<{ ok: true }>('PUT', `/event/${id}`, e);
+export const deleteEvent = (id: number) => send<{ ok: true }>('DELETE', `/event/${id}`);
+
+export const addNote = (note: { person_id: number; kind: 'note' | 'ready'; focus: string; body: string }) =>
+  send<{ id: number }>('POST', '/note', note);
+
+export const deleteNote = (id: number) => send<{ ok: true }>('DELETE', `/note/${id}`);

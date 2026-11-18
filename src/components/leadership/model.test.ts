@@ -9,6 +9,9 @@ import {
   intensity,
   roleHistory,
   scopedCounts,
+  sortedEvents,
+  groupActivities,
+  eventTitle,
   sortRows,
   statusCounts,
   summarizeByType,
@@ -124,6 +127,28 @@ describe('display helpers', () => {
 
   it('buckets shading', () => {
     expect([0, 1, 2, 3, 4, 10].map(intensity)).toEqual([0, 1, 2, 2, 3, 3]);
+  });
+});
+
+describe('events and activities for the editors', () => {
+  it('sorts events newest first, then by name, then id', () => {
+    const e = (id: number, name: string, year: number) => ({ id, name, event_type: 'weekend', year });
+    const sorted = sortedEvents([e(4, 'B', 2024), e(3, 'A', 2024), e(2, 'A', 2024), e(1, 'Z', 2025)]);
+    expect(sorted.map((x) => x.id)).toEqual([1, 2, 3, 4]);
+  });
+
+  it('titles an event by year, then name without the year', () => {
+    expect(eventTitle({ id: 1, name: 'Camp 2025', event_type: 'weekend', year: 2025 })).toBe('2025 Camp');
+  });
+
+  it('groups activities by type, A to Z, each by name', () => {
+    const a = (id: number, name: string, type: string) => ({ id, name, scope: 'class' as const, type, subtype: null });
+    const groups = groupActivities([a(1, 'Zed', 'Games'), a(2, 'Alpha', 'Games'), a(3, 'Reel', 'Dancing')]);
+    expect(groups.map((g) => [g.type, g.activities.map((x) => x.name)])).toEqual([
+      ['Dancing', ['Reel']],
+      ['Games', ['Alpha', 'Zed']],
+    ]);
+    expect(groupActivities([])).toEqual([]);
   });
 });
 

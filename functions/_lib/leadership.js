@@ -88,6 +88,9 @@ const TABLES = {
   journey_note: ['person_id', 'kind', 'focus', 'body', 'author'],
 };
 
+// Everything but notes (which have `author`) records who created and last changed a row.
+const isAudited = (table) => table !== 'journey_note';
+
 export const tableFor = (resource) => (resource === 'note' ? 'journey_note' : resource);
 
 export async function bootstrap(db) {
@@ -112,8 +115,9 @@ export async function bootstrap(db) {
 
 export async function createRow(db, resource, values, author) {
   const table = tableFor(resource);
-  const cols = TABLES[table];
-  const data = table === 'journey_note' ? { ...values, author } : values;
+  const audited = isAudited(table);
+  const cols = audited ? [...TABLES[table], 'created_by', 'updated_by'] : TABLES[table];
+  const data = audited ? { ...values, created_by: author, updated_by: author } : { ...values, author };
   if (table === 'activity') await ensureType(db, data.type);
   const res = await db
     .prepare(`INSERT INTO ${table} (${cols.join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`)
@@ -122,7 +126,7 @@ export async function createRow(db, resource, values, author) {
   return res.meta.last_row_id;
 }
 
-export async function updateRow(db, resource, rowId, values) {
+export async function updateRow(db, resource, rowId, values, author) {
   const table = tableFor(resource);
   if (table === 'journey_note') {
     // Notes are append-only history except for editing the text and focus.
@@ -130,23 +134,52 @@ export async function updateRow(db, resource, rowId, values) {
   }
   const cols = Object.keys(values).filter((c) => TABLES[table].includes(c));
   if (!cols.length) throw new ValidationError('nothing to update');
+  const audited = isAudited(table);
   if (table === 'activity' && values.type) await ensureType(db, values.type);
   const res = await db
     .prepare(
-      `UPDATE ${table} SET ${cols.map((c) => `${c} = ?`).join(', ')}, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ? AND deleted_at IS NULL`
+      `UPDATE ${table} SET ${cols.map((c) => `${c} = ?`).join(', ')}${audited ? ', updated_by = ?' : ''}, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ? AND deleted_at IS NULL`
     )
-    .bind(...cols.map((c) => values[c] ?? null), rowId)
+    .bind(...cols.map((c) => values[c] ?? null), ...(audited ? [author ?? null] : []), rowId)
     .run();
   return res.meta.changes > 0;
 }
 
-export async function softDelete(db, resource, rowId) {
+// Which role column points at each deletable thing. Notes and roles stand alone.
+const ROLE_COLUMN = { person: 'person_id', activity: 'activity_id', event: 'event_id' };
+
+/** Same name (ignoring case) already live. Events also match on year, activities on scope. */
+export async function findDuplicate(db, resource, values, exceptId = 0) {
+  const extra = { activity: 'scope', event: 'year' }[resource];
+  if (!extra) return false;
   const table = tableFor(resource);
+  const { results } = await db
+    .prepare(`SELECT id FROM ${table} WHERE deleted_at IS NULL AND lower(name) = lower(?) AND ${extra} = ? AND id != ?`)
+    .bind(values.name, values[extra], exceptId)
+    .all();
+  return results.length > 0;
+}
+
+export async function softDelete(db, resource, rowId, author) {
+  const table = tableFor(resource);
+  const column = ROLE_COLUMN[resource];
+  if (column) {
+    const { results } = await db
+      .prepare(`SELECT id FROM role WHERE deleted_at IS NULL AND ${column} = ?`)
+      .bind(rowId)
+      .all();
+    if (results.length) {
+      const n = results.length;
+      throw new ValidationError(
+        `It still has ${n} ${n === 1 ? 'role' : 'roles'}. Remove ${n === 1 ? 'it' : 'them'} first.`
+      );
+    }
+  }
   const res = await db
     .prepare(
-      `UPDATE ${table} SET deleted_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ? AND deleted_at IS NULL`
+      `UPDATE ${table} SET deleted_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'), updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')${isAudited(table) ? ', updated_by = ?' : ''} WHERE id = ? AND deleted_at IS NULL`
     )
-    .bind(rowId)
+    .bind(...(isAudited(table) ? [author ?? null] : []), rowId)
     .run();
   return res.meta.changes > 0;
 }
@@ -156,17 +189,19 @@ async function ensureType(db, type) {
 }
 
 /** Bulk-add roles for one event. Existing live person+activity+event rows are skipped. */
-export async function bulkAddRoles(db, rows) {
+export async function bulkAddRoles(db, rows, author) {
   if (!Array.isArray(rows) || rows.length === 0 || rows.length > 200) {
     throw new ValidationError('send between 1 and 200 roles');
   }
   const clean = rows.map((r) => validators.role(r));
   const stmt = db.prepare(
-    `INSERT OR IGNORE INTO role (person_id, activity_id, event_id, leadership_type, how_it_went, source)
-     VALUES (?, ?, ?, ?, ?, ?)`
+    `INSERT OR IGNORE INTO role (person_id, activity_id, event_id, leadership_type, how_it_went, source, created_by, updated_by)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
   );
   const results = await db.batch(
-    clean.map((r) => stmt.bind(r.person_id, r.activity_id, r.event_id, r.leadership_type, r.how_it_went, r.source))
+    clean.map((r) =>
+      stmt.bind(r.person_id, r.activity_id, r.event_id, r.leadership_type, r.how_it_went, r.source, author, author)
+    )
   );
   return results.reduce((n, r) => n + (r.meta?.changes ?? 0), 0);
 }
