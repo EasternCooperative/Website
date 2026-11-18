@@ -8,6 +8,12 @@ export type Scope = 'class' | 'activity';
 export type Status = 'active' | 'hiatus' | 'inactive';
 
 export const LEADERSHIP_TYPES: LeadershipType[] = ['solo', 'partner', 'assisting'];
+export const EVENT_TYPES: EventType[] = ['extended', 'weekend', 'one_day'];
+export const EVENT_TYPE_LABELS: Record<EventType, string> = {
+  extended: 'Extended',
+  weekend: 'Weekend',
+  one_day: 'One day',
+};
 export const STATUSES: Status[] = ['active', 'hiatus', 'inactive'];
 export const STATUS_LABELS: Record<Status, string> = {
   active: 'Active',
@@ -31,12 +37,17 @@ export interface Activity {
   scope: Scope;
   type: string;
   subtype: string | null;
+  /** Link to the public /activities page. The editor passes it back unchanged. */
+  site_activity_id?: string | null;
 }
+export type EventType = 'extended' | 'weekend' | 'one_day';
 export interface EventRow {
   id: number;
   name: string;
   event_type: string;
   year: number;
+  /** Link to the public event page. The editor passes it back unchanged. */
+  site_event_id?: string | null;
 }
 export interface Role {
   id: number;
@@ -45,6 +56,8 @@ export interface Role {
   event_id: number;
   leadership_type: LeadershipType;
   how_it_went: string | null;
+  /** Where the role came from. The editor passes it back unchanged. */
+  source?: string;
 }
 export interface Note {
   id: number;
@@ -269,3 +282,27 @@ export function eventLabel(event: EventRow): string {
     .trim();
   return trimmed || event.name;
 }
+
+/** Events newest first, then by name. */
+export function sortedEvents(events: EventRow[]): EventRow[] {
+  return [...events].sort((a, b) => b.year - a.year || a.name.localeCompare(b.name) || a.id - b.id);
+}
+
+/** "2025 Winter Adventure": the year first, so same-named events stay apart. */
+export const eventTitle = (event: EventRow): string => `${event.year} ${eventLabel(event)}`;
+
+export interface ActivityGroup {
+  type: string;
+  activities: Activity[];
+}
+
+/** Activities by type (A to Z), each type's activities by name. Types with none are left out. */
+export function groupActivities(activities: Activity[]): ActivityGroup[] {
+  const byType = new Map<string, Activity[]>();
+  for (const a of activities) byType.set(a.type, [...(byType.get(a.type) ?? []), a]);
+  return [...byType.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([type, list]) => ({ type, activities: list.sort((a, b) => a.name.localeCompare(b.name)) }));
+}
+
+export type View = 'people' | 'events' | 'activities';

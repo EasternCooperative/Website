@@ -1,13 +1,24 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ApiError, loadAll } from './api';
 import Dashboard from './Dashboard';
+import ActivitiesView from './ActivitiesView';
+import EventsView from './EventsView';
+import { Split } from './forms';
+import NewPersonPanel from './NewPersonPanel';
 import PersonPanel from './PersonPanel';
-import { DEFAULT_FILTERS, buildRows, type Data, type Filters, type SortKey } from './model';
+import { DEFAULT_FILTERS, buildRows, type Data, type Filters, type SortKey, type View } from './model';
+
+const VIEWS: { id: View; label: string }[] = [
+  { id: 'people', label: 'People' },
+  { id: 'events', label: 'Events' },
+  { id: 'activities', label: 'Activities' },
+];
 
 export default function LeadershipApp() {
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [view, setView] = useState<View>('people');
+  const [selectedId, setSelectedId] = useState<number | 'new' | null>(null);
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [sort, setSort] = useState<{ key: SortKey; descending: boolean }>({ key: 'name', descending: false });
 
@@ -26,7 +37,7 @@ export default function LeadershipApp() {
   }, [reload]);
 
   const rows = useMemo(() => (data ? buildRows(data) : []), [data]);
-  const selected = data?.people.find((p) => p.id === selectedId) ?? null;
+  const selected = typeof selectedId === 'number' ? data?.people.find((p) => p.id === selectedId) : undefined;
 
   const onSort = (key: SortKey) =>
     setSort((s) =>
@@ -41,7 +52,8 @@ export default function LeadershipApp() {
       <h1 className="font-heading text-heading text-3xl font-bold mb-1">Leadership Tracker</h1>
       <p className="text-muted mb-6 max-w-prose">
         Who has led what, at every event on record. Use it to see who is ready for something new and who could staff a
-        class. Open a person to record availability and readiness notes. Private to the board and leadership team.
+        class. Add people, events, and activities as they come up, and record who led what. Open a person to set
+        availability and write readiness notes. Private to the board and leadership team.
         {data?.me && <span className="mt-1 block text-xs">Signed in as {data.me}</span>}
       </p>
 
@@ -53,35 +65,71 @@ export default function LeadershipApp() {
       {!data && !error && <p className="text-muted">Loading…</p>}
 
       {data && (
-        <div className={selected ? 'grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_26rem]' : ''}>
-          <Dashboard
-            rows={rows}
-            activityTypes={data.activityTypes}
-            filters={filters}
-            onFilters={setFilters}
-            sort={sort}
-            onSort={onSort}
-            selectedId={selectedId}
-            onSelect={setSelectedId}
-          />
-          {selected && (
-            <div className="lg:sticky lg:top-20">
-              <PersonPanel
-                key={selected.id}
-                data={data}
-                person={selected}
-                onChanged={reload}
-                onClose={() => {
-                  setSelectedId(null);
-                  // Hand focus back to the person's row, so keyboard users keep their place.
-                  requestAnimationFrame(() =>
-                    document.querySelector<HTMLElement>(`[data-person-id="${selected.id}"]`)?.focus()
-                  );
-                }}
-              />
-            </div>
+        <>
+          <nav aria-label="Sections" className="mb-5 flex gap-1 border-b border-gray-200 dark:border-gray-700">
+            {VIEWS.map((v) => (
+              <button
+                key={v.id}
+                type="button"
+                aria-current={view === v.id ? 'page' : undefined}
+                onClick={() => setView(v.id)}
+                className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-primary ${
+                  view === v.id ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-default'
+                }`}
+              >
+                {v.label}
+              </button>
+            ))}
+          </nav>
+
+          {view === 'people' && (
+            <Split
+              open={selectedId === 'new' || selected !== undefined}
+              list={
+                <Dashboard
+                  rows={rows}
+                  activityTypes={data.activityTypes}
+                  filters={filters}
+                  onFilters={setFilters}
+                  sort={sort}
+                  onSort={onSort}
+                  selectedId={typeof selectedId === 'number' ? selectedId : null}
+                  onSelect={setSelectedId}
+                  onAdd={() => setSelectedId('new')}
+                />
+              }
+              panel={
+                selectedId === 'new' ? (
+                  <NewPersonPanel
+                    data={data}
+                    onChanged={reload}
+                    onCreated={setSelectedId}
+                    onClose={() => setSelectedId(null)}
+                  />
+                ) : (
+                  selected && (
+                    <PersonPanel
+                      key={selected.id}
+                      data={data}
+                      person={selected}
+                      onChanged={reload}
+                      goTo={setView}
+                      onClose={() => {
+                        setSelectedId(null);
+                        // Hand focus back to the person's row, so keyboard users keep their place.
+                        requestAnimationFrame(() =>
+                          document.querySelector<HTMLElement>(`[data-person-id="${selected.id}"]`)?.focus()
+                        );
+                      }}
+                    />
+                  )
+                )
+              }
+            />
           )}
-        </div>
+          {view === 'events' && <EventsView data={data} onChanged={reload} goTo={setView} />}
+          {view === 'activities' && <ActivitiesView data={data} onChanged={reload} />}
+        </>
       )}
     </section>
   );

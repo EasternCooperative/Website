@@ -124,6 +124,95 @@ describe('leadership API writes', () => {
   });
 });
 
+describe('leadership API audit trail', () => {
+  const as = { ...dev };
+
+  it('stamps created_by and updated_by from the Access identity, not the body', async () => {
+    const db = fakeDb();
+    await call(
+      ['person'],
+      { method: 'POST', body: JSON.stringify({ name: 'Person A', created_by: 'spoof@x.org' }) },
+      { ...as, DB: db }
+    );
+    const { sql, params } = db.calls[0];
+    expect(sql).toContain('created_by, updated_by');
+    expect(params.slice(-2)).toEqual(['board@example.org', 'board@example.org']);
+  });
+
+  it('stamps updated_by on edits and removals, but never touches created_by', async () => {
+    const db = fakeDb();
+    await call(['person', '3'], { method: 'PUT', body: '{"name":"Person A"}' }, { ...as, DB: db });
+    expect(db.calls[0].sql).toContain('updated_by = ?');
+    expect(db.calls[0].sql).not.toContain('created_by');
+    expect(db.calls[0].params.slice(-2)).toEqual(['board@example.org', 3]);
+
+    const del = fakeDb();
+    await call(['role', '5'], { method: 'DELETE' }, { ...as, DB: del });
+    expect(del.calls[0].sql).toContain('updated_by = ?');
+    expect(del.calls[0].params).toEqual(['board@example.org', 5]);
+  });
+
+  it('stamps bulk-added roles, and leaves notes on their own author column', async () => {
+    const stmts: unknown[][] = [];
+    const db = fakeDb();
+    const prepare = db.prepare;
+    db.prepare = (sql: string) => {
+      const st = prepare(sql);
+      const bind = st.bind.bind(st);
+      st.bind = (...p: unknown[]) => (stmts.push(p), bind(...p));
+      return st;
+    };
+    await bulkAddRoles(db, [{ person_id: 1, activity_id: 2, event_id: 3, leadership_type: 'solo' }], 'a@x.org');
+    expect(stmts[0].slice(-2)).toEqual(['a@x.org', 'a@x.org']);
+
+    const notes = fakeDb();
+    await call(['note', '2'], { method: 'DELETE' }, { ...as, DB: notes });
+    expect(notes.calls[0].sql).not.toContain('updated_by');
+    expect(notes.calls[0].params).toEqual([2]);
+  });
+});
+
+describe('leadership API guards', () => {
+  const activity = JSON.stringify({ name: 'Tag', scope: 'activity', type: 'Games' });
+
+  it('refuses to remove a person, activity, or event that still has roles', async () => {
+    const db = fakeDb({ all: (sql) => (sql.includes('FROM role') ? [{ id: 1 }, { id: 2 }] : []) });
+    const res = await call(['activity', '3'], { method: 'DELETE' }, { ...dev, DB: db });
+    expect(res.status).toBe(400);
+    expect((await res.json()).error).toBe('It still has 2 roles. Remove them first.');
+    expect(db.calls.some((c) => c.sql.startsWith('UPDATE'))).toBe(false);
+
+    const one = fakeDb({ all: (sql) => (sql.includes('FROM role') ? [{ id: 1 }] : []) });
+    const res1 = await call(['event', '3'], { method: 'DELETE' }, { ...dev, DB: one });
+    expect((await res1.json()).error).toBe('It still has 1 role. Remove it first.');
+  });
+
+  it('removes an activity once it has no roles, and checks the right column', async () => {
+    const db = fakeDb();
+    expect((await call(['person', '4'], { method: 'DELETE' }, { ...dev, DB: db })).status).toBe(200);
+    expect(db.calls[0].sql).toContain('person_id = ?');
+    expect(db.calls[0].params).toEqual([4]);
+  });
+
+  it('rejects a duplicate activity or event, on create and on rename, but not itself', async () => {
+    const dup = fakeDb({ all: (sql) => (sql.includes('lower(name)') ? [{ id: 9 }] : []) });
+    expect((await call(['activity'], { method: 'POST', body: activity }, { ...dev, DB: dup })).status).toBe(409);
+    expect((await call(['activity', '2'], { method: 'PUT', body: activity }, { ...dev, DB: dup })).status).toBe(409);
+    const ev = JSON.stringify({ name: 'Camp', event_type: 'weekend', year: 2025 });
+    expect((await call(['event'], { method: 'POST', body: ev }, { ...dev, DB: dup })).status).toBe(409);
+
+    const clean = fakeDb();
+    expect((await call(['activity', '2'], { method: 'PUT', body: activity }, { ...dev, DB: clean })).status).toBe(200);
+    expect(clean.calls[0].params).toEqual(['Tag', 'activity', 2]); // excludes its own id
+  });
+
+  it('does not check people for duplicates', async () => {
+    const db = fakeDb({ all: () => [{ id: 9 }] });
+    const res = await call(['person'], { method: 'POST', body: '{"name":"Person A"}' }, { ...dev, DB: db });
+    expect(res.status).toBe(201);
+  });
+});
+
 describe('validators and bulk add', () => {
   it('rejects bad enums', () => {
     expect(() => validators.role({ person_id: 1, activity_id: 1, event_id: 1, leadership_type: 'boss' })).toThrow(
