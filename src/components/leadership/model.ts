@@ -99,9 +99,10 @@ export interface Outreach {
   contacted_on: string | null;
   snooze_until: string | null;
   note: string | null;
-  /** For a staffing ask: the event and the slot (for example "Games class"). */
-  event_id?: number | null;
+  /** For a staffing ask: the slot (for example "Games class"), the venue, and the planned date, if any. */
   slot?: string | null;
+  venue_id?: string | null;
+  plan_date?: string | null;
 }
 
 export type AccessLevel = 'finance' | 'standard';
@@ -128,6 +129,8 @@ export interface VenueRow {
   name: string;
   city: string | null;
   state: string | null;
+  /** The matched street address, when it was looked up. */
+  address?: string | null;
   lat: number;
   lng: number;
 }

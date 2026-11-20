@@ -20,7 +20,7 @@
 //   GET    duplicates                      people who may be one person (admins only)
 //   GET    merge/<fromId>/<intoId>         what a merge would move, as counts (admins only)
 //   POST   merge/<fromId>/<intoId>         { confirm: <fromId> } fold the first into the second (admins only)
-//   POST   venue                           { name, postal_code } add a venue; its location is looked up from the postal code
+//   POST   venue                           { name, address } add a venue; its location is looked up from the address
 //   POST   roles/bulk                      { rows: [role, ...] }
 //   POST   volunteers/bulk                 { rows: [volunteer, ...] }
 //   POST   <resource>                      create

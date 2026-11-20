@@ -1,18 +1,9 @@
 import { useMemo, useState } from 'react';
-import {
-  ApiError,
-  createEvent,
-  createOutreach,
-  createVenue,
-  deleteOutreach,
-  markExpert,
-  saveOutreach,
-  unmarkExpert,
-} from './api';
+import { createOutreach, createVenue, deleteOutreach, markExpert, saveOutreach, unmarkExpert } from './api';
 import { ErrorNote, inputCls, linkBtn, secondaryBtn, useAction } from './forms';
 import { PersonTags } from './marks';
-import { SEGMENT_NAMES, pickerLabel, type Data, type EventRow, type Outreach, type Scope, type View } from './model';
-import { seriesList, seriesOf, suggestedDate, venueOptions } from './series';
+import { SEGMENT_NAMES, type Data, type Outreach, type Scope, type View } from './model';
+import { venueOptions } from './venues';
 import {
   DEFAULT_STAFF_FILTERS,
   DEFAULT_STAFF_WEIGHTS,
@@ -37,10 +28,8 @@ export function briefFromQuery(query: string): Brief {
   const scope = q.get('scope');
   const n = (k: string) => (Number(q.get(k)) > 0 ? Number(q.get(k)) : null);
   return {
-    series: q.get('series') ?? '',
     venue: q.get('venue') || null,
     date: /^\d{4}-\d{2}-\d{2}$/.test(q.get('date') ?? '') ? q.get('date') : null,
-    eventId: n('event'),
     scope: scope === 'class' || scope === 'activity' ? scope : 'any',
     type: q.get('type') ?? '',
     activityId: n('activity'),
@@ -48,10 +37,8 @@ export function briefFromQuery(query: string): Brief {
 }
 export function briefToQuery(b: Brief): string {
   const q = new URLSearchParams();
-  if (b.series) q.set('series', b.series);
   if (b.venue) q.set('venue', b.venue);
   if (b.date) q.set('date', b.date);
-  if (b.eventId) q.set('event', String(b.eventId));
   if (b.scope !== 'any') q.set('scope', b.scope);
   if (b.type) q.set('type', b.type);
   if (b.activityId) q.set('activity', String(b.activityId));
@@ -131,9 +118,6 @@ function CandidateCard({
             <PersonTags person={c.person} />
           </p>
           {c.place && <p className="text-xs text-muted">Near {c.place}</p>}
-          {c.atEvent.length > 0 && (
-            <p className="text-xs text-muted">Already leading {c.atEvent.join(', ')} at this event</p>
-          )}
         </div>
         <div className="text-right">
           <p className="font-heading text-2xl leading-none tabular-nums" aria-label={`Fit ${c.total} out of 100`}>
@@ -185,47 +169,24 @@ export default function StaffView({
 
   const [adding, setAdding] = useState(false);
   const [venueName, setVenueName] = useState('');
-  const [venueZip, setVenueZip] = useState('');
+  const [venueAddress, setVenueAddress] = useState('');
   const venues = useMemo(() => venueOptions(sites, data.venues ?? [], data.events), [data.venues, data.events]);
-  const allSeries = useMemo(() => seriesList(data.events, now), [data.events, now]);
   const venueLabel = (id: string) => venues.find((v) => v.id === id)?.name ?? id;
 
-  // An event named in the address (an older link, or one just created) fills in the rest.
-  const linked = data.events.find((e) => e.id === brief.eventId);
-  const b: Brief = {
-    ...brief,
-    series: brief.series || (linked ? (seriesOf(linked.name) ?? '') : ''),
-    venue: brief.venue ?? linked?.site_id ?? null,
-    date: brief.date ?? linked?.start_date ?? null,
-  };
+  const b: Brief = brief;
   const set = (patch: Partial<Brief>) => {
     setShowAll(false);
     onQuery(briefToQuery({ ...b, ...patch }));
   };
-  // Is the next one already on the calendar with this date and venue?
-  const calendar = (series: string, date: string | null, venue: string | null) =>
-    data.events.find(
-      (e) => seriesOf(e.name) === series && e.start_date === date && (e.site_id ?? null) === (venue ?? null)
-    )?.id ?? null;
-  const pickSeries = (name: string) => {
-    const info = allSeries.find((s) => s.name === name);
-    if (!info) return set({ series: '', eventId: null, date: null, venue: null });
-    const date = suggestedDate(info, now);
-    const venue = (info.upcoming ?? (info.last as EventRow)).site_id ?? null;
-    set({ series: name, date, venue, eventId: calendar(name, date, venue) });
-  };
   const pickVenue = (value: string) => {
     if (value === '__new') return setAdding(true);
-    const venue = value || null;
-    set({ venue, eventId: calendar(b.series, b.date, venue) });
+    set({ venue: value || null });
   };
   const pickDate = (value: string) => {
-    const date = value || null;
-    set({ date, eventId: calendar(b.series, date, b.venue) });
+    set({ date: value || null });
   };
-  const event = data.events.find((e) => e.id === b.eventId);
   const slot = slotLabel(b, data.activities);
-  const ready = b.series !== '' && b.date !== null && b.type !== '';
+  const ready = b.venue !== null && b.type !== '';
   const choices = data.activities.filter((a) => a.type === b.type && (b.scope === 'any' || a.scope === b.scope));
   const venue = venues.find((v) => v.id === b.venue && v.lat !== null) as { lat: number; lng: number } | undefined;
   const miles = useMemo(() => milesTo(data.locations, venue), [data.locations, venue]);
@@ -235,39 +196,23 @@ export default function StaffView({
   );
   const depth = useMemo(() => benchDepth(data, b.scope, now), [data, b.scope, now]);
   const asks = (data.outreach ?? []).filter(
-    (o) => o.goal === 'staff_slot' && o.event_id === b.eventId && o.slot === slot
+    (o) => o.goal === 'staff_slot' && o.venue_id === b.venue && (o.plan_date ?? null) === b.date && o.slot === slot
   );
   const nameOf = (id: number) => data.people.find((p) => p.id === id)?.name ?? 'Someone';
   const shown = showAll ? candidates : candidates.slice(0, FIRST);
   const topDepth = Math.max(...depth.map((d) => d.ever), 1);
 
-  // The next one may not be on the calendar yet: add it the first time someone is shortlisted.
-  const ensureEvent = async (): Promise<number> => {
-    if (b.eventId) return b.eventId;
-    const year = Number((b.date as string).slice(0, 4));
-    const name = `${b.series} ${year}`;
-    const info = allSeries.find((x) => x.name === b.series);
-    try {
-      const { id } = await createEvent({
-        name,
-        event_type: (info?.events[0].event_type ?? 'weekend') as string,
-        year,
-        start_date: b.date,
-        site_id: b.venue,
-      });
-      return id;
-    } catch (e) {
-      const same = data.events.find((x) => x.name === name && x.year === year);
-      if (e instanceof ApiError && e.status === 409 && same) return same.id;
-      throw e;
-    }
-  };
   const shortlist = (personId: number) =>
-    act.run(async () => {
-      const eventId = await ensureEvent();
-      await createOutreach({ person_id: personId, goal: 'staff_slot', status: 'suggested', event_id: eventId, slot });
-      if (eventId !== b.eventId) set({ eventId });
-    });
+    act.run(() =>
+      createOutreach({
+        person_id: personId,
+        goal: 'staff_slot',
+        status: 'suggested',
+        venue_id: b.venue,
+        plan_date: b.date,
+        slot,
+      })
+    );
 
   const move = (o: Outreach, status: string) =>
     act.run(() =>
@@ -276,7 +221,8 @@ export default function StaffView({
         goal: 'staff_slot',
         status,
         contacted_on: status === 'contacted' ? now : o.contacted_on,
-        event_id: o.event_id,
+        venue_id: o.venue_id,
+        plan_date: o.plan_date,
         slot: o.slot,
       })
     );
@@ -284,26 +230,15 @@ export default function StaffView({
   return (
     <div>
       <p className="mb-4 max-w-prose text-sm text-muted">
-        Choose the recurring event, where and when it will be, and what you need to staff. People are ranked by what
-        their records show, and each score says why. Shortlist, ask, and track the answers here.
+        Choose the venue, and what you need to staff. People are ranked by what their records show, and each score says
+        why. Shortlist, ask, and track the answers here.
       </p>
 
       <div className="mb-5 flex flex-wrap items-end gap-x-4 gap-y-3 rounded-xl border border-gray-200 p-3 text-sm dark:border-gray-700">
         <label className="block">
-          <span className="mb-1 block text-muted">Event</span>
-          <select value={b.series} onChange={(e) => pickSeries(e.target.value)} className={`${inputCls} max-w-56`}>
-            <option value="">Choose an event</option>
-            {allSeries.map((x) => (
-              <option key={x.name} value={x.name}>
-                {x.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="block">
           <span className="mb-1 block text-muted">Where</span>
           <select value={b.venue ?? ''} onChange={(e) => pickVenue(e.target.value)} className={`${inputCls} max-w-56`}>
-            <option value="">Not decided</option>
+            <option value="">Choose a venue</option>
             {venues.map((v) => (
               <option key={v.id} value={v.id}>
                 {v.name}
@@ -313,14 +248,8 @@ export default function StaffView({
           </select>
         </label>
         <label className="block">
-          <span className="mb-1 block text-muted">When</span>
-          <input
-            type="date"
-            value={b.date ?? ''}
-            onChange={(e) => pickDate(e.target.value)}
-            className={inputCls}
-            disabled={b.series === ''}
-          />
+          <span className="mb-1 block text-muted">When (optional)</span>
+          <input type="date" value={b.date ?? ''} onChange={(e) => pickDate(e.target.value)} className={inputCls} />
         </label>
         <label className="block">
           <span className="mb-1 block text-muted">Kind</span>
@@ -369,13 +298,13 @@ export default function StaffView({
           onSubmit={async (e) => {
             e.preventDefault();
             const { ok, value } = await act.run(() =>
-              createVenue({ name: venueName.trim(), postal_code: venueZip.trim() })
+              createVenue({ name: venueName.trim(), address: venueAddress.trim() })
             );
             if (ok && value) {
               setAdding(false);
               setVenueName('');
-              setVenueZip('');
-              set({ venue: value.id, eventId: calendar(b.series, b.date, value.id) });
+              setVenueAddress('');
+              set({ venue: value.id });
             }
           }}
         >
@@ -384,17 +313,17 @@ export default function StaffView({
             <input value={venueName} onChange={(e) => setVenueName(e.target.value)} className={inputCls} />
           </label>
           <label className="block">
-            <span className="mb-1 block text-muted">Postal code</span>
+            <span className="mb-1 block text-muted">Address</span>
             <input
-              value={venueZip}
-              inputMode="numeric"
-              onChange={(e) => setVenueZip(e.target.value)}
-              className={`${inputCls} w-28`}
+              value={venueAddress}
+              placeholder="609 Geigel Hill Rd, Ottsville, PA"
+              onChange={(e) => setVenueAddress(e.target.value)}
+              className={`${inputCls} w-80 max-w-full`}
             />
           </label>
           <button
             type="submit"
-            disabled={act.busy || !venueName.trim() || !venueZip.trim()}
+            disabled={act.busy || !venueName.trim() || !venueAddress.trim()}
             className={secondaryBtn + ' px-3 py-1'}
           >
             Add venue
@@ -404,20 +333,12 @@ export default function StaffView({
           </button>
         </form>
       )}
-      {b.series !== '' && b.date !== null && (
-        <p className="-mt-3 mb-5 text-sm text-muted">
-          {event
-            ? `On the calendar: ${pickerLabel(event)}.`
-            : `Not on the calendar yet. It is added when you shortlist someone.`}
-          {b.venue ? ` At ${venueLabel(b.venue)}.` : ''}
-        </p>
-      )}
 
       <div className="grid gap-5 lg:grid-cols-[1fr_22rem]">
         <div>
           {!ready && (
             <p className="rounded-xl border border-gray-200 px-3 py-8 text-center text-muted dark:border-gray-700">
-              Choose an event and a type to see who could lead it.
+              Choose a venue and a type to see who could lead it.
             </p>
           )}
           {ready && (
@@ -494,7 +415,8 @@ export default function StaffView({
               <ErrorNote message={act.error} />
               <p className="mb-2 text-sm text-muted" aria-live="polite">
                 {candidates.length} {candidates.length === 1 ? 'person' : 'people'} for {slot} at{' '}
-                {event ? pickerLabel(event) : 'this event'}
+                {venueLabel(b.venue as string)}
+                {b.date ? ` on ${b.date}` : ''}
               </p>
               {candidates.length === 0 && (
                 <p className="rounded-xl border border-gray-200 px-3 py-8 text-center text-muted dark:border-gray-700">

@@ -95,7 +95,7 @@ afterEach(async () => {
   await cleanup();
 });
 
-const open = async (hash = '#/staff?event=2&scope=class&type=Games') => {
+const open = async (hash = '#/staff?venue=camp-onas&scope=class&type=Games') => {
   window.history.replaceState(null, '', `/${hash}`);
   const c = await render(<LeadershipApp />);
   await settle();
@@ -113,24 +113,20 @@ const input = (c: Element, label: string) =>
 const names = (c: Element) => [...c.querySelectorAll('ul > li > div > div > p > button')].map((b) => b.textContent);
 
 describe('the brief in the address', () => {
-  it('reads and writes the series, venue, date, event, kind, type, and activity', () => {
+  it('reads and writes the venue, date, kind, type, and activity', () => {
     const full = {
-      series: 'Camping Weekend',
       venue: 'camp-onas',
       date: '2026-12-20',
-      eventId: 2,
       scope: 'class' as const,
       type: 'Games',
       activityId: 2,
     };
-    const query = 'series=Camping+Weekend&venue=camp-onas&date=2026-12-20&event=2&scope=class&type=Games&activity=2';
+    const query = 'venue=camp-onas&date=2026-12-20&scope=class&type=Games&activity=2';
     expect(briefFromQuery(query)).toEqual(full);
     expect(briefToQuery(full)).toBe(query);
-    expect(briefFromQuery('scope=nonsense&event=x&date=soon')).toEqual({
-      series: '',
+    expect(briefFromQuery('scope=nonsense&event=2&date=soon')).toEqual({
       venue: null,
       date: null,
-      eventId: null,
       scope: 'any',
       type: '',
       activityId: null,
@@ -140,39 +136,38 @@ describe('the brief in the address', () => {
 });
 
 describe('Staff an event', () => {
-  it('opens here, asks for an event and a type, and shows bench depth meanwhile', async () => {
+  it('opens here, asks for a venue and a type, and shows bench depth meanwhile', async () => {
     const c = await open('');
     expect(c.querySelector('nav [aria-current="page"]')?.textContent).toBe('Staff an event');
-    expect(c.textContent).toContain('Choose an event and a type');
+    expect(c.textContent).toContain('Choose a venue and a type');
     expect(c.querySelector('section[aria-label="Bench depth"]')!.textContent).toContain('Dancing');
     await click(buttonWithText(c.querySelector('section[aria-label="Bench depth"]')!, /^Games/));
     expect(window.location.hash).toBe('#/staff?type=Games');
-    await choose(select(c, 'Event'), 'Camping Weekend');
-    expect(window.location.hash).toBe(
-      '#/staff?series=Camping+Weekend&venue=camp-onas&date=2026-12-20&event=2&type=Games'
-    );
+    await choose(select(c, 'Where'), 'camp-onas');
+    expect(window.location.hash).toBe('#/staff?venue=camp-onas&type=Games');
     expect(c.textContent).toContain('2 people'); // Cy is on hiatus
-    expect(c.textContent).toContain('On the calendar: 2026-12-20 Camping Weekend.');
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input(c, 'When'), '2026-12-20');
+      input(c, 'When').dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    expect(window.location.hash).toBe('#/staff?venue=camp-onas&date=2026-12-20&type=Games');
+    expect(c.textContent).toContain('for Games at Camp Onas on 2026-12-20');
   });
 
-  it('ranks people with reasons, from the recurring event, its venue, and its date', async () => {
+  it('ranks people with reasons, from the venue and the date', async () => {
     const c = await open();
     expect(names(c)).toEqual(['Bo Newer', 'Ana Expert']); // a matching ready note outweighs one past class
     const text = c.textContent ?? '';
     expect(text).toContain('Led Games 1 time, last in 2025');
     expect(text).toContain('Ready for games class');
     expect(text).toContain('Led here 1 time');
-    expect([...select(c, 'Event').options].map((o) => o.textContent)).toEqual([
-      'Choose an event',
-      'Camping Weekend',
-      'Winter Adventure',
-    ]);
+    expect(c.querySelector('label select option[value="__new"]')).not.toBeNull(); // a venue can be added
     expect(select(c, 'Where').value).toBe('camp-onas');
-    expect(text).toContain(' At Camp Onas.');
+    expect(c.textContent).not.toContain('recurring');
   });
 
   it('narrows the kind and the specific activity, and clears the activity when the type changes', async () => {
-    const c = await open('#/staff?event=2&type=Games');
+    const c = await open('#/staff?venue=camp-onas&type=Games');
     expect(select(c, 'A specific one').textContent).toContain('Tag');
     await choose(select(c, 'Kind'), 'activity');
     expect(window.location.hash).toContain('scope=activity');
@@ -209,7 +204,7 @@ describe('Staff an event', () => {
   });
 
   it('says when no one matches, and offers all of a long list', async () => {
-    const c = await open('#/staff?event=2&type=Dancing');
+    const c = await open('#/staff?venue=camp-onas&type=Dancing');
     await click(buttonWithText(c, 'Has led this type'));
     expect(c.textContent).toContain('No one matches');
     await cleanup();
@@ -232,7 +227,14 @@ describe('the slate', () => {
     expect(writes.at(-1)).toEqual({
       path: '/outreach',
       method: 'POST',
-      body: { person_id: 2, goal: 'staff_slot', status: 'suggested', event_id: 2, slot: 'Games class' },
+      body: {
+        person_id: 2,
+        goal: 'staff_slot',
+        status: 'suggested',
+        venue_id: 'camp-onas',
+        plan_date: null,
+        slot: 'Games class',
+      },
     });
     current.outreach = [
       {
@@ -243,7 +245,7 @@ describe('the slate', () => {
         contacted_on: null,
         snooze_until: null,
         note: null,
-        event_id: 2,
+        venue_id: 'camp-onas',
         slot: 'Games class',
       },
     ];
@@ -263,7 +265,7 @@ describe('the slate', () => {
         contacted_on: null,
         snooze_until: null,
         note: null,
-        event_id: 2,
+        venue_id: 'camp-onas',
         slot: 'Games class',
       },
       {
@@ -274,7 +276,7 @@ describe('the slate', () => {
         contacted_on: '2026-11-10',
         snooze_until: null,
         note: null,
-        event_id: 2,
+        venue_id: 'camp-onas',
         slot: 'Games class',
       },
       {
@@ -285,7 +287,7 @@ describe('the slate', () => {
         contacted_on: '2026-11-01',
         snooze_until: null,
         note: null,
-        event_id: 2,
+        venue_id: 'camp-onas',
         slot: 'Games class',
       },
       {
@@ -296,7 +298,7 @@ describe('the slate', () => {
         contacted_on: null,
         snooze_until: null,
         note: null,
-        event_id: 2,
+        venue_id: 'camp-onas',
         slot: 'Games class',
       },
       {
@@ -307,7 +309,7 @@ describe('the slate', () => {
         contacted_on: null,
         snooze_until: null,
         note: null,
-        event_id: 2,
+        venue_id: 'camp-onas',
         slot: 'Dance class',
       }, // another slot
     ];
@@ -372,7 +374,7 @@ describe('bench depth', () => {
 });
 
 describe('odd data', () => {
-  it('says what someone already leads at the event, and names an ask with an unusual status', async () => {
+  it('names an ask with an unusual status', async () => {
     current.outreach = [
       {
         id: 5,
@@ -382,16 +384,15 @@ describe('odd data', () => {
         contacted_on: null,
         snooze_until: null,
         note: null,
-        event_id: 2,
+        venue_id: 'camp-onas',
         slot: 'Games class',
       },
     ];
     const c = await open();
-    expect(c.textContent).toContain('Already leading Tag at this event');
     expect(c.textContent).toContain('snoozed');
   });
 
-  it('copes with no outreach list, an event not on the calendar, an unknown venue, and a missing event', async () => {
+  it('copes with no outreach list, an unknown venue, and no venue at all', async () => {
     current.outreach = undefined;
     current.events = [
       {
@@ -402,23 +403,21 @@ describe('odd data', () => {
         start_date: '2026-12-01',
         site_id: 'unknown-place',
       },
-      { id: 3, name: 'Plain Thing 2026', event_type: 'weekend', year: 2026, start_date: null, site_id: null },
     ];
-    const c = await open('#/staff?event=2&type=Games');
+    const c = await open('#/staff?venue=unknown-place&type=Games');
     expect([...select(c, 'Where').options].map((o) => o.textContent)).toContain('unknown-place');
-    expect(c.textContent).toContain(' At unknown-place.');
+    expect(c.textContent).toContain('for Games at unknown-place');
     await cleanup();
-    const d = await open('#/staff?event=999&type=Games'); // an event that is not there
-    expect(d.textContent).toContain('Choose an event and a type');
+    const d = await open('#/staff?type=Games');
+    expect(d.textContent).toContain('Choose a venue and a type');
   });
 
-  it('can step back from an event or a specific activity to none', async () => {
-    const c = await open('#/staff?event=2&type=Games&activity=1');
+  it('can step back from a specific activity, and from a venue', async () => {
+    const c = await open('#/staff?venue=camp-onas&type=Games&activity=1');
     await choose(select(c, 'A specific one'), '0');
     expect(window.location.hash).not.toContain('activity=');
-    await choose(select(c, 'Event'), '');
-    expect(window.location.hash).not.toContain('series=');
-    expect(window.location.hash).not.toContain('date=');
+    await choose(select(c, 'Where'), '');
+    expect(window.location.hash).not.toContain('venue=');
   });
 
   it('shows a healthy bench in the normal color and pluralizes mentors', async () => {
@@ -463,96 +462,114 @@ describe('distance', () => {
     expect(c.textContent).not.toContain('Live within');
     await cleanup();
     current.locations = [{ person_id: 1, city: 'Ottsville', state: 'PA', lat: 40.31, lng: -75.1 }];
-    current.events = current.events.map((e) => ({ ...e, site_id: 'unknown-place' }));
-    const d = await open();
+    const d = await open('#/staff?venue=unknown-place&type=Games');
     expect(d.textContent).not.toContain('Live within');
   });
 });
 
-describe('planning the next one', () => {
-  const pickWinter = async (c: Element) => {
-    await choose(select(c, 'Event'), 'Winter Adventure');
+describe('planning for a venue', () => {
+  const pickWatson = async (c: Element) => {
+    await choose(select(c, 'Where'), 'the-y-at-watson-woods');
     await choose(select(c, 'Type'), 'Games');
     await choose(select(c, 'Kind'), 'class');
   };
+  const shortlistFirst = (c: Element) =>
+    click([...c.querySelectorAll('button')].find((b) => b.textContent === 'Shortlist') ?? null);
+  const setDate = async (c: Element, value: string) =>
+    act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input(c, 'When'), value);
+      input(c, 'When').dispatchEvent(new Event('input', { bubbles: true }));
+    });
 
-  it('suggests the next date and last venue, and says it is not on the calendar yet', async () => {
+  it('needs only a venue and a type, and no event is involved', async () => {
     const c = await open('#/staff');
-    await pickWinter(c);
-    expect(select(c, 'Where').value).toBe('the-y-at-watson-woods');
-    expect(input(c, 'When').value).toBe('2026-12-27');
-    expect(c.textContent).toContain('Not on the calendar yet. It is added when you shortlist someone.');
-    expect(window.location.hash).not.toContain('event=');
+    await pickWatson(c);
+    expect(names(c).length).toBeGreaterThan(0);
+    expect(c.textContent).not.toContain('calendar');
+    expect(window.location.hash).toBe('#/staff?venue=the-y-at-watson-woods&scope=class&type=Games');
   });
 
-  it('adds the event the first time someone is shortlisted, then ties the ask to it', async () => {
+  it('shortlists by venue and slot, without creating an event', async () => {
     const c = await open('#/staff');
-    await pickWinter(c);
-    await click([...c.querySelectorAll('button')].find((b) => b.textContent === 'Shortlist') ?? null);
-    const [made, ask] = writes.slice(-2);
-    expect(made).toEqual({
-      path: '/event',
+    await pickWatson(c);
+    await shortlistFirst(c);
+    expect(writes.filter((w) => w.path === '/event')).toEqual([]);
+    expect(writes.at(-1)).toEqual({
+      path: '/outreach',
       method: 'POST',
       body: {
-        name: 'Winter Adventure 2026',
-        event_type: 'extended',
-        year: 2026,
-        start_date: '2026-12-27',
-        site_id: 'the-y-at-watson-woods',
+        person_id: expect.any(Number),
+        goal: 'staff_slot',
+        status: 'suggested',
+        venue_id: 'the-y-at-watson-woods',
+        plan_date: null,
+        slot: 'Games class',
       },
     });
-    expect(ask).toMatchObject({ path: '/outreach', body: { event_id: 77, slot: 'Games class', goal: 'staff_slot' } });
-    expect(window.location.hash).toContain('event=77');
   });
 
-  it('uses an event that already has that name and year, and reports any other failure', async () => {
-    current.events.push({
-      id: 9,
-      name: 'Winter Adventure 2026',
-      event_type: 'extended',
-      year: 2026,
-      start_date: null,
-      site_id: null,
-    });
+  it('keeps the planned date on the ask, and shows only asks for that venue, date, and slot', async () => {
+    current.outreach = [
+      {
+        id: 5,
+        person_id: 2,
+        goal: 'staff_slot',
+        status: 'suggested',
+        contacted_on: null,
+        snooze_until: null,
+        note: null,
+        venue_id: 'the-y-at-watson-woods',
+        plan_date: '2027-01-02',
+        slot: 'Games class',
+      },
+      {
+        id: 6,
+        person_id: 1,
+        goal: 'staff_slot',
+        status: 'suggested',
+        contacted_on: null,
+        snooze_until: null,
+        note: null,
+        venue_id: 'the-y-at-watson-woods',
+        plan_date: null,
+        slot: 'Games class',
+      },
+    ];
     const c = await open('#/staff');
-    await pickWinter(c);
-    fail = 'already exists';
-    failPath = '/event';
-    await click([...c.querySelectorAll('button')].find((b) => b.textContent === 'Shortlist') ?? null);
-    expect(writes.at(-1)).toMatchObject({ path: '/outreach', body: { event_id: 9 } });
-    await cleanup();
-    current.events = current.events.filter((e) => e.id !== 9);
-    const d = await open('#/staff');
-    await pickWinter(d);
-    await click([...d.querySelectorAll('button')].find((b) => b.textContent === 'Shortlist') ?? null);
-    expect(d.textContent).toContain('already exists');
+    await pickWatson(c);
+    await setDate(c, '2027-01-02');
+    const slate = c.querySelector('section[aria-label="Slate"]')!.textContent;
+    expect(slate).toContain('Bo Newer');
+    expect(slate).not.toContain('Ana Expert');
+    await shortlistFirst(c);
+    expect(writes.at(-1)!.body).toMatchObject({ plan_date: '2027-01-02' });
   });
 
-  it('follows a change of date or venue, and finds the calendar entry again when they match', async () => {
-    const c = await open('#/staff?event=2&type=Games');
+  it('reports why a shortlist failed', async () => {
+    const c = await open('#/staff');
+    await pickWatson(c);
+    fail = 'already exists';
+    await shortlistFirst(c);
+    expect(c.textContent).toContain('already exists');
+  });
+
+  it('follows a change of date or venue', async () => {
+    const c = await open('#/staff?venue=camp-onas&type=Games');
     await choose(select(c, 'Where'), 'the-y-at-watson-woods');
-    expect(window.location.hash).not.toContain('event=');
-    expect(c.textContent).toContain('Not on the calendar yet');
-    await choose(select(c, 'Where'), 'camp-onas');
-    expect(window.location.hash).toContain('event=2');
-    const date = input(c, 'When');
-    await act(async () => {
-      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(date, '2027-01-02');
-      date.dispatchEvent(new Event('input', { bubbles: true }));
-    });
+    expect(window.location.hash).toContain('venue=the-y-at-watson-woods');
+    await setDate(c, '2027-01-02');
     expect(window.location.hash).toContain('date=2027-01-02');
-    expect(window.location.hash).not.toContain('event=');
-    await choose(select(c, 'Where'), '');
-    expect(window.location.hash).not.toContain('venue=');
+    await setDate(c, '');
+    expect(window.location.hash).not.toContain('date=');
   });
 });
 
 describe('adding a venue', () => {
-  const fill = async (c: Element, name: string, zip: string) => {
+  const fill = async (c: Element, name: string, address: string) => {
     const [n, z] = [...c.querySelectorAll('form input')] as HTMLInputElement[];
     for (const [el, v] of [
       [n, name],
-      [z, zip],
+      [z, address],
     ] as const)
       await act(async () => {
         Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(el, v);
@@ -560,16 +577,16 @@ describe('adding a venue', () => {
       });
   };
 
-  it('adds a venue from a name and postal code, then chooses it', async () => {
+  it('adds a venue from a name and an address, then chooses it', async () => {
     const c = await open();
     await choose(select(c, 'Where'), '__new');
     expect(buttonWithText(c, 'Add venue')!.disabled).toBe(true);
-    await fill(c, ' New Place ', '18942');
+    await fill(c, ' New Place ', ' 609 Geigel Hill Rd, Ottsville, PA ');
     await click(buttonWithText(c, 'Add venue'));
     expect(writes.at(-1)).toEqual({
       path: '/venue',
       method: 'POST',
-      body: { name: 'New Place', postal_code: '18942' },
+      body: { name: 'New Place', address: '609 Geigel Hill Rd, Ottsville, PA' },
     });
     await settle();
     expect(c.querySelector('form')).toBeNull();
@@ -579,10 +596,10 @@ describe('adding a venue', () => {
   it('shows why it could not be added, and can be cancelled', async () => {
     const c = await open();
     await choose(select(c, 'Where'), '__new');
-    await fill(c, 'X', '00000');
-    fail = 'That postal code could not be found.';
+    await fill(c, 'X', 'Nowhere Lane');
+    fail = 'That address could not be found.';
     await click(buttonWithText(c, 'Add venue'));
-    expect(c.textContent).toContain('could not be found');
+    expect(c.textContent).toContain('address could not be found');
     expect(c.querySelector('form')).not.toBeNull();
     await click(buttonWithText(c, 'Cancel'));
     expect(c.querySelector('form')).toBeNull();
@@ -591,7 +608,7 @@ describe('adding a venue', () => {
   it('lists venues added in the tool, and uses their place for distance', async () => {
     current.venues = [{ id: 'my-place', name: 'My Place', city: 'Ottsville', state: 'PA', lat: 40.3, lng: -75.1 }];
     current.locations = [{ person_id: 1, city: 'Ottsville', state: 'PA', lat: 40.31, lng: -75.1 }];
-    const c = await open('#/staff?series=Camping+Weekend&venue=my-place&date=2027-06-18&type=Games');
+    const c = await open('#/staff?venue=my-place&date=2027-06-18&type=Games');
     expect([...select(c, 'Where').options].map((o) => o.textContent)).toContain('My Place');
     expect(c.textContent).toContain('Live within');
     expect(c.textContent).toContain('of My Place.');
@@ -612,38 +629,11 @@ describe('experts', () => {
   });
 });
 
-describe('odd links and venues', () => {
-  it('copes with a linked event that is not a recurring one, a series not on the list, and no venue', async () => {
-    current.events = [
-      { id: 2, name: 'Virtual Dance 2026', event_type: 'one_day', year: 2026, start_date: '2026-12-01', site_id: null },
-      { id: 3, name: 'Fun Day 2025', event_type: 'one_day', year: 2025, start_date: '2025-05-01', site_id: null },
-    ];
-    const c = await open('#/staff?event=2&type=Games');
-    expect(select(c, 'Event').value).toBe(''); // a virtual event is no recurring event
-    await cleanup();
-    const d = await open('#/staff?series=Brand+New+Thing&date=2027-03-01&type=Games');
-    await click([...d.querySelectorAll('button')].find((b) => b.textContent === 'Shortlist') ?? null);
-    expect(writes.find((w) => w.path === '/event')!.body).toMatchObject({
-      name: 'Brand New Thing 2027',
-      event_type: 'weekend',
-      site_id: null,
-    });
-  });
-
-  it('matches the calendar when neither has a venue, and clears the date', async () => {
-    current.events = [
-      { id: 3, name: 'Fun Day 2027', event_type: 'one_day', year: 2027, start_date: '2027-05-01', site_id: null },
-    ];
-    const c = await open('#/staff');
-    await choose(select(c, 'Event'), 'Fun Day');
-    expect(select(c, 'Where').value).toBe('');
-    expect(window.location.hash).toContain('event=3');
-    const date = input(c, 'When');
-    await act(async () => {
-      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(date, '');
-      date.dispatchEvent(new Event('input', { bubbles: true }));
-    });
-    expect(window.location.hash).not.toContain('date=');
-    expect(c.textContent).toContain('Choose an event and a type');
+describe('odd links', () => {
+  it('copes with a venue no one knows', async () => {
+    const c = await open('#/staff?venue=nowhere&date=2027-03-01&type=Games');
+    expect(window.location.hash).toContain('venue=nowhere');
+    await click([...c.querySelectorAll('button')].find((b) => b.textContent === 'Shortlist') ?? null);
+    expect(writes.at(-1)!.body).toMatchObject({ venue_id: 'nowhere', plan_date: '2027-03-01' });
   });
 });

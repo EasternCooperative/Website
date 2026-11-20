@@ -138,7 +138,8 @@ export const validators = {
     const goal = oneOf(b.goal, 'goal', OUTREACH_GOALS);
     const slotAsk = goal === 'staff_slot';
     const slot = str(b.slot, 'slot', { max: 120, required: slotAsk });
-    const eventId = slotAsk ? id(b.event_id, 'event_id') : optionalId(b.event_id, 'event_id');
+    const venueId = str(b.venue_id, 'venue_id', { max: 120, required: slotAsk });
+    const planDate = partialDate(b.plan_date, 'plan_date');
     return {
       person_id: id(b.person_id, 'person_id'),
       goal,
@@ -146,9 +147,10 @@ export const validators = {
       contacted_on: partialDate(b.contacted_on, 'contacted_on'),
       snooze_until: partialDate(b.snooze_until, 'snooze_until'),
       note: str(b.note, 'note', { max: 1000 }),
-      // Only the staffing ask has an event and a slot.
-      ...(slotAsk || 'event_id' in b ? { event_id: eventId } : {}),
+      // Only the staffing ask has a slot, a venue, and a planned date.
       ...(slotAsk || 'slot' in b ? { slot } : {}),
+      ...(slotAsk || 'venue_id' in b ? { venue_id: venueId } : {}),
+      ...(slotAsk || 'plan_date' in b ? { plan_date: planDate } : {}),
     };
   },
   // Money. The Function lets only the finance level touch this resource.
@@ -185,7 +187,18 @@ const TABLES = {
   expertise: ['person_id', 'type', 'note'],
   service: ['person_id', 'body', 'title', 'started_on', 'ended_on', 'note', 'source'],
   volunteer: ['person_id', 'event_id', 'task', 'hours', 'note'],
-  outreach: ['person_id', 'goal', 'status', 'contacted_on', 'snooze_until', 'note', 'event_id', 'slot'],
+  outreach: [
+    'person_id',
+    'goal',
+    'status',
+    'contacted_on',
+    'snooze_until',
+    'note',
+    'event_id',
+    'slot',
+    'venue_id',
+    'plan_date',
+  ],
   donation: [
     'person_id',
     'source',
@@ -227,7 +240,7 @@ export async function bootstrap(db) {
       db
         .prepare('SELECT person_id, city, state, ROUND(lat, 2) AS lat, ROUND(lng, 2) AS lng FROM person_location')
         .all(),
-      db.prepare('SELECT id, name, city, state, lat, lng FROM venue ORDER BY name').all(),
+      db.prepare('SELECT id, name, city, state, address, lat, lng FROM venue ORDER BY name').all(),
       live('expertise'),
     ]);
   return {
@@ -295,9 +308,9 @@ export async function findDuplicate(db, resource, values, exceptId = 0) {
     if (values.goal !== 'staff_slot') return false;
     const { results } = await db
       .prepare(
-        "SELECT id FROM outreach WHERE deleted_at IS NULL AND goal = 'staff_slot' AND person_id = ? AND event_id = ? AND slot = ? AND id != ?"
+        "SELECT id FROM outreach WHERE deleted_at IS NULL AND goal = 'staff_slot' AND person_id = ? AND venue_id = ? AND slot = ? AND COALESCE(plan_date, '') = ? AND id != ?"
       )
-      .bind(values.person_id, values.event_id, values.slot, exceptId)
+      .bind(values.person_id, values.venue_id, values.slot, values.plan_date ?? '', exceptId)
       .all();
     return results.length > 0;
   }

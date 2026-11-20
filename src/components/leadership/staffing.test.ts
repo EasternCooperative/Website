@@ -100,7 +100,8 @@ const data: Data = {
       contacted_on: '2026-11-10',
       snooze_until: null,
       note: null,
-      event_id: 3,
+      venue_id: 'camp-onas',
+      plan_date: '2026-06-20',
       slot: 'Games class',
     },
     {
@@ -116,10 +117,8 @@ const data: Data = {
   activityTypes: ['Dancing', 'Games', 'Music'],
 };
 const brief: Brief = {
-  series: '',
-  venue: null,
-  date: null,
-  eventId: 3,
+  venue: 'camp-onas',
+  date: '2026-06-20',
   scope: 'class',
   type: 'Games',
   activityId: null,
@@ -232,7 +231,7 @@ describe('candidatesFor', () => {
     // Winter wraps the new year: Dec 27 is near Jan 5
     const winter = candidatesFor(
       data,
-      { ...brief, eventId: 4 },
+      { ...brief, venue: 'watson', date: '2027-01-05' },
       DEFAULT_STAFF_WEIGHTS,
       DEFAULT_STAFF_FILTERS,
       '2026-11-20'
@@ -254,15 +253,7 @@ describe('candidatesFor', () => {
     ]);
   });
 
-  it('shows what someone already leads at the event, without ruling them out', () => {
-    const all = run();
-    expect(all.find((c) => c.person.name === 'Flo Busy')!.atEvent).toEqual(['Waltz']);
-    expect(all[0].person.name).toBe('Ana Expert');
-    expect(all[0].atEvent).toEqual(['Tag']);
-    expect(all.find((c) => c.person.name === 'Bo Newer')!.atEvent).toEqual([]);
-  });
-
-  it('finds the ask for this event and slot, and anyone contacted lately', () => {
+  it('finds the ask for this venue, date, and slot, and anyone contacted lately', () => {
     const ana = run().find((c) => c.person.name === 'Ana Expert')!;
     expect(ana.ask).toMatchObject({ id: 2, status: 'contacted' });
     expect(ana.lastContacted).toBe('2026-11-10');
@@ -275,7 +266,7 @@ describe('candidatesFor', () => {
   it('copes with no event yet, and with a type nobody has led', () => {
     const none = candidatesFor(
       data,
-      { series: '', venue: null, date: null, eventId: null, scope: 'any', type: 'Music', activityId: null },
+      { venue: null, date: null, scope: 'any', type: 'Music', activityId: null },
       DEFAULT_STAFF_WEIGHTS,
       DEFAULT_STAFF_FILTERS,
       '2026-11-20'
@@ -420,10 +411,8 @@ describe('expert marks and a long record', () => {
 
   it('plans for an event that is not on the calendar yet, from its date and venue', () => {
     const b: Brief = {
-      series: 'Camping Weekend',
       venue: 'camp-onas',
       date: '2027-06-18',
-      eventId: null,
       scope: 'class',
       type: 'Games',
       activityId: null,
@@ -433,6 +422,5 @@ describe('expert marks and a long record', () => {
     expect(ana.segments[3].detail).toBe('Led here 1 time');
     expect(ana.segments[4].detail).toBe('Led 1 time near this time of year');
     expect(ana.ask).toBeNull();
-    expect(ana.atEvent).toEqual([]);
   });
 });

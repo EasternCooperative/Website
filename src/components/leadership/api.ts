@@ -148,8 +148,9 @@ export interface OutreachInput {
   contacted_on?: string | null;
   snooze_until?: string | null;
   note?: string | null;
-  event_id?: number | null;
   slot?: string | null;
+  venue_id?: string | null;
+  plan_date?: string | null;
 }
 export const createOutreach = (o: OutreachInput) => send<{ id: number }>('POST', '/outreach', o);
 export const saveOutreach = (id: number, o: OutreachInput) => send<{ ok: true }>('PUT', `/outreach/${id}`, o);
@@ -182,7 +183,7 @@ export const getJourneyPerson = (id: number) => request<JourneyRow>(`/journey/${
 export const savePlan = (id: number, plan: PlanInput) => send<{ ok: true }>('PUT', `/journey/${id}`, plan);
 export const clearPlan = (id: number) => send<{ ok: true }>('DELETE', `/journey/${id}`);
 
-export const createVenue = (v: { name: string; postal_code: string }) => send<{ id: string }>('POST', '/venue', v);
+export const createVenue = (v: { name: string; address: string }) => send<{ id: string }>('POST', '/venue', v);
 export const markExpert = (person_id: number, type: string) =>
   send<{ id: number }>('POST', '/expertise', { person_id, type });
 export const unmarkExpert = (id: number) => send<{ ok: true }>('DELETE', `/expertise/${id}`);
