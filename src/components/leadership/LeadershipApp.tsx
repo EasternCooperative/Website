@@ -5,13 +5,15 @@ import ActivitiesView from './ActivitiesView';
 import EventsView from './EventsView';
 import { Split } from './forms';
 import NewPersonPanel from './NewPersonPanel';
+import UsersView, { LEVEL_LABELS } from './UsersView';
 import PersonPanel from './PersonPanel';
 import { DEFAULT_FILTERS, buildRows, type Data, type Filters, type SortKey, type View } from './model';
 
-const VIEWS: { id: View; label: string }[] = [
+const ALL_VIEWS: { id: View; label: string }[] = [
   { id: 'people', label: 'People' },
   { id: 'events', label: 'Events' },
   { id: 'activities', label: 'Activities' },
+  { id: 'users', label: 'Access' },
 ];
 
 export default function LeadershipApp() {
@@ -36,6 +38,7 @@ export default function LeadershipApp() {
     reload().catch(() => {});
   }, [reload]);
 
+  const views = ALL_VIEWS.filter((v) => v.id !== 'users' || data?.isAdmin);
   const rows = useMemo(() => (data ? buildRows(data) : []), [data]);
   const selected = typeof selectedId === 'number' ? data?.people.find((p) => p.id === selectedId) : undefined;
 
@@ -54,7 +57,12 @@ export default function LeadershipApp() {
         Who has led what, at every event on record. Use it to see who is ready for something new and who could staff a
         class. Add people, events, and activities as they come up, and record who led what. Open a person to set
         availability and write readiness notes. Private to the board and leadership team.
-        {data?.me && <span className="mt-1 block text-xs">Signed in as {data.me}</span>}
+        {data?.me && (
+          <span className="mt-1 block text-xs">
+            Signed in as {data.me}
+            {data.level && `, ${LEVEL_LABELS[data.level]} access${data.isAdmin ? ', admin' : ''}`}
+          </span>
+        )}
       </p>
 
       {error && !data && (
@@ -67,7 +75,7 @@ export default function LeadershipApp() {
       {data && (
         <>
           <nav aria-label="Sections" className="mb-5 flex gap-1 border-b border-gray-200 dark:border-gray-700">
-            {VIEWS.map((v) => (
+            {views.map((v) => (
               <button
                 key={v.id}
                 type="button"
@@ -129,6 +137,7 @@ export default function LeadershipApp() {
           )}
           {view === 'events' && <EventsView data={data} onChanged={reload} goTo={setView} />}
           {view === 'activities' && <ActivitiesView data={data} onChanged={reload} />}
+          {view === 'users' && data.isAdmin && <UsersView me={data.me ?? ''} />}
         </>
       )}
     </section>

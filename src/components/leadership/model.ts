@@ -68,8 +68,20 @@ export interface Note {
   author: string;
   created_at: string;
 }
+export type AccessLevel = 'finance' | 'standard';
+export interface AppUser {
+  email: string;
+  level: AccessLevel;
+  is_admin: number;
+  /** An owner: the database refuses to remove or downgrade them. */
+  protected?: number;
+}
+
 export interface Data {
   me?: string;
+  /** What the signed-in person may see: finance sees donation amounts. */
+  level?: AccessLevel;
+  isAdmin?: boolean;
   people: Person[];
   activities: Activity[];
   events: EventRow[];
@@ -305,4 +317,4 @@ export function groupActivities(activities: Activity[]): ActivityGroup[] {
     .map(([type, list]) => ({ type, activities: list.sort((a, b) => a.name.localeCompare(b.name)) }));
 }
 
-export type View = 'people' | 'events' | 'activities';
+export type View = 'people' | 'events' | 'activities' | 'users';

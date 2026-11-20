@@ -90,7 +90,7 @@ const json = (status, body) =>
  */
 export const authenticate = async (request, env, opts = {}) => {
   // Local development only, and only when the request really is on localhost.
-  if (env.DEV_AUTH_EMAIL && isLocalhost(request)) return { email: env.DEV_AUTH_EMAIL };
+  if (env.DEV_AUTH_EMAIL && isLocalhost(request)) return { email: env.DEV_AUTH_EMAIL, dev: true };
 
   const teamDomain = env.ACCESS_TEAM_DOMAIN;
   const aud = env.ACCESS_AUD;
