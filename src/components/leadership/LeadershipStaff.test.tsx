@@ -393,3 +393,34 @@ describe('odd data', () => {
     expect(bench.innerHTML).not.toContain('bg-amber-500" style="width: 100%');
   });
 });
+
+describe('distance', () => {
+  beforeEach(() => {
+    current.locations = [
+      { person_id: 1, city: 'Ottsville', state: 'PA', lat: 40.31, lng: -75.1 },
+      { person_id: 2, city: 'Boston', state: 'MA', lat: 42.36, lng: -71.06 },
+    ];
+  });
+  it('shows where people are near, and limits the list by miles', async () => {
+    const c = await open();
+    expect(c.textContent).toContain('Near Ottsville, PA');
+    expect(c.textContent).toContain('About 0 miles away (Ottsville)');
+    expect(c.textContent).toContain('of Camp Onas. People with no known location stay in.');
+    expect(names(c)).toContain('Bo Newer');
+    await choose(select(c, 'Live within'), '50');
+    expect(names(c)).not.toContain('Bo Newer');
+    expect(names(c)).toContain('Ana Expert');
+    await choose(select(c, 'Live within'), '0');
+    expect(names(c)).toContain('Bo Newer');
+  });
+  it('offers no distance when nobody is located or the venue is unknown', async () => {
+    current.locations = [];
+    const c = await open();
+    expect(c.textContent).not.toContain('Live within');
+    await cleanup();
+    current.locations = [{ person_id: 1, city: 'Ottsville', state: 'PA', lat: 40.31, lng: -75.1 }];
+    current.events = current.events.map((e) => ({ ...e, site_id: 'unknown-place' }));
+    const d = await open();
+    expect(d.textContent).not.toContain('Live within');
+  });
+});

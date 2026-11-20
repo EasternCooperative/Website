@@ -113,6 +113,15 @@ export interface AppUser {
   protected?: number;
 }
 
+/** Where someone lives, to about a kilometer: city, state, and a rounded point. No street, no postal code. */
+export interface PersonLocation {
+  person_id: number;
+  city: string | null;
+  state: string | null;
+  lat: number;
+  lng: number;
+}
+
 export interface Data {
   me?: string;
   /** What the signed-in person may see: finance sees donation amounts. */
@@ -127,6 +136,7 @@ export interface Data {
   service?: Service[];
   volunteers?: Volunteer[];
   outreach?: Outreach[];
+  locations?: PersonLocation[];
   activityTypes: string[];
 }
 

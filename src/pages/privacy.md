@@ -63,7 +63,7 @@ We do not sell your personal information. We share it only with:
 
 ## Involvement Records
 
-To run our programs and plan whom to invite, the board and a small group of volunteers keep a private record of your involvement with ECRS: events you registered for or attended, membership, gifts, volunteering, committee and board service, and classes or activities you have led. We use it to decide whom to invite back to events, to leadership, or to a committee, and to thank donors. It is not sold or shared outside the people who administer ECRS. Exact gift amounts are visible only to the board and treasurer.
+To run our programs and plan whom to invite, the board and a small group of volunteers keep a private record of your involvement with ECRS: events you registered for or attended, membership, gifts, volunteering, committee and board service, and classes or activities you have led. We use it to decide whom to invite back to events, to leadership, or to a committee, and to thank donors. It is not sold or shared outside the people who administer ECRS. Exact gift amounts are visible only to the board and treasurer. To plan events and find leaders who live near a venue, we also note the city, state, and postal code you gave when registering, joining, or donating. We do not keep your street address for this purpose.
 
 ### Children
 

@@ -2,7 +2,7 @@
 // the browser from what the tool already holds (roles, notes, events, outreach), and every
 // score comes with the words that explain it. Nothing is hidden because of a score.
 
-import { type Activity, type Data, type EventRow, type Outreach, type Person, type Role, type Scope } from './model';
+import type { Activity, Data, EventRow, Outreach, Person, PersonLocation, Role, Scope } from './model';
 
 export interface Brief {
   eventId: number | null;
@@ -41,23 +41,44 @@ export interface Candidate {
   ask: Outreach | null;
   /** When they were last contacted for anything, if lately. */
   lastContacted: string | null;
+  /** "Ottsville, PA", when their location is known. */
+  place: string | null;
   experience: number;
   ledHere: number;
   mentor: boolean;
 }
 
 export interface StaffFilters {
+  /** Only people known to live within this many miles. People with no known location stay in. */
+  maxMiles: number | null;
   hasLed: boolean;
   ledHere: boolean;
   mentorsOnly: boolean;
   includeAway: boolean;
 }
 export const DEFAULT_STAFF_FILTERS: StaffFilters = {
+  maxMiles: null,
   hasLed: false,
   ledHere: false,
   mentorsOnly: false,
   includeAway: false,
 };
+
+/** Straight-line miles between two points. */
+export function milesBetween(a: { lat: number; lng: number }, b: { lat: number; lng: number }): number {
+  const rad = (d: number) => (d * Math.PI) / 180;
+  const h =
+    Math.sin(rad(b.lat - a.lat) / 2) ** 2 +
+    Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(rad(b.lng - a.lng) / 2) ** 2;
+  return 3958.8 * 2 * Math.asin(Math.sqrt(h));
+}
+
+/** Each located person's distance to a venue. */
+export function milesTo(locations: PersonLocation[] | undefined, venue: { lat: number; lng: number } | undefined) {
+  const out = new Map<number, number>();
+  if (venue) for (const l of locations ?? []) out.set(l.person_id, milesBetween(l, venue));
+  return out;
+}
 
 const doy = (iso: string): number => {
   const d = new Date(`${iso}T00:00:00Z`);
@@ -104,6 +125,7 @@ export function candidatesFor(
   const activities = new Map(data.activities.map((a) => [a.id, a]));
   const events = new Map(data.events.map((e) => [e.id, e]));
   const slot = slotLabel(brief, data.activities);
+  const placeBy = new Map((data.locations ?? []).map((l) => [l.person_id, l]));
   const rolesBy = new Map<number, Role[]>();
   for (const r of data.roles) rolesBy.set(r.person_id, [...(rolesBy.get(r.person_id) ?? []), r]);
   const outreach = data.outreach ?? [];
@@ -118,7 +140,10 @@ export function candidatesFor(
     const away = person.status !== 'active';
     if (away && !filters.includeAway) continue;
     if (filters.mentorsOnly && !person.mentor) continue;
+    const dist = miles.get(person.id);
+    if (filters.maxMiles !== null && dist !== undefined && dist > filters.maxMiles) continue;
 
+    const place = placeBy.get(person.id);
     const roles = rolesBy.get(person.id) ?? [];
     let points = 0;
     let led = 0;
@@ -152,7 +177,6 @@ export function candidatesFor(
     const notes = data.notes.filter((n) => n.person_id === person.id && n.kind === 'ready');
     const match = notes.find((n) => focusMatches(n.focus ?? '', brief, act));
     const readyOther = notes[0];
-    const dist = miles.get(person.id);
     const nearness = Math.max(Math.min(ledHere, 3) / 3, dist === undefined ? 0 : 1 - Math.min(dist, 150) / 150);
 
     const segments: Segment[] = [
@@ -192,7 +216,7 @@ export function candidatesFor(
         key: 'nearness',
         value: nearness,
         detail: [
-          dist === undefined ? '' : `About ${Math.round(dist)} miles away`,
+          dist === undefined ? '' : `About ${Math.round(dist)} miles away${place?.city ? ` (${place.city})` : ''}`,
           ledHere ? `Led here ${plural(ledHere, 'time', 'times')}` : '',
         ]
           .filter(Boolean)
@@ -224,6 +248,7 @@ export function candidatesFor(
       experience: points,
       ledHere,
       mentor: !!person.mentor,
+      place: place ? [place.city, place.state].filter(Boolean).join(', ') || null : null,
     });
   }
   // Leading something else at the event does not rule anyone out; the card just says so.

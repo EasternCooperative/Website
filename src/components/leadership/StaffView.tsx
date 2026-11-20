@@ -8,6 +8,7 @@ import {
   DEFAULT_STAFF_WEIGHTS,
   benchDepth,
   candidatesFor,
+  milesTo,
   slotLabel,
   type Brief,
   type Candidate,
@@ -110,6 +111,7 @@ function CandidateCard({
             </button>
             <PersonTags person={c.person} />
           </p>
+          {c.place && <p className="text-xs text-muted">Near {c.place}</p>}
           {c.atEvent.length > 0 && (
             <p className="text-xs text-muted">Already leading {c.atEvent.join(', ')} at this event</p>
           )}
@@ -169,9 +171,11 @@ export default function StaffView({
   const choices = data.activities.filter(
     (a) => a.type === brief.type && (brief.scope === 'any' || a.scope === brief.scope)
   );
+  const venue = sites.find((s) => s.id === event?.site_id);
+  const miles = useMemo(() => milesTo(data.locations, venue), [data.locations, venue]);
   const candidates = useMemo(
-    () => (ready ? candidatesFor(data, brief, weights, filters, now) : []),
-    [data, brief, weights, filters, now, ready]
+    () => (ready ? candidatesFor(data, brief, weights, filters, now, miles) : []),
+    [data, brief, weights, filters, now, ready, miles]
   );
   const depth = useMemo(() => benchDepth(data, brief.scope, now), [data, brief.scope, now]);
   const asks = (data.outreach ?? []).filter(
@@ -301,6 +305,24 @@ export default function StaffView({
                   </button>
                 ))}
               </div>
+              {miles.size > 0 && (
+                <label className="mb-3 flex flex-wrap items-center gap-2 text-sm text-muted">
+                  Live within
+                  <select
+                    value={filters.maxMiles ?? 0}
+                    onChange={(e) => setFilters({ ...filters, maxMiles: Number(e.target.value) || null })}
+                    className={inputCls}
+                  >
+                    <option value={0}>any distance</option>
+                    {[25, 50, 100, 200].map((m) => (
+                      <option key={m} value={m}>
+                        {m} miles
+                      </option>
+                    ))}
+                  </select>
+                  of {venueName(event?.site_id as string)}. People with no known location stay in.
+                </label>
+              )}
               <details className="mb-3 text-sm">
                 <summary className="cursor-pointer text-muted">How the fit is worked out</summary>
                 <div className="mt-2 flex flex-wrap gap-x-5 gap-y-2">
