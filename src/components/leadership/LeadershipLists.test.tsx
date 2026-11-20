@@ -529,6 +529,11 @@ describe('similar events', () => {
     expect(pickerLabel(events[3])).toBe('2024 Undated');
   });
 
+  it('puts two upcoming events on the same day in a steady order', () => {
+    const same = [ev(9, 'B', 2027, '2027-03-01'), ev(8, 'A', 2027, '2027-03-01')];
+    expect(pickerEvents(same, '2026-11-20').map((e) => e.id)).toEqual([8, 9]);
+  });
+
   it('adds the target to Invite back and Invite to lead only', () => {
     const q = (id: string, values: Record<string, number | boolean>) =>
       params(

@@ -5,6 +5,7 @@ import ActivitiesView from './ActivitiesView';
 import EventsView from './EventsView';
 import { Split } from './forms';
 import JourneyView from './JourneyView';
+import StaffView from './StaffView';
 import ListsView from './ListsView';
 import NewPersonPanel from './NewPersonPanel';
 import DuplicatesView from './DuplicatesView';
@@ -16,6 +17,7 @@ import { DEFAULT_FILTERS, buildRows, type Data, type Filters, type SortKey, type
 
 // The main tabs, in the order people reach for them, then the admin-only views.
 const MAIN_VIEWS: { id: View; label: string }[] = [
+  { id: 'staff', label: 'Staff an event' },
   { id: 'journey', label: 'Journey' },
   { id: 'people', label: 'People' },
   { id: 'lists', label: 'Outreach' },
@@ -190,6 +192,15 @@ export default function LeadershipApp() {
                   )
                 )
               }
+            />
+          )}
+          {view === 'staff' && (
+            <StaffView
+              data={data}
+              query={query}
+              onQuery={setQuery}
+              onChanged={reload}
+              goTo={(v, id) => go(v, id ?? null)}
             />
           )}
           {view === 'journey' && (

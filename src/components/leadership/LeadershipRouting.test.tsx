@@ -47,7 +47,7 @@ describe('addresses', () => {
 
   it('keeps the address in step as you move, and follows Back', async () => {
     const c = await open();
-    expect(current(c)).toBe('People');
+    expect(current(c)).toBe('Staff an event'); // the tool opens on staffing
     await click(buttonWithText(c, 'Events'));
     expect(window.location.hash).toBe('#/events');
     await click(buttonWithText(c, 'Outreach'));
@@ -60,7 +60,7 @@ describe('addresses', () => {
   });
 
   it('does not open an admin view from a link for someone who is not an admin', async () => {
-    expect(current(await open('#/users'))).toBe('People');
+    expect(current(await open('#/users'))).toBe('Staff an event');
   });
 });
 

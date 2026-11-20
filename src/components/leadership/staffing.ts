@@ -158,7 +158,8 @@ export function candidatesFor(
     const segments: Segment[] = [
       {
         key: 'experience',
-        value: Math.min(points / 4, 1),
+        // Diminishing returns: the first few times matter most, but a long record still ranks higher.
+        value: 1 - Math.exp(-points / 4),
         detail: led
           ? `Led ${brief.type} ${plural(led, 'time', 'times')}, last in ${lastLed}${thisActivity && act ? `; led ${act.name} ${plural(thisActivity, 'time', 'times')}` : ''}`
           : points
@@ -169,7 +170,7 @@ export function candidatesFor(
         key: 'readiness',
         value: match ? 1 : readyOther ? 0.3 : 0,
         detail: match
-          ? `Ready for ${match.focus || 'this'}`
+          ? `Ready for ${match.focus}`
           : readyOther
             ? `Ready for ${readyOther.focus || 'something else'}`
             : '',

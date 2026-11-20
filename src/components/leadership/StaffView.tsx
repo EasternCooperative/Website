@@ -19,7 +19,7 @@ import sites from '../../data/site-geocodes.json';
 
 const FIRST = 15;
 const today = () => new Date().toISOString().slice(0, 10);
-const venueName = (id: string | null | undefined) => sites.find((s) => s.id === id)?.name ?? id ?? '';
+const venueName = (id: string) => sites.find((s) => s.id === id)?.name ?? id;
 
 /** The address keeps the brief, so a staffing search can be shared or come back to. */
 export function briefFromQuery(query: string): Brief {
@@ -55,7 +55,13 @@ function FitBars({ c }: { c: Candidate }) {
     <dl className="mt-2 grid grid-cols-5 gap-x-2 gap-y-1">
       {c.segments.map((s) => (
         <div key={s.key} title={SEGMENT_HINT[s.key]}>
-          <dt className="text-[0.7rem] uppercase tracking-wide text-muted">{SEGMENT_NAMES[s.key]}</dt>
+          <dt className="text-[0.7rem] uppercase tracking-wide text-muted">
+            <span className="hidden sm:inline">{SEGMENT_NAMES[s.key]}</span>
+            <span className="sm:hidden" aria-hidden="true">
+              {SEGMENT_NAMES[s.key].slice(0, 4)}
+            </span>
+            <span className="sr-only sm:hidden">{SEGMENT_NAMES[s.key]}</span>
+          </dt>
           <dd className="mt-0.5">
             <span className="block h-1.5 overflow-hidden rounded bg-primary/10" aria-hidden="true">
               <span

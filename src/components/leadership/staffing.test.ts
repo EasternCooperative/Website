@@ -78,6 +78,7 @@ const data: Data = {
     },
     { id: 2, person_id: 7, kind: 'ready', focus: 'puppets', body: '', author: 'x', created_at: '2026-01-01' },
     { id: 3, person_id: 7, kind: 'note', focus: null, body: 'not a ready note', author: 'x', created_at: '2026-01-01' },
+    { id: 4, person_id: 3, kind: 'ready', focus: null, body: '', author: 'x', created_at: '2026-01-01' },
   ],
   outreach: [
     {
@@ -143,7 +144,9 @@ describe('candidatesFor', () => {
   });
 
   it('explains experience in words, counting helping at half and a specific activity extra', () => {
-    expect(seg('Ana Expert', 'experience')).toMatchObject({ value: 0.5, detail: 'Led Games 2 times, last in 2025' });
+    const ana = seg('Ana Expert', 'experience');
+    expect(ana.detail).toBe('Led Games 2 times, last in 2025');
+    expect(ana.value).toBeCloseTo(1 - Math.exp(-0.5), 5);
     const tag = candidatesFor(
       data,
       { ...brief, scope: 'any', activityId: 1 },
@@ -162,16 +165,31 @@ describe('candidatesFor', () => {
       DEFAULT_STAFF_FILTERS,
       '2026-11-20'
     );
-    expect(helped.find((c) => c.person.name === 'Bo Newer')!.segments[0]).toMatchObject({
-      value: 0.125,
-      detail: 'Helped with Games',
-    });
+    const helpedBo = helped.find((c) => c.person.name === 'Bo Newer')!.segments[0];
+    expect(helpedBo.detail).toBe('Helped with Games');
+    expect(helpedBo.value).toBeCloseTo(1 - Math.exp(-0.125), 5);
+    expect(helpedBo.value).toBeLessThan(ana.value);
   });
 
   it('matches a ready-for note to the slot, and says so for a different one', () => {
     expect(seg('Bo Newer', 'readiness')).toEqual({ key: 'readiness', value: 1, detail: 'Ready for games class' });
     expect(seg('Gus Nobody', 'readiness')).toEqual({ key: 'readiness', value: 0.3, detail: 'Ready for puppets' });
     expect(seg('Ana Expert', 'readiness')).toEqual({ key: 'readiness', value: 0, detail: '' });
+  });
+
+  it('copes with a ready note that has no focus', () => {
+    const away = candidatesFor(
+      data,
+      brief,
+      DEFAULT_STAFF_WEIGHTS,
+      { ...DEFAULT_STAFF_FILTERS, includeAway: true },
+      '2026-11-20'
+    );
+    expect(away.find((c) => c.person.name === 'Cy Away')!.segments[1]).toEqual({
+      key: 'readiness',
+      value: 0.3,
+      detail: 'Ready for something else',
+    });
   });
 
   it('reads availability from status, with mentors a little higher', () => {
