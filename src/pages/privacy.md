@@ -3,7 +3,7 @@ title: 'Privacy Policy'
 layout: '~/layouts/MarkdownLayout.astro'
 ---
 
-_Last updated: November 14, 2026_
+_Last updated: November 20, 2026_
 
 The Eastern Cooperative Recreation School ("ECRS," "we," "us," or "our") respects your privacy. This policy explains what information we collect when you visit [ecrs.org](https://ecrs.org) or register for our events and programs, how we use it, and the choices you have.
 
@@ -50,6 +50,7 @@ We use the information we collect to:
 - Process event registrations, memberships, and donations;
 - Communicate with you about events, your registration, and ECRS news (such as our newsletter, _ECHOES_);
 - Respond to your questions and requests;
+- Keep a private record of your involvement with ECRS, as described under Involvement Records below;
 - Understand and improve how our website and events work;
 - Meet our legal, accounting, and reporting obligations as a nonprofit.
 
@@ -60,13 +61,25 @@ We do not sell your personal information. We share it only with:
 - **Service providers** that help us operate — currently Cognito Forms (forms), PayPal and Zeffy (payments and donations), Google (analytics and advertising), Meta (advertising measurement), and Cloudflare (website hosting and analytics) — who may process information on our behalf;
 - **Authorities**, if required by law or to protect the rights and safety of our community.
 
+## Involvement Records
+
+To run our programs and plan whom to invite, the board and a small group of volunteers keep a private record of your involvement with ECRS: events you registered for or attended, membership, gifts, volunteering, committee and board service, and classes or activities you have led. We use it to decide whom to invite back to events, to leadership, or to a committee, and to thank donors. It is not sold or shared outside the people who administer ECRS. Exact gift amounts are visible only to the board and treasurer.
+
+### Children
+
+We do not keep children's names in this record. When a child attends with a family, we count them on the family's registration. We may also keep a coded identifier made from the child's name, with an age range, so that we can count attendance over time and recognize their history if they later join as an adult. The code cannot be turned back into a name without a separate secret key that we keep apart from the records. It is a pseudonym, not a guarantee of anonymity.
+
+### Your choices
+
+Write to [contact@ecrs.org](mailto:contact@ecrs.org) to see your record, correct it, or have it erased. When we erase a record, we clear your name and contact details right away. Database backups can keep an older copy for up to seven days, after which it is deleted automatically.
+
 ## Data Retention
 
 We keep registration, membership, and donation records as long as needed to run our programs and to meet legal and accounting requirements, then delete or anonymize them. Aggregate analytics data is retained for a limited period (Google Analytics is configured with a 14-month retention window).
 
 ## Children's Privacy
 
-ECRS is an intergenerational organization, and families attend our events together. Information about children is provided by a parent or guardian during registration, and we use it only to run the event safely (for example, for age-appropriate activities, supervision, and dietary or medical needs). We do not knowingly collect personal information directly from children online. If you believe a child has provided us information directly, please contact us and we will remove it.
+ECRS is an intergenerational organization, and families attend our events together. Information about children is provided by a parent or guardian during registration, and we use it to run the event safely (for example, for age-appropriate activities, supervision, and dietary or medical needs). The only other use is the coded attendance record described under Involvement Records. We do not knowingly collect personal information directly from children online. If you believe a child has provided us information directly, please contact us and we will remove it.
 
 ## Your Rights and Choices
 
