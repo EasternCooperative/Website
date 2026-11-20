@@ -1,6 +1,19 @@
 // Client for /api/internal/engagement. Same-origin only: Cloudflare Access puts
 // the session cookie on these requests, and the Function checks the JWT.
-import type { AccessLevel, Activity, AppUser, Data, EngagementPage, EventRow, Person, Role, Timeline } from './model';
+import type {
+  AccessLevel,
+  Activity,
+  AppUser,
+  JourneyBoard,
+  JourneyColumn,
+  JourneyRow,
+  Data,
+  EngagementPage,
+  EventRow,
+  Person,
+  Role,
+  Timeline,
+} from './model';
 
 const BASE = '/api/internal/engagement';
 
@@ -152,3 +165,15 @@ export const listDuplicates = () => request<{ pairs: DuplicatePair[] }>('/duplic
 export const previewMerge = (fromId: number, intoId: number) => request<MergePreview>(`/merge/${fromId}/${intoId}`);
 export const mergePeople = (fromId: number, intoId: number) =>
   send<{ into: number }>('POST', `/merge/${fromId}/${intoId}`, { confirm: fromId });
+
+export interface PlanInput {
+  target: string | null;
+  next_step: string | null;
+  due_on: string | null;
+  owner: string | null;
+}
+export const getJourney = (query: string) => request<JourneyBoard>(`/journey${query ? `?${query}` : ''}`);
+export const getJourneyColumn = (query: string) => request<JourneyColumn>(`/journey?${query}`);
+export const getJourneyPerson = (id: number) => request<JourneyRow>(`/journey/${id}`);
+export const savePlan = (id: number, plan: PlanInput) => send<{ ok: true }>('PUT', `/journey/${id}`, plan);
+export const clearPlan = (id: number) => send<{ ok: true }>('DELETE', `/journey/${id}`);

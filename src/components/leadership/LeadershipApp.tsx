@@ -4,6 +4,7 @@ import Dashboard from './Dashboard';
 import ActivitiesView from './ActivitiesView';
 import EventsView from './EventsView';
 import { Split } from './forms';
+import JourneyView from './JourneyView';
 import ListsView from './ListsView';
 import NewPersonPanel from './NewPersonPanel';
 import DuplicatesView from './DuplicatesView';
@@ -15,6 +16,7 @@ import { DEFAULT_FILTERS, buildRows, type Data, type Filters, type SortKey, type
 
 // The main tabs, in the order people reach for them, then the admin-only views.
 const MAIN_VIEWS: { id: View; label: string }[] = [
+  { id: 'journey', label: 'Journey' },
   { id: 'people', label: 'People' },
   { id: 'lists', label: 'Outreach' },
   { id: 'events', label: 'Events' },
@@ -168,7 +170,7 @@ export default function LeadershipApp() {
                       data={data}
                       person={selected}
                       onChanged={reload}
-                      goTo={setView}
+                      goTo={(v, id) => go(v, id ?? null)}
                       onClose={() => {
                         setSelectedId(null);
                         // Hand focus back to the person's row, so keyboard users keep their place.
@@ -180,6 +182,14 @@ export default function LeadershipApp() {
                   )
                 )
               }
+            />
+          )}
+          {view === 'journey' && (
+            <JourneyView
+              data={data}
+              selectedId={typeof selectedId === 'number' ? selectedId : null}
+              onSelect={(id) => go('journey', id)}
+              goTo={(v, id) => go(v, id)}
             />
           )}
           {view === 'lists' && <ListsView data={data} onChanged={reload} goTo={setView} />}
