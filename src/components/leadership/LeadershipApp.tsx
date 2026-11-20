@@ -7,15 +7,21 @@ import { Split } from './forms';
 import ListsView from './ListsView';
 import NewPersonPanel from './NewPersonPanel';
 import DuplicatesView from './DuplicatesView';
+import AdminMenu from './AdminMenu';
+import { formatHash, parseHash } from './route';
 import UsersView, { LEVEL_LABELS } from './UsersView';
 import PersonPanel from './PersonPanel';
 import { DEFAULT_FILTERS, buildRows, type Data, type Filters, type SortKey, type View } from './model';
 
-const ALL_VIEWS: { id: View; label: string }[] = [
+// The main tabs, in the order people reach for them, then the admin-only views.
+const MAIN_VIEWS: { id: View; label: string }[] = [
   { id: 'people', label: 'People' },
-  { id: 'lists', label: 'Lists' },
+  { id: 'lists', label: 'Outreach' },
   { id: 'events', label: 'Events' },
   { id: 'activities', label: 'Activities' },
+];
+const NO_VIEWS: { id: View; label: string }[] = [];
+const ADMIN_VIEWS: { id: View; label: string }[] = [
   { id: 'duplicates', label: 'Duplicates' },
   { id: 'users', label: 'Access' },
 ];
@@ -23,8 +29,8 @@ const ALL_VIEWS: { id: View; label: string }[] = [
 export default function LeadershipApp() {
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [view, setView] = useState<View>('people');
-  const [selectedId, setSelectedId] = useState<number | 'new' | null>(null);
+  const [view, setViewState] = useState<View>('people');
+  const [selectedId, setSelectedState] = useState<number | 'new' | null>(null);
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [sort, setSort] = useState<{ key: SortKey; descending: boolean }>({ key: 'name', descending: false });
 
@@ -42,7 +48,39 @@ export default function LeadershipApp() {
     reload().catch(() => {});
   }, [reload]);
 
-  const views = ALL_VIEWS.filter((v) => (v.id !== 'users' && v.id !== 'duplicates') || data?.isAdmin);
+  const admin = data?.isAdmin ? ADMIN_VIEWS : NO_VIEWS;
+  const allowed = useMemo(() => [...MAIN_VIEWS, ...admin].map((v) => v.id), [admin]);
+
+  // The address bar and the screen stay in step: opening a view or a person updates the
+  // hash, and following a link or pressing Back updates the screen.
+  const go = useCallback((next: View, id: number | null = null) => {
+    const hash = formatHash(next, id);
+    if (window.location.hash !== hash) window.history.pushState(null, '', hash);
+    setViewState(next);
+    setSelectedState(id);
+  }, []);
+  useEffect(() => {
+    const read = () => {
+      const r = parseHash(window.location.hash, allowed, 'people');
+      setViewState(r.view);
+      setSelectedState(r.id);
+    };
+    read();
+    window.addEventListener('popstate', read);
+    window.addEventListener('hashchange', read);
+    return () => {
+      window.removeEventListener('popstate', read);
+      window.removeEventListener('hashchange', read);
+    };
+  }, [allowed]);
+  const setView = (v: View) => go(v);
+  const setSelectedId = (id: number | 'new' | null) => {
+    if (id === 'new') {
+      setSelectedState('new');
+      return;
+    }
+    go(view, id);
+  };
   const rows = useMemo(() => (data ? buildRows(data) : []), [data]);
   const selected = typeof selectedId === 'number' ? data?.people.find((p) => p.id === selectedId) : undefined;
 
@@ -56,11 +94,11 @@ export default function LeadershipApp() {
 
   return (
     <section className="py-10 px-4 max-w-[96rem] mx-auto">
-      <h1 className="font-heading text-heading text-3xl font-bold mb-1">Leadership Tracker</h1>
+      <h1 className="font-heading text-heading text-3xl font-bold mb-1">Engagement</h1>
       <p className="text-muted mb-6 max-w-prose">
-        Who has led what, at every event on record. Use it to see who is ready for something new and who could staff a
-        class. Add people, events, and activities as they come up, and record who led what. Open a person to set
-        availability and write readiness notes. Private to the board and leadership team.
+        Who has come, given, led, and served, and who to ask next. Add people, events, and activities as they come up,
+        and record who led what. Open a person to set availability and write readiness notes. Private to the board and
+        leadership team.
         {data?.me && (
           <span className="mt-1 block text-xs">
             Signed in as {data.me}
@@ -78,24 +116,26 @@ export default function LeadershipApp() {
 
       {data && (
         <>
-          <nav
-            aria-label="Sections"
-            className="mb-5 flex gap-1 overflow-x-auto whitespace-nowrap border-b border-gray-200 dark:border-gray-700"
-          >
-            {views.map((v) => (
-              <button
-                key={v.id}
-                type="button"
-                aria-current={view === v.id ? 'page' : undefined}
-                onClick={() => setView(v.id)}
-                className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-primary ${
-                  view === v.id ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-default'
-                }`}
-              >
-                {v.label}
-              </button>
-            ))}
-          </nav>
+          <div className="mb-5 flex items-end border-b border-gray-200 dark:border-gray-700">
+            <nav aria-label="Sections" className="flex min-w-0 flex-1 gap-1 overflow-x-auto whitespace-nowrap">
+              {MAIN_VIEWS.map((v) => (
+                <button
+                  key={v.id}
+                  type="button"
+                  aria-current={view === v.id ? 'page' : undefined}
+                  onClick={() => setView(v.id)}
+                  className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-primary ${
+                    view === v.id ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-default'
+                  }`}
+                >
+                  {v.label}
+                </button>
+              ))}
+            </nav>
+            {admin.length > 0 && (
+              <AdminMenu label="Admin" items={admin} current={view} onSelect={(id) => setView(id as View)} />
+            )}
+          </div>
 
           {view === 'people' && (
             <Split

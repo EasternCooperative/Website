@@ -71,6 +71,7 @@ async function open() {
   return container;
 }
 const accessTab = async (c: Element) => {
+  await click([...c.querySelectorAll('button')].find((b) => b.textContent?.startsWith('Admin')) ?? null);
   await click(button(c, 'Access'));
   await settle();
 };
@@ -86,7 +87,7 @@ describe('who is signed in', () => {
     const c = await open();
     expect(c.textContent).toContain('Signed in as treasurer@example.org, Finance access');
     expect(c.textContent).not.toContain('admin');
-    expect(button(c, 'Access')).toBeNull();
+    expect([...c.querySelectorAll('button')].some((b) => b.textContent?.startsWith('Admin'))).toBe(false);
   });
 
   it('shows no level when the server did not send one', async () => {
