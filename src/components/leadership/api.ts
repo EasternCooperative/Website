@@ -1,6 +1,6 @@
 // Client for /api/internal/leadership. Same-origin only: Cloudflare Access puts
 // the session cookie on these requests, and the Function checks the JWT.
-import type { Activity, Data, EventRow, Person, Role } from './model';
+import type { AccessLevel, Activity, AppUser, Data, EventRow, Person, Role } from './model';
 
 const BASE = '/api/internal/leadership';
 
@@ -89,3 +89,9 @@ export const addNote = (note: { person_id: number; kind: 'note' | 'ready'; focus
   send<{ id: number }>('POST', '/note', note);
 
 export const deleteNote = (id: number) => send<{ ok: true }>('DELETE', `/note/${id}`);
+
+export const listUsers = () => request<{ users: AppUser[] }>('/users');
+/** Adds someone, or changes their level or admin flag. */
+export const saveUser = (u: { email: string; level: AccessLevel; is_admin: boolean }) =>
+  send<{ ok: true }>('POST', '/users', u);
+export const deleteUser = (email: string) => send<{ ok: true }>('DELETE', `/users/${encodeURIComponent(email)}`);
