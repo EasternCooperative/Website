@@ -181,3 +181,8 @@ export const getJourneyColumn = (query: string) => request<JourneyColumn>(`/jour
 export const getJourneyPerson = (id: number) => request<JourneyRow>(`/journey/${id}`);
 export const savePlan = (id: number, plan: PlanInput) => send<{ ok: true }>('PUT', `/journey/${id}`, plan);
 export const clearPlan = (id: number) => send<{ ok: true }>('DELETE', `/journey/${id}`);
+
+export const createVenue = (v: { name: string; postal_code: string }) => send<{ id: string }>('POST', '/venue', v);
+export const markExpert = (person_id: number, type: string) =>
+  send<{ id: number }>('POST', '/expertise', { person_id, type });
+export const unmarkExpert = (id: number) => send<{ ok: true }>('DELETE', `/expertise/${id}`);
