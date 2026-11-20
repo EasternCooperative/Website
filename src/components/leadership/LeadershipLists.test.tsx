@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act } from 'react';
 import { click, cleanup, render, settle } from '../../__tests__/react';
 import LeadershipApp from './LeadershipApp';
-import { LISTS, factsFor, listQuery, type Data, type EngagementRow } from './model';
+import { DEFAULT_WEIGHTS, LISTS, factsFor, listQuery, scoreFor, type Data, type EngagementRow } from './model';
 
 // Placeholder names only.
 const base: Data = {
@@ -190,6 +190,37 @@ describe('what each list asks for', () => {
   });
 });
 
+describe('donor stewardship lists', () => {
+  const q = (id: string, values = {}) =>
+    params(
+      listQuery(
+        LISTS.find((l) => l.id === id)!,
+        values,
+        new Date('2026-11-20T12:00:00Z')
+      )
+    );
+  it('first-time donors gave exactly once, within the window, with no waiting period', () => {
+    const p = q('firstgift');
+    expect(p).toMatchObject({ min_gift_count: '1', max_gift_count: '1', min_last_gift_year: '2025' });
+    expect(p.not_contacted_since).toBeUndefined();
+    expect(q('firstgift', { recentYears: 3 }).min_last_gift_year).toBe('2023');
+  });
+  it('lapsed donors gave before but not within the window', () => {
+    expect(q('lapsed')).toMatchObject({ min_gift_count: '1', max_last_gift_year: '2024', sort: 'giving_tier' });
+  });
+});
+
+describe('the optional score', () => {
+  it('adds up visible points and explains each one', () => {
+    const r = rowOf({ events_registered: 3, events_attended: 2, roles_led: 1, member_now: 1, giving_tier_rank: 2 });
+    const { total, parts } = scoreFor(r, DEFAULT_WEIGHTS, 2026);
+    expect(total).toBe(3 + 2 + 3 + 3 + 4);
+    expect(parts.map((x) => x.label)).toEqual(['3 registered', '2 attended', '1 led', 'member', 'giving']);
+    expect(scoreFor(rowOf({ events_registered: 0, last_event_year: null }), DEFAULT_WEIGHTS, 2026).total).toBe(0);
+    expect(scoreFor(rowOf({ events_registered: 0, last_event_year: 2025 }), DEFAULT_WEIGHTS, 2026).total).toBe(3);
+  });
+});
+
 describe('the facts behind a row', () => {
   it('says each thing in words, and nothing that is empty', () => {
     expect(factsFor(rowOf())).toEqual(['Registered for 4 events, last in 2023', 'Never led']);
@@ -333,6 +364,23 @@ describe('the Lists tab', () => {
     await settle();
     expect(c.textContent).toContain('From the first list');
     expect(c.textContent).not.toContain('From the slow list');
+  });
+});
+
+describe('the score on the Lists tab', () => {
+  it('is off until asked for, then shows a breakdown, orders by it, and takes edited weights', async () => {
+    const c = await open();
+    expect(c.textContent).not.toContain('Score ');
+    const toggle = [...c.querySelectorAll('label')].find((l) => l.textContent?.includes('Show a score'))!;
+    await click(toggle.querySelector('input'));
+    expect(c.textContent).toContain('Score 4: 4 registered 4');
+    // Person A (4) is listed before Person B (1).
+    expect(c.textContent!.indexOf('Person A')).toBeLessThan(c.textContent!.indexOf('Person B'));
+    const input = c.querySelector('details input[type="number"]') as HTMLInputElement;
+    await setNumber(input, '5');
+    expect(c.textContent).toContain('Score 20');
+    await setNumber(input, '99'); // out of range, ignored
+    expect(c.textContent).toContain('Score 20');
   });
 });
 

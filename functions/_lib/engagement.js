@@ -91,6 +91,21 @@ export async function listEngagement(db, user, params) {
   num('min_last_event_year', 'last_event_year', '>=');
   num('max_last_event_year', 'last_event_year', '<=');
   num('min_last_led_year', 'last_led_year', '>=');
+  num('min_gift_count', 'gift_count', '>=');
+  num('max_gift_count', 'gift_count', '<=');
+  // Gift recency is a year, never an amount, so any level may filter on it.
+  const lastGift =
+    '(SELECT MAX(CAST(substr(d.donated_at, 1, 4) AS INTEGER)) FROM donation d WHERE d.person_id = e.person_id AND d.deleted_at IS NULL)';
+  for (const [name, op] of [
+    ['min_last_gift_year', '>='],
+    ['max_last_gift_year', '<='],
+  ]) {
+    const v = int(params.get(name), null, { max: 3000 });
+    if (v !== null) {
+      where.push(`${lastGift} ${op} ?`);
+      bind.push(v);
+    }
+  }
   if (params.get('serving') === '1') where.push('e.serving_now > 0');
   if (params.get('serving') === '0') where.push('e.serving_now = 0');
   if (params.get('has_ready') === '1') {

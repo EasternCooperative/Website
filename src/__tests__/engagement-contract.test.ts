@@ -486,3 +486,20 @@ describe('the criteria the invite lists use', () => {
     ]);
   });
 });
+
+describe('donor stewardship filters', () => {
+  const names = async (query: string, as = 'standard@example.org') => {
+    const { status, text } = await get(`engagement?${query}`, as);
+    expect(status).toBe(200);
+    expectNoMoney(text);
+    return (JSON.parse(text).people as { name: string }[]).map((p) => p.name);
+  };
+  it('filters by number of gifts and the year of the last one, without revealing amounts', async () => {
+    expect(await names('min_gift_count=1&max_gift_count=1&min_last_gift_year=2026')).toEqual(['Alice Adams']);
+    expect(await names('min_gift_count=1&max_last_gift_year=2025&sort=name')).toEqual(['Bob Brown', 'Cara Cole']);
+    expect(await names('max_gift_count=0')).toEqual(['Dan Dunn']);
+  });
+  it('rejects an out-of-range value', async () => {
+    expect((await get('engagement?min_last_gift_year=99999', 'standard@example.org')).status).toBe(400);
+  });
+});
