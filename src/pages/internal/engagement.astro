@@ -4,13 +4,13 @@ import Layout from '~/layouts/PageLayout.astro';
 import LeadershipApp from '~/components/leadership/LeadershipApp';
 ---
 
-<!-- Staff tool. Everything is client-rendered from /api/internal/leadership, which
+<!-- Staff tool. Everything is client-rendered from /api/internal/engagement, which
      checks the Cloudflare Access JWT itself. The page shell holds no data.
      `noIndex` also keeps it out of the on-site Pagefind index. -->
 <Layout
   metadata={{
-    title: 'Leadership Tracker',
-    description: 'Track leaders’ experience and find who can staff a class.',
+    title: 'Engagement Tracker',
+    description: 'Track member engagement: events, giving, membership, and leadership.',
     robots: { index: false, follow: false },
   }}
   noIndex

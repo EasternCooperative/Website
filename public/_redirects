@@ -16,6 +16,8 @@
 # Cloudflare Access rule (a bare /internal is outside it).
 /internal                                         /internal/tools   302
 /internal/                                        /internal/tools   302
+/internal/leadership                              /internal/engagement   302
+/internal/leadership/                             /internal/engagement   302
 
 # --- Core pages that moved ---
 /about-us-2/*                                    /about   301

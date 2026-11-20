@@ -1,8 +1,8 @@
-// Client for /api/internal/leadership. Same-origin only: Cloudflare Access puts
+// Client for /api/internal/engagement. Same-origin only: Cloudflare Access puts
 // the session cookie on these requests, and the Function checks the JWT.
 import type { AccessLevel, Activity, AppUser, Data, EngagementPage, EventRow, Person, Role, Timeline } from './model';
 
-const BASE = '/api/internal/leadership';
+const BASE = '/api/internal/engagement';
 
 export class ApiError extends Error {
   constructor(

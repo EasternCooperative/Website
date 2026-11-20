@@ -139,7 +139,7 @@ describe('LeadershipApp', () => {
     await settle();
 
     const post = calls.find((c) => c.method === 'POST')!;
-    expect(post.url).toBe('/api/internal/leadership/note');
+    expect(post.url).toBe('/api/internal/engagement/note');
     expect(JSON.parse(post.body!)).toMatchObject({ person_id: 1, kind: 'note', body: 'Ready to co-lead' });
     expect(container.querySelector('aside')?.textContent).toContain('Ready to co-lead');
   });
@@ -262,7 +262,7 @@ describe('LeadershipApp: person panel', () => {
     expect(aside.querySelector('[role="status"]')?.textContent).toContain('Saved');
 
     const put = calls.find((c) => c.method === 'PUT')!;
-    expect(put.url).toBe('/api/internal/leadership/person/1');
+    expect(put.url).toBe('/api/internal/engagement/person/1');
     expect(JSON.parse(put.body!)).toMatchObject({
       status: 'inactive',
       mentor: true,
