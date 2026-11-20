@@ -10,12 +10,14 @@ let pairs: unknown[];
 let calls: string[];
 let previewFails: boolean;
 let listFails: boolean;
+let counts: Record<string, number>;
 
 beforeEach(() => {
   pairs = [{ a: { id: 1, name: 'Debra Dunn' }, b: { id: 2, name: 'Debbie Dunn' }, reasons: ['similar name'] }];
   calls = [];
   previewFails = false;
   listFails = false;
+  counts = { registration: 3, role: 0 };
   vi.stubGlobal(
     'fetch',
     vi.fn((url: string, init?: RequestInit) => {
@@ -41,7 +43,7 @@ beforeEach(() => {
           : json({
               from: { id: 2, name: 'Debbie Dunn' },
               into: { id: 1, name: 'Debra Dunn' },
-              counts: { registration: 3, role: 0 },
+              counts: counts,
             });
       pairs = [];
       return json({ into: 1 });
@@ -92,5 +94,21 @@ describe('Duplicates view', () => {
     listFails = true;
     const d = await open();
     expect(d.container.textContent).toContain('nope');
+  });
+});
+
+describe('Duplicates view wording', () => {
+  it('names unknown record kinds as they are, and says when nothing else moves', async () => {
+    counts = { mystery: 2 };
+    const c = await open();
+    await click(buttonWithText(c.container, 'Keep Debra Dunn'));
+    await settle();
+    expect(c.container.textContent).toContain('Move 2 mystery from');
+    await cleanup();
+    counts = { registration: 0 };
+    const d = await open();
+    await click(buttonWithText(d.container, 'Keep Debra Dunn'));
+    await settle();
+    expect(d.container.textContent).toContain('Move nothing else from');
   });
 });

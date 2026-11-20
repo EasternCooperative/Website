@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ApiError, listDuplicates, mergePeople, previewMerge, type DuplicatePair, type MergePreview } from './api';
+import { listDuplicates, mergePeople, previewMerge, type ApiError, type DuplicatePair, type MergePreview } from './api';
 import { ErrorNote, linkBtn, primaryBtn, secondaryBtn, surface, useAction } from './forms';
 
 const LABELS: Record<string, string> = {
@@ -34,7 +34,7 @@ function PairCard({ pair, onMerged }: { pair: DuplicatePair; onMerged: () => Pro
     try {
       setPreview(await previewMerge(from.id, into.id));
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Could not load the preview.');
+      setError((e as ApiError).message);
     }
   };
 
@@ -99,7 +99,7 @@ export default function DuplicatesView({ onChanged }: { onChanged: () => Promise
       setPairs((await listDuplicates()).pairs);
       setError(null);
     } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Could not load the list.');
+      setError((e as ApiError).message);
     }
   }, []);
   useEffect(() => {
