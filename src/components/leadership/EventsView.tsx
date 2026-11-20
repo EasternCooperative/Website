@@ -63,18 +63,33 @@ function Details({
   const [name, setName] = useState(event?.name ?? '');
   const [type, setType] = useState<EventType | ''>((event?.event_type as EventType) ?? '');
   const [year, setYear] = useState(String(event?.year ?? thisYear()));
+  const [startDate, setStartDate] = useState(event?.start_date ?? '');
+  const [venue, setVenue] = useState(event?.site_id ?? '');
   const [saved, setSaved] = useState(false);
   const { busy, error, run } = useAction(onChanged);
 
   const yearNum = Number(year);
   const ready = name.trim() !== '' && type !== '' && Number.isInteger(yearNum) && yearNum >= 1970 && yearNum <= 2100;
-  const dirty = !event || name.trim() !== event.name || type !== event.event_type || yearNum !== event.year;
+  const dirty =
+    !event ||
+    name.trim() !== event.name ||
+    type !== event.event_type ||
+    yearNum !== event.year ||
+    startDate !== (event.start_date ?? '') ||
+    venue.trim() !== (event.site_id ?? '');
 
   const onSubmit = async (e: SyntheticEvent) => {
     e.preventDefault();
     setSaved(false);
     if (!ready) return;
-    const input = { name: name.trim(), event_type: type, year: yearNum, site_event_id: event?.site_event_id };
+    const input = {
+      name: name.trim(),
+      event_type: type,
+      year: yearNum,
+      site_event_id: event?.site_event_id,
+      start_date: startDate || null,
+      site_id: venue.trim() || null,
+    };
     const { ok, value } = await run(async () => {
       try {
         return event ? (await saveEvent(event.id, input), event.id) : (await createEvent(input)).id;
@@ -104,6 +119,15 @@ function Details({
           onChange={(e) => setYear(e.target.value)}
           className={`${inputCls} max-w-28`}
         />
+      </Field>
+      <Field label="Start date" hint="Optional. Lets the Lists tab find people who came at a similar time of year.">
+        <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className={inputCls} />
+      </Field>
+      <Field
+        label="Venue"
+        hint="Optional. The venue's id on the site, such as camp-onas. Matches events at the same place."
+      >
+        <input value={venue} onChange={(e) => setVenue(e.target.value)} className={inputCls} />
       </Field>
       <Segmented name="event-type" legend="Kind of event" value={type} options={TYPE_OPTIONS} onChange={setType} />
       <ErrorNote message={error} />

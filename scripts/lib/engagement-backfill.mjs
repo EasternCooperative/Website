@@ -12,8 +12,8 @@ const NOW = "strftime('%Y-%m-%dT%H:%M:%fZ', 'now')";
  * otherwise adds the event. Then records which Cognito form or Zeffy page belongs to it.
  * `forms` is [{ source, ref }].
  */
-/** @param {{ slug: string, title: string, year: number, type: string, forms?: { source: string, ref: string }[] }} event */
-export function eventStatements({ slug, title, year, type, forms = [] }) {
+/** @param {{ slug: string, title: string, year: number, type: string, start?: string | null, end?: string | null, siteId?: string | null, forms?: { source: string, ref: string }[] }} event */
+export function eventStatements({ slug, title, year, type, start = null, end = null, siteId = null, forms = [] }) {
   const unlinked = `site_event_id IS NULL AND deleted_at IS NULL AND year = ${year} AND instr(lower(${sql(title)}), lower(name)) > 0`;
   const out = [
     `UPDATE event SET site_event_id = ${sql(slug)}, updated_at = ${NOW}, updated_by = ${BY}
@@ -23,6 +23,10 @@ export function eventStatements({ slug, title, year, type, forms = [] }) {
     `INSERT INTO event (name, event_type, year, site_event_id, created_by, updated_by)
  SELECT ${sql(title)}, ${sql(type)}, ${year}, ${sql(slug)}, ${BY}, ${BY}
  WHERE NOT EXISTS (SELECT 1 FROM event WHERE site_event_id = ${sql(slug)});`,
+    // When and where it happened. Rerunning only writes what differs.
+    `UPDATE event SET start_date = ${sql(start)}, end_date = ${sql(end)}, site_id = ${sql(siteId)}, updated_at = ${NOW}, updated_by = ${BY}
+ WHERE site_event_id = ${sql(slug)} AND deleted_at IS NULL
+   AND (start_date IS NOT ${sql(start)} OR end_date IS NOT ${sql(end)} OR site_id IS NOT ${sql(siteId)});`,
   ];
   for (const { source, ref } of forms) {
     out.push(`INSERT INTO event_source (event_id, source, form_ref, created_by, updated_by)

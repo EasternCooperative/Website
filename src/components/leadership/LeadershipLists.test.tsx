@@ -3,7 +3,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act } from 'react';
 import { click, cleanup, render, settle } from '../../__tests__/react';
 import LeadershipApp from './LeadershipApp';
-import { DEFAULT_WEIGHTS, LISTS, factsFor, listQuery, scoreFor, type Data, type EngagementRow } from './model';
+import {
+  DEFAULT_WEIGHTS,
+  LISTS,
+  factsFor,
+  listQuery,
+  pickerEvents,
+  pickerLabel,
+  scoreFor,
+  type Data,
+  type EngagementRow,
+} from './model';
 
 // Placeholder names only.
 const base: Data = {
@@ -495,5 +505,86 @@ describe('opening a person from a list', () => {
     expect(c.textContent).toContain('Someone Missing');
     await click(buttons(c).find((b) => b.textContent === 'Someone Missing') ?? null);
     expect(c.querySelector('aside')).toBeNull(); // no panel without a person record
+  });
+});
+
+describe('similar events', () => {
+  const ev = (id: number, name: string, year: number, start_date: string | null) => ({
+    id,
+    name,
+    event_type: 'weekend',
+    year,
+    start_date,
+  });
+  const events = [
+    ev(1, 'Camp 2025', 2025, '2025-06-14'),
+    ev(2, 'Fall Fun Day 2026', 2026, '2026-12-05'),
+    ev(3, 'Spring 2027', 2027, '2027-03-01'),
+    ev(4, 'Undated 2024', 2024, null),
+  ];
+
+  it('orders the picker upcoming first, then past, and labels with the date or the year', () => {
+    expect(pickerEvents(events, '2026-11-20').map((e) => e.id)).toEqual([2, 3, 1, 4]);
+    expect(pickerLabel(events[0])).toBe('2025-06-14 Camp');
+    expect(pickerLabel(events[3])).toBe('2024 Undated');
+  });
+
+  it('adds the target to Invite back and Invite to lead only', () => {
+    const q = (id: string, values: Record<string, number | boolean>) =>
+      params(
+        listQuery(
+          LISTS.find((l) => l.id === id)!,
+          { targetEvent: 2, ...values },
+          new Date('2026-11-20T12:00:00Z')
+        )
+      );
+    expect(q('back', {})).toMatchObject({ target_event: '2', similar: 'either' });
+    expect(q('lead', { similar: 1, similarOnly: true })).toMatchObject({ similar: 'time', similar_only: '1' });
+    expect(q('committee', { similar: 2 }).target_event).toBeUndefined(); // board service does not depend on when or where
+    expect(q('donors', {}).target_event).toBeUndefined();
+    expect(params(listQuery(LISTS[0], {}, new Date('2026-11-20T12:00:00Z'))).target_event).toBeUndefined();
+  });
+
+  it('says what a person came to, and scores it up to three events each', () => {
+    expect(factsFor(rowOf({ similar_time_events: 2, similar_venue_events: 1 }))).toContain(
+      'Came to 2 events near this time of year, 1 event at this venue'
+    );
+    expect(factsFor(rowOf({ similar_venue_events: 3 }))).toContain('Came to 3 events at this venue');
+    expect(factsFor(rowOf({ similar_time_events: 0, similar_venue_events: 0 })).join(' ')).not.toContain('Came to');
+    const { total } = scoreFor(
+      rowOf({ events_registered: 0, last_event_year: null, similar_time_events: 5, similar_venue_events: 1 }),
+      DEFAULT_WEIGHTS,
+      2026
+    );
+    expect(total).toBe(3 * 2 + 1 * 2);
+  });
+
+  it('shows the picker on the invite lists, and asks the server for the chosen event', async () => {
+    current = { ...structuredClone(base), events };
+    const c = await open();
+    const pickers = () => [...c.querySelectorAll('select')] as HTMLSelectElement[];
+    expect(pickers()).toHaveLength(1);
+    expect(pickers()[0].textContent).toContain('2026-12-05 Fall Fun Day');
+    await act(async () => {
+      pickers()[0].value = '2';
+      pickers()[0].dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    await settle();
+    expect(last()).toMatchObject({ target_event: '2', similar: 'either' });
+    expect(pickers()).toHaveLength(2);
+    await act(async () => {
+      pickers()[1].value = '1';
+      pickers()[1].dispatchEvent(new Event('change', { bubbles: true }));
+    });
+    await settle();
+    expect(last().similar).toBe('time');
+    const only = [...c.querySelectorAll('label')].find((l) => l.textContent?.includes('Only people who came'))!;
+    await click(only.querySelector('input'));
+    await settle();
+    expect(last().similar_only).toBe('1');
+    await pick(c, 'Committee and board');
+    expect(c.querySelectorAll('select')).toHaveLength(0);
+    await pick(c, 'Thank donors');
+    expect(c.querySelectorAll('select')).toHaveLength(0);
   });
 });

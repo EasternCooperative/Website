@@ -35,6 +35,12 @@ export async function givingTiers(db) {
   return results;
 }
 
+// 1 to 366, the day of the year for an ISO date.
+const dayOfYear = (iso) => {
+  const d = new Date(`${iso}T00:00:00Z`);
+  return Math.round((d - Date.UTC(d.getUTCFullYear(), 0, 1)) / 86_400_000) + 1;
+};
+
 const int = (v, fallback, { min = 0, max = 1000 } = {}) => {
   if (v === undefined || v === null || v === '') return fallback;
   const n = Number(v);
@@ -132,11 +138,47 @@ export async function listEngagement(db, user, params) {
     bind.push(minCents);
   }
 
+  // "Has come to something like this": a chosen target event, then counts of the events a
+  // person registered for at a similar time of year or at the same venue. Counts only.
+  let similar = '';
+  const similarBind = [];
+  const targetId = int(params.get('target_event'), null, { min: 1, max: 1_000_000 });
+  if (targetId !== null) {
+    const target = (
+      await db
+        .prepare('SELECT id, start_date, site_id FROM event WHERE id = ? AND deleted_at IS NULL')
+        .bind(targetId)
+        .all()
+    ).results[0];
+    if (!target) throw new ValidationError('target_event is not an event');
+    const mode = params.get('similar') ?? 'either';
+    if (!['time', 'venue', 'either'].includes(mode))
+      throw new ValidationError('similar must be time, venue, or either');
+    const doy = target.start_date ? Number(dayOfYear(target.start_date)) : null;
+    const base = `SELECT COUNT(DISTINCT r.event_id) FROM registration r JOIN event x ON x.id = r.event_id
+        WHERE r.person_id = e.person_id AND r.deleted_at IS NULL AND r.status != 'cancelled' AND x.deleted_at IS NULL AND x.id != ?`;
+    const timeTest =
+      "x.start_date IS NOT NULL AND ? IS NOT NULL AND MIN(ABS(CAST(strftime('%j', x.start_date) AS INTEGER) - ?), 365 - ABS(CAST(strftime('%j', x.start_date) AS INTEGER) - ?)) <= 42";
+    const venueTest = 'x.site_id IS NOT NULL AND x.site_id = ?';
+    const timeCount = `(${base} AND ${timeTest})`;
+    const venueCount = `(${base} AND ${venueTest})`;
+    similar = `, ${timeCount} AS similar_time_events, ${venueCount} AS similar_venue_events`;
+    similarBind.push(targetId, doy, doy, doy, targetId, target.site_id);
+    if (params.get('similar_only') === '1') {
+      const parts = [];
+      if (mode !== 'venue') parts.push(`${timeCount} > 0`);
+      if (mode !== 'time') parts.push(`${venueCount} > 0`);
+      where.push(`(${parts.join(' OR ')})`);
+      if (mode !== 'venue') bind.push(targetId, doy, doy, doy);
+      if (mode !== 'time') bind.push(targetId, target.site_id);
+    }
+  }
+
   const dir = params.get('dir') === 'desc' ? 'DESC' : 'ASC';
   const limit = int(params.get('limit'), 50, { min: 1, max: 100 });
   const offset = int(params.get('offset'), 0, { max: 100_000 });
   const join = finance ? 'LEFT JOIN person_giving g ON g.person_id = e.person_id' : '';
-  const money = finance ? ', g.total_cents, g.first_gift_at, g.last_gift_at' : '';
+  const money = (finance ? ', g.total_cents, g.first_gift_at, g.last_gift_at' : '') + similar;
   const clause = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
   const { results } = await db
@@ -144,7 +186,7 @@ export async function listEngagement(db, user, params) {
       `SELECT e.*${money} FROM person_engagement e ${join} ${clause}
        ORDER BY ${sorts[sortName]} ${dir}, e.name COLLATE NOCASE ASC, e.person_id ASC LIMIT ? OFFSET ?`
     )
-    .bind(...bind, limit, offset)
+    .bind(...similarBind, ...bind, limit, offset)
     .all();
   const count = await db
     .prepare(`SELECT COUNT(*) AS n FROM person_engagement e ${join} ${clause}`)

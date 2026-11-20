@@ -58,6 +58,7 @@ const statements = ['-- Engagement backfill. Safe to run twice. Take a backup fi
 const report = [];
 
 // ---- 1. Events ----
+const isoDay = (v) => (v ? String(v).slice(0, 10) : null);
 const lastSegment = (u) => String(u).split('?')[0].replace(/\/+$/, '').split('/').pop();
 const events = readdirSync(path.join(DATA, 'events'))
   .filter((f) => f.endsWith('.md') && !f.startsWith('e2e-'))
@@ -76,6 +77,9 @@ const events = readdirSync(path.join(DATA, 'events'))
       title: tidy(d.title),
       year: Number(String(d.date).slice(0, 4)),
       type: eventType(d.date, d.endDate),
+      start: isoDay(d.date),
+      end: isoDay(d.endDate),
+      siteId: d.siteId ? String(d.siteId) : null,
       forms,
     };
   });
