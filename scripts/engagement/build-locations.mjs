@@ -14,6 +14,7 @@ import os from 'node:os';
 import path from 'node:path';
 import * as XLSX from 'xlsx';
 import { makeGet } from '../lib/cognito-api.mjs';
+import { budget } from '../lib/cognito-budget.mjs';
 import { crawlEntries } from '../lib/cognito-crawl.mjs';
 import { cognitoLocationRows, locationStatements, zeffyLocationRows } from '../lib/location-import.mjs';
 
@@ -75,3 +76,6 @@ writeFileSync(outPath, ['-- Locations. Safe to run twice. Take a backup first.',
   mode: 0o600,
 });
 console.log(`Wrote ${statements.length} statements to ${outPath}. Nothing was sent to a database.`);
+console.log(
+  `Cognito API requests: ${budget.used.run} this run, ${budget.used.month} this month (the plan includes 10,000).`
+);

@@ -21,6 +21,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import zipcodes from 'zipcodes';
+import { budget } from './lib/cognito-budget.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
@@ -50,6 +51,7 @@ const FORM_NAME_REQUIRES = ['registration', 'register'];
 // ---------------------------------------------------------------------------
 
 async function cognitoGet(token, path) {
+  budget.spend(); // every request counts toward the monthly cap
   const res = await fetch(`${COGNITO_API}${path}`, {
     headers: { Authorization: `Bearer ${token}` },
   });

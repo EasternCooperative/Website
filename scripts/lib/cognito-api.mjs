@@ -1,13 +1,19 @@
 // One Cognito GET with a timeout and backoff, shared by the scripts that read the API.
 // Returns the parsed body, or null for a 404 (an entry number with nothing there).
 
+import { budget as shared } from './cognito-budget.mjs';
+
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-/** @param {string} token the Cognito API key */
-export function makeGet(token, { fetchImpl = fetch, wait = sleep } = {}) {
+/**
+ * @param {string} token the Cognito API key
+ * @param {{ fetchImpl?: typeof fetch, wait?: (ms: number) => Promise<unknown>, budget?: { spend(): void } }} [options]
+ */
+export function makeGet(token, { fetchImpl = fetch, wait = sleep, budget = shared } = {}) {
   return async (path) => {
     for (let attempt = 0; attempt < 8; attempt++) {
       let res;
+      budget.spend(); // every attempt counts, and a run stops before it crosses a cap
       try {
         res = await fetchImpl(`https://www.cognitoforms.com/api${path}`, {
           headers: { Authorization: `Bearer ${token}` },

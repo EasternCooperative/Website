@@ -13,6 +13,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { makeGet } from '../lib/cognito-api.mjs';
+import { budget } from '../lib/cognito-budget.mjs';
 import { crawlEntries } from '../lib/cognito-crawl.mjs';
 import { identitiesFrom, newNameCollisions, parseDecision, resolveIdentities } from '../lib/cognito-import.mjs';
 import { membershipRows, membershipStatements } from '../lib/membership-import.mjs';
@@ -106,3 +107,6 @@ writeFileSync(outPath, ['-- Memberships. Safe to run twice. Take a backup first.
   mode: 0o600,
 });
 console.log(`Wrote ${sqls.length} statements to ${outPath}. Nothing was sent to a database.`);
+console.log(
+  `Cognito API requests: ${budget.used.run} this run, ${budget.used.month} this month (the plan includes 10,000).`
+);

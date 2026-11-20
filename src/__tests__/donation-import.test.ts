@@ -262,24 +262,28 @@ describe('the Cognito request helper', () => {
     const waits: number[] = [];
     const answers = [res(429, {}, { 'Retry-After': '3' }), res(200, { ok: 1 })];
     const get = makeGet('k', {
+      budget: { spend() {} },
       fetchImpl: (async () => answers.shift()!) as never,
       wait: async (ms: number) => void waits.push(ms),
     });
     expect(await get('/forms/1')).toEqual({ ok: 1 });
     expect(waits).toEqual([3000]);
-    expect(await makeGet('k', { fetchImpl: (async () => res(404)) as never })('/x')).toBeNull();
+    expect(await makeGet('k', { budget: { spend() {} }, fetchImpl: (async () => res(404)) as never })('/x')).toBeNull();
   });
 
   it('retries a failed or hung request, gives up after a while, and refuses an unexpected error', async () => {
     let calls = 0;
     const flaky = makeGet('k', {
+      budget: { spend() {} },
       fetchImpl: (async () => (++calls < 3 ? Promise.reject(new Error('hung')) : res(200, { ok: 2 }))) as never,
       wait: async () => {},
     });
     expect(await flaky('/x')).toEqual({ ok: 2 });
     await expect(
-      makeGet('k', { fetchImpl: (async () => res(429)) as never, wait: async () => {} })('/x')
+      makeGet('k', { budget: { spend() {} }, fetchImpl: (async () => res(429)) as never, wait: async () => {} })('/x')
     ).rejects.toThrow('kept failing');
-    await expect(makeGet('k', { fetchImpl: (async () => res(500)) as never })('/x')).rejects.toThrow('Cognito API 500');
+    await expect(
+      makeGet('k', { budget: { spend() {} }, fetchImpl: (async () => res(500)) as never })('/x')
+    ).rejects.toThrow('Cognito API 500');
   });
 });
