@@ -38,3 +38,19 @@ action cannot reach files on disk. Delete it after a successful load.
 6. **Back up, bookmark, ask, apply, verify.** Then delete `cognito/registrations.json`.
 
 Class-registration forms are not imported: they list the same people for the same events.
+
+## Opt-outs, gifts, memberships, merging
+
+Same pattern for each: build prints counts only, refuses while anyone needs a decision, and writes SQL that
+is safe to run twice. Rehearse on a local copy of production, then back up, bookmark, load, verify, and delete
+the files that hold names, emails, or amounts.
+
+- **Newsletter opt-outs:** `scripts/engagement/import-optouts.mjs` marks people as do-not-contact (an outreach row).
+- **Gifts:** `scripts/engagement/build-donations.mjs --zeffy <xlsx> --people db-people.json --new-status inactive`.
+  Reads the Zeffy export and the Cognito donation form (24). Gifts under $2 are dropped as test payments.
+- **Memberships:** `scripts/engagement/build-membership.mjs --people db-people.json --new-status inactive`.
+  Reads Cognito form 16. Paid, completed entries only. The member and any household members named count for the
+  year submitted (annual, ending December 31), or a lifetime membership. Unpaid, refunded, and incomplete entries
+  are tallied and left out.
+- **Duplicates:** admins use the Duplicates tab. A merge moves a person's history to the record kept, keeps the
+  other name as an alias so imports still match, and writes an append-only `person_merge` row (counts only).
