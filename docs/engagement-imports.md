@@ -54,3 +54,14 @@ the files that hold names, emails, or amounts.
   are tallied and left out.
 - **Duplicates:** admins use the Duplicates tab. A merge moves a person's history to the record kept, keeps the
   other name as an alias so imports still match, and writes an append-only `person_merge` row (counts only).
+
+## Cognito API budget
+
+The Cognito plan includes 10,000 API requests a month and bills $20 per 100,000 beyond that. The API has no
+list endpoint, so reading a form costs one request per entry number plus about 50 to find the end, and
+retries count too. Every script that calls the API shares `scripts/lib/cognito-budget.mjs`, which counts each
+request in `~/.config/ecrs/cognito-usage.json` and stops a run before it crosses a cap:
+
+- 300 requests per run (`COGNITO_MAX_REQUESTS`) and 6,000 per month (`COGNITO_MONTH_CAP`).
+- Raising either is deliberate: say how many requests you expect to need first.
+- Never re-read a form to redo work. The builders print the SQL they produced; keep it until it is loaded.

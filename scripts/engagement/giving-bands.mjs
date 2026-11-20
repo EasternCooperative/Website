@@ -17,6 +17,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import * as XLSX from 'xlsx';
+import { makeGet } from '../lib/cognito-api.mjs';
 import {
   bandCounts,
   bandSql,
@@ -47,16 +48,7 @@ if (!zeffyPath) {
 // ---- Cognito donations, in memory ----
 const token =
   process.env.COGNITO_API_KEY ?? readFileSync(path.join(home, '.config/ecrs/cognito-api.key'), 'utf8').trim();
-const cognitoGet = async (p) => {
-  const res = await fetch(`https://www.cognitoforms.com/api${p}`, { headers: { Authorization: `Bearer ${token}` } });
-  if (res.status === 404) return null;
-  if (res.status === 429) {
-    await new Promise((r) => setTimeout(r, 4000));
-    return cognitoGet(p);
-  }
-  if (!res.ok) throw new Error(`Cognito API ${res.status}`);
-  return res.json();
-};
+const cognitoGet = makeGet(token); // counts every request against the monthly budget
 async function cognitoEntries() {
   const entries = [];
   for (let n = 1; ; n += 10) {
