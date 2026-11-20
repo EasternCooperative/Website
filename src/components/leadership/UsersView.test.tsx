@@ -39,7 +39,7 @@ beforeEach(() => {
   vi.stubGlobal(
     'fetch',
     vi.fn((url: string, init?: RequestInit) => {
-      const path = url.replace('/api/internal/leadership', '');
+      const path = url.replace('/api/internal/engagement', '');
       const method = init?.method ?? 'GET';
       if (path === '/bootstrap') return json(boot);
       if (path === '/users' && method === 'GET') return listFails ? json({ error: 'nope' }, 403) : json({ users });

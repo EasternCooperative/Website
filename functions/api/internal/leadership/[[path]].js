@@ -1,6 +1,6 @@
 // Cloudflare Pages Function: /api/internal/leadership/*
 //
-// Backs /internal/leadership. Every request is authenticated by verifying the
+// Backs /internal/engagement (and the older /internal/leadership). Every request is authenticated by verifying the
 // Cloudflare Access JWT here (see ../../../_lib/access.js), because the Access
 // application does not cover *.pages.dev. Needs the D1 binding `DB`.
 //

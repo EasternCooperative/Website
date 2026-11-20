@@ -58,7 +58,7 @@ beforeEach(() => {
   vi.stubGlobal(
     'fetch',
     vi.fn((url: string, init?: RequestInit) => {
-      const path = url.replace('/api/internal/leadership', '');
+      const path = url.replace('/api/internal/engagement', '');
       const method = init?.method ?? 'GET';
       const body = init?.body ? (JSON.parse(init.body as string) as Record<string, unknown>) : undefined;
       if (method === 'GET') return json(current);
