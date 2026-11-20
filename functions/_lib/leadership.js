@@ -227,7 +227,7 @@ export async function bootstrap(db) {
       db
         .prepare('SELECT person_id, city, state, ROUND(lat, 2) AS lat, ROUND(lng, 2) AS lng FROM person_location')
         .all(),
-      db.prepare('SELECT id, name, city, state, lat, lng FROM venue ORDER BY name').all(),
+      db.prepare('SELECT id, name, city, state, address, lat, lng FROM venue ORDER BY name').all(),
       live('expertise'),
     ]);
   return {

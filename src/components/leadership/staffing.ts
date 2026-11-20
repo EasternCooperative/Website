@@ -5,9 +5,7 @@
 import type { Activity, Data, EventRow, Expertise, Outreach, Person, PersonLocation, Role, Scope } from './model';
 
 export interface Brief {
-  /** The recurring event being staffed, such as "Winter Adventure". */
-  series: string;
-  /** Which venue, and when. These describe the next one, which may not be on the calendar yet. */
+  /** Where, and optionally when. Staffing does not depend on how long the event runs. */
   venue: string | null;
   date: string | null;
   /** The event row, once the next one is on the calendar. */
@@ -18,7 +16,6 @@ export interface Brief {
   activityId: number | null;
 }
 export const EMPTY_BRIEF: Brief = {
-  series: '',
   venue: null,
   date: null,
   eventId: null,
