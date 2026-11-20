@@ -12,7 +12,7 @@
 // it holds names and emails, and the erase action cannot reach files on disk. Delete it
 // after a successful load. Needs COGNITO_API_KEY, or ~/.config/ecrs/cognito-api.key.
 
-import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import os from 'node:os';
 import path from 'node:path';
@@ -42,13 +42,25 @@ const token =
 // The child-token key: made once, kept outside the export folder and the repository.
 const keyPath = path.join(home, '.config/ecrs/child-token.key');
 let freshKey = false;
-if (!existsSync(keyPath)) {
-  mkdirSync(path.dirname(keyPath), { recursive: true, mode: 0o700 });
-  writeFileSync(keyPath, randomBytes(32).toString('hex'), { mode: 0o600 });
+mkdirSync(path.dirname(keyPath), { recursive: true, mode: 0o700 });
+try {
+  // 'wx' creates the file only if it is not there, so there is no check-then-write gap.
+  writeFileSync(keyPath, randomBytes(32).toString('hex'), { mode: 0o600, flag: 'wx' });
   freshKey = true;
+} catch (e) {
+  if (e.code !== 'EEXIST') throw e;
 }
 chmodSync(keyPath, 0o600);
 const key = readFileSync(keyPath, 'utf8').trim();
+
+const readJson = (f, fallback) => {
+  try {
+    return JSON.parse(readFileSync(f, 'utf8'));
+  } catch (e) {
+    if (e.code === 'ENOENT') return fallback;
+    throw e;
+  }
+};
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const get = async (p) => {
@@ -79,7 +91,7 @@ const get = async (p) => {
 const file = path.join(outDir, 'registrations.json');
 mkdirSync(outDir, { recursive: true, mode: 0o700 });
 chmodSync(outDir, 0o700);
-const saved = resume && existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : { entries: [], forms: [] };
+const saved = resume ? readJson(file, { entries: [], forms: [] }) : { entries: [], forms: [] };
 if (redo) {
   saved.entries = saved.entries.filter((e) => !forms.includes(String(e.formId)));
   saved.forms = saved.forms.filter((f) => !forms.includes(String(f.formId)));

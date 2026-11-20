@@ -8,7 +8,7 @@
 // Edit a slug by hand, or set it to null to skip a form. --confirm marks every form that
 // has a slug as confirmed. Forms already confirmed are left alone on later runs.
 
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { load } from 'js-yaml';
@@ -30,7 +30,14 @@ const events = readdirSync(DATA)
   });
 
 const forms = JSON.parse(readFileSync(regPath, 'utf8')).forms.map((f) => ({ formId: f.formId, name: f.name }));
-const existing = existsSync(mapPath) ? JSON.parse(readFileSync(mapPath, 'utf8')) : {};
+const existing = (() => {
+  try {
+    return JSON.parse(readFileSync(mapPath, 'utf8'));
+  } catch (e) {
+    if (e.code === 'ENOENT') return {};
+    throw e;
+  }
+})();
 const map = { ...existing };
 for (const p of proposeMapping(forms, events)) {
   if (existing[p.formId]?.confirmed) continue;
