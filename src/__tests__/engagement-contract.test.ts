@@ -424,3 +424,65 @@ describe('volunteers and service on the page', () => {
     });
   });
 });
+
+describe('the criteria the invite lists use', () => {
+  const names = async (q: string, as = 'standard@example.org') => {
+    const { status, text } = await get(`engagement?${q}`, as);
+    expect(status, q).toBe(200);
+    expectNoMoney(text);
+    return JSON.parse(text).people.map((p: { name: string }) => p.name);
+  };
+
+  beforeEach(() => {
+    db.raw.exec(`
+      INSERT INTO registration (person_id, event_id, source, entry_ref, attended) VALUES (3, 1, 'cognito', 'x1', NULL), (3, 2, 'cognito', 'x2', NULL), (4, 1, 'cognito', 'x3', NULL);
+      INSERT INTO journey_note (person_id, kind, body, author) VALUES (4, 'ready', 'ready for more', 'a@example.org');
+    `);
+  });
+
+  it('filters by counts, years, and flags', async () => {
+    expect(await names('min_events=2')).toEqual(['Alice Adams', 'Cara Cole']); // Alice has 2 registrations, Cara 2
+    expect(await names('max_roles_led=0&min_events=1')).toEqual(['Bob Brown', 'Cara Cole', 'Dan Dunn']);
+    expect(await names('min_roles_led=1')).toEqual(['Alice Adams']);
+    expect(await names('max_last_event_year=2025&min_events=1')).toEqual(['Bob Brown', 'Dan Dunn']);
+    expect(await names('min_last_event_year=2026')).toEqual(['Alice Adams', 'Cara Cole']);
+    expect(await names('min_last_led_year=2025')).toEqual(['Alice Adams']);
+    expect(await names('min_attended=1')).toEqual(['Alice Adams', 'Bob Brown']);
+    expect(await names('min_volunteer=1')).toEqual(['Alice Adams']);
+    expect(await names('serving=1')).toEqual(['Alice Adams']);
+    expect(await names('serving=0&min_events=1')).toEqual(['Bob Brown', 'Cara Cole', 'Dan Dunn']);
+    expect(await names('has_ready=1')).toEqual(['Dan Dunn']);
+  });
+
+  it('leaves out people who were contacted since a date or are snoozed', async () => {
+    db.raw.exec(`
+      INSERT INTO outreach (person_id, goal, status, contacted_on) VALUES (2, 'invite_back', 'contacted', '2026-10-01');
+      INSERT INTO outreach (person_id, goal, status, snooze_until) VALUES (3, 'invite_back', 'snoozed', '2999-01-01'), (4, 'invite_back', 'snoozed', '2000-01-01');
+    `);
+    expect(await names('not_contacted_since=2026-06-01')).toEqual(['Alice Adams', 'Cara Cole', 'Dan Dunn']);
+    expect(await names('not_contacted_since=2026-11-01')).toEqual([
+      'Alice Adams',
+      'Bob Brown',
+      'Cara Cole',
+      'Dan Dunn',
+    ]);
+    expect(await names('exclude_snoozed=1')).toEqual(['Alice Adams', 'Bob Brown', 'Dan Dunn']); // Dan's snooze ended in 2000
+  });
+
+  it('refuses a malformed value, and still redacts for finance and standard alike', async () => {
+    for (const q of ['not_contacted_since=soon', 'min_events=abc', 'min_events=-1', 'max_roles_led=99999']) {
+      expect((await get(`engagement?${q}`, 'standard@example.org')).status, q).toBe(400);
+    }
+    const text = (await get('engagement?min_events=1', 'standard@example.org')).text;
+    expectNoMoney(text);
+  });
+
+  it('comes with the bootstrap so the page can show where outreach stands', async () => {
+    db.raw.exec("INSERT INTO outreach (person_id, goal, status) VALUES (3, 'invite_back', 'snoozed')");
+    const body = JSON.parse((await get('bootstrap', 'standard@example.org')).text);
+    expect(body.outreach).toEqual([
+      expect.objectContaining({ person_id: 2, goal: 'invite_lead', status: 'contacted' }), // from the seed
+      expect.objectContaining({ person_id: 3, goal: 'invite_back', status: 'snoozed' }),
+    ]);
+  });
+});

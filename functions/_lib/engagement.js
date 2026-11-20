@@ -74,6 +74,43 @@ export async function listEngagement(db, user, params) {
   }
   if (params.get('member') === '1') where.push('e.member_now = 1');
   if (params.get('exclude_do_not_contact') === '1') where.push('e.do_not_contact = 0');
+
+  // Criteria the invite lists use. Every one is a count, a year, or a flag: none is money.
+  const num = (name, column, op) => {
+    const v = int(params.get(name), null, { max: 3000 });
+    if (v !== null) {
+      where.push(`e.${column} ${op} ?`);
+      bind.push(v);
+    }
+  };
+  num('min_events', 'events_registered', '>=');
+  num('min_attended', 'events_attended', '>=');
+  num('min_roles_led', 'roles_led', '>=');
+  num('max_roles_led', 'roles_led', '<=');
+  num('min_volunteer', 'volunteer_count', '>=');
+  num('min_last_event_year', 'last_event_year', '>=');
+  num('max_last_event_year', 'last_event_year', '<=');
+  num('min_last_led_year', 'last_led_year', '>=');
+  if (params.get('serving') === '1') where.push('e.serving_now > 0');
+  if (params.get('serving') === '0') where.push('e.serving_now = 0');
+  if (params.get('has_ready') === '1') {
+    where.push(
+      "EXISTS (SELECT 1 FROM journey_note n WHERE n.person_id = e.person_id AND n.kind = 'ready' AND n.deleted_at IS NULL)"
+    );
+  }
+  // Leave out anyone contacted since a date, and anyone snoozed past today, so a list does not keep suggesting them.
+  const since = params.get('not_contacted_since');
+  if (since) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(since))
+      throw new ValidationError('not_contacted_since must be a date like 2026-05-01');
+    where.push('(e.last_contacted_on IS NULL OR e.last_contacted_on < ?)');
+    bind.push(since);
+  }
+  if (params.get('exclude_snoozed') === '1') {
+    where.push(
+      "NOT EXISTS (SELECT 1 FROM outreach o WHERE o.person_id = e.person_id AND o.status = 'snoozed' AND o.deleted_at IS NULL AND o.snooze_until >= date('now'))"
+    );
+  }
   const minCents = int(params.get('min_giving_cents'), null, { max: 100_000_000 });
   if (minCents !== null) {
     where.push('g.total_cents >= ?');
