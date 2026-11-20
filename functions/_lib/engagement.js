@@ -361,6 +361,7 @@ export async function erasePerson(db, personId, actor) {
     ),
     run('DELETE FROM person_email WHERE person_id = ?', personId),
     run('DELETE FROM person_alias WHERE person_id = ?', personId),
+    run('DELETE FROM person_location WHERE person_id = ?', personId),
     run(
       `UPDATE journey_note SET body = '[removed]', focus = NULL, deleted_at = ${now}, updated_at = ${now} WHERE person_id = ?`,
       personId
@@ -463,6 +464,13 @@ export async function mergePeople(db, fromId, intoId, actor) {
       intoId
     ),
     run(`UPDATE person_alias SET person_id = ?, updated_at = ${now} WHERE person_id = ?`, intoId, fromId),
+    // One location per person: keep the survivor's, or take the duplicate's if the survivor has none.
+    run(
+      'DELETE FROM person_location WHERE person_id = ? AND EXISTS (SELECT 1 FROM person_location WHERE person_id = ?)',
+      fromId,
+      intoId
+    ),
+    run('UPDATE person_location SET person_id = ? WHERE person_id = ?', intoId, fromId),
     run(
       `INSERT INTO person_alias (person_id, alias_norm, kind, created_by, updated_by)
          SELECT ?, ?, 'merged', ?, ? WHERE ? != ? AND NOT EXISTS

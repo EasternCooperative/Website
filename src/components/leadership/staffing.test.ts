@@ -4,6 +4,8 @@ import {
   DEFAULT_STAFF_WEIGHTS,
   benchDepth,
   candidatesFor,
+  milesBetween,
+  milesTo,
   slotLabel,
   type Brief,
 } from './staffing';
@@ -305,5 +307,55 @@ describe('benchDepth', () => {
       ever: 1,
     });
     expect(benchDepth(data, 'class', '2026-11-20').find((x) => x.type === 'Dancing')).toMatchObject({ ready: 1 });
+  });
+});
+
+describe('distance', () => {
+  const venue = { lat: 40.3124, lng: -75.1046 }; // Camp Onas
+  const near = { person_id: 1, city: 'Ottsville', state: 'PA', lat: 40.31, lng: -75.1 };
+  const far = { person_id: 2, city: 'Boston', state: 'MA', lat: 42.36, lng: -71.06 };
+
+  it('measures straight-line miles', () => {
+    expect(milesBetween(venue, venue)).toBe(0);
+    expect(milesBetween({ lat: 39.95, lng: -75.17 }, { lat: 40.71, lng: -74.0 })).toBeGreaterThan(75);
+    expect(milesBetween({ lat: 39.95, lng: -75.17 }, { lat: 40.71, lng: -74.0 })).toBeLessThan(85);
+  });
+
+  it('gives a distance for each located person, and none without a venue', () => {
+    expect([...milesTo([near, far], venue).keys()]).toEqual([1, 2]);
+    expect(milesTo([near], undefined).size).toBe(0);
+    expect(milesTo(undefined, venue).size).toBe(0);
+  });
+
+  it('says where someone is near, uses distance in the nearness score, and can limit by miles', () => {
+    const located: Data = { ...data, locations: [near, far] };
+    const miles = milesTo(located.locations, venue);
+    const run2 = (f = DEFAULT_STAFF_FILTERS) =>
+      candidatesFor(located, brief, DEFAULT_STAFF_WEIGHTS, f, '2026-11-20', miles);
+    const ana = run2().find((c) => c.person.name === 'Ana Expert')!;
+    expect(ana.place).toBe('Ottsville, PA');
+    expect(ana.segments[3].detail).toBe('About 0 miles away (Ottsville), Led here 1 time');
+    expect(ana.segments[3].value).toBeGreaterThan(0.9);
+    expect(run2().find((c) => c.person.name === 'Bo Newer')!.segments[3].detail).toMatch(
+      /About 2\d\d miles away \(Boston\)/
+    );
+    const within = run2({ ...DEFAULT_STAFF_FILTERS, maxMiles: 50 }).map((c) => c.person.name);
+    expect(within).toContain('Ana Expert');
+    expect(within).not.toContain('Bo Newer'); // known to live too far away
+    expect(within).toContain('Gus Nobody'); // no known location: stays in
+    expect(run2().find((c) => c.person.name === 'Gus Nobody')!.place).toBeNull();
+  });
+
+  it('names a place with only a state, and no place when neither is known', () => {
+    const odd: Data = {
+      ...data,
+      locations: [
+        { person_id: 1, city: null, state: 'PA', lat: 40, lng: -75 },
+        { person_id: 2, city: null, state: null, lat: 40, lng: -75 },
+      ],
+    };
+    const r = candidatesFor(odd, brief, DEFAULT_STAFF_WEIGHTS, DEFAULT_STAFF_FILTERS, '2026-11-20');
+    expect(r.find((c) => c.person.name === 'Ana Expert')!.place).toBe('PA');
+    expect(r.find((c) => c.person.name === 'Bo Newer')!.place).toBeNull();
   });
 });

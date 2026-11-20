@@ -206,7 +206,7 @@ export async function bootstrap(db) {
         `SELECT * FROM ${t} WHERE deleted_at IS NULL${t === 'person' ? ' AND erased_at IS NULL' : ''} ORDER BY id`
       )
       .all();
-  const [people, activities, events, roles, notes, service, volunteers, outreach, types] = await Promise.all([
+  const [people, activities, events, roles, notes, service, volunteers, outreach, types, places] = await Promise.all([
     live('person'),
     live('activity'),
     live('event'),
@@ -216,6 +216,8 @@ export async function bootstrap(db) {
     live('volunteer'),
     live('outreach'),
     db.prepare('SELECT name FROM activity_type ORDER BY name').all(),
+    // City and state, and the postal code's center point rounded to about a kilometer. No street, no code.
+    db.prepare('SELECT person_id, city, state, ROUND(lat, 2) AS lat, ROUND(lng, 2) AS lng FROM person_location').all(),
   ]);
   return {
     people: people.results,
@@ -227,6 +229,7 @@ export async function bootstrap(db) {
     volunteers: volunteers.results,
     outreach: outreach.results,
     activityTypes: types.results.map((r) => r.name),
+    locations: places.results,
   };
 }
 
