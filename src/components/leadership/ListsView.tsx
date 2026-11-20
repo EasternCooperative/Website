@@ -71,7 +71,7 @@ export default function ListsView({
   });
 
   const list = LISTS.find((l) => l.id === listId) as ListDef;
-  const forEvent = ['back', 'lead', 'committee'].includes(listId);
+  const forEvent = ['back', 'lead'].includes(listId);
   const values: Values = { ...list.defaults, ...settings[listId], ...(forEvent ? target : {}) };
   const key = JSON.stringify(values);
 

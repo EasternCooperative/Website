@@ -529,7 +529,7 @@ describe('similar events', () => {
     expect(pickerLabel(events[3])).toBe('2024 Undated');
   });
 
-  it('adds the target to the invite lists only', () => {
+  it('adds the target to Invite back and Invite to lead only', () => {
     const q = (id: string, values: Record<string, number | boolean>) =>
       params(
         listQuery(
@@ -540,7 +540,7 @@ describe('similar events', () => {
       );
     expect(q('back', {})).toMatchObject({ target_event: '2', similar: 'either' });
     expect(q('lead', { similar: 1, similarOnly: true })).toMatchObject({ similar: 'time', similar_only: '1' });
-    expect(q('committee', { similar: 2 }).similar).toBe('venue');
+    expect(q('committee', { similar: 2 }).target_event).toBeUndefined(); // board service does not depend on when or where
     expect(q('donors', {}).target_event).toBeUndefined();
     expect(params(listQuery(LISTS[0], {}, new Date('2026-11-20T12:00:00Z'))).target_event).toBeUndefined();
   });
@@ -582,6 +582,8 @@ describe('similar events', () => {
     await click(only.querySelector('input'));
     await settle();
     expect(last().similar_only).toBe('1');
+    await pick(c, 'Committee and board');
+    expect(c.querySelectorAll('select')).toHaveLength(0);
     await pick(c, 'Thank donors');
     expect(c.querySelectorAll('select')).toHaveLength(0);
   });

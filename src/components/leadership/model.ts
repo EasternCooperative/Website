@@ -664,7 +664,7 @@ export function listQuery(list: ListDef, values: Record<string, number | boolean
     q.set('dir', 'desc');
   }
   const target = Number(v.targetEvent);
-  if (target > 0 && ['back', 'lead', 'committee'].includes(list.id)) {
+  if (target > 0 && ['back', 'lead'].includes(list.id)) {
     q.set('target_event', String(target));
     q.set('similar', (['either', 'time', 'venue'] as const)[Number(v.similar) || 0]);
     if (v.similarOnly) q.set('similar_only', '1');
