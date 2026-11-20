@@ -1,17 +1,8 @@
 import { useMemo, useState } from 'react';
-import {
-  ApiError,
-  createEvent,
-  createOutreach,
-  createVenue,
-  deleteOutreach,
-  markExpert,
-  saveOutreach,
-  unmarkExpert,
-} from './api';
+import { createOutreach, createVenue, deleteOutreach, markExpert, saveOutreach, unmarkExpert } from './api';
 import { ErrorNote, inputCls, linkBtn, secondaryBtn, useAction } from './forms';
 import { PersonTags } from './marks';
-import { SEGMENT_NAMES, pickerLabel, type Data, type Outreach, type Scope, type View } from './model';
+import { SEGMENT_NAMES, type Data, type Outreach, type Scope, type View } from './model';
 import { venueOptions } from './venues';
 import {
   DEFAULT_STAFF_FILTERS,
@@ -39,7 +30,6 @@ export function briefFromQuery(query: string): Brief {
   return {
     venue: q.get('venue') || null,
     date: /^\d{4}-\d{2}-\d{2}$/.test(q.get('date') ?? '') ? q.get('date') : null,
-    eventId: n('event'),
     scope: scope === 'class' || scope === 'activity' ? scope : 'any',
     type: q.get('type') ?? '',
     activityId: n('activity'),
@@ -49,7 +39,6 @@ export function briefToQuery(b: Brief): string {
   const q = new URLSearchParams();
   if (b.venue) q.set('venue', b.venue);
   if (b.date) q.set('date', b.date);
-  if (b.eventId) q.set('event', String(b.eventId));
   if (b.scope !== 'any') q.set('scope', b.scope);
   if (b.type) q.set('type', b.type);
   if (b.activityId) q.set('activity', String(b.activityId));
@@ -129,9 +118,6 @@ function CandidateCard({
             <PersonTags person={c.person} />
           </p>
           {c.place && <p className="text-xs text-muted">Near {c.place}</p>}
-          {c.atEvent.length > 0 && (
-            <p className="text-xs text-muted">Already leading {c.atEvent.join(', ')} at this event</p>
-          )}
         </div>
         <div className="text-right">
           <p className="font-heading text-2xl leading-none tabular-nums" aria-label={`Fit ${c.total} out of 100`}>
@@ -187,32 +173,18 @@ export default function StaffView({
   const venues = useMemo(() => venueOptions(sites, data.venues ?? [], data.events), [data.venues, data.events]);
   const venueLabel = (id: string) => venues.find((v) => v.id === id)?.name ?? id;
 
-  // Is there already an event at this venue on this day?
-  const calendar = (venue: string | null, date: string | null) =>
-    date ? (data.events.find((e) => e.site_id === venue && e.start_date === date)?.id ?? null) : null;
-  // An event named in the address (an older link, or one just created) fills in the rest.
-  const linked = data.events.find((e) => e.id === brief.eventId);
-  const venueNow = brief.venue ?? linked?.site_id ?? null;
-  const dateNow = brief.date ?? linked?.start_date ?? null;
-  const b: Brief = {
-    ...brief,
-    venue: venueNow,
-    date: dateNow,
-    eventId: linked ? linked.id : calendar(venueNow, dateNow),
-  };
+  const b: Brief = brief;
   const set = (patch: Partial<Brief>) => {
     setShowAll(false);
     onQuery(briefToQuery({ ...b, ...patch }));
   };
   const pickVenue = (value: string) => {
     if (value === '__new') return setAdding(true);
-    set({ venue: value || null, eventId: calendar(value || null, b.date) });
+    set({ venue: value || null });
   };
   const pickDate = (value: string) => {
-    const date = value || null;
-    set({ date, eventId: calendar(b.venue, date) });
+    set({ date: value || null });
   };
-  const event = data.events.find((e) => e.id === b.eventId);
   const slot = slotLabel(b, data.activities);
   const ready = b.venue !== null && b.type !== '';
   const choices = data.activities.filter((a) => a.type === b.type && (b.scope === 'any' || a.scope === b.scope));
@@ -224,39 +196,23 @@ export default function StaffView({
   );
   const depth = useMemo(() => benchDepth(data, b.scope, now), [data, b.scope, now]);
   const asks = (data.outreach ?? []).filter(
-    (o) => o.goal === 'staff_slot' && o.event_id === b.eventId && o.slot === slot
+    (o) => o.goal === 'staff_slot' && o.venue_id === b.venue && (o.plan_date ?? null) === b.date && o.slot === slot
   );
   const nameOf = (id: number) => data.people.find((p) => p.id === id)?.name ?? 'Someone';
   const shown = showAll ? candidates : candidates.slice(0, FIRST);
   const topDepth = Math.max(...depth.map((d) => d.ever), 1);
 
-  // The event may not be on the calendar yet: add it the first time someone is shortlisted.
-  // Staffing does not depend on how long it runs, so its length is not asked.
-  const ensureEvent = async (): Promise<number> => {
-    if (b.eventId) return b.eventId;
-    const year = Number((b.date ?? now).slice(0, 4));
-    const name = `${venueLabel(b.venue as string)} ${b.date ?? year}`;
-    try {
-      const { id } = await createEvent({
-        name,
-        event_type: 'weekend',
-        year,
-        start_date: b.date,
-        site_id: b.venue,
-      });
-      return id;
-    } catch (e) {
-      const same = data.events.find((x) => x.name === name && x.year === year);
-      if (e instanceof ApiError && e.status === 409 && same) return same.id;
-      throw e;
-    }
-  };
   const shortlist = (personId: number) =>
-    act.run(async () => {
-      const eventId = await ensureEvent();
-      await createOutreach({ person_id: personId, goal: 'staff_slot', status: 'suggested', event_id: eventId, slot });
-      if (eventId !== b.eventId) set({ eventId });
-    });
+    act.run(() =>
+      createOutreach({
+        person_id: personId,
+        goal: 'staff_slot',
+        status: 'suggested',
+        venue_id: b.venue,
+        plan_date: b.date,
+        slot,
+      })
+    );
 
   const move = (o: Outreach, status: string) =>
     act.run(() =>
@@ -265,7 +221,8 @@ export default function StaffView({
         goal: 'staff_slot',
         status,
         contacted_on: status === 'contacted' ? now : o.contacted_on,
-        event_id: o.event_id,
+        venue_id: o.venue_id,
+        plan_date: o.plan_date,
         slot: o.slot,
       })
     );
@@ -347,7 +304,7 @@ export default function StaffView({
               setAdding(false);
               setVenueName('');
               setVenueAddress('');
-              set({ venue: value.id, eventId: calendar(value.id, b.date) });
+              set({ venue: value.id });
             }
           }}
         >
@@ -375,13 +332,6 @@ export default function StaffView({
             Cancel
           </button>
         </form>
-      )}
-      {ready && (
-        <p className="-mt-3 mb-5 text-sm text-muted">
-          {event
-            ? `On the calendar: ${pickerLabel(event)}.`
-            : 'This venue and date are not on the calendar yet. They are added when you shortlist someone.'}
-        </p>
       )}
 
       <div className="grid gap-5 lg:grid-cols-[1fr_22rem]">
@@ -465,7 +415,8 @@ export default function StaffView({
               <ErrorNote message={act.error} />
               <p className="mb-2 text-sm text-muted" aria-live="polite">
                 {candidates.length} {candidates.length === 1 ? 'person' : 'people'} for {slot} at{' '}
-                {event ? pickerLabel(event) : 'this event'}
+                {venueLabel(b.venue as string)}
+                {b.date ? ` on ${b.date}` : ''}
               </p>
               {candidates.length === 0 && (
                 <p className="rounded-xl border border-gray-200 px-3 py-8 text-center text-muted dark:border-gray-700">

@@ -148,8 +148,9 @@ export interface OutreachInput {
   contacted_on?: string | null;
   snooze_until?: string | null;
   note?: string | null;
-  event_id?: number | null;
   slot?: string | null;
+  venue_id?: string | null;
+  plan_date?: string | null;
 }
 export const createOutreach = (o: OutreachInput) => send<{ id: number }>('POST', '/outreach', o);
 export const saveOutreach = (id: number, o: OutreachInput) => send<{ ok: true }>('PUT', `/outreach/${id}`, o);

@@ -8,8 +8,6 @@ export interface Brief {
   /** Where, and optionally when. Staffing does not depend on how long the event runs. */
   venue: string | null;
   date: string | null;
-  /** The event row, once the next one is on the calendar. */
-  eventId: number | null;
   /** 'any' means a class or an activity. */
   scope: Scope | 'any';
   type: string;
@@ -18,7 +16,6 @@ export interface Brief {
 export const EMPTY_BRIEF: Brief = {
   venue: null,
   date: null,
-  eventId: null,
   scope: 'any',
   type: '',
   activityId: null,
@@ -46,9 +43,7 @@ export interface Candidate {
   segments: Segment[];
   /** 0 to 100. */
   total: number;
-  /** Other slots they already lead at this event. */
-  atEvent: string[];
-  /** The staffing ask for this event and slot, if there is one. */
+  /** The staffing ask for this venue, date, and slot, if there is one. */
   ask: Outreach | null;
   /** When they were last contacted for anything, if lately. */
   lastContacted: string | null;
@@ -133,10 +128,8 @@ export function candidatesFor(
   today: string,
   miles: Map<number, number> = new Map()
 ): Candidate[] {
-  // The next event may not exist yet: its date and venue stand in for it.
-  const event: Pick<EventRow, 'id' | 'start_date' | 'site_id'> | undefined =
-    data.events.find((e) => e.id === brief.eventId) ??
-    (brief.date || brief.venue ? { id: -1, start_date: brief.date, site_id: brief.venue } : undefined);
+  // Staffing is planned for a venue and, optionally, a date. No event record is involved.
+  const event = brief.date || brief.venue ? { start_date: brief.date, site_id: brief.venue } : undefined;
   const act = brief.activityId ? data.activities.find((a) => a.id === brief.activityId) : undefined;
   const activities = new Map(data.activities.map((a) => [a.id, a]));
   const events = new Map(data.events.map((e) => [e.id, e]));
@@ -168,12 +161,10 @@ export function candidatesFor(
     let thisActivity = 0;
     let ledHere = 0;
     let timing = 0;
-    const atEvent: string[] = [];
     for (const r of roles) {
       const a = activities.get(r.activity_id);
       const e = events.get(r.event_id);
       if (!a || !e) continue;
-      if (event && r.event_id === event.id && LED.has(r.leadership_type)) atEvent.push(a.name);
       const sameType = a.type === brief.type && (brief.scope === 'any' || a.scope === brief.scope);
       if (!sameType) continue;
       if (LED.has(r.leadership_type)) {
@@ -186,7 +177,7 @@ export function candidatesFor(
         }
       } else points += 0.5;
       if (event?.site_id && e.site_id === event.site_id) ledHere++;
-      if (event?.start_date && e.start_date && e.id !== event.id && near(e.start_date, event.start_date)) timing++;
+      if (event?.start_date && e.start_date && near(e.start_date, event.start_date)) timing++;
     }
     if (filters.hasLed && led === 0) continue;
     if (filters.ledHere && ledHere === 0) continue;
@@ -258,10 +249,14 @@ export function candidatesFor(
       person,
       segments,
       total,
-      atEvent,
       ask:
         outreach.find(
-          (o) => o.goal === 'staff_slot' && o.person_id === person.id && o.event_id === brief.eventId && o.slot === slot
+          (o) =>
+            o.goal === 'staff_slot' &&
+            o.person_id === person.id &&
+            o.venue_id === brief.venue &&
+            (o.plan_date ?? null) === brief.date &&
+            o.slot === slot
         ) ?? null,
       lastContacted: lastContact ?? null,
       experience: points,
