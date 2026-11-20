@@ -1,5 +1,5 @@
 import { useState, type SyntheticEvent } from 'react';
-import { addNote, deleteNote, deleteRole, savePerson } from './api';
+import { addNote, deleteNote, deleteRole, deleteService, savePerson } from './api';
 import {
   ConfirmRemove,
   ErrorNote,
@@ -18,6 +18,7 @@ import { Icon, PersonTags, RoleCounts, RoleMark, TONES } from './marks';
 import {
   ROLE_LABELS,
   eventLabel,
+  formatTerm,
   STATUSES,
   STATUS_LABELS,
   groupByEvent,
@@ -25,10 +26,13 @@ import {
   summarizeByType,
   type Data,
   type Person,
+  type Service,
   type Status,
   type View,
 } from './model';
 import RoleForm from './RoleForm';
+import ServiceForm from './ServiceForm';
+import Timeline from './Timeline';
 
 interface Props {
   data: Data;
@@ -49,6 +53,9 @@ const SELECTED_TONE: Record<Status, string> = {
   inactive: TONES.inactive,
 };
 
+/** Newest first: by start, else by end, and terms with no dates last. */
+const termKey = (s: Service) => s.started_on ?? s.ended_on ?? '';
+
 const date = (iso: string) =>
   new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
 
@@ -64,11 +71,16 @@ export default function PersonPanel({ data, person, onChanged, onClose, goTo }: 
   const [saved, setSaved] = useState(false);
   const [addingRole, setAddingRole] = useState(false);
   const [editingRole, setEditingRole] = useState<number | null>(null);
+  const [addingService, setAddingService] = useState(false);
+  const [editingService, setEditingService] = useState<number | null>(null);
   const { busy, error, run } = useAction(onChanged);
 
   const history = roleHistory(data, person.id);
   const byType = summarizeByType(history);
   const groups = groupByEvent(history);
+  const services = (data.service ?? [])
+    .filter((x) => x.person_id === person.id)
+    .sort((x, y) => termKey(y).localeCompare(termKey(x)));
   const notes = data.notes
     .filter((n) => n.person_id === person.id)
     .sort((a, b) => b.created_at.localeCompare(a.created_at));
@@ -199,6 +211,67 @@ export default function PersonPanel({ data, person, onChanged, onClose, goTo }: 
             </span>
           )}
         </div>
+      </Section>
+
+      <Timeline personId={person.id} refresh={data} />
+
+      <Section title="Board and committees">
+        {addingService ? (
+          <div className="mb-4 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+            <ServiceForm
+              data={data}
+              personId={person.id}
+              onChanged={onChanged}
+              onDone={() => setAddingService(false)}
+            />
+          </div>
+        ) : (
+          <button type="button" onClick={() => setAddingService(true)} className={`${secondaryBtn} mb-4`}>
+            Add service
+          </button>
+        )}
+        {services.length === 0 ? (
+          <p className="text-sm text-muted">None recorded.</p>
+        ) : (
+          <ul className="space-y-2">
+            {services.map((s) => (
+              <li key={s.id} className="text-sm">
+                {editingService === s.id ? (
+                  <ServiceForm
+                    data={data}
+                    personId={person.id}
+                    service={s}
+                    onChanged={onChanged}
+                    onDone={() => setEditingService(null)}
+                  />
+                ) : (
+                  <>
+                    <span className="font-medium">{s.body}</span>
+                    {s.title && <span>, {s.title}</span>}
+                    <span className="block text-xs text-muted">{formatTerm(s.started_on, s.ended_on)}</span>
+                    {s.note && <span className="block text-xs">{s.note}</span>}
+                    <span className="mt-0.5 flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setEditingService(s.id)}
+                        className={linkBtn}
+                        aria-label={`Change ${s.body}`}
+                      >
+                        Change
+                      </button>
+                      <ConfirmRemove
+                        what={s.body}
+                        short
+                        disabled={busy}
+                        onConfirm={() => void run(() => deleteService(s.id))}
+                      />
+                    </span>
+                  </>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
       </Section>
 
       <Section title="Readiness notes">

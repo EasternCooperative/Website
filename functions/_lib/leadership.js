@@ -179,12 +179,14 @@ export async function bootstrap(db) {
         `SELECT * FROM ${t} WHERE deleted_at IS NULL${t === 'person' ? ' AND erased_at IS NULL' : ''} ORDER BY id`
       )
       .all();
-  const [people, activities, events, roles, notes, types] = await Promise.all([
+  const [people, activities, events, roles, notes, service, volunteers, types] = await Promise.all([
     live('person'),
     live('activity'),
     live('event'),
     live('role'),
     live('journey_note'),
+    live('service'),
+    live('volunteer'),
     db.prepare('SELECT name FROM activity_type ORDER BY name').all(),
   ]);
   return {
@@ -193,6 +195,8 @@ export async function bootstrap(db) {
     events: events.results,
     roles: roles.results,
     notes: notes.results,
+    service: service.results,
+    volunteers: volunteers.results,
     activityTypes: types.results.map((r) => r.name),
   };
 }
@@ -286,6 +290,21 @@ export async function bulkAddRoles(db, rows, author) {
     clean.map((r) =>
       stmt.bind(r.person_id, r.activity_id, r.event_id, r.leadership_type, r.how_it_went, r.source, author, author)
     )
+  );
+  return results.reduce((n, r) => n + (r.meta?.changes ?? 0), 0);
+}
+
+/** Adds the same task at one event for several people. Neither is money, so any level may do it. */
+export async function bulkAddVolunteers(db, rows, author) {
+  if (!Array.isArray(rows) || rows.length === 0 || rows.length > 200) {
+    throw new ValidationError('send between 1 and 200 volunteers');
+  }
+  const clean = rows.map((r) => validators.volunteer(r));
+  const stmt = db.prepare(
+    'INSERT INTO volunteer (person_id, event_id, task, hours, note, created_by, updated_by) VALUES (?, ?, ?, ?, ?, ?, ?)'
+  );
+  const results = await db.batch(
+    clean.map((r) => stmt.bind(r.person_id, r.event_id, r.task, r.hours, r.note, author, author))
   );
   return results.reduce((n, r) => n + (r.meta?.changes ?? 0), 0);
 }

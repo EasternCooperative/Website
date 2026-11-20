@@ -1,6 +1,6 @@
 // Client for /api/internal/leadership. Same-origin only: Cloudflare Access puts
 // the session cookie on these requests, and the Function checks the JWT.
-import type { AccessLevel, Activity, AppUser, Data, EventRow, Person, Role } from './model';
+import type { AccessLevel, Activity, AppUser, Data, EventRow, Person, Role, Timeline } from './model';
 
 const BASE = '/api/internal/leadership';
 
@@ -95,3 +95,29 @@ export const listUsers = () => request<{ users: AppUser[] }>('/users');
 export const saveUser = (u: { email: string; level: AccessLevel; is_admin: boolean }) =>
   send<{ ok: true }>('POST', '/users', u);
 export const deleteUser = (email: string) => send<{ ok: true }>('DELETE', `/users/${encodeURIComponent(email)}`);
+
+export const getTimeline = (personId: number) => request<Timeline>(`/timeline/${personId}`);
+
+export interface ServiceInput {
+  person_id: number;
+  body: string;
+  title: string | null;
+  started_on: string | null;
+  ended_on: string | null;
+  note: string | null;
+  source?: string | null;
+}
+export const createService = (s: ServiceInput) => send<{ id: number }>('POST', '/service', s);
+export const saveService = (id: number, s: ServiceInput) => send<{ ok: true }>('PUT', `/service/${id}`, s);
+export const deleteService = (id: number) => send<{ ok: true }>('DELETE', `/service/${id}`);
+
+export interface VolunteerInput {
+  person_id: number;
+  event_id: number;
+  task: string;
+  hours: number | null;
+  note?: string | null;
+}
+/** The same task at one event for several people. */
+export const addVolunteers = (rows: VolunteerInput[]) => send<{ added: number }>('POST', '/volunteers/bulk', { rows });
+export const deleteVolunteer = (id: number) => send<{ ok: true }>('DELETE', `/volunteer/${id}`);

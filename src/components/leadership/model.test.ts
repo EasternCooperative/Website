@@ -4,6 +4,11 @@ import {
   buildRows,
   describeCounts,
   eventLabel,
+  describeItem,
+  dollars,
+  formatPartialDate,
+  formatTerm,
+  groupByYear,
   filterRows,
   groupByEvent,
   intensity,
@@ -267,5 +272,62 @@ describe('edge cases', () => {
   it('breaks ties by name when sorting a type column ascending', () => {
     const ids = sortRows(buildRows(data), 'type:Dancing', false).map((r) => r.person.id);
     expect(ids).toEqual([3, 1, 2]); // no dancing, then the 1-and-1 tie broken by name
+  });
+});
+
+describe('timeline words', () => {
+  it('formats partial dates and terms', () => {
+    expect(['2024', '2024-06', '2024-06-30', '2024-13'].map(formatPartialDate)).toEqual([
+      '2024',
+      'Jun 2024',
+      'Jun 30, 2024',
+      '13 2024',
+    ]);
+    expect([
+      formatTerm('2024-01', '2027-12'),
+      formatTerm('2025', '2025'),
+      formatTerm('2023-01', null),
+      formatTerm(null, '2021'),
+      formatTerm(null, null),
+    ]).toEqual(['Jan 2024 to Dec 2027', '2025', 'since Jan 2023', 'until 2021', 'current']);
+  });
+
+  it('groups by year in the order given, putting undated items in their own group', () => {
+    const at = (a: string) => ({ type: 'note' as const, id: 1, at: a, title: 'note' });
+    expect(
+      groupByYear([at('2026-01-01'), at('2026'), at('2024'), at('')]).map((g) => [g.year, g.items.length])
+    ).toEqual([
+      ['2026', 2],
+      ['2024', 1],
+      ['Undated', 1],
+    ]);
+    expect(groupByYear([])).toEqual([]);
+  });
+
+  it('formats dollars, dropping .00', () => {
+    expect([dollars(100000), dollars(123456), dollars(5)]).toEqual(['$1,000', '$1,234.56', '$0.05']);
+  });
+
+  it('describes a role with no type or event, and an outreach with no status', () => {
+    expect(describeItem({ type: 'role', id: 1, at: '2025', title: 'Tag' })).toEqual({
+      label: 'Led',
+      text: 'Tag',
+      sub: '',
+    });
+    expect(describeItem({ type: 'outreach', id: 1, at: '2025', title: 'invite_back' })).toEqual({
+      label: 'Outreach',
+      text: 'Invite back',
+      sub: '',
+    });
+    expect(describeItem({ type: 'gift', id: 1, at: '2025', title: 'Gift' })).toEqual({
+      label: 'Gift',
+      text: '',
+      sub: '',
+    });
+    expect(describeItem({ type: 'membership', id: 1, at: '', title: 'life' })).toEqual({
+      label: 'Member',
+      text: 'life',
+      sub: '',
+    });
   });
 });

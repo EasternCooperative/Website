@@ -1,5 +1,14 @@
 import { useState, type SyntheticEvent } from 'react';
-import { ApiError, addRoles, createEvent, deleteEvent, deleteRole, saveEvent } from './api';
+import {
+  ApiError,
+  addRoles,
+  addVolunteers,
+  createEvent,
+  deleteEvent,
+  deleteRole,
+  deleteVolunteer,
+  saveEvent,
+} from './api';
 import {
   ConfirmRemove,
   ErrorNote,
@@ -16,6 +25,7 @@ import {
   useAction,
 } from './forms';
 import { RoleMark } from './marks';
+import PeoplePicker from './PeoplePicker';
 import { ActivityOptions, ROLE_OPTIONS, activityLabel } from './RoleForm';
 import {
   EVENT_TYPES,
@@ -131,7 +141,6 @@ function AddRoles({
   const [activityId, setActivityId] = useState('');
   const [type, setType] = useState<LeadershipType | ''>('');
   const [picked, setPicked] = useState<number[]>([]);
-  const [query, setQuery] = useState('');
   const [result, setResult] = useState<string | null>(null);
   const { busy, error, run } = useAction(onChanged);
 
@@ -150,12 +159,7 @@ function AddRoles({
     );
   }
 
-  const q = query.trim().toLowerCase();
-  const people = [...data.people]
-    .filter((p) => !q || p.name.toLowerCase().includes(q))
-    .sort((a, b) => a.name.localeCompare(b.name));
   const ready = activityId !== '' && type !== '' && picked.length > 0;
-  const toggle = (id: number) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]));
 
   const onSubmit = async (e: SyntheticEvent) => {
     e.preventDefault();
@@ -187,28 +191,7 @@ function AddRoles({
         </select>
       </Field>
       <Segmented name="bulk-role" legend="Role" value={type} options={ROLE_OPTIONS} onChange={setType} />
-      <fieldset>
-        <legend className="mb-1 text-sm text-muted">People</legend>
-        <input
-          type="search"
-          aria-label="Find a person to add"
-          placeholder="Find a person"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className={`${inputCls} mb-1.5`}
-        />
-        <ul className="max-h-48 overflow-y-auto rounded-lg border border-gray-300 dark:border-gray-600">
-          {people.map((p) => (
-            <li key={p.id}>
-              <label className={`flex cursor-pointer items-center gap-2 px-2.5 py-1 text-sm ${surfaceHover}`}>
-                <input type="checkbox" checked={picked.includes(p.id)} onChange={() => toggle(p.id)} />
-                {p.name}
-              </label>
-            </li>
-          ))}
-          {people.length === 0 && <li className="px-2.5 py-2 text-sm text-muted">No one matches.</li>}
-        </ul>
-      </fieldset>
+      <PeoplePicker people={data.people} picked={picked} onChange={setPicked} />
       <ErrorNote message={error} />
       {result && (
         <p role="status" className="text-sm text-muted">
@@ -217,6 +200,65 @@ function AddRoles({
       )}
       <button type="submit" disabled={!ready || busy} className={primaryBtn}>
         {picked.length > 1 ? `Add ${picked.length} roles` : 'Add role'}
+      </button>
+    </form>
+  );
+}
+
+/** Records who helped at an event and with what, several people at a time. */
+function AddVolunteers({ data, event, onChanged }: { data: Data; event: EventRow; onChanged: () => Promise<void> }) {
+  const [task, setTask] = useState('');
+  const [hours, setHours] = useState('');
+  const [picked, setPicked] = useState<number[]>([]);
+  const [result, setResult] = useState<string | null>(null);
+  const { busy, error, run } = useAction(onChanged);
+
+  const tasks = [...new Set((data.volunteers ?? []).map((v) => v.task))].sort();
+  const hoursNum = hours.trim() === '' ? null : Number(hours);
+  const hoursOk = hoursNum === null || (Number.isFinite(hoursNum) && hoursNum >= 0 && hoursNum <= 1000);
+  const ready = task.trim() !== '' && picked.length > 0 && hoursOk;
+
+  const onSubmit = async (e: SyntheticEvent) => {
+    e.preventDefault();
+    if (!ready) return;
+    const rows = picked.map((person_id) => ({ person_id, event_id: event.id, task: task.trim(), hours: hoursNum }));
+    const { ok, value } = await run(() => addVolunteers(rows));
+    if (ok && value) {
+      setResult(`Added ${value.added} ${value.added === 1 ? 'volunteer' : 'volunteers'}.`);
+      setPicked([]);
+    }
+  };
+
+  return (
+    <form onSubmit={onSubmit} className="space-y-3" aria-label="Add volunteers">
+      <Field label="What they helped with">
+        <input value={task} onChange={(e) => setTask(e.target.value)} list="volunteer-tasks" className={inputCls} />
+        <datalist id="volunteer-tasks">
+          {tasks.map((t) => (
+            <option key={t} value={t} />
+          ))}
+        </datalist>
+      </Field>
+      <Field label="Hours each (optional)">
+        <input
+          type="number"
+          inputMode="decimal"
+          min="0"
+          step="0.25"
+          value={hours}
+          onChange={(e) => setHours(e.target.value)}
+          className={`${inputCls} max-w-28`}
+        />
+      </Field>
+      <PeoplePicker people={data.people} picked={picked} onChange={setPicked} />
+      <ErrorNote message={error} />
+      {result && (
+        <p role="status" className="text-sm text-muted">
+          {result}
+        </p>
+      )}
+      <button type="submit" disabled={!ready || busy} className={primaryBtn}>
+        {picked.length > 1 ? `Add ${picked.length} volunteers` : 'Add volunteer'}
       </button>
     </form>
   );
@@ -238,7 +280,11 @@ function EventPanel({
   goTo: (view: View) => void;
 }) {
   const remove = useAction(onChanged);
+
   const people = new Map(data.people.map((p) => [p.id, p]));
+  const helpers = event
+    ? (data.volunteers ?? []).filter((v) => v.event_id === event.id && people.has(v.person_id))
+    : [];
   const activities = new Map(data.activities.map((a) => [a.id, a]));
   const roles = event
     ? data.roles.filter((r) => r.event_id === event.id && people.has(r.person_id) && activities.has(r.activity_id))
@@ -296,6 +342,33 @@ function EventPanel({
               </ul>
             )}
             <ErrorNote message={remove.error} />
+          </Section>
+
+          <Section title="Volunteers">
+            {helpers.length === 0 ? (
+              <p className="mb-4 text-sm text-muted">No one recorded yet.</p>
+            ) : (
+              <ul className="mb-4 space-y-1">
+                {helpers.map((v) => (
+                  <li key={v.id} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5 text-sm">
+                    <span>
+                      {people.get(v.person_id)!.name}
+                      <span className="text-muted">
+                        , {v.task}
+                        {v.hours != null ? `, ${v.hours} hours` : ''}
+                      </span>
+                    </span>
+                    <ConfirmRemove
+                      what={`${people.get(v.person_id)!.name} from ${v.task}`}
+                      short
+                      disabled={remove.busy}
+                      onConfirm={() => void remove.run(() => deleteVolunteer(v.id))}
+                    />
+                  </li>
+                ))}
+              </ul>
+            )}
+            <AddVolunteers data={data} event={event} onChanged={onChanged} />
           </Section>
 
           <Section title="Remove">
