@@ -122,6 +122,23 @@ export interface PersonLocation {
   lng: number;
 }
 
+/** A venue added in the tool. The site's own venues come from the content. */
+export interface VenueRow {
+  id: string;
+  name: string;
+  city: string | null;
+  state: string | null;
+  lat: number;
+  lng: number;
+}
+/** Someone the team knows is an expert in a type, set by hand. */
+export interface Expertise {
+  id: number;
+  person_id: number;
+  type: string;
+  note: string | null;
+}
+
 export interface Data {
   me?: string;
   /** What the signed-in person may see: finance sees donation amounts. */
@@ -137,6 +154,8 @@ export interface Data {
   volunteers?: Volunteer[];
   outreach?: Outreach[];
   locations?: PersonLocation[];
+  venues?: VenueRow[];
+  expertise?: Expertise[];
   activityTypes: string[];
 }
 

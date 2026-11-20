@@ -2,16 +2,30 @@
 // the browser from what the tool already holds (roles, notes, events, outreach), and every
 // score comes with the words that explain it. Nothing is hidden because of a score.
 
-import type { Activity, Data, EventRow, Outreach, Person, PersonLocation, Role, Scope } from './model';
+import type { Activity, Data, EventRow, Expertise, Outreach, Person, PersonLocation, Role, Scope } from './model';
 
 export interface Brief {
+  /** The recurring event being staffed, such as "Winter Adventure". */
+  series: string;
+  /** Which venue, and when. These describe the next one, which may not be on the calendar yet. */
+  venue: string | null;
+  date: string | null;
+  /** The event row, once the next one is on the calendar. */
   eventId: number | null;
   /** 'any' means a class or an activity. */
   scope: Scope | 'any';
   type: string;
   activityId: number | null;
 }
-export const EMPTY_BRIEF: Brief = { eventId: null, scope: 'any', type: '', activityId: null };
+export const EMPTY_BRIEF: Brief = {
+  series: '',
+  venue: null,
+  date: null,
+  eventId: null,
+  scope: 'any',
+  type: '',
+  activityId: null,
+};
 
 export type SegmentKey = 'experience' | 'readiness' | 'availability' | 'nearness' | 'timing';
 export type Weights = Record<SegmentKey, number>;
@@ -41,6 +55,8 @@ export interface Candidate {
   ask: Outreach | null;
   /** When they were last contacted for anything, if lately. */
   lastContacted: string | null;
+  /** The mark that says they are an expert in this type, if one was set. */
+  expert: Expertise | null;
   /** "Ottsville, PA", when their location is known. */
   place: string | null;
   experience: number;
@@ -120,7 +136,10 @@ export function candidatesFor(
   today: string,
   miles: Map<number, number> = new Map()
 ): Candidate[] {
-  const event = data.events.find((e) => e.id === brief.eventId);
+  // The next event may not exist yet: its date and venue stand in for it.
+  const event: Pick<EventRow, 'id' | 'start_date' | 'site_id'> | undefined =
+    data.events.find((e) => e.id === brief.eventId) ??
+    (brief.date || brief.venue ? { id: -1, start_date: brief.date, site_id: brief.venue } : undefined);
   const act = brief.activityId ? data.activities.find((a) => a.id === brief.activityId) : undefined;
   const activities = new Map(data.activities.map((a) => [a.id, a]));
   const events = new Map(data.events.map((e) => [e.id, e]));
@@ -144,6 +163,7 @@ export function candidatesFor(
     if (filters.maxMiles !== null && dist !== undefined && dist > filters.maxMiles) continue;
 
     const place = placeBy.get(person.id);
+    const expert = (data.expertise ?? []).find((x) => x.person_id === person.id && x.type === brief.type) ?? null;
     const roles = rolesBy.get(person.id) ?? [];
     let points = 0;
     let led = 0;
@@ -182,13 +202,15 @@ export function candidatesFor(
     const segments: Segment[] = [
       {
         key: 'experience',
-        // Diminishing returns: the first few times matter most, but a long record still ranks higher.
-        value: 1 - Math.exp(-points / 4),
+        // Six times leading fills the bar, and an expert mark fills it whatever the records say.
+        value: expert ? 1 : Math.min(points / 6, 1),
         detail: led
-          ? `Led ${brief.type} ${plural(led, 'time', 'times')}, last in ${lastLed}${thisActivity && act ? `; led ${act.name} ${plural(thisActivity, 'time', 'times')}` : ''}`
-          : points
-            ? `Helped with ${brief.type}`
-            : '',
+          ? `${expert ? `Marked an expert in ${brief.type}. ` : ''}Led ${brief.type} ${plural(led, 'time', 'times')}, last in ${lastLed}${thisActivity && act ? `; led ${act.name} ${plural(thisActivity, 'time', 'times')}` : ''}`
+          : expert
+            ? `Marked an expert in ${brief.type}`
+            : points
+              ? `Helped with ${brief.type}`
+              : '',
       },
       {
         key: 'readiness',
@@ -248,11 +270,14 @@ export function candidatesFor(
       experience: points,
       ledHere,
       mentor: !!person.mentor,
+      expert,
       place: place ? [place.city, place.state].filter(Boolean).join(', ') || null : null,
     });
   }
   // Leading something else at the event does not rule anyone out; the card just says so.
-  return out.sort((a, b) => b.total - a.total || a.person.name.localeCompare(b.person.name));
+  return out.sort(
+    (a, b) => b.total - a.total || b.experience - a.experience || a.person.name.localeCompare(b.person.name)
+  );
 }
 
 export interface Depth {

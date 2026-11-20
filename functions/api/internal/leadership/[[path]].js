@@ -20,6 +20,7 @@
 //   GET    duplicates                      people who may be one person (admins only)
 //   GET    merge/<fromId>/<intoId>         what a merge would move, as counts (admins only)
 //   POST   merge/<fromId>/<intoId>         { confirm: <fromId> } fold the first into the second (admins only)
+//   POST   venue                           { name, postal_code } add a venue; its location is looked up from the postal code
 //   POST   roles/bulk                      { rows: [role, ...] }
 //   POST   volunteers/bulk                 { rows: [volunteer, ...] }
 //   POST   <resource>                      create
@@ -38,6 +39,7 @@ import {
   timeline,
 } from '../../../_lib/engagement.js';
 import { clearPlan, journeyBoard, journeyOne, savePlan, validatePlan } from '../../../_lib/journey.js';
+import { createVenue } from '../../../_lib/venues.js';
 import { audit, listUsers, removeUser, resolveUser, saveUser, validateUser } from '../../../_lib/roles.js';
 import {
   ValidationError,
@@ -166,6 +168,9 @@ export const onRequest = async ({ request, env, params }) => {
         const done = await mergePeople(env.DB, fromId, intoId, auth.email);
         return done ? json(200, done) : json(404, { error: 'not found' });
       }
+    }
+    if (first === 'venue' && method === 'POST' && !second) {
+      return json(201, { id: await createVenue(env.DB, await readBody(request), auth.email) });
     }
     if (first === 'donation' && user.level !== 'finance') {
       return json(403, { error: 'Only the finance level can record or change gifts.' });

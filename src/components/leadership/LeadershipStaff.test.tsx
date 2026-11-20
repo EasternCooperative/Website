@@ -27,8 +27,30 @@ const base = (): Data => ({
     { id: 2, name: 'Games Class', scope: 'class', type: 'Games', subtype: null },
   ],
   events: [
-    { id: 1, name: 'Camp 2025', event_type: 'weekend', year: 2025, start_date: '2025-06-14', site_id: 'camp-onas' },
-    { id: 2, name: 'Camp 2026', event_type: 'weekend', year: 2026, start_date: '2026-12-20', site_id: 'camp-onas' },
+    {
+      id: 1,
+      name: 'Camping Weekend 2025',
+      event_type: 'weekend',
+      year: 2025,
+      start_date: '2025-06-14',
+      site_id: 'camp-onas',
+    },
+    {
+      id: 2,
+      name: 'Camping Weekend 2026',
+      event_type: 'weekend',
+      year: 2026,
+      start_date: '2026-12-20',
+      site_id: 'camp-onas',
+    },
+    {
+      id: 3,
+      name: 'Winter Adventure 2025',
+      event_type: 'extended',
+      year: 2025,
+      start_date: '2025-12-27',
+      site_id: 'the-y-at-watson-woods',
+    },
   ],
   roles: [
     { id: 1, person_id: 1, activity_id: 2, event_id: 1, leadership_type: 'solo', how_it_went: null },
@@ -49,12 +71,14 @@ const json = (body: unknown, status = 200) =>
 let current: Data;
 let writes: { path: string; method: string; body?: Record<string, unknown> }[];
 let fail: string | null;
+let failPath: string | null;
 
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-11-20T12:00:00Z') });
   current = base();
   writes = [];
   fail = null;
+  failPath = null;
   vi.stubGlobal(
     'fetch',
     vi.fn((url: string, init?: RequestInit) => {
@@ -62,7 +86,7 @@ beforeEach(() => {
       const method = init?.method ?? 'GET';
       if (path === '/bootstrap') return json(current);
       writes.push({ path, method, body: init?.body ? JSON.parse(init.body as string) : undefined });
-      return fail ? json({ error: fail }, 409) : json({ id: 77 });
+      return fail && (!failPath || path.startsWith(failPath)) ? json({ error: fail }, 409) : json({ id: 77 });
     })
   );
 });
@@ -84,26 +108,34 @@ const choose = (el: Element, value: string) =>
   });
 const select = (c: Element, label: string) =>
   [...c.querySelectorAll('label')].find((l) => l.textContent?.startsWith(label))!.querySelector('select')!;
+const input = (c: Element, label: string) =>
+  [...c.querySelectorAll('label')].find((l) => l.textContent?.startsWith(label))!.querySelector('input')!;
 const names = (c: Element) => [...c.querySelectorAll('ul > li > div > div > p > button')].map((b) => b.textContent);
 
 describe('the brief in the address', () => {
-  it('reads and writes the event, kind, type, and activity', () => {
-    expect(briefFromQuery('event=2&scope=class&type=Games&activity=2')).toEqual({
+  it('reads and writes the series, venue, date, event, kind, type, and activity', () => {
+    const full = {
+      series: 'Camping Weekend',
+      venue: 'camp-onas',
+      date: '2026-12-20',
       eventId: 2,
-      scope: 'class',
+      scope: 'class' as const,
       type: 'Games',
       activityId: 2,
-    });
-    expect(briefFromQuery('scope=nonsense&event=x')).toEqual({
+    };
+    const query = 'series=Camping+Weekend&venue=camp-onas&date=2026-12-20&event=2&scope=class&type=Games&activity=2';
+    expect(briefFromQuery(query)).toEqual(full);
+    expect(briefToQuery(full)).toBe(query);
+    expect(briefFromQuery('scope=nonsense&event=x&date=soon')).toEqual({
+      series: '',
+      venue: null,
+      date: null,
       eventId: null,
       scope: 'any',
       type: '',
       activityId: null,
     });
-    expect(briefToQuery({ eventId: 2, scope: 'class', type: 'Games', activityId: 2 })).toBe(
-      'event=2&scope=class&type=Games&activity=2'
-    );
-    expect(briefToQuery({ eventId: null, scope: 'any', type: '', activityId: null })).toBe('');
+    expect(briefToQuery(briefFromQuery(''))).toBe('');
   });
 });
 
@@ -115,22 +147,28 @@ describe('Staff an event', () => {
     expect(c.querySelector('section[aria-label="Bench depth"]')!.textContent).toContain('Dancing');
     await click(buttonWithText(c.querySelector('section[aria-label="Bench depth"]')!, /^Games/));
     expect(window.location.hash).toBe('#/staff?type=Games');
-    await choose(select(c, 'Event'), '2');
-    expect(window.location.hash).toBe('#/staff?event=2&type=Games');
-    expect(c.textContent).toContain('3 people'.replace('3', '2')); // Cy is on hiatus
+    await choose(select(c, 'Event'), 'Camping Weekend');
+    expect(window.location.hash).toBe(
+      '#/staff?series=Camping+Weekend&venue=camp-onas&date=2026-12-20&event=2&type=Games'
+    );
+    expect(c.textContent).toContain('2 people'); // Cy is on hiatus
+    expect(c.textContent).toContain('On the calendar: 2026-12-20 Camping Weekend.');
   });
 
-  it('ranks people with reasons, and lists upcoming events first', async () => {
+  it('ranks people with reasons, from the recurring event, its venue, and its date', async () => {
     const c = await open();
     expect(names(c)).toEqual(['Bo Newer', 'Ana Expert']); // a matching ready note outweighs one past class
     const text = c.textContent ?? '';
     expect(text).toContain('Led Games 1 time, last in 2025');
     expect(text).toContain('Ready for games class');
     expect(text).toContain('Led here 1 time');
-    expect(select(c, 'Event').textContent!.indexOf('2026-12-20')).toBeLessThan(
-      select(c, 'Event').textContent!.indexOf('2025-06-14')
-    );
-    expect(text).toContain('2026-12-20, Camp Onas');
+    expect([...select(c, 'Event').options].map((o) => o.textContent)).toEqual([
+      'Choose an event',
+      'Camping Weekend',
+      'Winter Adventure',
+    ]);
+    expect(select(c, 'Where').value).toBe('camp-onas');
+    expect(text).toContain(' At Camp Onas.');
   });
 
   it('narrows the kind and the specific activity, and clears the activity when the type changes', async () => {
@@ -353,28 +391,34 @@ describe('odd data', () => {
     expect(c.textContent).toContain('snoozed');
   });
 
-  it('copes with no outreach list, an unknown event, an undated event, and an unknown venue', async () => {
+  it('copes with no outreach list, an event not on the calendar, an unknown venue, and a missing event', async () => {
     current.outreach = undefined;
     current.events = [
-      { id: 2, name: 'Mystery 2026', event_type: 'weekend', year: 2026, start_date: null, site_id: 'unknown-place' },
-      { id: 3, name: 'Plain 2026', event_type: 'weekend', year: 2026, start_date: null, site_id: null },
+      {
+        id: 2,
+        name: 'Mystery Weekend 2026',
+        event_type: 'weekend',
+        year: 2026,
+        start_date: '2026-12-01',
+        site_id: 'unknown-place',
+      },
+      { id: 3, name: 'Plain Thing 2026', event_type: 'weekend', year: 2026, start_date: null, site_id: null },
     ];
     const c = await open('#/staff?event=2&type=Games');
-    expect(c.textContent).toContain('2026, unknown-place');
-    await choose(select(c, 'Event'), '3');
-    expect(c.textContent).toMatch(/Plain\s*2026|2026 Plain/);
-    expect(c.textContent).not.toContain(', unknown-place');
+    expect([...select(c, 'Where').options].map((o) => o.textContent)).toContain('unknown-place');
+    expect(c.textContent).toContain(' At unknown-place.');
     await cleanup();
     const d = await open('#/staff?event=999&type=Games'); // an event that is not there
-    expect(d.textContent).toContain('for Games at this event');
+    expect(d.textContent).toContain('Choose an event and a type');
   });
 
   it('can step back from an event or a specific activity to none', async () => {
     const c = await open('#/staff?event=2&type=Games&activity=1');
     await choose(select(c, 'A specific one'), '0');
     expect(window.location.hash).not.toContain('activity=');
-    await choose(select(c, 'Event'), '0');
-    expect(window.location.hash).not.toContain('event=');
+    await choose(select(c, 'Event'), '');
+    expect(window.location.hash).not.toContain('series=');
+    expect(window.location.hash).not.toContain('date=');
   });
 
   it('shows a healthy bench in the normal color and pluralizes mentors', async () => {
@@ -422,5 +466,184 @@ describe('distance', () => {
     current.events = current.events.map((e) => ({ ...e, site_id: 'unknown-place' }));
     const d = await open();
     expect(d.textContent).not.toContain('Live within');
+  });
+});
+
+describe('planning the next one', () => {
+  const pickWinter = async (c: Element) => {
+    await choose(select(c, 'Event'), 'Winter Adventure');
+    await choose(select(c, 'Type'), 'Games');
+    await choose(select(c, 'Kind'), 'class');
+  };
+
+  it('suggests the next date and last venue, and says it is not on the calendar yet', async () => {
+    const c = await open('#/staff');
+    await pickWinter(c);
+    expect(select(c, 'Where').value).toBe('the-y-at-watson-woods');
+    expect(input(c, 'When').value).toBe('2026-12-27');
+    expect(c.textContent).toContain('Not on the calendar yet. It is added when you shortlist someone.');
+    expect(window.location.hash).not.toContain('event=');
+  });
+
+  it('adds the event the first time someone is shortlisted, then ties the ask to it', async () => {
+    const c = await open('#/staff');
+    await pickWinter(c);
+    await click([...c.querySelectorAll('button')].find((b) => b.textContent === 'Shortlist') ?? null);
+    const [made, ask] = writes.slice(-2);
+    expect(made).toEqual({
+      path: '/event',
+      method: 'POST',
+      body: {
+        name: 'Winter Adventure 2026',
+        event_type: 'extended',
+        year: 2026,
+        start_date: '2026-12-27',
+        site_id: 'the-y-at-watson-woods',
+      },
+    });
+    expect(ask).toMatchObject({ path: '/outreach', body: { event_id: 77, slot: 'Games class', goal: 'staff_slot' } });
+    expect(window.location.hash).toContain('event=77');
+  });
+
+  it('uses an event that already has that name and year, and reports any other failure', async () => {
+    current.events.push({
+      id: 9,
+      name: 'Winter Adventure 2026',
+      event_type: 'extended',
+      year: 2026,
+      start_date: null,
+      site_id: null,
+    });
+    const c = await open('#/staff');
+    await pickWinter(c);
+    fail = 'already exists';
+    failPath = '/event';
+    await click([...c.querySelectorAll('button')].find((b) => b.textContent === 'Shortlist') ?? null);
+    expect(writes.at(-1)).toMatchObject({ path: '/outreach', body: { event_id: 9 } });
+    await cleanup();
+    current.events = current.events.filter((e) => e.id !== 9);
+    const d = await open('#/staff');
+    await pickWinter(d);
+    await click([...d.querySelectorAll('button')].find((b) => b.textContent === 'Shortlist') ?? null);
+    expect(d.textContent).toContain('already exists');
+  });
+
+  it('follows a change of date or venue, and finds the calendar entry again when they match', async () => {
+    const c = await open('#/staff?event=2&type=Games');
+    await choose(select(c, 'Where'), 'the-y-at-watson-woods');
+    expect(window.location.hash).not.toContain('event=');
+    expect(c.textContent).toContain('Not on the calendar yet');
+    await choose(select(c, 'Where'), 'camp-onas');
+    expect(window.location.hash).toContain('event=2');
+    const date = input(c, 'When');
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(date, '2027-01-02');
+      date.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    expect(window.location.hash).toContain('date=2027-01-02');
+    expect(window.location.hash).not.toContain('event=');
+    await choose(select(c, 'Where'), '');
+    expect(window.location.hash).not.toContain('venue=');
+  });
+});
+
+describe('adding a venue', () => {
+  const fill = async (c: Element, name: string, zip: string) => {
+    const [n, z] = [...c.querySelectorAll('form input')] as HTMLInputElement[];
+    for (const [el, v] of [
+      [n, name],
+      [z, zip],
+    ] as const)
+      await act(async () => {
+        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(el, v);
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+  };
+
+  it('adds a venue from a name and postal code, then chooses it', async () => {
+    const c = await open();
+    await choose(select(c, 'Where'), '__new');
+    expect(buttonWithText(c, 'Add venue')!.disabled).toBe(true);
+    await fill(c, ' New Place ', '18942');
+    await click(buttonWithText(c, 'Add venue'));
+    expect(writes.at(-1)).toEqual({
+      path: '/venue',
+      method: 'POST',
+      body: { name: 'New Place', postal_code: '18942' },
+    });
+    await settle();
+    expect(c.querySelector('form')).toBeNull();
+    expect(window.location.hash).toContain('venue=77');
+  });
+
+  it('shows why it could not be added, and can be cancelled', async () => {
+    const c = await open();
+    await choose(select(c, 'Where'), '__new');
+    await fill(c, 'X', '00000');
+    fail = 'That postal code could not be found.';
+    await click(buttonWithText(c, 'Add venue'));
+    expect(c.textContent).toContain('could not be found');
+    expect(c.querySelector('form')).not.toBeNull();
+    await click(buttonWithText(c, 'Cancel'));
+    expect(c.querySelector('form')).toBeNull();
+  });
+
+  it('lists venues added in the tool, and uses their place for distance', async () => {
+    current.venues = [{ id: 'my-place', name: 'My Place', city: 'Ottsville', state: 'PA', lat: 40.3, lng: -75.1 }];
+    current.locations = [{ person_id: 1, city: 'Ottsville', state: 'PA', lat: 40.31, lng: -75.1 }];
+    const c = await open('#/staff?series=Camping+Weekend&venue=my-place&date=2027-06-18&type=Games');
+    expect([...select(c, 'Where').options].map((o) => o.textContent)).toContain('My Place');
+    expect(c.textContent).toContain('Live within');
+    expect(c.textContent).toContain('of My Place.');
+  });
+});
+
+describe('experts', () => {
+  it('marks someone an expert in the type, and takes the mark back', async () => {
+    const c = await open();
+    await click(buttonWithText(c, 'Mark as an expert in Games'));
+    expect(writes.at(-1)).toEqual({ path: '/expertise', method: 'POST', body: { person_id: 2, type: 'Games' } });
+    current.expertise = [{ id: 4, person_id: 2, type: 'Games', note: null }];
+    await cleanup();
+    const d = await open();
+    expect(d.textContent).toContain('Marked an expert in Games');
+    await click(buttonWithText(d, 'Remove expert mark for Games'));
+    expect(writes.at(-1)).toMatchObject({ path: '/expertise/4', method: 'DELETE' });
+  });
+});
+
+describe('odd links and venues', () => {
+  it('copes with a linked event that is not a recurring one, a series not on the list, and no venue', async () => {
+    current.events = [
+      { id: 2, name: 'Virtual Dance 2026', event_type: 'one_day', year: 2026, start_date: '2026-12-01', site_id: null },
+      { id: 3, name: 'Fun Day 2025', event_type: 'one_day', year: 2025, start_date: '2025-05-01', site_id: null },
+    ];
+    const c = await open('#/staff?event=2&type=Games');
+    expect(select(c, 'Event').value).toBe(''); // a virtual event is no recurring event
+    await cleanup();
+    const d = await open('#/staff?series=Brand+New+Thing&date=2027-03-01&type=Games');
+    await click([...d.querySelectorAll('button')].find((b) => b.textContent === 'Shortlist') ?? null);
+    expect(writes.find((w) => w.path === '/event')!.body).toMatchObject({
+      name: 'Brand New Thing 2027',
+      event_type: 'weekend',
+      site_id: null,
+    });
+  });
+
+  it('matches the calendar when neither has a venue, and clears the date', async () => {
+    current.events = [
+      { id: 3, name: 'Fun Day 2027', event_type: 'one_day', year: 2027, start_date: '2027-05-01', site_id: null },
+    ];
+    const c = await open('#/staff');
+    await choose(select(c, 'Event'), 'Fun Day');
+    expect(select(c, 'Where').value).toBe('');
+    expect(window.location.hash).toContain('event=3');
+    const date = input(c, 'When');
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(date, '');
+      date.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    expect(window.location.hash).not.toContain('date=');
+    expect(c.textContent).toContain('Choose an event and a type');
   });
 });

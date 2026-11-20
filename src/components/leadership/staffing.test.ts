@@ -115,7 +115,15 @@ const data: Data = {
   ],
   activityTypes: ['Dancing', 'Games', 'Music'],
 };
-const brief: Brief = { eventId: 3, scope: 'class', type: 'Games', activityId: null };
+const brief: Brief = {
+  series: '',
+  venue: null,
+  date: null,
+  eventId: 3,
+  scope: 'class',
+  type: 'Games',
+  activityId: null,
+};
 const run = (b: Brief = brief, f = DEFAULT_STAFF_FILTERS, miles?: Map<number, number>) =>
   candidatesFor(data, b, DEFAULT_STAFF_WEIGHTS, f, '2026-11-20', miles);
 const seg = (name: string, key: string) =>
@@ -148,7 +156,7 @@ describe('candidatesFor', () => {
   it('explains experience in words, counting helping at half and a specific activity extra', () => {
     const ana = seg('Ana Expert', 'experience');
     expect(ana.detail).toBe('Led Games 2 times, last in 2025');
-    expect(ana.value).toBeCloseTo(1 - Math.exp(-0.5), 5);
+    expect(ana.value).toBeCloseTo(2 / 6, 5); // six times leading fills the bar
     const tag = candidatesFor(
       data,
       { ...brief, scope: 'any', activityId: 1 },
@@ -169,7 +177,7 @@ describe('candidatesFor', () => {
     );
     const helpedBo = helped.find((c) => c.person.name === 'Bo Newer')!.segments[0];
     expect(helpedBo.detail).toBe('Helped with Games');
-    expect(helpedBo.value).toBeCloseTo(1 - Math.exp(-0.125), 5);
+    expect(helpedBo.value).toBeCloseTo(0.5 / 6, 5);
     expect(helpedBo.value).toBeLessThan(ana.value);
   });
 
@@ -267,7 +275,7 @@ describe('candidatesFor', () => {
   it('copes with no event yet, and with a type nobody has led', () => {
     const none = candidatesFor(
       data,
-      { eventId: null, scope: 'any', type: 'Music', activityId: null },
+      { series: '', venue: null, date: null, eventId: null, scope: 'any', type: 'Music', activityId: null },
       DEFAULT_STAFF_WEIGHTS,
       DEFAULT_STAFF_FILTERS,
       '2026-11-20'
@@ -357,5 +365,74 @@ describe('distance', () => {
     const r = candidatesFor(odd, brief, DEFAULT_STAFF_WEIGHTS, DEFAULT_STAFF_FILTERS, '2026-11-20');
     expect(r.find((c) => c.person.name === 'Ana Expert')!.place).toBe('PA');
     expect(r.find((c) => c.person.name === 'Bo Newer')!.place).toBeNull();
+  });
+});
+
+describe('expert marks and a long record', () => {
+  const marked = (type: string): Data => ({
+    ...data,
+    expertise: [{ id: 1, person_id: 2, type, note: null }],
+  });
+  const exp = (d: Data, name: string) =>
+    candidatesFor(d, brief, DEFAULT_STAFF_WEIGHTS, DEFAULT_STAFF_FILTERS, '2026-11-20').find(
+      (c) => c.person.name === name
+    )!;
+
+  it('fills the experience bar for an expert, whatever the records say', () => {
+    const bo = exp(marked('Games'), 'Bo Newer');
+    expect(bo.segments[0]).toEqual({ key: 'experience', value: 1, detail: 'Marked an expert in Games' });
+    expect(bo.expert).toMatchObject({ id: 1 });
+    expect(exp(data, 'Bo Newer').expert).toBeNull();
+  });
+
+  it('keeps the records in the explanation when an expert also has them', () => {
+    const d = { ...marked('Games'), expertise: [{ id: 1, person_id: 1, type: 'Games', note: null }] };
+    expect(exp(d, 'Ana Expert').segments[0].detail).toBe('Marked an expert in Games. Led Games 2 times, last in 2025');
+  });
+
+  it('only counts a mark for the type being staffed', () => {
+    expect(exp(marked('Dancing'), 'Bo Newer').segments[0].value).toBeLessThan(1);
+    expect(exp(marked('Dancing'), 'Bo Newer').expert).toBeNull();
+  });
+
+  it('fills the bar after six times leading, and breaks a tie by who has done more', () => {
+    const many: Data = {
+      ...data,
+      roles: Array.from({ length: 8 }, (_, i) => role(100 + i, 7, 2, (i % 2) + 1)),
+    };
+    const gus = candidatesFor(many, brief, DEFAULT_STAFF_WEIGHTS, DEFAULT_STAFF_FILTERS, '2026-11-20').find(
+      (c) => c.person.name === 'Gus Nobody'
+    )!;
+    expect(gus.segments[0].value).toBe(1);
+    const tie: Data = {
+      ...data,
+      roles: [...many.roles, ...Array.from({ length: 10 }, (_, i) => role(200 + i, 1, 2, (i % 2) + 1))],
+    };
+    const order = candidatesFor(
+      tie,
+      brief,
+      { experience: 4, readiness: 0, availability: 0, nearness: 0, timing: 0 },
+      DEFAULT_STAFF_FILTERS,
+      '2026-11-20'
+    ).map((c) => c.person.name);
+    expect(order.indexOf('Ana Expert')).toBeLessThan(order.indexOf('Gus Nobody')); // both full; Ana has more
+  });
+
+  it('plans for an event that is not on the calendar yet, from its date and venue', () => {
+    const b: Brief = {
+      series: 'Camping Weekend',
+      venue: 'camp-onas',
+      date: '2027-06-18',
+      eventId: null,
+      scope: 'class',
+      type: 'Games',
+      activityId: null,
+    };
+    const r = candidatesFor(data, b, DEFAULT_STAFF_WEIGHTS, DEFAULT_STAFF_FILTERS, '2026-11-20');
+    const ana = r.find((c) => c.person.name === 'Ana Expert')!;
+    expect(ana.segments[3].detail).toBe('Led here 1 time');
+    expect(ana.segments[4].detail).toBe('Led 1 time near this time of year');
+    expect(ana.ask).toBeNull();
+    expect(ana.atEvent).toEqual([]);
   });
 });

@@ -1,8 +1,18 @@
 import { useMemo, useState } from 'react';
-import { createOutreach, deleteOutreach, saveOutreach } from './api';
+import {
+  ApiError,
+  createEvent,
+  createOutreach,
+  createVenue,
+  deleteOutreach,
+  markExpert,
+  saveOutreach,
+  unmarkExpert,
+} from './api';
 import { ErrorNote, inputCls, linkBtn, secondaryBtn, useAction } from './forms';
 import { PersonTags } from './marks';
-import { SEGMENT_NAMES, pickerEvents, pickerLabel, type Data, type Outreach, type Scope, type View } from './model';
+import { SEGMENT_NAMES, pickerLabel, type Data, type EventRow, type Outreach, type Scope, type View } from './model';
+import { seriesList, seriesOf, suggestedDate, venueOptions } from './series';
 import {
   DEFAULT_STAFF_FILTERS,
   DEFAULT_STAFF_WEIGHTS,
@@ -20,7 +30,6 @@ import sites from '../../data/site-geocodes.json';
 
 const FIRST = 15;
 const today = () => new Date().toISOString().slice(0, 10);
-const venueName = (id: string) => sites.find((s) => s.id === id)?.name ?? id;
 
 /** The address keeps the brief, so a staffing search can be shared or come back to. */
 export function briefFromQuery(query: string): Brief {
@@ -28,6 +37,9 @@ export function briefFromQuery(query: string): Brief {
   const scope = q.get('scope');
   const n = (k: string) => (Number(q.get(k)) > 0 ? Number(q.get(k)) : null);
   return {
+    series: q.get('series') ?? '',
+    venue: q.get('venue') || null,
+    date: /^\d{4}-\d{2}-\d{2}$/.test(q.get('date') ?? '') ? q.get('date') : null,
     eventId: n('event'),
     scope: scope === 'class' || scope === 'activity' ? scope : 'any',
     type: q.get('type') ?? '',
@@ -36,6 +48,9 @@ export function briefFromQuery(query: string): Brief {
 }
 export function briefToQuery(b: Brief): string {
   const q = new URLSearchParams();
+  if (b.series) q.set('series', b.series);
+  if (b.venue) q.set('venue', b.venue);
+  if (b.date) q.set('date', b.date);
   if (b.eventId) q.set('event', String(b.eventId));
   if (b.scope !== 'any') q.set('scope', b.scope);
   if (b.type) q.set('type', b.type);
@@ -88,12 +103,16 @@ const ASK_LABEL: Record<string, string> = {
 function CandidateCard({
   c,
   busy,
+  type,
   onShortlist,
+  onExpert,
   onOpen,
 }: {
   c: Candidate;
   busy: boolean;
+  type: string;
   onShortlist: () => void;
+  onExpert: () => void;
   onOpen: () => void;
 }) {
   const why = c.segments.map((s) => s.detail).filter(Boolean);
@@ -126,7 +145,7 @@ function CandidateCard({
       <FitBars c={c} />
       <p className="mt-2 text-sm text-muted">{why.length ? why.join(' · ') : 'No history with this type yet.'}</p>
       {c.lastContacted && !c.ask && <p className="text-xs text-muted">Contacted {c.lastContacted}</p>}
-      <div className="mt-2">
+      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
         {c.ask ? (
           <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs">
             {ASK_LABEL[c.ask.status] ?? c.ask.status}
@@ -136,6 +155,9 @@ function CandidateCard({
             Shortlist
           </button>
         )}
+        <button type="button" disabled={busy} onClick={onExpert} className={linkBtn}>
+          {c.expert ? `Remove expert mark for ${type}` : `Mark as an expert in ${type}`}
+        </button>
       </div>
     </li>
   );
@@ -161,29 +183,91 @@ export default function StaffView({
   const act = useAction(onChanged);
   const now = today();
 
+  const [adding, setAdding] = useState(false);
+  const [venueName, setVenueName] = useState('');
+  const [venueZip, setVenueZip] = useState('');
+  const venues = useMemo(() => venueOptions(sites, data.venues ?? [], data.events), [data.venues, data.events]);
+  const allSeries = useMemo(() => seriesList(data.events, now), [data.events, now]);
+  const venueLabel = (id: string) => venues.find((v) => v.id === id)?.name ?? id;
+
+  // An event named in the address (an older link, or one just created) fills in the rest.
+  const linked = data.events.find((e) => e.id === brief.eventId);
+  const b: Brief = {
+    ...brief,
+    series: brief.series || (linked ? (seriesOf(linked.name) ?? '') : ''),
+    venue: brief.venue ?? linked?.site_id ?? null,
+    date: brief.date ?? linked?.start_date ?? null,
+  };
   const set = (patch: Partial<Brief>) => {
     setShowAll(false);
-    onQuery(briefToQuery({ ...brief, ...patch }));
+    onQuery(briefToQuery({ ...b, ...patch }));
   };
-  const event = data.events.find((e) => e.id === brief.eventId);
-  const slot = slotLabel(brief, data.activities);
-  const ready = brief.eventId !== null && brief.type !== '';
-  const choices = data.activities.filter(
-    (a) => a.type === brief.type && (brief.scope === 'any' || a.scope === brief.scope)
-  );
-  const venue = sites.find((s) => s.id === event?.site_id);
+  // Is the next one already on the calendar with this date and venue?
+  const calendar = (series: string, date: string | null, venue: string | null) =>
+    data.events.find(
+      (e) => seriesOf(e.name) === series && e.start_date === date && (e.site_id ?? null) === (venue ?? null)
+    )?.id ?? null;
+  const pickSeries = (name: string) => {
+    const info = allSeries.find((s) => s.name === name);
+    if (!info) return set({ series: '', eventId: null, date: null, venue: null });
+    const date = suggestedDate(info, now);
+    const venue = (info.upcoming ?? (info.last as EventRow)).site_id ?? null;
+    set({ series: name, date, venue, eventId: calendar(name, date, venue) });
+  };
+  const pickVenue = (value: string) => {
+    if (value === '__new') return setAdding(true);
+    const venue = value || null;
+    set({ venue, eventId: calendar(b.series, b.date, venue) });
+  };
+  const pickDate = (value: string) => {
+    const date = value || null;
+    set({ date, eventId: calendar(b.series, date, b.venue) });
+  };
+  const event = data.events.find((e) => e.id === b.eventId);
+  const slot = slotLabel(b, data.activities);
+  const ready = b.series !== '' && b.date !== null && b.type !== '';
+  const choices = data.activities.filter((a) => a.type === b.type && (b.scope === 'any' || a.scope === b.scope));
+  const venue = venues.find((v) => v.id === b.venue && v.lat !== null) as { lat: number; lng: number } | undefined;
   const miles = useMemo(() => milesTo(data.locations, venue), [data.locations, venue]);
   const candidates = useMemo(
-    () => (ready ? candidatesFor(data, brief, weights, filters, now, miles) : []),
-    [data, brief, weights, filters, now, ready, miles]
+    () => (ready ? candidatesFor(data, b, weights, filters, now, miles) : []),
+    [data, b, weights, filters, now, ready, miles]
   );
-  const depth = useMemo(() => benchDepth(data, brief.scope, now), [data, brief.scope, now]);
+  const depth = useMemo(() => benchDepth(data, b.scope, now), [data, b.scope, now]);
   const asks = (data.outreach ?? []).filter(
-    (o) => o.goal === 'staff_slot' && o.event_id === brief.eventId && o.slot === slot
+    (o) => o.goal === 'staff_slot' && o.event_id === b.eventId && o.slot === slot
   );
   const nameOf = (id: number) => data.people.find((p) => p.id === id)?.name ?? 'Someone';
   const shown = showAll ? candidates : candidates.slice(0, FIRST);
   const topDepth = Math.max(...depth.map((d) => d.ever), 1);
+
+  // The next one may not be on the calendar yet: add it the first time someone is shortlisted.
+  const ensureEvent = async (): Promise<number> => {
+    if (b.eventId) return b.eventId;
+    const year = Number((b.date as string).slice(0, 4));
+    const name = `${b.series} ${year}`;
+    const info = allSeries.find((x) => x.name === b.series);
+    try {
+      const { id } = await createEvent({
+        name,
+        event_type: (info?.events[0].event_type ?? 'weekend') as string,
+        year,
+        start_date: b.date,
+        site_id: b.venue,
+      });
+      return id;
+    } catch (e) {
+      const same = data.events.find((x) => x.name === name && x.year === year);
+      if (e instanceof ApiError && e.status === 409 && same) return same.id;
+      throw e;
+    }
+  };
+  const shortlist = (personId: number) =>
+    act.run(async () => {
+      const eventId = await ensureEvent();
+      await createOutreach({ person_id: personId, goal: 'staff_slot', status: 'suggested', event_id: eventId, slot });
+      if (eventId !== b.eventId) set({ eventId });
+    });
 
   const move = (o: Outreach, status: string) =>
     act.run(() =>
@@ -200,30 +284,48 @@ export default function StaffView({
   return (
     <div>
       <p className="mb-4 max-w-prose text-sm text-muted">
-        Choose the event and what you need to staff. People are ranked by what their records show, and each score says
-        why. Shortlist, ask, and track the answers here.
+        Choose the recurring event, where and when it will be, and what you need to staff. People are ranked by what
+        their records show, and each score says why. Shortlist, ask, and track the answers here.
       </p>
 
       <div className="mb-5 flex flex-wrap items-end gap-x-4 gap-y-3 rounded-xl border border-gray-200 p-3 text-sm dark:border-gray-700">
         <label className="block">
           <span className="mb-1 block text-muted">Event</span>
-          <select
-            value={brief.eventId ?? 0}
-            onChange={(e) => set({ eventId: Number(e.target.value) || null })}
-            className={`${inputCls} max-w-64`}
-          >
-            <option value={0}>Choose an event</option>
-            {pickerEvents(data.events, now).map((e) => (
-              <option key={e.id} value={e.id}>
-                {pickerLabel(e)}
+          <select value={b.series} onChange={(e) => pickSeries(e.target.value)} className={`${inputCls} max-w-56`}>
+            <option value="">Choose an event</option>
+            {allSeries.map((x) => (
+              <option key={x.name} value={x.name}>
+                {x.name}
               </option>
             ))}
           </select>
         </label>
         <label className="block">
+          <span className="mb-1 block text-muted">Where</span>
+          <select value={b.venue ?? ''} onChange={(e) => pickVenue(e.target.value)} className={`${inputCls} max-w-56`}>
+            <option value="">Not decided</option>
+            {venues.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.name}
+              </option>
+            ))}
+            <option value="__new">Add a venue…</option>
+          </select>
+        </label>
+        <label className="block">
+          <span className="mb-1 block text-muted">When</span>
+          <input
+            type="date"
+            value={b.date ?? ''}
+            onChange={(e) => pickDate(e.target.value)}
+            className={inputCls}
+            disabled={b.series === ''}
+          />
+        </label>
+        <label className="block">
           <span className="mb-1 block text-muted">Kind</span>
           <select
-            value={brief.scope}
+            value={b.scope}
             onChange={(e) => set({ scope: e.target.value as Scope | 'any', activityId: null })}
             className={inputCls}
           >
@@ -234,11 +336,7 @@ export default function StaffView({
         </label>
         <label className="block">
           <span className="mb-1 block text-muted">Type</span>
-          <select
-            value={brief.type}
-            onChange={(e) => set({ type: e.target.value, activityId: null })}
-            className={inputCls}
-          >
+          <select value={b.type} onChange={(e) => set({ type: e.target.value, activityId: null })} className={inputCls}>
             <option value="">Choose a type</option>
             {data.activityTypes.map((t) => (
               <option key={t} value={t}>
@@ -251,11 +349,11 @@ export default function StaffView({
           <label className="block">
             <span className="mb-1 block text-muted">A specific one (optional)</span>
             <select
-              value={brief.activityId ?? 0}
+              value={b.activityId ?? 0}
               onChange={(e) => set({ activityId: Number(e.target.value) || null })}
               className={`${inputCls} max-w-56`}
             >
-              <option value={0}>Any {brief.type}</option>
+              <option value={0}>Any {b.type}</option>
               {choices.map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.name}
@@ -264,13 +362,56 @@ export default function StaffView({
             </select>
           </label>
         )}
-        {event && (
-          <p className="pb-2 text-muted">
-            {event.start_date ?? event.year}
-            {event.site_id ? `, ${venueName(event.site_id)}` : ''}
-          </p>
-        )}
       </div>
+      {adding && (
+        <form
+          className="mb-5 flex flex-wrap items-end gap-x-4 gap-y-3 rounded-xl border border-gray-200 p-3 text-sm dark:border-gray-700"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const { ok, value } = await act.run(() =>
+              createVenue({ name: venueName.trim(), postal_code: venueZip.trim() })
+            );
+            if (ok && value) {
+              setAdding(false);
+              setVenueName('');
+              setVenueZip('');
+              set({ venue: value.id, eventId: calendar(b.series, b.date, value.id) });
+            }
+          }}
+        >
+          <label className="block">
+            <span className="mb-1 block text-muted">Venue name</span>
+            <input value={venueName} onChange={(e) => setVenueName(e.target.value)} className={inputCls} />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-muted">Postal code</span>
+            <input
+              value={venueZip}
+              inputMode="numeric"
+              onChange={(e) => setVenueZip(e.target.value)}
+              className={`${inputCls} w-28`}
+            />
+          </label>
+          <button
+            type="submit"
+            disabled={act.busy || !venueName.trim() || !venueZip.trim()}
+            className={secondaryBtn + ' px-3 py-1'}
+          >
+            Add venue
+          </button>
+          <button type="button" onClick={() => setAdding(false)} className={linkBtn}>
+            Cancel
+          </button>
+        </form>
+      )}
+      {b.series !== '' && b.date !== null && (
+        <p className="-mt-3 mb-5 text-sm text-muted">
+          {event
+            ? `On the calendar: ${pickerLabel(event)}.`
+            : `Not on the calendar yet. It is added when you shortlist someone.`}
+          {b.venue ? ` At ${venueLabel(b.venue)}.` : ''}
+        </p>
+      )}
 
       <div className="grid gap-5 lg:grid-cols-[1fr_22rem]">
         <div>
@@ -320,7 +461,7 @@ export default function StaffView({
                       </option>
                     ))}
                   </select>
-                  of {venueName(event?.site_id as string)}. People with no known location stay in.
+                  of {venueLabel(b.venue as string)}. People with no known location stay in.
                 </label>
               )}
               <details className="mb-3 text-sm">
@@ -366,16 +507,13 @@ export default function StaffView({
                     key={c.person.id}
                     c={c}
                     busy={act.busy}
-                    onShortlist={() =>
-                      act.run(() =>
-                        createOutreach({
-                          person_id: c.person.id,
-                          goal: 'staff_slot',
-                          status: 'suggested',
-                          event_id: brief.eventId,
-                          slot,
-                        })
-                      )
+                    type={b.type}
+                    onShortlist={() => shortlist(c.person.id)}
+                    onExpert={() =>
+                      act.run(async () => {
+                        if (c.expert) await unmarkExpert(c.expert.id);
+                        else await markExpert(c.person.id, b.type);
+                      })
                     }
                     onOpen={() => goTo('people', c.person.id)}
                   />
@@ -472,11 +610,11 @@ export default function StaffView({
                 <li key={d.type}>
                   <button
                     type="button"
-                    aria-pressed={brief.type === d.type}
+                    aria-pressed={b.type === d.type}
                     onClick={() => set({ type: d.type, activityId: null })}
                     className="grid w-full grid-cols-[6.5rem_1fr_auto] items-center gap-2 rounded px-1 py-0.5 text-left text-sm hover:bg-primary/5"
                   >
-                    <span className={brief.type === d.type ? 'font-semibold text-primary' : ''}>{d.type}</span>
+                    <span className={b.type === d.type ? 'font-semibold text-primary' : ''}>{d.type}</span>
                     <span className="h-2 overflow-hidden rounded bg-primary/10" aria-hidden="true">
                       <span
                         className={`block h-full rounded ${d.ready < 3 ? 'bg-amber-500' : 'bg-(--aw-color-primary-strong)'}`}

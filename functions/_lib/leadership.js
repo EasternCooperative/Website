@@ -129,6 +129,11 @@ export const validators = {
     })(),
     note: str(b.note, 'note', { max: 1000 }),
   }),
+  expertise: (b) => ({
+    person_id: id(b.person_id, 'person_id'),
+    type: str(b.type, 'type', { required: true, max: 80 }),
+    note: str(b.note, 'note', { max: 300 }),
+  }),
   outreach: (b) => {
     const goal = oneOf(b.goal, 'goal', OUTREACH_GOALS);
     const slotAsk = goal === 'staff_slot';
@@ -177,6 +182,7 @@ const TABLES = {
   event: ['name', 'event_type', 'year', 'site_event_id', 'start_date', 'end_date', 'site_id'],
   role: ['person_id', 'activity_id', 'event_id', 'leadership_type', 'how_it_went', 'source'],
   journey_note: ['person_id', 'kind', 'focus', 'body', 'author'],
+  expertise: ['person_id', 'type', 'note'],
   service: ['person_id', 'body', 'title', 'started_on', 'ended_on', 'note', 'source'],
   volunteer: ['person_id', 'event_id', 'task', 'hours', 'note'],
   outreach: ['person_id', 'goal', 'status', 'contacted_on', 'snooze_until', 'note', 'event_id', 'slot'],
@@ -206,19 +212,24 @@ export async function bootstrap(db) {
         `SELECT * FROM ${t} WHERE deleted_at IS NULL${t === 'person' ? ' AND erased_at IS NULL' : ''} ORDER BY id`
       )
       .all();
-  const [people, activities, events, roles, notes, service, volunteers, outreach, types, places] = await Promise.all([
-    live('person'),
-    live('activity'),
-    live('event'),
-    live('role'),
-    live('journey_note'),
-    live('service'),
-    live('volunteer'),
-    live('outreach'),
-    db.prepare('SELECT name FROM activity_type ORDER BY name').all(),
-    // City and state, and the postal code's center point rounded to about a kilometer. No street, no code.
-    db.prepare('SELECT person_id, city, state, ROUND(lat, 2) AS lat, ROUND(lng, 2) AS lng FROM person_location').all(),
-  ]);
+  const [people, activities, events, roles, notes, service, volunteers, outreach, types, places, venues, expertise] =
+    await Promise.all([
+      live('person'),
+      live('activity'),
+      live('event'),
+      live('role'),
+      live('journey_note'),
+      live('service'),
+      live('volunteer'),
+      live('outreach'),
+      db.prepare('SELECT name FROM activity_type ORDER BY name').all(),
+      // City and state, and the postal code's center point rounded to about a kilometer. No street, no code.
+      db
+        .prepare('SELECT person_id, city, state, ROUND(lat, 2) AS lat, ROUND(lng, 2) AS lng FROM person_location')
+        .all(),
+      db.prepare('SELECT id, name, city, state, lat, lng FROM venue ORDER BY name').all(),
+      live('expertise'),
+    ]);
   return {
     people: people.results,
     activities: activities.results,
@@ -230,6 +241,8 @@ export async function bootstrap(db) {
     outreach: outreach.results,
     activityTypes: types.results.map((r) => r.name),
     locations: places.results,
+    venues: venues.results,
+    expertise: expertise.results,
   };
 }
 
@@ -270,6 +283,13 @@ const ROLE_COLUMN = { person: 'person_id', activity: 'activity_id', event: 'even
 
 /** Same name (ignoring case) already live. Events also match on year, activities on scope. */
 export async function findDuplicate(db, resource, values, exceptId = 0) {
+  if (resource === 'expertise') {
+    const { results } = await db
+      .prepare('SELECT id FROM expertise WHERE deleted_at IS NULL AND person_id = ? AND type = ? AND id != ?')
+      .bind(values.person_id, values.type, exceptId)
+      .all();
+    return results.length > 0;
+  }
   if (resource === 'outreach') {
     // One live ask per person, event, and slot.
     if (values.goal !== 'staff_slot') return false;
