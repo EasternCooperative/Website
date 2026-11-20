@@ -125,7 +125,13 @@ export const TONES = {
 } as const;
 
 /** Status tags for a person. Active is the norm, so it gets none. Pass showStatus={false} where status means nothing, such as people who have never led. */
-export function PersonTags({ person, showStatus = true }: { person: Person; showStatus?: boolean }) {
+export function PersonTags({
+  person,
+  showStatus = true,
+}: {
+  person: Pick<Person, 'status' | 'mentor'>;
+  showStatus?: boolean;
+}) {
   return (
     <>
       {showStatus && person.status !== 'active' && (

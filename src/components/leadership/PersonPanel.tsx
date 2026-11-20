@@ -32,6 +32,7 @@ import {
 } from './model';
 import RoleForm from './RoleForm';
 import ServiceForm from './ServiceForm';
+import PersonJourney from './PersonJourney';
 import Timeline from './Timeline';
 
 interface Props {
@@ -39,7 +40,7 @@ interface Props {
   person: Person;
   onChanged: () => Promise<void>;
   onClose: () => void;
-  goTo?: (view: View) => void;
+  goTo?: (view: View, id?: number) => void;
 }
 
 const STATUS_HINT: Record<Status, string> = {
@@ -136,6 +137,8 @@ export default function PersonPanel({ data, person, onChanged, onClose, goTo }: 
       }
     >
       <ErrorNote message={error} />
+
+      <PersonJourney personId={person.id} refresh={data} onPlan={goTo && (() => goTo('journey', person.id))} />
 
       {byType.length > 0 && (
         <div className={`mt-4 rounded-lg p-3 ${surface}`}>

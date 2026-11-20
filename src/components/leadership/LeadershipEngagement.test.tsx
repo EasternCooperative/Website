@@ -70,6 +70,7 @@ beforeEach(() => {
       const path = url.replace('/api/internal/engagement', '');
       const method = init?.method ?? 'GET';
       if (path === '/bootstrap') return json(current);
+      if (path.startsWith('/journey/')) return json({ error: 'not found' }, 404); // the strip simply stays hidden
       const tl = path.match(/^\/timeline\/(\d+)$/);
       if (tl && Number(tl[1]) in holds) return holds[Number(tl[1])];
       if (tl) {

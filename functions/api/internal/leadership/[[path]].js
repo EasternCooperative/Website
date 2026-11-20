@@ -12,6 +12,10 @@
 //   DELETE users/<email>                   remove (admins only)
 //   GET    engagement                      people with engagement facts (paged; money redacted by level)
 //   GET    timeline/<personId>             one person's history across every record type
+//   GET    journey                         the board: funnel counts and each stage's first people (or one stage with ?stage=)
+//   GET    journey/<personId>              one person's stage and plan
+//   PUT    journey/<personId>              { target, next_step, due_on, owner } set their plan
+//   DELETE journey/<personId>              clear their plan
 //   POST   erase/<personId>                { confirm: <personId> } clear a person's identity (admins only)
 //   GET    duplicates                      people who may be one person (admins only)
 //   GET    merge/<fromId>/<intoId>         what a merge would move, as counts (admins only)
@@ -33,6 +37,7 @@ import {
   possibleDuplicates,
   timeline,
 } from '../../../_lib/engagement.js';
+import { clearPlan, journeyBoard, journeyOne, savePlan, validatePlan } from '../../../_lib/journey.js';
 import { audit, listUsers, removeUser, resolveUser, saveUser, validateUser } from '../../../_lib/roles.js';
 import {
   ValidationError,
@@ -112,6 +117,25 @@ export const onRequest = async ({ request, env, params }) => {
     }
     if (method === 'GET' && first === 'engagement' && !second) {
       return json(200, await listEngagement(env.DB, user, new URL(request.url).searchParams));
+    }
+    if (first === 'journey') {
+      if (method === 'GET' && !second) {
+        return json(200, await journeyBoard(env.DB, new URL(request.url).searchParams, auth.email));
+      }
+      const personId = Number(second);
+      if (!Number.isInteger(personId) || personId < 1) return json(404, { error: 'not found' });
+      if (method === 'GET') {
+        const found = await journeyOne(env.DB, personId);
+        return found ? json(200, found) : json(404, { error: 'not found' });
+      }
+      if (method === 'PUT') {
+        const saved = await savePlan(env.DB, personId, validatePlan(await readBody(request)), auth.email);
+        return saved ? json(200, { ok: true }) : json(404, { error: 'not found' });
+      }
+      if (method === 'DELETE')
+        return (await clearPlan(env.DB, personId, auth.email))
+          ? json(200, { ok: true })
+          : json(404, { error: 'not found' });
     }
     if (method === 'GET' && first === 'timeline' && second) {
       const found = await timeline(env.DB, user, Number(second));

@@ -365,7 +365,7 @@ export function groupActivities(activities: Activity[]): ActivityGroup[] {
     .map(([type, list]) => ({ type, activities: list.sort((a, b) => a.name.localeCompare(b.name)) }));
 }
 
-export type View = 'people' | 'lists' | 'events' | 'activities' | 'duplicates' | 'users';
+export type View = 'people' | 'lists' | 'events' | 'activities' | 'journey' | 'duplicates' | 'users';
 
 export interface TimelineItem {
   type: 'role' | 'registration' | 'volunteer' | 'service' | 'membership' | 'outreach' | 'note' | 'gift';
@@ -751,4 +751,102 @@ export function scoreFor(row: EngagementRow, w: ScoreWeights, year: number) {
     { label: 'at this venue', points: Math.min(row.similar_venue_events ?? 0, 3) * w.similarVenue },
   ].filter((p) => p.points !== 0);
   return { total: parts.reduce((n, p) => n + p.points, 0), parts };
+}
+
+// ---------------------------------------------------------------------------
+// The engagement journey: a stage derived from records, and a hand-set plan.
+
+export type JourneyStage = 'supporter' | 'attendee' | 'volunteer' | 'activity' | 'class';
+/** The pipeline, in order. Serving on a committee or the board is a separate lane. */
+export const JOURNEY_STAGES: { id: JourneyStage; label: string }[] = [
+  { id: 'supporter', label: 'Supporter' },
+  { id: 'attendee', label: 'Attendee' },
+  { id: 'volunteer', label: 'Volunteer' },
+  { id: 'activity', label: 'Leads an activity' },
+  { id: 'class', label: 'Leads a class' },
+];
+export type JourneyTarget = 'activity' | 'class' | 'committee' | 'board';
+export const TARGET_LABELS: Record<JourneyTarget, string> = {
+  activity: 'Lead an activity',
+  class: 'Lead a class',
+  committee: 'Join a committee',
+  board: 'Join the board',
+};
+
+export interface JourneyRow {
+  person_id: number;
+  name: string;
+  status: Status;
+  mentor: number;
+  stage: JourneyStage | null;
+  first_attended_year: number | null;
+  first_volunteer_year: number | null;
+  first_activity_year: number | null;
+  first_class_year: number | null;
+  first_service_year: number | null;
+  activities_led: number;
+  classes_led: number;
+  volunteer_count: number;
+  events_registered: number;
+  service_terms: number;
+  serving_now: number;
+  on_board_now: number;
+  last_active_year: number | null;
+  do_not_contact: number;
+  target: JourneyTarget | null;
+  next_step: string | null;
+  due_on: string | null;
+  owner: string | null;
+}
+export interface JourneyFunnel {
+  supporter: number;
+  attendee: number;
+  volunteer: number;
+  activity: number;
+  class: number;
+  serving_now: number;
+  served_ever: number;
+  attendee_new: number;
+  volunteer_new: number;
+  activity_new: number;
+  class_new: number;
+  serving_new: number;
+}
+export interface JourneyColumn {
+  people: JourneyRow[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+export interface JourneyBoard {
+  funnel: JourneyFunnel;
+  year: number | null;
+  thisYear: number;
+  columns: Record<JourneyStage | 'serving', JourneyColumn>;
+}
+
+/** The year a person first reached each step, for the strip. Supporter has no year. */
+export const STEP_YEARS: {
+  id: 'attendee' | 'volunteer' | 'activity' | 'class';
+  label: string;
+  key: keyof JourneyRow;
+}[] = [
+  { id: 'attendee', label: 'Attended', key: 'first_attended_year' },
+  { id: 'volunteer', label: 'Volunteered', key: 'first_volunteer_year' },
+  { id: 'activity', label: 'Led an activity', key: 'first_activity_year' },
+  { id: 'class', label: 'Led a class', key: 'first_class_year' },
+];
+
+export const isOverdue = (due: string | null, today: string): boolean => due !== null && due < today;
+
+/** What a person has done, in words, for the card in their column. */
+export function journeyEvidence(row: JourneyRow): string {
+  const bits: string[] = [];
+  if (row.events_registered > 0) bits.push(`Registered for ${plural(row.events_registered, 'event', 'events')}`);
+  if (row.volunteer_count > 0) bits.push(`Helped ${plural(row.volunteer_count, 'time', 'times')}`);
+  if (row.activities_led > 0) bits.push(`Led ${plural(row.activities_led, 'activity', 'activities')}`);
+  if (row.classes_led > 0) bits.push(`Led ${plural(row.classes_led, 'class', 'classes')}`);
+  if (row.serving_now > 0) bits.push(row.on_board_now ? 'On the board' : 'On a committee');
+  if (!bits.length) bits.push('Member or donor, no events yet');
+  return bits.join(' · ');
 }
