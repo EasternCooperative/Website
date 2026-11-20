@@ -16,6 +16,7 @@ import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'n
 import { randomBytes } from 'node:crypto';
 import os from 'node:os';
 import path from 'node:path';
+import { makeGet } from '../lib/cognito-api.mjs';
 import { crawlEntries } from '../lib/cognito-crawl.mjs';
 import { extractEntry } from '../lib/cognito-extract.mjs';
 
@@ -50,31 +51,7 @@ if (!existsSync(keyPath)) {
 chmodSync(keyPath, 0o600);
 const key = readFileSync(keyPath, 'utf8').trim();
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const get = async (p) => {
-  for (let attempt = 0; attempt < 8; attempt++) {
-    let res;
-    try {
-      res = await fetch(`https://www.cognitoforms.com/api${p}`, {
-        headers: { Authorization: `Bearer ${token}` },
-        signal: AbortSignal.timeout(30_000), // a hung request must not stall the whole pull
-      });
-    } catch {
-      await sleep(1000 * (attempt + 1));
-      continue;
-    }
-    if (res.status === 404) return null;
-    if (res.status === 429) {
-      const header = res.headers.get('Retry-After') ?? '';
-      const asked = /^\d+$/.test(header) ? Number(header) * 1000 : Date.parse(header) - Date.now();
-      await sleep(Math.min(60_000, Math.max(Number.isFinite(asked) ? asked : 0, 1000 * 2 ** attempt)));
-      continue;
-    }
-    if (!res.ok) throw new Error(`Cognito API ${res.status}`);
-    return res.json();
-  }
-  throw new Error('Cognito API kept failing or rate-limiting');
-};
+const get = makeGet(token);
 
 const file = path.join(outDir, 'registrations.json');
 mkdirSync(outDir, { recursive: true, mode: 0o700 });

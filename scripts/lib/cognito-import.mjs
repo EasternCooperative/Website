@@ -189,7 +189,7 @@ export function newNameCollisions(resolved) {
   return [...seen].filter(([, n]) => n > 1).map(([k]) => k);
 }
 
-const lookup = (r) =>
+export const lookup = (r) =>
   r.person
     ? `${Number(r.person.id)}`
     : `(SELECT id FROM person WHERE lower(name) = lower(${sql(r.id.name)}) AND created_by = ${BY} AND deleted_at IS NULL AND erased_at IS NULL)`;
