@@ -322,3 +322,210 @@ export async function erasePerson(db, personId, actor) {
   await audit(db, actor, 'person.erase', String(personId));
   return true;
 }
+
+// ---------------------------------------------------------------------------
+// Merging two records of the same person.
+
+const normName = (s) =>
+  String(s ?? '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[.'’,]/g, '')
+    .replace(/[-_]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+// Tables whose rows simply move to the surviving person.
+const MOVES = ['registration', 'donation', 'membership', 'volunteer', 'service', 'outreach', 'journey_note', 'role'];
+// When both records have a status, the stronger one survives.
+const STATUS_ORDER = ['active', 'hiatus', 'inactive'];
+
+const livePerson = async (db, id) =>
+  (
+    await db
+      .prepare(
+        'SELECT id, name, email, leader_slug, status, mentor FROM person WHERE id = ? AND deleted_at IS NULL AND erased_at IS NULL'
+      )
+      .bind(id)
+      .all()
+  ).results[0] ?? null;
+
+/** What a merge would move, as counts. Counts only, never amounts, so every level may see it. */
+export async function mergePreview(db, fromId, intoId) {
+  if (fromId === intoId) throw new ValidationError('choose two different people');
+  const [from, into] = await Promise.all([livePerson(db, fromId), livePerson(db, intoId)]);
+  if (!from || !into) return null;
+  const counts = {};
+  for (const table of MOVES) {
+    const r = await db
+      .prepare(`SELECT COUNT(*) AS n FROM ${table} WHERE person_id = ? AND deleted_at IS NULL`)
+      .bind(fromId)
+      .all();
+    counts[table] = r.results[0].n;
+  }
+  const emails = await db
+    .prepare('SELECT COUNT(*) AS n FROM person_email WHERE person_id = ? AND deleted_at IS NULL')
+    .bind(fromId)
+    .all();
+  counts.email = emails.results[0].n;
+  return { from: { id: from.id, name: from.name }, into: { id: into.id, name: into.name }, counts };
+}
+
+/**
+ * Fold `fromId` into `intoId`. Everything the duplicate has moves to the survivor, the
+ * duplicate is soft-deleted, its name becomes an alias so future imports still match,
+ * and an append-only person_merge row records it. One batch, so it is all or nothing.
+ */
+export async function mergePeople(db, fromId, intoId, actor) {
+  const preview = await mergePreview(db, fromId, intoId);
+  if (!preview) return null;
+  const [from, into] = await Promise.all([livePerson(db, fromId), livePerson(db, intoId)]);
+  const now = "strftime('%Y-%m-%dT%H:%M:%fZ', 'now')";
+  const run = (sql, ...args) => db.prepare(sql).bind(...args);
+  const status = STATUS_ORDER.find((s) => s === from.status || s === into.status) ?? into.status;
+  const takeSlug = !into.leader_slug && from.leader_slug;
+
+  const statements = [
+    // Emails and aliases: drop what the survivor already has, move the rest.
+    run(
+      `DELETE FROM person_email WHERE person_id = ? AND email_lower IN
+         (SELECT email_lower FROM person_email WHERE person_id = ? AND deleted_at IS NULL)`,
+      fromId,
+      intoId
+    ),
+    run(
+      `UPDATE person_email SET person_id = ?, is_primary = 0, updated_at = ${now} WHERE person_id = ?`,
+      intoId,
+      fromId
+    ),
+    run(
+      `DELETE FROM person_alias WHERE person_id = ? AND alias_norm IN
+         (SELECT alias_norm FROM person_alias WHERE person_id = ? AND deleted_at IS NULL)`,
+      fromId,
+      intoId
+    ),
+    run(`UPDATE person_alias SET person_id = ?, updated_at = ${now} WHERE person_id = ?`, intoId, fromId),
+    run(
+      `INSERT INTO person_alias (person_id, alias_norm, kind, created_by, updated_by)
+         SELECT ?, ?, 'merged', ?, ? WHERE ? != ? AND NOT EXISTS
+           (SELECT 1 FROM person_alias WHERE person_id = ? AND alias_norm = ? AND deleted_at IS NULL)`,
+      intoId,
+      normName(from.name),
+      actor,
+      actor,
+      normName(from.name),
+      normName(into.name),
+      intoId,
+      normName(from.name)
+    ),
+    // A role the survivor already has for the same activity and event would break the
+    // one-live-role rule, so the duplicate's copy is retired instead of moved.
+    run(
+      `UPDATE role SET deleted_at = ${now}, updated_at = ${now}, updated_by = ?
+         WHERE person_id = ? AND deleted_at IS NULL AND EXISTS
+           (SELECT 1 FROM role k WHERE k.person_id = ? AND k.activity_id = role.activity_id
+              AND k.event_id = role.event_id AND k.deleted_at IS NULL)`,
+      actor,
+      fromId,
+      intoId
+    ),
+    // Identical membership years are the same fact twice.
+    run(
+      `UPDATE membership SET deleted_at = ${now}, updated_at = ${now}, updated_by = ?
+         WHERE person_id = ? AND deleted_at IS NULL AND EXISTS
+           (SELECT 1 FROM membership k WHERE k.person_id = ? AND k.deleted_at IS NULL AND k.kind = membership.kind
+              AND COALESCE(k.starts_on, '') = COALESCE(membership.starts_on, '')
+              AND COALESCE(k.ends_on, '') = COALESCE(membership.ends_on, ''))`,
+      actor,
+      fromId,
+      intoId
+    ),
+  ];
+  for (const table of MOVES) {
+    const audited = table !== 'journey_note';
+    statements.push(
+      run(
+        `UPDATE ${table} SET person_id = ?, updated_at = ${now}${audited ? ', updated_by = ?' : ''} WHERE person_id = ?`,
+        ...(audited ? [intoId, actor, fromId] : [intoId, fromId])
+      )
+    );
+  }
+  statements.push(
+    // The duplicate gives up its link and address first, so the survivor can take them.
+    run(
+      `UPDATE person SET email = NULL, leader_slug = NULL, deleted_at = ${now}, updated_at = ${now}, updated_by = ? WHERE id = ?`,
+      actor,
+      fromId
+    ),
+    run(
+      `UPDATE person SET status = ?, mentor = MAX(mentor, ?), email = COALESCE(email, ?),
+         leader_slug = COALESCE(leader_slug, ?), updated_at = ${now}, updated_by = ? WHERE id = ?`,
+      status,
+      from.mentor ? 1 : 0,
+      from.email,
+      takeSlug ? from.leader_slug : null,
+      actor,
+      intoId
+    ),
+    run(
+      'INSERT INTO person_merge (from_person_id, into_person_id, summary, merged_by) VALUES (?, ?, ?, ?)',
+      fromId,
+      intoId,
+      JSON.stringify(preview.counts),
+      actor
+    )
+  );
+  await db.batch(statements);
+  await audit(db, actor, 'person.merge', `${fromId}->${intoId}`);
+  return { into: intoId, moved: preview.counts };
+}
+
+/** Pairs of live people who may be one person: a shared address, or compatible names. */
+export async function possibleDuplicates(db, limit = 50) {
+  const people = (await db.prepare('SELECT id, name FROM person WHERE deleted_at IS NULL AND erased_at IS NULL').all())
+    .results;
+  const emails = (
+    await db
+      .prepare(
+        `SELECT person_id, email_lower FROM person_email WHERE deleted_at IS NULL AND shared = 0
+         UNION SELECT id, lower(email) FROM person WHERE email IS NOT NULL AND deleted_at IS NULL`
+      )
+      .all()
+  ).results;
+  const byEmail = new Map();
+  for (const e of emails) byEmail.set(e.email_lower, [...(byEmail.get(e.email_lower) ?? new Set()), e.person_id]);
+  const pairs = new Map();
+  const add = (a, b, why) => {
+    if (a === b) return;
+    const key = a < b ? `${a}:${b}` : `${b}:${a}`;
+    const hit = pairs.get(key) ?? { a: Math.min(a, b), b: Math.max(a, b), reasons: [] };
+    if (!hit.reasons.includes(why)) hit.reasons.push(why);
+    pairs.set(key, hit);
+  };
+  for (const ids of byEmail.values()) {
+    const unique = [...new Set(ids)];
+    for (let i = 0; i < unique.length; i++)
+      for (let j = i + 1; j < unique.length; j++) add(unique[i], unique[j], 'same email');
+  }
+  const parts = people.map((p) => {
+    const w = normName(p.name).split(' ');
+    return { id: p.id, first: w[0] ?? '', last: w.length > 1 ? w[w.length - 1] : '' };
+  });
+  const byLast = new Map();
+  for (const p of parts) if (p.last) byLast.set(p.last, [...(byLast.get(p.last) ?? []), p]);
+  for (const group of byLast.values()) {
+    for (let i = 0; i < group.length; i++)
+      for (let j = i + 1; j < group.length; j++) {
+        const [x, y] = [group[i].first, group[j].first];
+        const close =
+          x === y || (Math.min(x.length, y.length) >= 3 && x.startsWith(y.slice(0, 3)) && y.startsWith(x.slice(0, 3)));
+        if (close) add(group[i].id, group[j].id, 'similar name');
+      }
+  }
+  const name = new Map(people.map((p) => [p.id, p.name]));
+  return [...pairs.values()]
+    .sort((p, q) => q.reasons.length - p.reasons.length || p.a - q.a)
+    .slice(0, limit)
+    .map((p) => ({ a: { id: p.a, name: name.get(p.a) }, b: { id: p.b, name: name.get(p.b) }, reasons: p.reasons }));
+}

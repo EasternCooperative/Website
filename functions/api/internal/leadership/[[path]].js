@@ -13,6 +13,9 @@
 //   GET    engagement                      people with engagement facts (paged; money redacted by level)
 //   GET    timeline/<personId>             one person's history across every record type
 //   POST   erase/<personId>                { confirm: <personId> } clear a person's identity (admins only)
+//   GET    duplicates                      people who may be one person (admins only)
+//   GET    merge/<fromId>/<intoId>         what a merge would move, as counts (admins only)
+//   POST   merge/<fromId>/<intoId>         { confirm: <fromId> } fold the first into the second (admins only)
 //   POST   roles/bulk                      { rows: [role, ...] }
 //   POST   volunteers/bulk                 { rows: [volunteer, ...] }
 //   POST   <resource>                      create
@@ -22,7 +25,14 @@
 // plus donation, which only the finance level may touch.
 
 import { authenticate, json, sameOriginWrite } from '../../../_lib/access.js';
-import { erasePerson, listEngagement, timeline } from '../../../_lib/engagement.js';
+import {
+  erasePerson,
+  listEngagement,
+  mergePeople,
+  mergePreview,
+  possibleDuplicates,
+  timeline,
+} from '../../../_lib/engagement.js';
 import { audit, listUsers, removeUser, resolveUser, saveUser, validateUser } from '../../../_lib/roles.js';
 import {
   ValidationError,
@@ -64,7 +74,7 @@ export const onRequest = async ({ request, env, params }) => {
     return json(403, { error: 'You are signed in, but not on the access list. Ask an admin to add you.' });
   }
 
-  const [first, second] = [].concat(params.path ?? []);
+  const [first, second, third] = [].concat(params.path ?? []);
   const method = request.method;
 
   try {
@@ -116,6 +126,22 @@ export const onRequest = async ({ request, env, params }) => {
       return (await erasePerson(env.DB, personId, auth.email))
         ? json(200, { ok: true })
         : json(404, { error: 'not found' });
+    }
+    if (first === 'duplicates' || first === 'merge') {
+      if (!user.is_admin) return json(403, { error: 'Only admins can merge people.' });
+      if (method === 'GET' && first === 'duplicates') return json(200, { pairs: await possibleDuplicates(env.DB) });
+      const [fromId, intoId] = [Number(second), Number(third)];
+      if (!Number.isInteger(fromId) || !Number.isInteger(intoId)) return json(404, { error: 'not found' });
+      if (method === 'GET') {
+        const found = await mergePreview(env.DB, fromId, intoId);
+        return found ? json(200, found) : json(404, { error: 'not found' });
+      }
+      if (method === 'POST') {
+        const { confirm } = await readBody(request);
+        if (confirm !== fromId) throw new ValidationError('confirm must repeat the id of the record being merged away');
+        const done = await mergePeople(env.DB, fromId, intoId, auth.email);
+        return done ? json(200, done) : json(404, { error: 'not found' });
+      }
     }
     if (first === 'donation' && user.level !== 'finance') {
       return json(403, { error: 'Only the finance level can record or change gifts.' });

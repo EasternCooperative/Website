@@ -6,6 +6,7 @@ import EventsView from './EventsView';
 import { Split } from './forms';
 import ListsView from './ListsView';
 import NewPersonPanel from './NewPersonPanel';
+import DuplicatesView from './DuplicatesView';
 import UsersView, { LEVEL_LABELS } from './UsersView';
 import PersonPanel from './PersonPanel';
 import { DEFAULT_FILTERS, buildRows, type Data, type Filters, type SortKey, type View } from './model';
@@ -15,6 +16,7 @@ const ALL_VIEWS: { id: View; label: string }[] = [
   { id: 'lists', label: 'Lists' },
   { id: 'events', label: 'Events' },
   { id: 'activities', label: 'Activities' },
+  { id: 'duplicates', label: 'Duplicates' },
   { id: 'users', label: 'Access' },
 ];
 
@@ -40,7 +42,7 @@ export default function LeadershipApp() {
     reload().catch(() => {});
   }, [reload]);
 
-  const views = ALL_VIEWS.filter((v) => v.id !== 'users' || data?.isAdmin);
+  const views = ALL_VIEWS.filter((v) => (v.id !== 'users' && v.id !== 'duplicates') || data?.isAdmin);
   const rows = useMemo(() => (data ? buildRows(data) : []), [data]);
   const selected = typeof selectedId === 'number' ? data?.people.find((p) => p.id === selectedId) : undefined;
 
@@ -143,6 +145,7 @@ export default function LeadershipApp() {
           {view === 'lists' && <ListsView data={data} onChanged={reload} goTo={setView} />}
           {view === 'events' && <EventsView data={data} onChanged={reload} goTo={setView} />}
           {view === 'activities' && <ActivitiesView data={data} onChanged={reload} />}
+          {view === 'duplicates' && data.isAdmin && <DuplicatesView onChanged={reload} />}
           {view === 'users' && data.isAdmin && <UsersView me={data.me ?? ''} />}
         </>
       )}

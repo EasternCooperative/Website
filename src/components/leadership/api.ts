@@ -133,3 +133,18 @@ export interface OutreachInput {
   note?: string | null;
 }
 export const createOutreach = (o: OutreachInput) => send<{ id: number }>('POST', '/outreach', o);
+
+export interface DuplicatePair {
+  a: { id: number; name: string };
+  b: { id: number; name: string };
+  reasons: string[];
+}
+export interface MergePreview {
+  from: { id: number; name: string };
+  into: { id: number; name: string };
+  counts: Record<string, number>;
+}
+export const listDuplicates = () => request<{ pairs: DuplicatePair[] }>('/duplicates');
+export const previewMerge = (fromId: number, intoId: number) => request<MergePreview>(`/merge/${fromId}/${intoId}`);
+export const mergePeople = (fromId: number, intoId: number) =>
+  send<{ into: number }>('POST', `/merge/${fromId}/${intoId}`, { confirm: fromId });

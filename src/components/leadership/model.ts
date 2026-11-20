@@ -350,7 +350,7 @@ export function groupActivities(activities: Activity[]): ActivityGroup[] {
     .map(([type, list]) => ({ type, activities: list.sort((a, b) => a.name.localeCompare(b.name)) }));
 }
 
-export type View = 'people' | 'lists' | 'events' | 'activities' | 'users';
+export type View = 'people' | 'lists' | 'events' | 'activities' | 'duplicates' | 'users';
 
 export interface TimelineItem {
   type: 'role' | 'registration' | 'volunteer' | 'service' | 'membership' | 'outreach' | 'note' | 'gift';
