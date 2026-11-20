@@ -6,6 +6,9 @@ const SCOPES = ['class', 'activity'];
 const EVENT_TYPES = ['extended', 'one_day', 'weekend'];
 const LEADERSHIP_TYPES = ['solo', 'partner', 'assisting'];
 const NOTE_KINDS = ['note', 'ready'];
+// Lists that will grow are checked here, not with a CHECK in the database, which SQLite cannot alter.
+export const OUTREACH_GOALS = ['invite_back', 'invite_lead', 'invite_committee', 'invite_board', 'thank_donor'];
+export const OUTREACH_STATUSES = ['suggested', 'contacted', 'accepted', 'declined', 'snoozed', 'do_not_contact'];
 
 export class ValidationError extends Error {}
 
@@ -32,6 +35,16 @@ const flag = (v, field) => {
   if (v === true || v === 1) return 1;
   throw new ValidationError(`${field} must be yes or no`);
 };
+
+// A year, a month, or a full date: "2024", "2024-06", "2024-06-30".
+const partialDate = (v, field) => {
+  const t = str(v, field, { max: 10 });
+  if (t !== null && !/^\d{4}(-\d{2}(-\d{2})?)?$/.test(t))
+    throw new ValidationError(`${field} must be a date like 2024 or 2024-06-30`);
+  return t;
+};
+
+const optionalId = (v, field) => (v === undefined || v === null ? null : id(v, field));
 
 const id = (v, field) => {
   if (!Number.isInteger(v) || v < 1) throw new ValidationError(`${field} must be an id`);
@@ -77,6 +90,57 @@ export const validators = {
     focus: str(b.focus, 'focus', { max: 200 }),
     body: str(b.body, 'body', { required: true, max: 4000 }),
   }),
+  service: (b) => ({
+    person_id: id(b.person_id, 'person_id'),
+    body: str(b.body, 'body', { required: true, max: 120 }),
+    title: str(b.title, 'title', { max: 120 }),
+    started_on: partialDate(b.started_on, 'started_on'),
+    ended_on: partialDate(b.ended_on, 'ended_on'),
+    note: str(b.note, 'note', { max: 1000 }),
+    source: str(b.source, 'source', { max: 60 }) ?? 'manual',
+  }),
+  volunteer: (b) => ({
+    person_id: id(b.person_id, 'person_id'),
+    event_id: optionalId(b.event_id, 'event_id'),
+    task: str(b.task, 'task', { required: true, max: 200 }),
+    hours: (() => {
+      if (b.hours === undefined || b.hours === null || b.hours === '') return null;
+      if (typeof b.hours !== 'number' || !(b.hours >= 0) || b.hours > 1000)
+        throw new ValidationError('hours must be a number');
+      return b.hours;
+    })(),
+    note: str(b.note, 'note', { max: 1000 }),
+  }),
+  outreach: (b) => ({
+    person_id: id(b.person_id, 'person_id'),
+    goal: oneOf(b.goal, 'goal', OUTREACH_GOALS),
+    status: oneOf(b.status ?? 'suggested', 'status', OUTREACH_STATUSES),
+    contacted_on: partialDate(b.contacted_on, 'contacted_on'),
+    snooze_until: partialDate(b.snooze_until, 'snooze_until'),
+    note: str(b.note, 'note', { max: 1000 }),
+  }),
+  // Money. The Function lets only the finance level touch this resource.
+  donation: (b) => ({
+    person_id: optionalId(b.person_id, 'person_id'),
+    source: str(b.source, 'source', { max: 60 }) ?? 'manual',
+    source_ref: str(b.source_ref, 'source_ref', { max: 120 }) ?? `manual-${crypto.randomUUID()}`,
+    line_ref: str(b.line_ref, 'line_ref', { max: 120 }) ?? '',
+    amount_cents: (() => {
+      if (!Number.isInteger(b.amount_cents) || b.amount_cents < 1 || b.amount_cents > 100_000_000) {
+        throw new ValidationError('amount_cents must be a whole number of cents above zero');
+      }
+      return b.amount_cents;
+    })(),
+    donated_at: (() => {
+      const t = str(b.donated_at, 'donated_at', { required: true, max: 10 });
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(t)) throw new ValidationError('donated_at must be a date like 2026-05-23');
+      return t;
+    })(),
+    campaign: str(b.campaign, 'campaign', { max: 200 }),
+    kind: str(b.kind, 'kind', { max: 40 }) ?? 'gift',
+    recurring: flag(b.recurring, 'recurring'),
+    event_id: optionalId(b.event_id, 'event_id'),
+  }),
 };
 
 // Table name and column list come from this allowlist, never from the request.
@@ -86,6 +150,21 @@ const TABLES = {
   event: ['name', 'event_type', 'year', 'site_event_id'],
   role: ['person_id', 'activity_id', 'event_id', 'leadership_type', 'how_it_went', 'source'],
   journey_note: ['person_id', 'kind', 'focus', 'body', 'author'],
+  service: ['person_id', 'body', 'title', 'started_on', 'ended_on', 'note', 'source'],
+  volunteer: ['person_id', 'event_id', 'task', 'hours', 'note'],
+  outreach: ['person_id', 'goal', 'status', 'contacted_on', 'snooze_until', 'note'],
+  donation: [
+    'person_id',
+    'source',
+    'source_ref',
+    'line_ref',
+    'amount_cents',
+    'donated_at',
+    'campaign',
+    'kind',
+    'recurring',
+    'event_id',
+  ],
 };
 
 // Everything but notes (which have `author`) records who created and last changed a row.
@@ -94,7 +173,12 @@ const isAudited = (table) => table !== 'journey_note';
 export const tableFor = (resource) => (resource === 'note' ? 'journey_note' : resource);
 
 export async function bootstrap(db) {
-  const live = (t) => db.prepare(`SELECT * FROM ${t} WHERE deleted_at IS NULL ORDER BY id`).all();
+  const live = (t) =>
+    db
+      .prepare(
+        `SELECT * FROM ${t} WHERE deleted_at IS NULL${t === 'person' ? ' AND erased_at IS NULL' : ''} ORDER BY id`
+      )
+      .all();
   const [people, activities, events, roles, notes, types] = await Promise.all([
     live('person'),
     live('activity'),

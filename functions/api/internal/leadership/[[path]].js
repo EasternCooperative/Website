@@ -10,13 +10,18 @@
 //   POST   users                           { email, level, is_admin } add or change (admins only)
 //   PUT    users/<email>                   { level, is_admin }
 //   DELETE users/<email>                   remove (admins only)
+//   GET    engagement                      people with engagement facts (paged; money redacted by level)
+//   GET    timeline/<personId>             one person's history across every record type
+//   POST   erase/<personId>                { confirm: <personId> } clear a person's identity (admins only)
 //   POST   roles/bulk                      { rows: [role, ...] }
 //   POST   <resource>                      create
 //   PUT    <resource>/<id>                 update
 //   DELETE <resource>/<id>                 soft delete
-// where <resource> is person | activity | event | role | note.
+// where <resource> is person | activity | event | role | note | service | volunteer | outreach,
+// plus donation, which only the finance level may touch.
 
 import { authenticate, json, sameOriginWrite } from '../../../_lib/access.js';
+import { erasePerson, listEngagement, timeline } from '../../../_lib/engagement.js';
 import { audit, listUsers, removeUser, resolveUser, saveUser, validateUser } from '../../../_lib/roles.js';
 import {
   ValidationError,
@@ -92,6 +97,26 @@ export const onRequest = async ({ request, env, params }) => {
           : json(404, { error: 'not found' });
       }
       return json(405, { error: 'method not allowed' });
+    }
+    if (method === 'GET' && first === 'engagement' && !second) {
+      return json(200, await listEngagement(env.DB, user, new URL(request.url).searchParams));
+    }
+    if (method === 'GET' && first === 'timeline' && second) {
+      const found = await timeline(env.DB, user, Number(second));
+      return found ? json(200, found) : json(404, { error: 'not found' });
+    }
+    if (method === 'POST' && first === 'erase' && second) {
+      if (!user.is_admin) return json(403, { error: 'Only admins can erase a person.' });
+      const personId = Number(second);
+      const { confirm } = await readBody(request);
+      if (!Number.isInteger(personId) || confirm !== personId)
+        throw new ValidationError('confirm must repeat the person id');
+      return (await erasePerson(env.DB, personId, auth.email))
+        ? json(200, { ok: true })
+        : json(404, { error: 'not found' });
+    }
+    if (first === 'donation' && user.level !== 'finance') {
+      return json(403, { error: 'Only the finance level can record or change gifts.' });
     }
     if (method === 'POST' && first === 'roles' && second === 'bulk') {
       const { rows } = await readBody(request);
