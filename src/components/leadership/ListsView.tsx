@@ -5,6 +5,10 @@ import { PersonTags } from './marks';
 import {
   LISTS,
   OUTREACH_STATUS_LABELS,
+  DEFAULT_WEIGHTS,
+  SCORE_FIELDS,
+  scoreFor,
+  type ScoreWeights,
   factsFor,
   formatPartialDate,
   listQuery,
@@ -55,6 +59,8 @@ export default function ListsView({
   const [page, setPage] = useState<EngagementPage | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
+  const [showScore, setShowScore] = useState(false);
+  const [weights, setWeights] = useState<ScoreWeights>(DEFAULT_WEIGHTS);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const act = useAction(async () => {
     await onChanged();
@@ -110,6 +116,9 @@ export default function ListsView({
   };
 
   const person = data.people.find((p) => p.id === selectedId);
+  const year = new Date().getFullYear();
+  const scored = rows.map((r) => ({ r, score: scoreFor(r, weights, year) }));
+  const shown = showScore ? [...scored].sort((a, b) => b.score.total - a.score.total).map((x) => x.r) : rows;
 
   return (
     <Split
@@ -170,6 +179,40 @@ export default function ListsView({
             </div>
           )}
 
+          <div className="mb-3 text-sm">
+            <label className="flex cursor-pointer items-center gap-2">
+              <input type="checkbox" checked={showScore} onChange={(e) => setShowScore(e.target.checked)} />
+              Show a score, and order what is shown by it
+            </label>
+            {showScore && (
+              <details className="mt-2">
+                <summary className="cursor-pointer text-muted">Points for each fact</summary>
+                <div className="mt-2 flex flex-wrap gap-x-5 gap-y-2">
+                  {SCORE_FIELDS.map((f) => (
+                    <label key={f.key} className="block">
+                      <span className="mb-1 block text-muted">{f.label}</span>
+                      <input
+                        type="number"
+                        min={0}
+                        max={20}
+                        value={weights[f.key]}
+                        onChange={(e) => {
+                          const n = Number(e.target.value);
+                          if (Number.isInteger(n) && n >= 0 && n <= 20) setWeights({ ...weights, [f.key]: n });
+                        }}
+                        className={`${inputCls} w-20`}
+                      />
+                    </label>
+                  ))}
+                </div>
+                <p className="mt-2 text-xs text-muted">
+                  The score only explains and orders the people shown. Nobody is hidden because of it, and giving counts
+                  by tier, not by amount.
+                </p>
+              </details>
+            )}
+          </div>
+
           <ErrorNote message={loadError ?? act.error} />
           {!page && !loadError && <p className="text-sm text-muted">Loading…</p>}
           {page && (
@@ -184,7 +227,7 @@ export default function ListsView({
           )}
           {rows.length > 0 && (
             <ul className="divide-y divide-gray-200 rounded-xl border border-gray-200 dark:divide-gray-700 dark:border-gray-700">
-              {rows.map((r) => {
+              {shown.map((r) => {
                 const p = data.people.find((x) => x.id === r.person_id);
                 const note = outreachNote(data, r.person_id, list.goal);
                 return (
@@ -205,6 +248,14 @@ export default function ListsView({
                       )}
                     </div>
                     <p className="mt-0.5 text-sm text-muted">{factsFor(r).join(' · ')}</p>
+                    {showScore && (
+                      <p className="text-xs text-muted">
+                        Score {scoreFor(r, weights, year).total}:{' '}
+                        {scoreFor(r, weights, year)
+                          .parts.map((x) => `${x.label} ${x.points}`)
+                          .join(', ')}
+                      </p>
+                    )}
                     {note && <p className="text-xs text-muted">{note}</p>}
                     <div className={`mt-1.5 flex flex-wrap gap-x-3 gap-y-1 rounded ${surfaceHover}`}>
                       {ACTIONS.map((a) => (

@@ -499,6 +499,7 @@ export interface EngagementRow {
   serving_now: number;
   gift_count: number;
   giving_tier: string | null;
+  giving_tier_rank?: number;
   last_contacted_on: string | null;
   do_not_contact: number;
   total_cents?: number;
@@ -510,7 +511,7 @@ export interface EngagementPage {
   offset: number;
 }
 
-export type ListId = 'back' | 'lead' | 'committee' | 'donors';
+export type ListId = 'back' | 'lead' | 'committee' | 'donors' | 'firstgift' | 'lapsed';
 export type ListControl = { key: string; label: string } & (
   { kind: 'number'; min: number; max: number } | { kind: 'toggle' }
 );
@@ -574,6 +575,24 @@ export const LISTS: ListDef[] = [
     defaults: {},
     empty: 'No gifts are recorded yet.',
   },
+  {
+    id: 'firstgift',
+    label: 'First-time donors',
+    goal: 'thank_donor',
+    blurb: 'Gave once, recently. A good moment for a personal thank-you.',
+    controls: [{ key: 'recentYears', label: 'Gave within the last (years)', kind: 'number', min: 1, max: 20 }],
+    defaults: { recentYears: 1 },
+    empty: 'No first-time donors in that window.',
+  },
+  {
+    id: 'lapsed',
+    label: 'Lapsed donors',
+    goal: 'thank_donor',
+    blurb: 'Gave before, but not lately.',
+    controls: [{ key: 'quietYears', label: 'No gift in the last (years)', kind: 'number', min: 1, max: 20 }],
+    defaults: { quietYears: 2 },
+    empty: 'No one has gone quiet for that long.',
+  },
 ];
 
 const isoDay = (d: Date) => d.toISOString().slice(0, 10);
@@ -590,7 +609,7 @@ export function listQuery(list: ListDef, values: Record<string, number | boolean
   });
   const waited = new Date(today);
   waited.setDate(waited.getDate() - 180);
-  if (list.id !== 'donors') q.set('not_contacted_since', isoDay(waited));
+  if (!['donors', 'firstgift', 'lapsed'].includes(list.id)) q.set('not_contacted_since', isoDay(waited));
   if (list.id === 'back') {
     q.set('min_events', String(v.minEvents));
     q.set('max_last_event_year', String(year - Number(v.quietYears)));
@@ -610,6 +629,16 @@ export function listQuery(list: ListDef, values: Record<string, number | boolean
     if (v.mustHaveLed) q.set('min_roles_led', '1');
     if (v.membersOnly) q.set('member', '1');
     q.set('sort', 'events_registered');
+    q.set('dir', 'desc');
+  } else if (list.id === 'firstgift') {
+    q.set('min_gift_count', '1');
+    q.set('max_gift_count', '1');
+    q.set('min_last_gift_year', String(year - Number(v.recentYears)));
+    q.set('sort', 'name');
+  } else if (list.id === 'lapsed') {
+    q.set('min_gift_count', '1');
+    q.set('max_last_gift_year', String(year - Number(v.quietYears)));
+    q.set('sort', 'giving_tier');
     q.set('dir', 'desc');
   } else {
     q.set('min_tier', '1');
@@ -642,4 +671,43 @@ export function factsFor(row: EngagementRow): string[] {
   }
   if (row.last_contacted_on) facts.push(`Last contacted ${formatPartialDate(row.last_contacted_on)}`);
   return facts;
+}
+
+// ---------------------------------------------------------------------------
+// The optional score. Off by default. Every point comes from a visible weight and the
+// breakdown is shown beside the number, so it explains a ranking and never hides anyone.
+// Giving counts by tier, never by amount, so it is safe at every access level.
+
+export const SCORE_FIELDS = [
+  { key: 'registered', label: 'Per event registered' },
+  { key: 'attended', label: 'Per event attended' },
+  { key: 'led', label: 'Per class or activity led' },
+  { key: 'volunteer', label: 'Per time helped' },
+  { key: 'member', label: 'Current member' },
+  { key: 'tier', label: 'Per giving tier' },
+  { key: 'recent', label: 'Came in the last two years' },
+] as const;
+export type ScoreKey = (typeof SCORE_FIELDS)[number]['key'];
+export type ScoreWeights = Record<ScoreKey, number>;
+export const DEFAULT_WEIGHTS: ScoreWeights = {
+  registered: 1,
+  attended: 1,
+  led: 3,
+  volunteer: 2,
+  member: 3,
+  tier: 2,
+  recent: 3,
+};
+
+export function scoreFor(row: EngagementRow, w: ScoreWeights, year: number) {
+  const parts: { label: string; points: number }[] = [
+    { label: `${row.events_registered} registered`, points: row.events_registered * w.registered },
+    { label: `${row.events_attended} attended`, points: row.events_attended * w.attended },
+    { label: `${row.roles_led} led`, points: row.roles_led * w.led },
+    { label: `${row.volunteer_count} helped`, points: row.volunteer_count * w.volunteer },
+    { label: 'member', points: row.member_now ? w.member : 0 },
+    { label: 'giving', points: (row.giving_tier_rank ?? 0) * w.tier },
+    { label: 'recent', points: row.last_event_year && row.last_event_year >= year - 2 ? w.recent : 0 },
+  ].filter((p) => p.points !== 0);
+  return { total: parts.reduce((n, p) => n + p.points, 0), parts };
 }
