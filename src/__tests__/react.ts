@@ -24,6 +24,7 @@ export async function cleanup() {
     await act(async () => root.unmount());
     el.remove();
   }
+  window.history.replaceState(null, '', window.location.pathname); // views live in the URL hash
 }
 
 /**

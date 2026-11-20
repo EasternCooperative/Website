@@ -136,7 +136,7 @@ const last = () => params(queries.at(-1)!);
 async function open() {
   const { container } = await render(<LeadershipApp />);
   await settle();
-  await click(button(container, 'Lists'));
+  await click(button(container, 'Outreach'));
   await settle();
   return container;
 }

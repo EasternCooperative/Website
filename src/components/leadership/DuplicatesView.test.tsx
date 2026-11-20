@@ -55,6 +55,7 @@ afterEach(cleanup);
 const open = async () => {
   const c = await render(<LeadershipApp />);
   await settle();
+  await click(buttonWithText(c.container, /^Admin/));
   await click(buttonWithText(c.container, 'Duplicates'));
   await settle();
   return c;
