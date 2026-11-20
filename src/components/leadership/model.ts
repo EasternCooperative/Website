@@ -99,6 +99,9 @@ export interface Outreach {
   contacted_on: string | null;
   snooze_until: string | null;
   note: string | null;
+  /** For a staffing ask: the event and the slot (for example "Games class"). */
+  event_id?: number | null;
+  slot?: string | null;
 }
 
 export type AccessLevel = 'finance' | 'standard';
@@ -365,7 +368,7 @@ export function groupActivities(activities: Activity[]): ActivityGroup[] {
     .map(([type, list]) => ({ type, activities: list.sort((a, b) => a.name.localeCompare(b.name)) }));
 }
 
-export type View = 'people' | 'lists' | 'events' | 'activities' | 'journey' | 'duplicates' | 'users';
+export type View = 'people' | 'lists' | 'events' | 'activities' | 'journey' | 'staff' | 'duplicates' | 'users';
 
 export interface TimelineItem {
   type: 'role' | 'registration' | 'volunteer' | 'service' | 'membership' | 'outreach' | 'note' | 'gift';
@@ -850,3 +853,12 @@ export function journeyEvidence(row: JourneyRow): string {
   if (!bits.length) bits.push('Member or donor, no events yet');
   return bits.join(' · ');
 }
+
+/** The five parts of a staffing fit, as they are named on screen. */
+export const SEGMENT_NAMES = {
+  experience: 'Experience',
+  readiness: 'Ready',
+  availability: 'Available',
+  nearness: 'Near',
+  timing: 'Timing',
+} as const;

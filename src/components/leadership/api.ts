@@ -148,8 +148,12 @@ export interface OutreachInput {
   contacted_on?: string | null;
   snooze_until?: string | null;
   note?: string | null;
+  event_id?: number | null;
+  slot?: string | null;
 }
 export const createOutreach = (o: OutreachInput) => send<{ id: number }>('POST', '/outreach', o);
+export const saveOutreach = (id: number, o: OutreachInput) => send<{ ok: true }>('PUT', `/outreach/${id}`, o);
+export const deleteOutreach = (id: number) => send<{ ok: true }>('DELETE', `/outreach/${id}`);
 
 export interface DuplicatePair {
   a: { id: number; name: string };

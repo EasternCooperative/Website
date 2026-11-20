@@ -5,6 +5,9 @@ import { createRoot, type Root } from 'react-dom/client';
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
+// Views live in the URL hash and the tool opens on Staff an event, so tests start on People.
+window.history.replaceState(null, '', `${window.location.pathname}#/people`);
+
 const mounted: { root: Root; el: HTMLElement }[] = [];
 
 export async function render(ui: ReactElement) {
@@ -24,7 +27,7 @@ export async function cleanup() {
     await act(async () => root.unmount());
     el.remove();
   }
-  window.history.replaceState(null, '', window.location.pathname); // views live in the URL hash
+  window.history.replaceState(null, '', `${window.location.pathname}#/people`); // views live in the URL hash; start tests on People
 }
 
 /**
