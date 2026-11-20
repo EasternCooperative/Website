@@ -4,6 +4,7 @@ import Dashboard from './Dashboard';
 import ActivitiesView from './ActivitiesView';
 import EventsView from './EventsView';
 import { Split } from './forms';
+import ListsView from './ListsView';
 import NewPersonPanel from './NewPersonPanel';
 import UsersView, { LEVEL_LABELS } from './UsersView';
 import PersonPanel from './PersonPanel';
@@ -11,6 +12,7 @@ import { DEFAULT_FILTERS, buildRows, type Data, type Filters, type SortKey, type
 
 const ALL_VIEWS: { id: View; label: string }[] = [
   { id: 'people', label: 'People' },
+  { id: 'lists', label: 'Lists' },
   { id: 'events', label: 'Events' },
   { id: 'activities', label: 'Activities' },
   { id: 'users', label: 'Access' },
@@ -74,7 +76,10 @@ export default function LeadershipApp() {
 
       {data && (
         <>
-          <nav aria-label="Sections" className="mb-5 flex gap-1 border-b border-gray-200 dark:border-gray-700">
+          <nav
+            aria-label="Sections"
+            className="mb-5 flex gap-1 overflow-x-auto whitespace-nowrap border-b border-gray-200 dark:border-gray-700"
+          >
             {views.map((v) => (
               <button
                 key={v.id}
@@ -135,6 +140,7 @@ export default function LeadershipApp() {
               }
             />
           )}
+          {view === 'lists' && <ListsView data={data} onChanged={reload} goTo={setView} />}
           {view === 'events' && <EventsView data={data} onChanged={reload} goTo={setView} />}
           {view === 'activities' && <ActivitiesView data={data} onChanged={reload} />}
           {view === 'users' && data.isAdmin && <UsersView me={data.me ?? ''} />}

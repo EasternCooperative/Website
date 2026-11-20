@@ -124,11 +124,11 @@ export const TONES = {
   mentor: 'bg-sky-100 text-sky-900 dark:bg-sky-400/15 dark:text-sky-200',
 } as const;
 
-/** Status tags for a person. Active is the norm, so it gets none. */
-export function PersonTags({ person }: { person: Person }) {
+/** Status tags for a person. Active is the norm, so it gets none. Pass showStatus={false} where status means nothing, such as people who have never led. */
+export function PersonTags({ person, showStatus = true }: { person: Person; showStatus?: boolean }) {
   return (
     <>
-      {person.status !== 'active' && (
+      {showStatus && person.status !== 'active' && (
         <Tag icon={person.status} tone={TONES[person.status]}>
           {STATUS_LABELS[person.status]}
         </Tag>

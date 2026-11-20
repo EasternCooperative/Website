@@ -1,6 +1,6 @@
 // Client for /api/internal/leadership. Same-origin only: Cloudflare Access puts
 // the session cookie on these requests, and the Function checks the JWT.
-import type { AccessLevel, Activity, AppUser, Data, EventRow, Person, Role, Timeline } from './model';
+import type { AccessLevel, Activity, AppUser, Data, EngagementPage, EventRow, Person, Role, Timeline } from './model';
 
 const BASE = '/api/internal/leadership';
 
@@ -121,3 +121,15 @@ export interface VolunteerInput {
 /** The same task at one event for several people. */
 export const addVolunteers = (rows: VolunteerInput[]) => send<{ added: number }>('POST', '/volunteers/bulk', { rows });
 export const deleteVolunteer = (id: number) => send<{ ok: true }>('DELETE', `/volunteer/${id}`);
+
+export const getEngagement = (query: string) => request<EngagementPage>(`/engagement?${query}`);
+
+export interface OutreachInput {
+  person_id: number;
+  goal: string;
+  status: string;
+  contacted_on?: string | null;
+  snooze_until?: string | null;
+  note?: string | null;
+}
+export const createOutreach = (o: OutreachInput) => send<{ id: number }>('POST', '/outreach', o);

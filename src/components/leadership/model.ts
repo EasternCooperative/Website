@@ -87,6 +87,16 @@ export interface Volunteer {
   note: string | null;
 }
 
+export interface Outreach {
+  id: number;
+  person_id: number;
+  goal: string;
+  status: string;
+  contacted_on: string | null;
+  snooze_until: string | null;
+  note: string | null;
+}
+
 export type AccessLevel = 'finance' | 'standard';
 export interface AppUser {
   email: string;
@@ -109,6 +119,7 @@ export interface Data {
   /** Board and committee service, and who helped at events. Neither is money. */
   service?: Service[];
   volunteers?: Volunteer[];
+  outreach?: Outreach[];
   activityTypes: string[];
 }
 
@@ -339,7 +350,7 @@ export function groupActivities(activities: Activity[]): ActivityGroup[] {
     .map(([type, list]) => ({ type, activities: list.sort((a, b) => a.name.localeCompare(b.name)) }));
 }
 
-export type View = 'people' | 'events' | 'activities' | 'users';
+export type View = 'people' | 'lists' | 'events' | 'activities' | 'users';
 
 export interface TimelineItem {
   type: 'role' | 'registration' | 'volunteer' | 'service' | 'membership' | 'outreach' | 'note' | 'gift';
@@ -469,4 +480,166 @@ export function describeItem(item: TimelineItem): { label: string; text: string;
         sub: item.recurring ? 'Recurring' : '',
       };
   }
+}
+
+/** One person's engagement facts, as the server sends them. Money appears only for the finance level. */
+export interface EngagementRow {
+  person_id: number;
+  name: string;
+  status: Status;
+  mentor: number;
+  events_registered: number;
+  events_attended: number;
+  last_event_year: number | null;
+  roles_led: number;
+  roles_total: number;
+  last_led_year: number | null;
+  volunteer_count: number;
+  member_now: number;
+  serving_now: number;
+  gift_count: number;
+  giving_tier: string | null;
+  last_contacted_on: string | null;
+  do_not_contact: number;
+  total_cents?: number;
+}
+export interface EngagementPage {
+  people: EngagementRow[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export type ListId = 'back' | 'lead' | 'committee' | 'donors';
+export type ListControl = { key: string; label: string } & (
+  { kind: 'number'; min: number; max: number } | { kind: 'toggle' }
+);
+export interface ListDef {
+  id: ListId;
+  label: string;
+  /** What "Mark contacted" records this as. */
+  goal: string;
+  blurb: string;
+  controls: ListControl[];
+  defaults: Record<string, number | boolean>;
+  empty: string;
+}
+
+export const LISTS: ListDef[] = [
+  {
+    id: 'back',
+    label: 'Invite back',
+    goal: 'invite_back',
+    blurb: 'Came to several events, but not lately.',
+    controls: [
+      { key: 'minEvents', label: 'Registered for at least', kind: 'number', min: 1, max: 50 },
+      { key: 'quietYears', label: 'None in the last (years)', kind: 'number', min: 1, max: 20 },
+    ],
+    defaults: { minEvents: 2, quietYears: 2 },
+    empty: 'No one matches. Try fewer events, or a shorter time away.',
+  },
+  {
+    id: 'lead',
+    label: 'Invite to lead',
+    goal: 'invite_lead',
+    blurb: 'Regulars who have never led a class or activity.',
+    controls: [
+      { key: 'minEvents', label: 'Registered for at least', kind: 'number', min: 1, max: 50 },
+      { key: 'recentYears', label: 'Came within the last (years)', kind: 'number', min: 1, max: 20 },
+      { key: 'readyOnly', label: 'Only people with a “ready for” note', kind: 'toggle' },
+    ],
+    defaults: { minEvents: 3, recentYears: 3, readyOnly: false },
+    empty: 'No one matches. Try fewer events, or a longer window.',
+  },
+  {
+    id: 'committee',
+    label: 'Committee and board',
+    goal: 'invite_committee',
+    blurb: 'Long-time regulars who are not serving now.',
+    controls: [
+      { key: 'minEvents', label: 'Registered for at least', kind: 'number', min: 1, max: 50 },
+      { key: 'recentYears', label: 'Came within the last (years)', kind: 'number', min: 1, max: 20 },
+      { key: 'mustHaveLed', label: 'Has led before', kind: 'toggle' },
+      { key: 'membersOnly', label: 'Members only', kind: 'toggle' },
+    ],
+    defaults: { minEvents: 4, recentYears: 3, mustHaveLed: true, membersOnly: false },
+    empty: 'No one matches. Try fewer events, or turn off “Has led before”.',
+  },
+  {
+    id: 'donors',
+    label: 'Thank donors',
+    goal: 'thank_donor',
+    blurb: 'People who have given, so they can be thanked.',
+    controls: [],
+    defaults: {},
+    empty: 'No gifts are recorded yet.',
+  },
+];
+
+const isoDay = (d: Date) => d.toISOString().slice(0, 10);
+
+/** The server query for a list, with its criteria filled in. Nobody contacted lately or snoozed or opted out is left out. */
+export function listQuery(list: ListDef, values: Record<string, number | boolean>, today: Date, offset = 0): string {
+  const year = today.getFullYear();
+  const v = { ...list.defaults, ...values };
+  const q = new URLSearchParams({
+    exclude_do_not_contact: '1',
+    exclude_snoozed: '1',
+    limit: '25',
+    offset: String(offset),
+  });
+  const waited = new Date(today);
+  waited.setDate(waited.getDate() - 180);
+  if (list.id !== 'donors') q.set('not_contacted_since', isoDay(waited));
+  if (list.id === 'back') {
+    q.set('min_events', String(v.minEvents));
+    q.set('max_last_event_year', String(year - Number(v.quietYears)));
+    q.set('sort', 'events_registered');
+    q.set('dir', 'desc');
+  } else if (list.id === 'lead') {
+    q.set('min_events', String(v.minEvents));
+    q.set('max_roles_led', '0');
+    q.set('min_last_event_year', String(year - Number(v.recentYears)));
+    if (v.readyOnly) q.set('has_ready', '1');
+    q.set('sort', 'events_registered');
+    q.set('dir', 'desc');
+  } else if (list.id === 'committee') {
+    q.set('min_events', String(v.minEvents));
+    q.set('serving', '0');
+    q.set('min_last_event_year', String(year - Number(v.recentYears)));
+    if (v.mustHaveLed) q.set('min_roles_led', '1');
+    if (v.membersOnly) q.set('member', '1');
+    q.set('sort', 'events_registered');
+    q.set('dir', 'desc');
+  } else {
+    q.set('min_tier', '1');
+    q.set('sort', 'giving_tier');
+    q.set('dir', 'desc');
+  }
+  return q.toString();
+}
+
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+
+/** The plain facts behind a person being on a list, in the order they matter. */
+export function factsFor(row: EngagementRow): string[] {
+  const facts: string[] = [];
+  if (row.events_registered > 0) {
+    facts.push(
+      `Registered for ${plural(row.events_registered, 'event', 'events')}${row.last_event_year ? `, last in ${row.last_event_year}` : ''}`
+    );
+  }
+  if (row.events_attended > 0) facts.push(`Attended ${row.events_attended}`);
+  facts.push(
+    row.roles_led > 0 ? `Led ${row.roles_led}${row.last_led_year ? `, last in ${row.last_led_year}` : ''}` : 'Never led'
+  );
+  if (row.volunteer_count > 0) facts.push(`Helped ${plural(row.volunteer_count, 'time', 'times')}`);
+  if (row.member_now) facts.push('Member');
+  if (row.serving_now > 0) facts.push('Serving now');
+  if (row.gift_count > 0) {
+    const tier = row.giving_tier ?? '';
+    facts.push(row.total_cents !== undefined ? `Giving: ${tier} (${dollars(row.total_cents)})` : `Giving: ${tier}`);
+  }
+  if (row.last_contacted_on) facts.push(`Last contacted ${formatPartialDate(row.last_contacted_on)}`);
+  return facts;
 }
