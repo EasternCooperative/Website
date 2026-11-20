@@ -23,11 +23,12 @@ const census = {
     ],
   },
 };
-let censusAnswer: Response | 'down';
+let censusAnswer: Response;
+let censusDown = false;
 let zipAnswer: Response;
 const stub = async (url: string) => {
   if (String(url).includes('census.gov')) {
-    if (censusAnswer === 'down') throw new Error('down');
+    if (censusDown) throw new Error('down');
     return censusAnswer.clone();
   }
   return zipAnswer.clone();
@@ -47,6 +48,7 @@ beforeEach(() => {
   db = sqliteD1();
   db.raw.exec("INSERT INTO app_user (email_lower, level, is_admin) VALUES ('admin@example.org', 'standard', 1);");
   censusAnswer = new Response(JSON.stringify(census));
+  censusDown = false;
   zipAnswer = new Response(JSON.stringify(zip));
   vi.stubGlobal('fetch', vi.fn(stub));
 });
@@ -81,6 +83,16 @@ describe('adding a venue', () => {
     });
     const only = await call('venue', 'POST', { name: 'Zip Only', postal_code: '18942-1234' });
     expect(only.status).toBe(201);
+  });
+
+  it('falls back to the postal code when the geocoder is down', async () => {
+    censusDown = true;
+    const res = await call('venue', 'POST', { name: 'Camp', address: '1 Main St, Ottsville, PA 18942' });
+    expect(res.status).toBe(201);
+    expect(db.raw.prepare('SELECT postal_code, address FROM venue').get()).toEqual({
+      postal_code: '18942',
+      address: null,
+    });
   });
 
   it('gives a second venue with the same name its own id', async () => {
