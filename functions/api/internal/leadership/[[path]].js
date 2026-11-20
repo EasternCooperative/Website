@@ -14,6 +14,7 @@
 //   GET    timeline/<personId>             one person's history across every record type
 //   POST   erase/<personId>                { confirm: <personId> } clear a person's identity (admins only)
 //   POST   roles/bulk                      { rows: [role, ...] }
+//   POST   volunteers/bulk                 { rows: [volunteer, ...] }
 //   POST   <resource>                      create
 //   PUT    <resource>/<id>                 update
 //   DELETE <resource>/<id>                 soft delete
@@ -27,6 +28,7 @@ import {
   ValidationError,
   bootstrap,
   bulkAddRoles,
+  bulkAddVolunteers,
   createRow,
   exportAll,
   findDuplicate,
@@ -117,6 +119,10 @@ export const onRequest = async ({ request, env, params }) => {
     }
     if (first === 'donation' && user.level !== 'finance') {
       return json(403, { error: 'Only the finance level can record or change gifts.' });
+    }
+    if (method === 'POST' && first === 'volunteers' && second === 'bulk') {
+      const { rows } = await readBody(request);
+      return json(200, { added: await bulkAddVolunteers(env.DB, rows, auth.email) });
     }
     if (method === 'POST' && first === 'roles' && second === 'bulk') {
       const { rows } = await readBody(request);

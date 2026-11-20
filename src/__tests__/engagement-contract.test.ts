@@ -366,3 +366,61 @@ describe('the new record types', () => {
     });
   });
 });
+
+describe('volunteers and service on the page', () => {
+  it('come with the bootstrap, and still carry no money', async () => {
+    const { text } = await get('bootstrap', 'standard@example.org');
+    const body = JSON.parse(text);
+    expect(body.service).toHaveLength(1);
+    expect(body.service[0]).toMatchObject({ body: 'Board', title: 'Chair' });
+    expect(body.volunteers).toEqual([expect.objectContaining({ person_id: 1, task: 'Moved tables' })]);
+    expectNoMoney(text);
+  });
+
+  it('can be added several at a time by any level, stamped with who did it', async () => {
+    const rows = [
+      { person_id: 2, event_id: 1, task: 'Set up', hours: 2 },
+      { person_id: 3, event_id: 1, task: 'Set up' },
+    ];
+    const res = await post('volunteers/bulk', 'standard@example.org', { rows });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ added: 2 });
+    expect(
+      db.raw
+        .prepare("SELECT person_id, hours, created_by FROM volunteer WHERE task = 'Set up' ORDER BY person_id")
+        .all()
+    ).toEqual([
+      { person_id: 2, hours: 2, created_by: 'standard@example.org' },
+      { person_id: 3, hours: null, created_by: 'standard@example.org' },
+    ]);
+  });
+
+  it('refuses an empty list, too many, or a bad row, and adds nothing', async () => {
+    const good = { person_id: 2, event_id: 1, task: 'Set up' };
+    for (const rows of [
+      [],
+      Array(201).fill(good),
+      [good, { person_id: 2, event_id: 1, task: '' }],
+      [good, { ...good, hours: -3 }],
+    ]) {
+      expect((await post('volunteers/bulk', 'standard@example.org', { rows })).status).toBe(400);
+    }
+    expect(db.raw.prepare("SELECT COUNT(*) n FROM volunteer WHERE task = 'Set up'").get()).toEqual({ n: 0 });
+  });
+
+  it('give timeline items their parts as separate fields', async () => {
+    const body = JSON.parse((await get('timeline/1', 'standard@example.org')).text);
+    expect(body.items.find((i: { type: string }) => i.type === 'role')).toMatchObject({
+      leadership_type: 'solo',
+      event: 'Camp 2025',
+      title: 'Games Class',
+    });
+    expect(body.items.find((i: { type: string }) => i.type === 'volunteer')).toMatchObject({
+      event: 'Camp 2025',
+      title: 'Moved tables',
+    });
+    expect(body.items.find((i: { type: string }) => i.type === 'registration')).toMatchObject({
+      event: expect.any(String),
+    });
+  });
+});

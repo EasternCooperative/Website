@@ -68,6 +68,25 @@ export interface Note {
   author: string;
   created_at: string;
 }
+export interface Service {
+  id: number;
+  person_id: number;
+  body: string;
+  title: string | null;
+  started_on: string | null;
+  ended_on: string | null;
+  note: string | null;
+  source?: string | null;
+}
+export interface Volunteer {
+  id: number;
+  person_id: number;
+  event_id: number | null;
+  task: string;
+  hours: number | null;
+  note: string | null;
+}
+
 export type AccessLevel = 'finance' | 'standard';
 export interface AppUser {
   email: string;
@@ -87,6 +106,9 @@ export interface Data {
   events: EventRow[];
   roles: Role[];
   notes: Note[];
+  /** Board and committee service, and who helped at events. Neither is money. */
+  service?: Service[];
+  volunteers?: Volunteer[];
   activityTypes: string[];
 }
 
@@ -318,3 +340,133 @@ export function groupActivities(activities: Activity[]): ActivityGroup[] {
 }
 
 export type View = 'people' | 'events' | 'activities' | 'users';
+
+export interface TimelineItem {
+  type: 'role' | 'registration' | 'volunteer' | 'service' | 'membership' | 'outreach' | 'note' | 'gift';
+  id: number;
+  /** A year, a month, or a date; sorted newest first by the server. */
+  at: string;
+  title: string;
+  detail?: string | null;
+  /** The event, for roles, registrations, and volunteering. */
+  event?: string | null;
+  leadership_type?: LeadershipType;
+  note?: string | null;
+  body?: string;
+  author?: string;
+  attended?: number | null;
+  hours?: number | null;
+  started_on?: string | null;
+  ended_on?: string | null;
+  ends_on?: string | null;
+  snooze_until?: string | null;
+  /** Only present for the finance level. */
+  amount_cents?: number;
+  recurring?: number;
+}
+export interface Timeline {
+  person: { id: number; name: string };
+  /** Finance sees a total. Everyone else sees only a tier. */
+  giving: { tier?: string | null; total_cents?: number };
+  items: TimelineItem[];
+}
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/** "2024" stays "2024", "2024-06" becomes "Jun 2024", "2024-06-30" becomes "Jun 30, 2024". */
+export function formatPartialDate(value: string): string {
+  const [y, mo, d] = value.split('-');
+  if (!mo) return y;
+  const month = MONTHS[Number(mo) - 1] ?? mo;
+  return d ? `${month} ${Number(d)}, ${y}` : `${month} ${y}`;
+}
+
+/** A term in words: "Jan 2024 to Dec 2027", "since Jan 2023", "until Dec 2021", "2025", or "current". */
+export function formatTerm(started: string | null, ended: string | null): string {
+  if (started && ended)
+    return started === ended
+      ? formatPartialDate(started)
+      : `${formatPartialDate(started)} to ${formatPartialDate(ended)}`;
+  if (started) return `since ${formatPartialDate(started)}`;
+  if (ended) return `until ${formatPartialDate(ended)}`;
+  return 'current';
+}
+
+/** Timeline items grouped by year, in the order given. Items with no date go last. */
+export function groupByYear(items: TimelineItem[]): { year: string; items: TimelineItem[] }[] {
+  const groups: { year: string; items: TimelineItem[] }[] = [];
+  for (const item of items) {
+    const year = item.at ? item.at.slice(0, 4) : 'Undated';
+    const last = groups[groups.length - 1];
+    if (last && last.year === year) last.items.push(item);
+    else groups.push({ year, items: [item] });
+  }
+  return groups;
+}
+
+/** Dollars from cents, for the finance level. */
+export const dollars = (cents: number): string =>
+  (cents / 100).toLocaleString('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: cents % 100 ? 2 : 0,
+  });
+
+export const OUTREACH_GOAL_LABELS: Record<string, string> = {
+  invite_back: 'Invite back',
+  invite_lead: 'Invite to lead',
+  invite_committee: 'Invite to a committee',
+  invite_board: 'Invite to the board',
+  thank_donor: 'Thank for a gift',
+};
+export const OUTREACH_STATUS_LABELS: Record<string, string> = {
+  suggested: 'Suggested',
+  contacted: 'Contacted',
+  accepted: 'Accepted',
+  declined: 'Declined',
+  snoozed: 'Snoozed',
+  do_not_contact: 'Do not contact',
+};
+
+const ROLE_VERBS: Record<LeadershipType, string> = { solo: 'Led', partner: 'Co-led', assisting: 'Assisted' };
+
+/** One timeline entry in words: a short label, the main text, and a quieter second line. */
+export function describeItem(item: TimelineItem): { label: string; text: string; sub: string } {
+  const join = (...parts: (string | null | undefined | false)[]) => parts.filter(Boolean).join(', ');
+  switch (item.type) {
+    case 'role':
+      return { label: ROLE_VERBS[item.leadership_type ?? 'solo'], text: item.title, sub: item.event ?? '' };
+    case 'registration': {
+      const label = item.attended === 1 ? 'Attended' : item.attended === 0 ? 'Did not attend' : 'Registered';
+      return { label, text: item.title, sub: item.detail === 'cancelled' ? 'Cancelled' : '' };
+    }
+    case 'volunteer':
+      return { label: 'Helped', text: item.title, sub: join(item.event, item.hours != null && `${item.hours} hours`) };
+    case 'service':
+      return {
+        label: 'Served',
+        text: join(item.detail, item.title),
+        sub: formatTerm(item.started_on ?? null, item.ended_on ?? null),
+      };
+    case 'membership':
+      return { label: 'Member', text: item.title, sub: item.ends_on ? `until ${formatPartialDate(item.ends_on)}` : '' };
+    case 'outreach':
+      return {
+        label: 'Outreach',
+        text: OUTREACH_GOAL_LABELS[item.title] ?? item.title,
+        sub: join(OUTREACH_STATUS_LABELS[item.detail ?? ''] ?? item.detail, item.note),
+      };
+    case 'note':
+      return {
+        label: item.title === 'ready' ? 'Ready for' : 'Note',
+        text: join(item.detail, item.body),
+        sub: item.author ?? '',
+      };
+    case 'gift':
+      return {
+        label: 'Gift',
+        text: item.amount_cents != null ? join(dollars(item.amount_cents), item.title) : '',
+        sub: item.recurring ? 'Recurring' : '',
+      };
+  }
+}
