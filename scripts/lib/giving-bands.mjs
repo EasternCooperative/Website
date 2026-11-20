@@ -39,7 +39,7 @@ const DONATION_CAMPAIGN = /donation/i;
  * Donation campaigns carry the payment's total on one row; ticket purchases carry an
  * amount per line, and only the gift lines count.
  */
-export function zeffyGifts(header, rows, { includeSliding = false } = {}) {
+export function zeffyGiftRows(header, rows, { includeSliding = false } = {}) {
   const at = (name, nth = 0) => {
     let seen = -1;
     return header.findIndex((h) => h === name && ++seen === nth);
@@ -55,9 +55,13 @@ export function zeffyGifts(header, rows, { includeSliding = false } = {}) {
     last: at('Last Name'),
     email: at('Email', 0),
     formEmail: at('Email', 1),
+    date: at('Payment Date (America/Los_Angeles)'),
+    time: at('Payment Time (America/Los_Angeles)'),
+    recurring: at('Recurring Status'),
   };
   const counted = { donationPayments: 0, giftLines: 0, slidingLines: 0, slidingExcluded: 0 };
-  const gifts = [];
+  const out = [];
+  const seenLines = new Map(); // payment -> how many lines of each kind, so a repeated line gets its own reference
   for (const r of rows) {
     if (r[col.status] !== 'Succeeded') continue;
     const campaign = String(r[col.campaign] ?? '');
@@ -77,10 +81,43 @@ export function zeffyGifts(header, rows, { includeSliding = false } = {}) {
     }
     if (dollars === null || !Number.isFinite(dollars)) continue;
     if (r[col.refund] != null) dollars -= Number(r[col.refund]) || 0;
-    const key = donorKey(r[col.email] ?? r[col.formEmail], `${r[col.first] ?? ''} ${r[col.last] ?? ''}`);
-    if (key && dollars > 0) gifts.push({ key, cents: cents(dollars) });
+    const first = r[col.first] ?? '';
+    const last = r[col.last] ?? '';
+    const email = r[col.email] ?? r[col.formEmail] ?? null;
+    const key = donorKey(email, `${first} ${last}`);
+    if (!key || !(dollars > 0)) continue;
+    const payment = `${r[col.date]}|${r[col.time]}|${first} ${last}`;
+    const lineKind = DONATION_CAMPAIGN.test(campaign) ? '' : rate;
+    const n = (seenLines.get(`${payment}|${lineKind}`) ?? 0) + 1;
+    seenLines.set(`${payment}|${lineKind}`, n);
+    out.push({
+      key,
+      cents: cents(dollars),
+      first: String(first),
+      last: String(last),
+      email: email ? String(email).trim().toLowerCase() : null,
+      date: isoDate(r[col.date]),
+      campaign: campaign || null,
+      recurring: r[col.recurring] ? 1 : 0,
+      payment, // identifies one payment; the caller hashes it so no name is stored
+      lineRef: lineKind ? `${lineKind}#${n}` : '',
+    });
   }
-  return { gifts, counted };
+  return { rows: out, counted };
+}
+
+/** M/D/YYYY (Zeffy's export) to YYYY-MM-DD. */
+export function isoDate(text) {
+  const [m, d, y] = String(text ?? '')
+    .split('/')
+    .map(Number);
+  return y && m && d ? `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}` : null;
+}
+
+/** Gifts from a Zeffy "All payments" export, reduced to a donor and an amount. */
+export function zeffyGifts(header, rows, options = {}) {
+  const { rows: detailed, counted } = zeffyGiftRows(header, rows, options);
+  return { gifts: detailed.map((g) => ({ key: g.key, cents: g.cents })), counted };
 }
 
 /** Gifts from Cognito donation-form entries (form 24). Only paid, complete entries. */
