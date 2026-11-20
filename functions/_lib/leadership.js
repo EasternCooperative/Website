@@ -7,7 +7,14 @@ const EVENT_TYPES = ['extended', 'one_day', 'weekend'];
 const LEADERSHIP_TYPES = ['solo', 'partner', 'assisting'];
 const NOTE_KINDS = ['note', 'ready'];
 // Lists that will grow are checked here, not with a CHECK in the database, which SQLite cannot alter.
-export const OUTREACH_GOALS = ['invite_back', 'invite_lead', 'invite_committee', 'invite_board', 'thank_donor'];
+export const OUTREACH_GOALS = [
+  'invite_back',
+  'invite_lead',
+  'invite_committee',
+  'invite_board',
+  'thank_donor',
+  'staff_slot',
+];
 export const OUTREACH_STATUSES = ['suggested', 'contacted', 'accepted', 'declined', 'snoozed', 'do_not_contact'];
 
 export class ValidationError extends Error {}
@@ -122,14 +129,23 @@ export const validators = {
     })(),
     note: str(b.note, 'note', { max: 1000 }),
   }),
-  outreach: (b) => ({
-    person_id: id(b.person_id, 'person_id'),
-    goal: oneOf(b.goal, 'goal', OUTREACH_GOALS),
-    status: oneOf(b.status ?? 'suggested', 'status', OUTREACH_STATUSES),
-    contacted_on: partialDate(b.contacted_on, 'contacted_on'),
-    snooze_until: partialDate(b.snooze_until, 'snooze_until'),
-    note: str(b.note, 'note', { max: 1000 }),
-  }),
+  outreach: (b) => {
+    const goal = oneOf(b.goal, 'goal', OUTREACH_GOALS);
+    const slotAsk = goal === 'staff_slot';
+    const slot = str(b.slot, 'slot', { max: 120, required: slotAsk });
+    const eventId = slotAsk ? id(b.event_id, 'event_id') : optionalId(b.event_id, 'event_id');
+    return {
+      person_id: id(b.person_id, 'person_id'),
+      goal,
+      status: oneOf(b.status ?? 'suggested', 'status', OUTREACH_STATUSES),
+      contacted_on: partialDate(b.contacted_on, 'contacted_on'),
+      snooze_until: partialDate(b.snooze_until, 'snooze_until'),
+      note: str(b.note, 'note', { max: 1000 }),
+      // Only the staffing ask has an event and a slot.
+      ...(slotAsk || 'event_id' in b ? { event_id: eventId } : {}),
+      ...(slotAsk || 'slot' in b ? { slot } : {}),
+    };
+  },
   // Money. The Function lets only the finance level touch this resource.
   donation: (b) => ({
     person_id: optionalId(b.person_id, 'person_id'),
@@ -163,7 +179,7 @@ const TABLES = {
   journey_note: ['person_id', 'kind', 'focus', 'body', 'author'],
   service: ['person_id', 'body', 'title', 'started_on', 'ended_on', 'note', 'source'],
   volunteer: ['person_id', 'event_id', 'task', 'hours', 'note'],
-  outreach: ['person_id', 'goal', 'status', 'contacted_on', 'snooze_until', 'note'],
+  outreach: ['person_id', 'goal', 'status', 'contacted_on', 'snooze_until', 'note', 'event_id', 'slot'],
   donation: [
     'person_id',
     'source',
@@ -251,6 +267,17 @@ const ROLE_COLUMN = { person: 'person_id', activity: 'activity_id', event: 'even
 
 /** Same name (ignoring case) already live. Events also match on year, activities on scope. */
 export async function findDuplicate(db, resource, values, exceptId = 0) {
+  if (resource === 'outreach') {
+    // One live ask per person, event, and slot.
+    if (values.goal !== 'staff_slot') return false;
+    const { results } = await db
+      .prepare(
+        "SELECT id FROM outreach WHERE deleted_at IS NULL AND goal = 'staff_slot' AND person_id = ? AND event_id = ? AND slot = ? AND id != ?"
+      )
+      .bind(values.person_id, values.event_id, values.slot, exceptId)
+      .all();
+    return results.length > 0;
+  }
   const extra = { activity: 'scope', event: 'year' }[resource];
   if (!extra) return false;
   const table = tableFor(resource);

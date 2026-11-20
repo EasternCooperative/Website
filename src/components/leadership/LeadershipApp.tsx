@@ -5,6 +5,7 @@ import ActivitiesView from './ActivitiesView';
 import EventsView from './EventsView';
 import { Split } from './forms';
 import JourneyView from './JourneyView';
+import StaffView from './StaffView';
 import ListsView from './ListsView';
 import NewPersonPanel from './NewPersonPanel';
 import DuplicatesView from './DuplicatesView';
@@ -16,6 +17,7 @@ import { DEFAULT_FILTERS, buildRows, type Data, type Filters, type SortKey, type
 
 // The main tabs, in the order people reach for them, then the admin-only views.
 const MAIN_VIEWS: { id: View; label: string }[] = [
+  { id: 'staff', label: 'Staff an event' },
   { id: 'journey', label: 'Journey' },
   { id: 'people', label: 'People' },
   { id: 'lists', label: 'Outreach' },
@@ -31,8 +33,9 @@ const ADMIN_VIEWS: { id: View; label: string }[] = [
 export default function LeadershipApp() {
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [view, setViewState] = useState<View>('people');
+  const [view, setViewState] = useState<View>('staff');
   const [selectedId, setSelectedState] = useState<number | 'new' | null>(null);
+  const [query, setQueryState] = useState('');
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [sort, setSort] = useState<{ key: SortKey; descending: boolean }>({ key: 'name', descending: false });
 
@@ -60,12 +63,19 @@ export default function LeadershipApp() {
     if (window.location.hash !== hash) window.history.pushState(null, '', hash);
     setViewState(next);
     setSelectedState(id);
+    setQueryState('');
+  }, []);
+  // Settings a view keeps in the address (the staffing brief) replace the entry instead of piling up history.
+  const setQuery = useCallback((q: string) => {
+    window.history.replaceState(null, '', formatHash('staff', null, q));
+    setQueryState(q);
   }, []);
   useEffect(() => {
     const read = () => {
-      const r = parseHash(window.location.hash, allowed, 'people');
+      const r = parseHash(window.location.hash, allowed, 'staff');
       setViewState(r.view);
       setSelectedState(r.id);
+      setQueryState(r.query);
     };
     read();
     window.addEventListener('popstate', read);
@@ -182,6 +192,15 @@ export default function LeadershipApp() {
                   )
                 )
               }
+            />
+          )}
+          {view === 'staff' && (
+            <StaffView
+              data={data}
+              query={query}
+              onQuery={setQuery}
+              onChanged={reload}
+              goTo={(v, id) => go(v, id ?? null)}
             />
           )}
           {view === 'journey' && (
