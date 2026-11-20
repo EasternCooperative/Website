@@ -128,6 +128,8 @@ export interface VenueRow {
   name: string;
   city: string | null;
   state: string | null;
+  /** The matched street address, when it was looked up. */
+  address?: string | null;
   lat: number;
   lng: number;
 }

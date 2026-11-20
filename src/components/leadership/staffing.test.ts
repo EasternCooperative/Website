@@ -116,7 +116,6 @@ const data: Data = {
   activityTypes: ['Dancing', 'Games', 'Music'],
 };
 const brief: Brief = {
-  series: '',
   venue: null,
   date: null,
   eventId: 3,
@@ -275,7 +274,7 @@ describe('candidatesFor', () => {
   it('copes with no event yet, and with a type nobody has led', () => {
     const none = candidatesFor(
       data,
-      { series: '', venue: null, date: null, eventId: null, scope: 'any', type: 'Music', activityId: null },
+      { venue: null, date: null, eventId: null, scope: 'any', type: 'Music', activityId: null },
       DEFAULT_STAFF_WEIGHTS,
       DEFAULT_STAFF_FILTERS,
       '2026-11-20'
@@ -420,7 +419,6 @@ describe('expert marks and a long record', () => {
 
   it('plans for an event that is not on the calendar yet, from its date and venue', () => {
     const b: Brief = {
-      series: 'Camping Weekend',
       venue: 'camp-onas',
       date: '2027-06-18',
       eventId: null,
