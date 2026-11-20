@@ -48,6 +48,10 @@ export interface EventRow {
   year: number;
   /** Link to the public event page. The editor passes it back unchanged. */
   site_event_id?: string | null;
+  /** When and where it happened, when known (ISO date; venue slug). */
+  start_date?: string | null;
+  end_date?: string | null;
+  site_id?: string | null;
 }
 export interface Role {
   id: number;
@@ -333,6 +337,17 @@ export function sortedEvents(events: EventRow[]): EventRow[] {
   return [...events].sort((a, b) => b.year - a.year || a.name.localeCompare(b.name) || a.id - b.id);
 }
 
+/** Events for the "For event" picker: upcoming ones first (soonest first), then past ones, newest first. */
+export function pickerEvents(events: EventRow[], today: string): EventRow[] {
+  const upcoming = events.filter((e) => e.start_date && e.start_date >= today);
+  const rest = events.filter((e) => !(e.start_date && e.start_date >= today));
+  upcoming.sort((a, b) => a.start_date!.localeCompare(b.start_date!) || a.id - b.id);
+  return [...upcoming, ...sortedEvents(rest)];
+}
+
+/** "2026-10-17 Fall Fun Day", or the year when the date is not known. */
+export const pickerLabel = (event: EventRow): string => `${event.start_date ?? event.year} ${eventLabel(event)}`;
+
 /** "2025 Winter Adventure": the year first, so same-named events stay apart. */
 export const eventTitle = (event: EventRow): string => `${event.year} ${eventLabel(event)}`;
 
@@ -502,6 +517,9 @@ export interface EngagementRow {
   giving_tier_rank?: number;
   last_contacted_on: string | null;
   do_not_contact: number;
+  /** With a target event: events they registered for near that time of year, and at that venue. */
+  similar_time_events?: number;
+  similar_venue_events?: number;
   total_cents?: number;
 }
 export interface EngagementPage {
@@ -645,6 +663,12 @@ export function listQuery(list: ListDef, values: Record<string, number | boolean
     q.set('sort', 'giving_tier');
     q.set('dir', 'desc');
   }
+  const target = Number(v.targetEvent);
+  if (target > 0 && ['back', 'lead', 'committee'].includes(list.id)) {
+    q.set('target_event', String(target));
+    q.set('similar', (['either', 'time', 'venue'] as const)[Number(v.similar) || 0]);
+    if (v.similarOnly) q.set('similar_only', '1');
+  }
   return q.toString();
 }
 
@@ -669,6 +693,17 @@ export function factsFor(row: EngagementRow): string[] {
     const tier = row.giving_tier ?? '';
     facts.push(row.total_cents !== undefined ? `Giving: ${tier} (${dollars(row.total_cents)})` : `Giving: ${tier}`);
   }
+  const [near, here] = [row.similar_time_events ?? 0, row.similar_venue_events ?? 0];
+  if (near > 0 || here > 0) {
+    facts.push(
+      `Came to ${[
+        near > 0 && `${plural(near, 'event', 'events')} near this time of year`,
+        here > 0 && `${plural(here, 'event', 'events')} at this venue`,
+      ]
+        .filter(Boolean)
+        .join(', ')}`
+    );
+  }
   if (row.last_contacted_on) facts.push(`Last contacted ${formatPartialDate(row.last_contacted_on)}`);
   return facts;
 }
@@ -686,6 +721,8 @@ export const SCORE_FIELDS = [
   { key: 'member', label: 'Current member' },
   { key: 'tier', label: 'Per giving tier' },
   { key: 'recent', label: 'Came in the last two years' },
+  { key: 'similarTime', label: 'Per event near this time of year (up to 3)' },
+  { key: 'similarVenue', label: 'Per event at this venue (up to 3)' },
 ] as const;
 export type ScoreKey = (typeof SCORE_FIELDS)[number]['key'];
 export type ScoreWeights = Record<ScoreKey, number>;
@@ -697,6 +734,8 @@ export const DEFAULT_WEIGHTS: ScoreWeights = {
   member: 3,
   tier: 2,
   recent: 3,
+  similarTime: 2,
+  similarVenue: 2,
 };
 
 export function scoreFor(row: EngagementRow, w: ScoreWeights, year: number) {
@@ -708,6 +747,8 @@ export function scoreFor(row: EngagementRow, w: ScoreWeights, year: number) {
     { label: 'member', points: row.member_now ? w.member : 0 },
     { label: 'giving', points: (row.giving_tier_rank ?? 0) * w.tier },
     { label: 'recent', points: row.last_event_year && row.last_event_year >= year - 2 ? w.recent : 0 },
+    { label: 'near this time', points: Math.min(row.similar_time_events ?? 0, 3) * w.similarTime },
+    { label: 'at this venue', points: Math.min(row.similar_venue_events ?? 0, 3) * w.similarVenue },
   ].filter((p) => p.points !== 0);
   return { total: parts.reduce((n, p) => n + p.points, 0), parts };
 }

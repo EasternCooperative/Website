@@ -368,7 +368,7 @@ describe('events', () => {
     expect(lastCall()).toEqual({
       path: '/event',
       method: 'POST',
-      body: { name: 'Spring Weekend', event_type: 'weekend', year: 2026 },
+      body: { name: 'Spring Weekend', event_type: 'weekend', year: 2026, start_date: null, site_id: null },
     });
     await settle();
     expect(panel(c).getAttribute('aria-label')).toBe('2026 Spring Weekend details'); // now open
@@ -408,10 +408,31 @@ describe('events', () => {
     expect(lastCall()).toEqual({
       path: '/event/1',
       method: 'PUT',
-      body: { name: 'Event One 2025', event_type: 'extended', year: 2026, site_event_id: 'one' },
+      body: {
+        name: 'Event One 2025',
+        event_type: 'extended',
+        year: 2026,
+        site_event_id: 'one',
+        start_date: null,
+        site_id: null,
+      },
     });
     await settle();
     expect(panel(c).querySelector('[role="status"]')?.textContent).toBe('Saved');
+  });
+
+  it('records when and where an event was, and can clear them', async () => {
+    const c = await open();
+    await tab(c, 'Events');
+    await click(buttons(c).find((b) => b.textContent?.startsWith('2025 Event One')) ?? null);
+    await setField(field(panel(c), 'Start date'), '2025-06-14');
+    await setField(field(panel(c), 'Venue'), ' camp-onas ');
+    await click(button(panel(c), 'Save'));
+    expect(lastCall().body).toMatchObject({ start_date: '2025-06-14', site_id: 'camp-onas' });
+    await settle();
+    await setField(field(panel(c), 'Start date'), '');
+    await click(button(panel(c), 'Save'));
+    expect(lastCall().body).toMatchObject({ start_date: null });
   });
 
   it('lists the roles at an event and removes one', async () => {

@@ -213,6 +213,25 @@ describe('leadership API guards', () => {
   });
 });
 
+describe('event date and venue', () => {
+  const base = { name: 'Camp', event_type: 'weekend', year: 2025 };
+  it('are only included when sent, so saving a name never clears them', () => {
+    expect(validators.event(base)).not.toHaveProperty('start_date');
+    expect(validators.event(base)).not.toHaveProperty('site_id');
+    expect(
+      validators.event({ ...base, start_date: '2025-06-14', end_date: null, site_id: ' camp-onas ' })
+    ).toMatchObject({
+      start_date: '2025-06-14',
+      end_date: null,
+      site_id: 'camp-onas',
+    });
+  });
+  it('must be a full date', () => {
+    expect(() => validators.event({ ...base, start_date: '2025-06' })).toThrow(ValidationError);
+    expect(() => validators.event({ ...base, end_date: 'June' })).toThrow(ValidationError);
+  });
+});
+
 describe('validators and bulk add', () => {
   it('rejects bad enums', () => {
     expect(() => validators.role({ person_id: 1, activity_id: 1, event_id: 1, leadership_type: 'boss' })).toThrow(

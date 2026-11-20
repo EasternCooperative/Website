@@ -37,6 +37,13 @@ const flag = (v, field) => {
 };
 
 // A year, a month, or a full date: "2024", "2024-06", "2024-06-30".
+const fullDate = (v, field) => {
+  const t = str(v, field, { max: 10 });
+  if (t !== null && !/^\d{4}-\d{2}-\d{2}$/.test(t))
+    throw new ValidationError(`${field} must be a date like 2024-06-30`);
+  return t;
+};
+
 const partialDate = (v, field) => {
   const t = str(v, field, { max: 10 });
   if (t !== null && !/^\d{4}(-\d{2}(-\d{2})?)?$/.test(t))
@@ -75,6 +82,10 @@ export const validators = {
       return b.year;
     })(),
     site_event_id: str(b.site_event_id, 'site_event_id', { max: 120 }),
+    // Only touched when sent, so an older client saving a name never clears them.
+    ...('start_date' in b && { start_date: fullDate(b.start_date, 'start_date') }),
+    ...('end_date' in b && { end_date: fullDate(b.end_date, 'end_date') }),
+    ...('site_id' in b && { site_id: str(b.site_id, 'site_id', { max: 120 }) }),
   }),
   role: (b) => ({
     person_id: id(b.person_id, 'person_id'),
@@ -147,7 +158,7 @@ export const validators = {
 const TABLES = {
   person: ['name', 'email', 'leader_slug', 'status', 'mentor', 'notes'],
   activity: ['name', 'scope', 'type', 'subtype', 'site_activity_id'],
-  event: ['name', 'event_type', 'year', 'site_event_id'],
+  event: ['name', 'event_type', 'year', 'site_event_id', 'start_date', 'end_date', 'site_id'],
   role: ['person_id', 'activity_id', 'event_id', 'leadership_type', 'how_it_went', 'source'],
   journey_note: ['person_id', 'kind', 'focus', 'body', 'author'],
   service: ['person_id', 'body', 'title', 'started_on', 'ended_on', 'note', 'source'],

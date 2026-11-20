@@ -10,6 +10,8 @@ import {
   scoreFor,
   type ScoreWeights,
   factsFor,
+  pickerEvents,
+  pickerLabel,
   formatPartialDate,
   listQuery,
   type Data,
@@ -60,6 +62,7 @@ export default function ListsView({
   const [loadError, setLoadError] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
   const [showScore, setShowScore] = useState(false);
+  const [target, setTarget] = useState({ targetEvent: 0, similar: 0, similarOnly: false });
   const [weights, setWeights] = useState<ScoreWeights>(DEFAULT_WEIGHTS);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const act = useAction(async () => {
@@ -68,7 +71,8 @@ export default function ListsView({
   });
 
   const list = LISTS.find((l) => l.id === listId) as ListDef;
-  const values = { ...list.defaults, ...settings[listId] };
+  const forEvent = ['back', 'lead', 'committee'].includes(listId);
+  const values: Values = { ...list.defaults, ...settings[listId], ...(forEvent ? target : {}) };
   const key = JSON.stringify(values);
 
   useEffect(() => {
@@ -146,6 +150,50 @@ export default function ListsView({
             {list.blurb} People who were contacted in the last six months, are snoozed, or asked not to be contacted are
             left out.
           </p>
+
+          {forEvent && (
+            <div className="mb-4 flex flex-wrap items-end gap-x-5 gap-y-3 text-sm">
+              <label className="block">
+                <span className="mb-1 block text-muted">For event (optional)</span>
+                <select
+                  value={target.targetEvent}
+                  onChange={(e) => setTarget({ ...target, targetEvent: Number(e.target.value) })}
+                  className={`${inputCls} max-w-72`}
+                >
+                  <option value={0}>No event chosen</option>
+                  {pickerEvents(data.events, isoDay(new Date())).map((e) => (
+                    <option key={e.id} value={e.id}>
+                      {pickerLabel(e)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {target.targetEvent > 0 && (
+                <>
+                  <label className="block">
+                    <span className="mb-1 block text-muted">Similar means</span>
+                    <select
+                      value={target.similar}
+                      onChange={(e) => setTarget({ ...target, similar: Number(e.target.value) })}
+                      className={inputCls}
+                    >
+                      <option value={0}>Time of year or venue</option>
+                      <option value={1}>Time of year</option>
+                      <option value={2}>Venue</option>
+                    </select>
+                  </label>
+                  <label className="flex cursor-pointer items-center gap-2 pb-1.5">
+                    <input
+                      type="checkbox"
+                      checked={target.similarOnly}
+                      onChange={(e) => setTarget({ ...target, similarOnly: e.target.checked })}
+                    />
+                    Only people who came to something similar
+                  </label>
+                </>
+              )}
+            </div>
+          )}
 
           {list.controls.length > 0 && (
             <div className="mb-4 flex flex-wrap items-end gap-x-5 gap-y-3 text-sm">

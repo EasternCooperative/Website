@@ -503,3 +503,55 @@ describe('donor stewardship filters', () => {
     expect((await get('engagement?min_last_gift_year=99999', 'standard@example.org')).status).toBe(400);
   });
 });
+
+describe('similar events', () => {
+  beforeEach(() => {
+    db.raw.exec(`
+      UPDATE event SET start_date = '2025-06-14', site_id = 'camp-onas' WHERE id = 1;
+      UPDATE event SET start_date = '2026-12-28', site_id = 'watson' WHERE id = 2;
+      INSERT INTO event (id, name, event_type, year, start_date, site_id) VALUES
+        (3, 'Camp 2026', 'weekend', 2026, '2026-06-20', 'camp-onas'),
+        (4, 'Winter 2027', 'extended', 2027, '2027-01-10', 'elsewhere'),
+        (5, 'Undated', 'one_day', 2027, NULL, NULL);
+    `);
+  });
+  const rows = async (query: string, as = 'standard@example.org') => {
+    const { status, text } = await get(`engagement?${query}&sort=name`, as);
+    expect(status).toBe(200);
+    expectNoMoney(text);
+    return JSON.parse(text).people as { name: string; similar_time_events: number; similar_venue_events: number }[];
+  };
+  const found = (r: { name: string }[]) => r.map((p) => p.name);
+
+  it('counts events at a similar time of year and at the same venue, never the target itself', async () => {
+    const r = await rows('target_event=3');
+    const alice = r.find((p) => p.name === 'Alice Adams')!;
+    expect(alice).toMatchObject({ similar_time_events: 1, similar_venue_events: 1 }); // Camp 2025, 6 days apart
+    expect(r.find((p) => p.name === 'Bob Brown')).toMatchObject({ similar_time_events: 1, similar_venue_events: 1 });
+    expect(r.find((p) => p.name === 'Dan Dunn')).toMatchObject({ similar_time_events: 0, similar_venue_events: 0 });
+  });
+
+  it('wraps around the new year, and filters to people with a match', async () => {
+    const r = await rows('target_event=4&similar_only=1');
+    expect(found(r)).toEqual(['Alice Adams']); // Winter 2026 is 13 days from Jan 10
+    expect(r[0]).toMatchObject({ similar_time_events: 1, similar_venue_events: 0 });
+  });
+
+  it('can match on time only or venue only', async () => {
+    expect(found(await rows('target_event=3&similar=venue&similar_only=1'))).toEqual(['Alice Adams', 'Bob Brown']);
+    expect(found(await rows('target_event=4&similar=venue&similar_only=1'))).toEqual([]);
+    expect(found(await rows('target_event=4&similar=time&similar_only=1'))).toEqual(['Alice Adams']);
+  });
+
+  it('never matches an undated or venue-less target', async () => {
+    expect(found(await rows('target_event=5&similar_only=1'))).toEqual([]);
+  });
+
+  it('works for the finance level too, and rejects bad input', async () => {
+    const fin = await get('engagement?target_event=3', 'finance@example.org');
+    expect(fin.status).toBe(200);
+    expect(fin.text).toContain('similar_time_events');
+    for (const q of ['target_event=999', 'target_event=0', 'target_event=3&similar=bogus'])
+      expect((await get(`engagement?${q}`, 'standard@example.org')).status).toBe(400);
+  });
+});

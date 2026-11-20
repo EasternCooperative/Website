@@ -80,7 +80,11 @@ export const createActivity = (a: ActivityInput) => send<{ id: number }>('POST',
 export const saveActivity = (id: number, a: ActivityInput) => send<{ ok: true }>('PUT', `/activity/${id}`, a);
 export const deleteActivity = (id: number) => send<{ ok: true }>('DELETE', `/activity/${id}`);
 
-export type EventInput = Pick<EventRow, 'name' | 'event_type' | 'year'> & { site_event_id?: string | null };
+export type EventInput = Pick<EventRow, 'name' | 'event_type' | 'year'> & {
+  site_event_id?: string | null;
+  start_date?: string | null;
+  site_id?: string | null;
+};
 export const createEvent = (e: EventInput) => send<{ id: number }>('POST', '/event', e);
 export const saveEvent = (id: number, e: EventInput) => send<{ ok: true }>('PUT', `/event/${id}`, e);
 export const deleteEvent = (id: number) => send<{ ok: true }>('DELETE', `/event/${id}`);

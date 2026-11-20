@@ -52,6 +52,23 @@ describe('events', () => {
     ]);
   });
 
+  it('records when and where, fills a linked event, and only rewrites what differs', () => {
+    const dated = { ...winter, start: '2025-12-26', end: '2025-12-31', siteId: 'the-y-at-watson-woods' };
+    run(eventStatements(dated));
+    const row = () => one('SELECT start_date, end_date, site_id, updated_at FROM event WHERE id = 1');
+    expect(row()).toMatchObject({ start_date: '2025-12-26', end_date: '2025-12-31', site_id: 'the-y-at-watson-woods' });
+    db.raw.exec("UPDATE event SET updated_at = 'marker' WHERE id = 1");
+    run(eventStatements(dated));
+    expect(row().updated_at).toBe('marker');
+    run(eventStatements({ ...dated, start: '2025-12-27' }));
+    expect(row()).toMatchObject({ start_date: '2025-12-27' });
+    run(eventStatements({ slug: 'virtual', title: 'Virtual 2026', year: 2026, type: 'one_day' }));
+    expect(one("SELECT start_date, site_id FROM event WHERE site_event_id = 'virtual'")).toEqual({
+      start_date: null,
+      site_id: null,
+    });
+  });
+
   it('is safe to run twice', () => {
     const sqls = eventStatements({ ...winter, forms: [{ source: 'cognito', ref: '116' }] });
     run(sqls);
