@@ -30,7 +30,7 @@ interface Toggles {
 }
 const TOGGLES: { key: keyof Toggles; label: string }[] = [
   { key: 'mine', label: 'Mine' },
-  { key: 'overdue', label: 'Next step overdue' },
+  { key: 'overdue', label: 'Next step date has passed' },
   { key: 'hasTarget', label: 'Has a target' },
   { key: 'stalled', label: 'Nothing in 3+ years' },
   { key: 'hideDnc', label: 'Hide do not contact' },
@@ -191,7 +191,7 @@ function Card({ row, open, onOpen, now }: { row: JourneyRow; open: boolean; onOp
             {row.due_on && (
               <span className={late ? 'font-semibold text-red-700 dark:text-red-300' : 'text-muted'}>
                 {' '}
-                · {late ? 'overdue, ' : 'due '}
+                · {late ? 'date passed, ' : 'due '}
                 {row.due_on}
               </span>
             )}

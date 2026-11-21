@@ -13,6 +13,8 @@ import {
   groupByEvent,
   intensity,
   roleHistory,
+  roleCompanions,
+  mentoredRoles,
   scopedCounts,
   sortedEvents,
   groupActivities,
@@ -329,5 +331,74 @@ describe('timeline words', () => {
       text: 'life',
       sub: '',
     });
+  });
+});
+
+describe('mentors and co-leads', () => {
+  const paired: Data = {
+    ...data,
+    roles: [
+      { id: 1, person_id: 1, activity_id: 3, event_id: 2, leadership_type: 'partner', how_it_went: null, mentor_id: 3 },
+      { id: 2, person_id: 2, activity_id: 3, event_id: 2, leadership_type: 'partner', how_it_went: null },
+      { id: 3, person_id: 99, activity_id: 3, event_id: 2, leadership_type: 'partner', how_it_went: null },
+      { id: 4, person_id: 2, activity_id: 3, event_id: 1, leadership_type: 'solo', how_it_went: null, mentor_id: 3 },
+      { id: 5, person_id: 1, activity_id: 3, event_id: 1, leadership_type: 'solo', how_it_went: null, mentor_id: 99 },
+    ],
+  };
+
+  it('finds the other people on the same activity at the same event, and the mentor', () => {
+    const { coLeaders, mentor } = roleCompanions(paired, paired.roles[0]);
+    expect(coLeaders.map((p) => p.name)).toEqual(['Person B']); // the unknown person is skipped
+    expect(mentor?.name).toBe('Person C');
+    expect(roleCompanions(paired, paired.roles[3])).toEqual({
+      coLeaders: [paired.people[0]],
+      mentor: paired.people[2],
+    });
+    expect(roleCompanions(paired, paired.roles[4]).mentor).toBeUndefined();
+  });
+
+  it('lists several co-leaders by name', () => {
+    const three: Data = {
+      ...paired,
+      people: [...paired.people, person(4, 'Person 0')],
+      roles: [
+        ...paired.roles,
+        { id: 9, person_id: 4, activity_id: 3, event_id: 2, leadership_type: 'partner', how_it_went: null },
+      ],
+    };
+    expect(roleCompanions(three, three.roles[0]).coLeaders.map((p) => p.name)).toEqual(['Person 0', 'Person B']);
+  });
+
+  it('lists what a mentor mentored, newest first', () => {
+    const lines = mentoredRoles(paired, 3);
+    expect(lines.map((l) => [l.mentee.name, l.event?.year])).toEqual([
+      ['Person A', 2025],
+      ['Person B', 2024],
+    ]);
+    expect(mentoredRoles(paired, 1)).toEqual([]);
+  });
+
+  it('breaks a tie on the year by name, and puts a missing event last', () => {
+    const tied: Data = {
+      ...paired,
+      roles: [
+        { id: 1, person_id: 2, activity_id: 3, event_id: 2, leadership_type: 'solo', how_it_went: null, mentor_id: 3 },
+        { id: 2, person_id: 1, activity_id: 3, event_id: 2, leadership_type: 'solo', how_it_went: null, mentor_id: 3 },
+        { id: 3, person_id: 1, activity_id: 2, event_id: 77, leadership_type: 'solo', how_it_went: null, mentor_id: 3 },
+        { id: 4, person_id: 2, activity_id: 2, event_id: 78, leadership_type: 'solo', how_it_went: null, mentor_id: 3 },
+      ],
+    };
+    expect(mentoredRoles(tied, 3).map((l) => l.mentee.name)).toEqual(['Person A', 'Person B', 'Person A', 'Person B']);
+  });
+
+  it('skips a mentee or activity that is not in the data', () => {
+    const odd: Data = {
+      ...paired,
+      roles: [
+        { id: 1, person_id: 99, activity_id: 3, event_id: 2, leadership_type: 'solo', how_it_went: null, mentor_id: 3 },
+        { id: 2, person_id: 1, activity_id: 77, event_id: 2, leadership_type: 'solo', how_it_went: null, mentor_id: 3 },
+      ],
+    };
+    expect(mentoredRoles(odd, 3)).toEqual([]);
   });
 });

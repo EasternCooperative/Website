@@ -59,6 +59,12 @@ const partialDate = (v, field) => {
 };
 
 const optionalId = (v, field) => (v === undefined || v === null ? null : id(v, field));
+const mentorId = (b) => {
+  const mentor = optionalId(b.mentor_id, 'mentor_id');
+  if (mentor !== null && mentor === Number(b.person_id))
+    throw new ValidationError('mentor_id cannot be the same person');
+  return mentor;
+};
 
 const id = (v, field) => {
   if (!Number.isInteger(v) || v < 1) throw new ValidationError(`${field} must be an id`);
@@ -101,6 +107,8 @@ export const validators = {
     leadership_type: oneOf(b.leadership_type, 'leadership_type', LEADERSHIP_TYPES),
     how_it_went: str(b.how_it_went, 'how_it_went', { max: 2000 }),
     source: oneOf(b.source ?? 'manual', 'source', ['manual', 'event_import', 'sheet_import']),
+    // Only touched when sent, so an older client saving a role never clears the mentor.
+    ...('mentor_id' in b && { mentor_id: mentorId(b) }),
   }),
   note: (b) => ({
     person_id: id(b.person_id, 'person_id'),
@@ -182,7 +190,7 @@ const TABLES = {
   person: ['name', 'email', 'leader_slug', 'status', 'mentor', 'notes'],
   activity: ['name', 'scope', 'type', 'subtype', 'site_activity_id'],
   event: ['name', 'event_type', 'year', 'site_event_id', 'start_date', 'end_date', 'site_id'],
-  role: ['person_id', 'activity_id', 'event_id', 'leadership_type', 'how_it_went', 'source'],
+  role: ['person_id', 'activity_id', 'event_id', 'leadership_type', 'how_it_went', 'source', 'mentor_id'],
   journey_note: ['person_id', 'kind', 'focus', 'body', 'author'],
   expertise: ['person_id', 'type', 'note'],
   service: ['person_id', 'body', 'title', 'started_on', 'ended_on', 'note', 'source'],

@@ -231,15 +231,75 @@ describe('roles on a person', () => {
     await setField(field(form, 'Activity or class'), '3');
     await click(radio(form, 'role-type-new', 'partner'));
     await setField(field(form, 'How it went'), ' Lovely ');
+    expect([...field(form, 'Mentor or liaison').options].map((o) => o.textContent)).toEqual([
+      'No one named',
+      'Person A',
+    ]); // Person B is the leader, so cannot mentor themselves
+    await setField(field(form, 'Mentor or liaison'), '1');
     await click(button(form, 'Add role'));
     expect(lastCall()).toEqual({
       path: '/role',
       method: 'POST',
-      body: { person_id: 2, activity_id: 3, event_id: 2, leadership_type: 'partner', how_it_went: 'Lovely' },
+      body: {
+        person_id: 2,
+        activity_id: 3,
+        event_id: 2,
+        leadership_type: 'partner',
+        how_it_went: 'Lovely',
+        mentor_id: 1,
+      },
     });
     await settle();
     expect(panel(c).querySelector('form[aria-label="Add a role"]')).toBeNull(); // closed again
     expect(panel(c).textContent).toContain('Reel');
+  });
+
+  it('shows co-leads and mentors on the history, and who a mentor mentored', async () => {
+    current.people.push({
+      id: 3,
+      name: 'Person 0',
+      email: null,
+      leader_slug: null,
+      status: 'active',
+      mentor: 0,
+      notes: null,
+    });
+    current.roles = [
+      { id: 1, person_id: 1, activity_id: 1, event_id: 1, leadership_type: 'solo', how_it_went: null },
+      {
+        id: 3,
+        person_id: 3,
+        activity_id: 1,
+        event_id: 99,
+        leadership_type: 'assisting',
+        how_it_went: null,
+        mentor_id: 1,
+      },
+      {
+        id: 2,
+        person_id: 2,
+        activity_id: 1,
+        event_id: 1,
+        leadership_type: 'assisting',
+        how_it_went: null,
+        mentor_id: 1,
+      },
+    ];
+    const c = await open();
+    await openPerson(c, 'Person B');
+    expect(panel(c).textContent).toContain('With Person A. Mentored by Person A');
+    await openPerson(c, 'Person A');
+    expect(panel(c).textContent).toContain('With Person B');
+    expect(panel(c).textContent).toContain('Mentored');
+    expect(panel(c).textContent).toContain('Person B on Games Class');
+    expect(panel(c).textContent).toContain('Person 0 on Games Class'); // an event that is gone still lists
+    await openPerson(c, 'Person B');
+    await click(button(panel(c), 'Add a role'));
+    expect(
+      [...field(panel(c).querySelector('form[aria-label="Add a role"]')!, 'Mentor or liaison').options].map(
+        (o) => o.textContent
+      )
+    ).toEqual(['No one named', 'Person 0', 'Person A']);
   });
 
   it('groups the activity choices by type and names classes', async () => {
@@ -293,6 +353,7 @@ describe('roles on a person', () => {
         event_id: 1,
         leadership_type: 'partner',
         how_it_went: 'Went well',
+        mentor_id: null,
         source: 'sheet_import',
       },
     });

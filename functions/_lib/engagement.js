@@ -362,6 +362,7 @@ export async function erasePerson(db, personId, actor) {
     run('DELETE FROM person_email WHERE person_id = ?', personId),
     run('DELETE FROM person_alias WHERE person_id = ?', personId),
     run('DELETE FROM person_location WHERE person_id = ?', personId),
+    run(`UPDATE role SET mentor_id = NULL, updated_at = ${now}, updated_by = ? WHERE mentor_id = ?`, actor, personId),
     run(
       `UPDATE journey_note SET body = '[removed]', focus = NULL, deleted_at = ${now}, updated_at = ${now} WHERE person_id = ?`,
       personId
@@ -494,6 +495,22 @@ export async function mergePeople(db, fromId, intoId, actor) {
       actor,
       fromId,
       intoId
+    ),
+    // Mentors move with the merge. A role that would end up mentored by its own leader loses the mentor.
+    run(
+      `UPDATE role SET mentor_id = NULL, updated_at = ${now}, updated_by = ?
+         WHERE mentor_id IN (?, ?) AND person_id IN (?, ?)`,
+      actor,
+      fromId,
+      intoId,
+      fromId,
+      intoId
+    ),
+    run(
+      `UPDATE role SET mentor_id = ?, updated_at = ${now}, updated_by = ? WHERE mentor_id = ?`,
+      intoId,
+      actor,
+      fromId
     ),
     // Identical membership years are the same fact twice.
     run(

@@ -60,6 +60,8 @@ export interface Role {
   event_id: number;
   leadership_type: LeadershipType;
   how_it_went: string | null;
+  /** Who mentored or liaised for this person on this activity at this event. */
+  mentor_id?: number | null;
   /** Where the role came from. The editor passes it back unchanged. */
   source?: string;
 }
@@ -322,6 +324,32 @@ export function roleHistory(data: Data, personId: number): RoleLine[] {
       (a.event?.id ?? 0) - (b.event?.id ?? 0) ||
       a.activity.name.localeCompare(b.activity.name)
   );
+}
+
+/** The other people who led the same activity at the same event, and who mentored this role. */
+export function roleCompanions(data: Data, role: Role): { coLeaders: Person[]; mentor?: Person } {
+  const byId = new Map(data.people.map((p) => [p.id, p]));
+  const coLeaders = data.roles
+    .filter((r) => r.id !== role.id && r.activity_id === role.activity_id && r.event_id === role.event_id)
+    .map((r) => byId.get(r.person_id))
+    .filter((p): p is Person => !!p)
+    .sort((a, b) => a.name.localeCompare(b.name));
+  return { coLeaders, mentor: role.mentor_id ? byId.get(role.mentor_id) : undefined };
+}
+
+/** Roles where this person was the named mentor, newest event first. */
+export function mentoredRoles(data: Data, personId: number): (RoleLine & { mentee: Person })[] {
+  const byId = new Map(data.people.map((p) => [p.id, p]));
+  return data.roles
+    .filter((r) => r.mentor_id === personId)
+    .flatMap((role) => {
+      const mentee = byId.get(role.person_id);
+      const activity = data.activities.find((a) => a.id === role.activity_id);
+      return mentee && activity
+        ? [{ role, activity, event: data.events.find((e) => e.id === role.event_id), mentee }]
+        : [];
+    })
+    .sort((a, b) => (b.event?.year ?? 0) - (a.event?.year ?? 0) || a.mentee.name.localeCompare(b.mentee.name));
 }
 
 export interface EventGroup {
