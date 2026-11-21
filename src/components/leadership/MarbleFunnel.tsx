@@ -4,13 +4,18 @@ import {
   BAY,
   CAT,
   ROOMS,
-  CHUTES,
   outline,
-  CHUTE_CAT,
   MARBLE_COLORS,
   WEDGE,
   WORLD,
-  colorFor,
+  ZONE,
+  ZONE_DRAG,
+  LATEST_COMMIT,
+  colorAt,
+  mix,
+  smoothstep,
+  zoneDepth,
+  zoneForce,
   floorCategory,
   marbleCategory,
   marbleMask,
@@ -34,19 +39,20 @@ interface Props {
 
 interface Live {
   engine: Matter.Engine;
-  bodies: { body: Matter.Body; p: Placed }[];
+  bodies: { body: Matter.Body; p: Placed; commit: number; wobble: number }[];
   statics: Matter.Body[];
   radius: number;
   pending: Placed[][];
 }
 
-const TINT = { trunk: '47,122,109', teaching: '194,65,12', service: '3,105,161' };
+const rgba = (hex: string, a: number) =>
+  `rgba(${[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)).join(',')},${a})`;
 
 /**
  * Everyone as a marble in a funnel. The pictured geometry is the physics geometry: each gate is
  * a plank only that chamber's marbles can rest on, so everyone deeper falls through, and the
- * trunk splits into a Teaching channel and a Service channel. Two crossing chutes under the last gate,
- * each solid to one branch only, send them down their own channel. The lanes below are the accessible version of this view.
+ * trunk splits into a Teaching channel and a Service channel. Under the last gate is a sorting zone with no walls: each
+ * marble leans a random way, then commits to its own channel, so going the wrong way gets steadily less likely. The lanes below are the accessible version of this view.
  */
 export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, onPickLane }: Props) {
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -79,7 +85,7 @@ export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, o
 
     import('matter-js').then((mod) => {
       if (dead) return;
-      const { Engine, Bodies, Composite } = mod.default;
+      const { Engine, Bodies, Body, Composite } = mod.default;
       const engine = Engine.create({ gravity: { x: 0, y: 1, scale: 0.002 } });
       const radius = marbleRadius(counts);
 
@@ -103,31 +109,20 @@ export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, o
         seg('wall', r.x0, r.shoulder, r.hole[0], r.floor); // the funnel narrows to the gate
         seg('wall', r.x1, r.shoulder, r.hole[1], r.floor);
       }
-      // The bay under the trunk: a ceiling either side of the last gate, outer walls, the wedge.
+      // The bay under the trunk: a ceiling either side of the last gate, outer walls, the divider.
       const last = ROOMS[2];
       seg('wall', BAY.x0, BAY.ceiling, last.hole[0], BAY.ceiling);
       seg('wall', last.hole[1], BAY.ceiling, BAY.x1, BAY.ceiling);
       seg('wall', BAY.x0, BAY.ceiling, BAY.x0, WEDGE.bottom);
       seg('wall', BAY.x1, BAY.ceiling, BAY.x1, WEDGE.bottom);
-      for (const branch of ['teaching', 'service'] as const) {
-        const [x1, y1, x2, y2] = CHUTES[branch];
-        const len = Math.hypot(x2 - x1, y2 - y1);
-        add(
-          `chute-${branch}`,
-          Bodies.rectangle((x1 + x2) / 2, (y1 + y2) / 2, len, 6, {
-            isStatic: true,
-            angle: Math.atan2(y2 - y1, x2 - x1),
-            collisionFilter: { category: CHUTE_CAT[branch], mask: CAT.everything },
-          })
-        );
-      }
       seg('wall', WEDGE.apexX, WEDGE.apexY, WEDGE.right, WEDGE.shoulderY);
       seg('wall', WEDGE.apexX, WEDGE.apexY, WEDGE.left, WEDGE.shoulderY);
       seg('wall', WEDGE.apexX, WEDGE.shoulderY, WEDGE.apexX, WEDGE.bottom, WEDGE.right - WEDGE.left);
       for (const r of ROOMS) {
         add(
           'plank',
-          Bodies.rectangle((r.hole[0] + r.hole[1]) / 2, r.floor, r.hole[1] - r.hole[0], 6, {
+          // Thick, with its top at the gate line, so a fast marble cannot tunnel through.
+          Bodies.rectangle((r.hole[0] + r.hole[1]) / 2, r.floor + 12, r.hole[1] - r.hole[0], 30, {
             isStatic: true,
             collisionFilter: { category: floorCategory(r.chamber), mask: CAT.everything },
           })
@@ -153,7 +148,7 @@ export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, o
             frictionAir: 0.01,
             collisionFilter: { category: marbleCategory(p.chamber), mask: marbleMask(p.chamber) },
           });
-          bodies.push({ body, p });
+          bodies.push({ body, p, commit: Math.random() * LATEST_COMMIT, wobble: Math.random() < 0.5 ? -1 : 1 });
           Composite.add(engine.world, body);
         });
       };
@@ -176,11 +171,13 @@ export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, o
         ctx.clearRect(0, 0, WORLD.w, WORLD.h);
         const ink = dark ? '#e5e7eb' : '#374151';
         const line = dark ? '#94a3b8' : '#64748b';
-        // Soft tints, so the split reads at a glance: the trunk, then one color per channel.
-        const wash = (rgb: string) => {
+        // Soft tints, so the split reads at a glance: the trunk is the blend of the two channels' colors.
+        const alpha = (y: number) => (dark ? 0.26 : 0.17) - (dark ? 0.12 : 0.08) * (y / WORLD.h);
+        const trunkHex = MARBLE_COLORS.trunk.recent;
+        const wash = (hex: string) => {
           const g = ctx.createLinearGradient(0, 0, 0, WORLD.h);
-          g.addColorStop(0, `rgba(${rgb},${dark ? 0.2 : 0.12})`);
-          g.addColorStop(1, `rgba(${rgb},${dark ? 0.08 : 0.04})`);
+          g.addColorStop(0, rgba(hex, alpha(0)));
+          g.addColorStop(1, rgba(hex, alpha(WORLD.h)));
           return g;
         };
         const trunk = ROOMS.slice(0, 3);
@@ -196,12 +193,25 @@ export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, o
         }
         ctx.lineTo(trunk[0].x1, trunk[0].y0);
         ctx.closePath();
-        ctx.fillStyle = wash(TINT.trunk);
+        ctx.fillStyle = wash(trunkHex);
         ctx.fill();
-        ctx.fillStyle = wash(TINT.teaching);
-        ctx.fillRect(BAY.x0, BAY.ceiling, WEDGE.apexX - BAY.x0, WEDGE.bottom - BAY.ceiling);
-        ctx.fillStyle = wash(TINT.service);
-        ctx.fillRect(WEDGE.apexX, BAY.ceiling, BAY.x1 - WEDGE.apexX, WEDGE.bottom - BAY.ceiling);
+        // The sorting zone, in thin strips: at each depth the middle is still the trunk's blend and the
+        // sides have moved toward their channel's color, more so the deeper it goes.
+        const strip = 1;
+        for (let y = ZONE.top; y < ZONE.bottom; y += strip) {
+          const k = smoothstep(zoneDepth(y + strip / 2));
+          const g = ctx.createLinearGradient(BAY.x0, 0, BAY.x1, 0);
+          const a = alpha(y);
+          g.addColorStop(0, rgba(mix(trunkHex, MARBLE_COLORS.teaching.recent, k), a));
+          g.addColorStop(0.5, rgba(trunkHex, a));
+          g.addColorStop(1, rgba(mix(trunkHex, MARBLE_COLORS.service.recent, k), a));
+          ctx.fillStyle = g;
+          ctx.fillRect(BAY.x0, y, BAY.x1 - BAY.x0, strip + 0.2);
+        }
+        ctx.fillStyle = wash(MARBLE_COLORS.teaching.recent);
+        ctx.fillRect(BAY.x0, ZONE.bottom, WEDGE.apexX - BAY.x0, WEDGE.bottom - ZONE.bottom);
+        ctx.fillStyle = wash(MARBLE_COLORS.service.recent);
+        ctx.fillRect(WEDGE.apexX, ZONE.bottom, BAY.x1 - WEDGE.apexX, WEDGE.bottom - ZONE.bottom);
         // Gates: dashed, since marbles of their own chamber rest here and the rest fall through.
         ctx.setLineDash([9, 7]);
         ctx.lineWidth = 3;
@@ -213,17 +223,6 @@ export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, o
           ctx.stroke();
         }
         ctx.setLineDash([]);
-        // The two sorting chutes, each in its branch color.
-        ctx.lineWidth = 6;
-        ctx.lineCap = 'round';
-        for (const branch of ['teaching', 'service'] as const) {
-          const [x1, y1, x2, y2] = CHUTES[branch];
-          ctx.strokeStyle = MARBLE_COLORS[branch].recent;
-          ctx.beginPath();
-          ctx.moveTo(x1, y1);
-          ctx.lineTo(x2, y2);
-          ctx.stroke();
-        }
         // The outline: one unbroken line with rounded corners.
         ctx.lineWidth = 7;
         ctx.lineJoin = 'round';
@@ -236,7 +235,7 @@ export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, o
           const { x, y } = body.position;
           ctx.beginPath();
           ctx.arc(x, y, radius, 0, Math.PI * 2);
-          ctx.fillStyle = colorFor(p);
+          ctx.fillStyle = colorAt(p, y);
           ctx.fill();
           const isSel = select.current === p.id;
           const isHover = hover.current === p.id;
@@ -280,13 +279,30 @@ export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, o
         still = moving ? 0 : still + 1;
         return still > 30 || ++frames > 1500;
       };
+      // In the sorting zone each marble is nudged sideways: randomly until it commits, then toward its channel.
+      const steer = () => {
+        for (const b of bodies) {
+          const { x, y } = b.body.position;
+          const f = zoneForce(b.p.branch, x, zoneDepth(y), b.commit, b.wobble);
+          if (f) Body.applyForce(b.body, b.body.position, { x: f * b.body.mass * 0.002, y: 0 });
+          const depth = zoneDepth(y);
+          if (depth > 0 && depth < 1 && b.p.branch !== 'trunk') {
+            Body.setVelocity(b.body, { x: b.body.velocity.x, y: b.body.velocity.y * ZONE_DRAG });
+          }
+        }
+      };
+      const advance = () => {
+        steer();
+        Engine.update(engine, 1000 / 120); // two small steps a frame, so fast marbles cannot skip a wall
+        steer();
+        Engine.update(engine, 1000 / 120);
+      };
       let ticks = 0;
       const tick = () => {
         frame = 0;
         if (dead) return;
         if (pending.length && ticks++ % 4 === 0) spawn();
-        Engine.update(engine, 1000 / 120); // two small steps a frame, so fast marbles cannot skip a wall
-        Engine.update(engine, 1000 / 120);
+        advance();
         draw();
         if (!settled()) frame = requestAnimationFrame(tick);
       };
@@ -298,8 +314,7 @@ export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, o
         // No animation: pour everything and let it settle before the first picture.
         for (let i = 0; i < 2400 && !settled(); i++) {
           if (pending.length && i % 6 === 0) spawn();
-          Engine.update(engine, 1000 / 120);
-          Engine.update(engine, 1000 / 120);
+          advance();
         }
         draw();
       } else {
@@ -377,9 +392,9 @@ export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, o
       </p>
       <ul className="mt-1 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-muted" aria-label="Key">
         {[
-          ['#2f7a6d', 'Trunk'],
-          ['#c2410c', 'Teaching'],
-          ['#0369a1', 'Service'],
+          [MARBLE_COLORS.trunk.recent, 'Trunk'],
+          [MARBLE_COLORS.teaching.recent, 'Teaching'],
+          [MARBLE_COLORS.service.recent, 'Service'],
           ['#9ca3af', 'Do not contact'],
         ].map(([c, t]) => (
           <li key={t} className="flex items-center gap-1">

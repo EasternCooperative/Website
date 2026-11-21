@@ -2,19 +2,26 @@ import { describe, expect, it } from 'vitest';
 import {
   BRANCH_OF,
   CAT,
-  CHUTE_CAT,
   CHAMBERS,
+  LATEST_COMMIT,
+  MARBLE_COLORS,
   ROOMS,
+  ZONE,
+  colorAt,
   colorFor,
   floorCategory,
   marbleCategory,
   marbleMask,
   marbleRadius,
+  mix,
   outline,
   place,
   roomAt,
+  smoothstep,
   summary,
   tally,
+  zoneDepth,
+  zoneForce,
   type MarbleRow,
 } from './marbles';
 
@@ -92,12 +99,52 @@ describe('the funnel', () => {
     }
   });
 
-  it('has a chute for each branch, solid to that branch only', () => {
-    for (const c of CHAMBERS) {
-      const branch = BRANCH_OF[c];
-      expect(marbleMask(c) & CHUTE_CAT.teaching).toBe(branch === 'teaching' ? CHUTE_CAT.teaching : 0);
-      expect(marbleMask(c) & CHUTE_CAT.service).toBe(branch === 'service' ? CHUTE_CAT.service : 0);
-    }
+  it('measures how far through the sorting zone a height is', () => {
+    expect(zoneDepth(0)).toBe(0);
+    expect(zoneDepth(ZONE.top)).toBe(0);
+    expect(zoneDepth((ZONE.top + ZONE.bottom) / 2)).toBeCloseTo(0.5);
+    expect(zoneDepth(ZONE.bottom)).toBe(1);
+    expect(zoneDepth(900)).toBe(1);
+  });
+
+  it('drifts at random before it commits, then steers toward its own channel', () => {
+    expect(zoneForce('trunk', 300, 0.5, 0.2, 1)).toBe(0);
+    expect(zoneForce('service', 300, 0, 0.2, 1)).toBe(0);
+    expect(zoneForce('service', 300, 1, 0.2, 1)).toBe(0);
+    // Before committing: a small nudge in its own direction, wrong or right.
+    expect(zoneForce('service', 330, 0.1, 0.4, -1)).toBeLessThan(0);
+    expect(zoneForce('service', 330, 0.1, 0.4, 1)).toBeGreaterThan(0);
+    // After: toward the channel's middle from either side, and harder the deeper it is.
+    expect(zoneForce('service', 250, 0.5, 0.4, -1)).toBeGreaterThan(0);
+    expect(zoneForce('teaching', 400, 0.5, 0.4, 1)).toBeLessThan(0);
+    expect(Math.abs(zoneForce('service', 250, 0.9, 0.4, 1))).toBeGreaterThan(
+      Math.abs(zoneForce('service', 250, 0.5, 0.4, 1))
+    );
+    // Everyone has committed by the time the zone is mostly crossed.
+    expect(LATEST_COMMIT).toBeLessThan(1);
+  });
+
+  it('mixes colors and blends the trunk from the two channels', () => {
+    expect(mix('#000000', '#ffffff', 0)).toBe('#000000');
+    expect(mix('#000000', '#ffffff', 1)).toBe('#ffffff');
+    expect(mix('#000000', '#ffffff', 0.5)).toBe('#808080');
+    expect(MARBLE_COLORS.trunk.recent).toBe(mix(MARBLE_COLORS.teaching.recent, MARBLE_COLORS.service.recent, 0.5));
+    expect(MARBLE_COLORS.trunk.older).toBe(mix(MARBLE_COLORS.teaching.older, MARBLE_COLORS.service.older, 0.5));
+    expect(smoothstep(0)).toBe(0);
+    expect(smoothstep(1)).toBe(1);
+  });
+
+  it('takes on its channel color through the sorting zone', () => {
+    const base = place(row({ stage: 'class' }), 2026)!;
+    expect(colorAt(base, ZONE.top - 50)).toBe(MARBLE_COLORS.trunk.recent);
+    expect(colorAt(base, ZONE.bottom + 50)).toBe(MARBLE_COLORS.teaching.recent);
+    const middle = colorAt(base, (ZONE.top + ZONE.bottom) / 2);
+    expect(middle).not.toBe(MARBLE_COLORS.trunk.recent);
+    expect(middle).not.toBe(MARBLE_COLORS.teaching.recent);
+    expect(colorAt({ ...base, recent: false }, ZONE.bottom + 50)).toBe(MARBLE_COLORS.teaching.older);
+    expect(colorAt({ ...base, muted: true }, ZONE.bottom + 50)).toBe('#9ca3af');
+    const trunk = place(row({ stage: 'attendee' }), 2026)!;
+    expect(colorAt(trunk, ZONE.bottom + 50)).toBe(MARBLE_COLORS.trunk.recent);
   });
 
   it('shrinks marbles as chambers fill, within limits', () => {

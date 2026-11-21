@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act } from 'react';
 import { cleanup, render, settle } from '../../__tests__/react';
+import Matter from 'matter-js';
 import MarbleFunnel from './MarbleFunnel';
 import type { MarbleRow } from './marbles';
 
@@ -192,4 +193,35 @@ describe('MarbleFunnel', () => {
     });
     expect(frames.length).toBe(0); // it stopped asking for frames once everything was asleep
   });
+
+  it('sorts every marble into its own channel, and none is left on the wrong side or falls out', async () => {
+    reduce(true);
+    const stages = ['supporter', 'attendee', 'volunteer', 'activity', 'class', 'class'] as const;
+    const crowd = Array.from({ length: 90 }, (_, i) => ({
+      ...people[0],
+      person_id: i + 1,
+      stage: stages[i % 6],
+      serving_now: i % 5 === 0 ? 1 : 0,
+    }));
+    const made: Matter.Body[] = [];
+    const add = Matter.Composite.add;
+    vi.spyOn(Matter.Composite, 'add').mockImplementation(((c: Matter.Composite, b: Matter.Body | Matter.Body[]) => {
+      for (const body of ([] as Matter.Body[]).concat(b)) if (body.circleRadius) made.push(body);
+      return add(c, b as Matter.Body);
+    }) as never);
+    await render(
+      <MarbleFunnel people={crowd} thisYear={2026} selectedId={null} onSelect={() => {}} onPickLane={() => {}} />
+    );
+    await settle(10);
+    expect(made.length).toBe(90);
+    for (const { collisionFilter, position } of made) {
+      const chamber = Math.log2((collisionFilter.category as number) / 256);
+      const { x, y } = position;
+      if (chamber === 5)
+        expect(x > 326 && y > 720 && y < 940).toBe(true); // serving: right
+      else if (chamber >= 3)
+        expect(x < 314 && y > 720 && y < 940).toBe(true); // teaching: left
+      else expect(y).toBeLessThan(600); // the trunk
+    }
+  }, 30000);
 });
