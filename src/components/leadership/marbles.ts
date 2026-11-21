@@ -114,10 +114,22 @@ export const ZONE = { top: BAY.ceiling, bottom: WEDGE.apexY };
 /** Where each channel's marbles are steered toward. */
 export const CHANNEL_X = { teaching: 188, service: 452 };
 /** No marble commits later than this fraction of the way through the zone, so all have time to cross. */
-export const LATEST_COMMIT = 0.6;
+export const LATEST_COMMIT = 0.4;
 
-/** Falling slows to this fraction of its speed each step in the zone, so the sorting has time to happen. */
-export const ZONE_DRAG = 0.9;
+/** The zone is thick like syrup: each step a marble keeps this fraction of its speed falling, so it sinks slowly. */
+export const ZONE_DRAG = 0.85;
+/** Sideways it meets resistance too, but less, or the steering could not get across. */
+export const ZONE_DRAG_X = 0.95;
+
+/**
+ * Where to put a marble that has somehow left the funnel (a crowded pile can squeeze one through a
+ * wall): back at the top of its own chamber, or null while it is still inside.
+ */
+export function rescue(chamber: Chamber, x: number, y: number): { x: number; y: number } | null {
+  if (x > 0 && x < WORLD.w && y > 0 && y < WORLD.h) return null;
+  const room = ROOMS.find((r) => r.chamber === chamber) as Room;
+  return { x: (room.x0 + room.x1) / 2, y: room.y0 + 14 };
+}
 
 /** How far through the sorting zone a height is: 0 at the top, 1 at the divider. */
 export const zoneDepth = (y: number): number => Math.min(1, Math.max(0, (y - ZONE.top) / (ZONE.bottom - ZONE.top)));
@@ -131,7 +143,7 @@ export function zoneForce(branch: Branch, x: number, depth: number, commit: numb
   if (branch === 'trunk' || depth <= 0 || depth >= 1) return 0;
   if (depth < commit) return 0.3 * wobble;
   const pull = Math.min(1, Math.max(-1, (CHANNEL_X[branch] - x) / 100));
-  return 4 * (0.5 + depth) * pull;
+  return 8 * (0.5 + depth) * pull;
 }
 
 /**

@@ -10,6 +10,7 @@ import {
   WORLD,
   ZONE,
   ZONE_DRAG,
+  ZONE_DRAG_X,
   LATEST_COMMIT,
   colorAt,
   mix,
@@ -21,6 +22,7 @@ import {
   marbleMask,
   marbleRadius,
   place,
+  rescue,
   roomAt,
   summary,
   tally,
@@ -283,11 +285,17 @@ export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, o
       const steer = () => {
         for (const b of bodies) {
           const { x, y } = b.body.position;
+          const back = rescue(b.p.chamber, x, y);
+          if (back) {
+            Body.setPosition(b.body, back);
+            Body.setVelocity(b.body, { x: 0, y: 0 });
+            continue;
+          }
           const f = zoneForce(b.p.branch, x, zoneDepth(y), b.commit, b.wobble);
           if (f) Body.applyForce(b.body, b.body.position, { x: f * b.body.mass * 0.002, y: 0 });
           const depth = zoneDepth(y);
           if (depth > 0 && depth < 1 && b.p.branch !== 'trunk') {
-            Body.setVelocity(b.body, { x: b.body.velocity.x, y: b.body.velocity.y * ZONE_DRAG });
+            Body.setVelocity(b.body, { x: b.body.velocity.x * ZONE_DRAG_X, y: b.body.velocity.y * ZONE_DRAG });
           }
         }
       };
