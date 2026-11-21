@@ -13,6 +13,7 @@
 //   GET    engagement                      people with engagement facts (paged; money redacted by level)
 //   GET    timeline/<personId>             one person's history across every record type
 //   GET    journey                         the board: funnel counts and each stage's first people (or one stage with ?stage=)
+//   GET    journey/marbles                 everyone on the board as compact rows, for the marble funnel
 //   GET    journey/<personId>              one person's stage and plan
 //   PUT    journey/<personId>              { target, next_step, due_on, owner } set their plan
 //   DELETE journey/<personId>              clear their plan
@@ -38,7 +39,7 @@ import {
   possibleDuplicates,
   timeline,
 } from '../../../_lib/engagement.js';
-import { clearPlan, journeyBoard, journeyOne, savePlan, validatePlan } from '../../../_lib/journey.js';
+import { clearPlan, journeyBoard, journeyMarbles, journeyOne, savePlan, validatePlan } from '../../../_lib/journey.js';
 import { createVenue } from '../../../_lib/venues.js';
 import { audit, listUsers, removeUser, resolveUser, saveUser, validateUser } from '../../../_lib/roles.js';
 import {
@@ -123,6 +124,9 @@ export const onRequest = async ({ request, env, params }) => {
     if (first === 'journey') {
       if (method === 'GET' && !second) {
         return json(200, await journeyBoard(env.DB, new URL(request.url).searchParams, auth.email));
+      }
+      if (method === 'GET' && second === 'marbles') {
+        return json(200, await journeyMarbles(env.DB, new URL(request.url).searchParams, auth.email));
       }
       const personId = Number(second);
       if (!Number.isInteger(personId) || personId < 1) return json(404, { error: 'not found' });
