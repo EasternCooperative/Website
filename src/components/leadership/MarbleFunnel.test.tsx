@@ -109,9 +109,12 @@ describe('MarbleFunnel', () => {
       }
     }
     expect(found).not.toBeNull();
+    expect(container.textContent).toContain('Last active in 2026'); // the hover card
+    expect(container.textContent).toContain('Supporter');
     expect(onSelect).toHaveBeenCalledWith(1);
     await pointer(canvas, 'pointerout', 0, 0);
     expect(container.textContent).toContain('Hover or tap a marble');
+    expect(container.textContent).not.toContain('Last active in 2026'); // the card left with the pointer
     await pointer(canvas, 'click', 10, 600); // a chamber with no marble under the pointer: nothing
     await pointer(canvas, 'click', 100, 770); // the Leads an activity chamber
     expect(onPickLane).toHaveBeenCalledWith('activity');

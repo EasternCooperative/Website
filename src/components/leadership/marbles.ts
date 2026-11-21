@@ -78,16 +78,18 @@ export interface Room {
   x1: number;
   y0: number;
   floor: number;
-  /** Where the funnel narrows to this chamber's gate: the walls slope in from here. */
+  /** Where the walls start to slope in to this chamber's gate: the top of the room for the trunk, which is a cone. */
   shoulder: number;
   /** The gate's opening, left and right. */
   hole: [number, number];
 }
 
 export const ROOMS: Room[] = [
-  { chamber: 'supporter', label: 'Supporter', x0: 20, x1: 620, y0: 30, shoulder: 170, floor: 225, hole: [100, 540] },
-  { chamber: 'attendee', label: 'Attendee', x0: 100, x1: 540, y0: 225, shoulder: 340, floor: 395, hole: [180, 460] },
-  { chamber: 'volunteer', label: 'Volunteer', x0: 180, x1: 460, y0: 395, shoulder: 505, floor: 560, hole: [240, 400] },
+  // The trunk is one cone: each room's walls run from its top corners to the corners of its gate, and
+  // the next room starts where this one's gate ends, so the sides are a single slope with no steps.
+  { chamber: 'supporter', label: 'Supporter', x0: 20, x1: 620, y0: 30, shoulder: 30, floor: 225, hole: [101, 539] },
+  { chamber: 'attendee', label: 'Attendee', x0: 101, x1: 539, y0: 225, shoulder: 225, floor: 395, hole: [172, 468] },
+  { chamber: 'volunteer', label: 'Volunteer', x0: 172, x1: 468, y0: 395, shoulder: 395, floor: 560, hole: [240, 400] },
   {
     chamber: 'activity',
     label: 'Leads an activity',
@@ -154,7 +156,7 @@ export function zoneForce(branch: Branch, x: number, depth: number, commit: numb
 export function outline(): [number, number][] {
   const trunk = ROOMS.slice(0, 3);
   const left: [number, number][] = [[trunk[0].x0, trunk[0].y0]];
-  for (const r of trunk) left.push([r.x0, r.shoulder], [r.hole[0], r.floor]);
+  for (const r of trunk) left.push([r.hole[0], r.floor]);
   left.push([trunk[2].hole[0], BAY.ceiling], [BAY.x0, BAY.ceiling], [BAY.x0, WEDGE.bottom], [WEDGE.left, WEDGE.bottom]);
   left.push([WEDGE.left, WEDGE.shoulderY]);
   const right = left.map(([x, y]): [number, number] => [WORLD.w - x, y]).reverse();
@@ -177,7 +179,7 @@ export function marbleRadius(counts: Record<Chamber, number>): number {
   for (const room of ROOMS) {
     const n = counts[room.chamber];
     if (!n) continue;
-    const area = (room.x1 - room.x0) * (room.floor - room.y0);
+    const area = ((room.x1 - room.x0 + (room.hole[1] - room.hole[0])) / 2) * (room.floor - room.y0);
     r = Math.min(r, Math.sqrt((area * 0.4) / (n * Math.PI)));
   }
   return Math.max(2.5, Math.round(r * 10) / 10);
@@ -245,6 +247,17 @@ export function colorAt(p: Placed, y: number): string {
   if (p.muted || p.branch === 'trunk') return colorFor(p);
   const k = p.recent ? 'recent' : 'older';
   return mix(MARBLE_COLORS.trunk[k], MARBLE_COLORS[p.branch][k], smoothstep(zoneDepth(y)));
+}
+
+/** What a marble's hover card says: the person's name, where they are, and what we know. */
+export function cardFor(row: MarbleRow, p: Placed): { title: string; lines: string[] } {
+  const room = ROOMS.find((r) => r.chamber === p.chamber) as Room;
+  const lines = [room.label];
+  if (p.alsoLed) lines.push('Has also led an activity or class');
+  if (row.on_board_now > 0) lines.push('On the board now');
+  lines.push(row.last_active_year === null ? 'No activity recorded' : `Last active in ${row.last_active_year}`);
+  if (p.muted) lines.push('Do not contact');
+  return { title: row.name, lines };
 }
 
 /** Text a screen reader gets in place of the picture. */
