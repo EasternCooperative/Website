@@ -109,7 +109,7 @@ describe('MarbleFunnel', () => {
     await pointer(canvas, 'pointerout', 0, 0);
     expect(container.textContent).toContain('Hover or tap a marble');
     await pointer(canvas, 'click', 10, 600); // a chamber with no marble under the pointer: nothing
-    await pointer(canvas, 'click', 100, 700); // the Leads an activity chamber
+    await pointer(canvas, 'click', 100, 770); // the Leads an activity chamber
     expect(onPickLane).toHaveBeenCalledWith('activity');
   });
 
@@ -130,5 +130,63 @@ describe('MarbleFunnel', () => {
       <MarbleFunnel people={[]} thisYear={2026} selectedId={null} onSelect={() => {}} onPickLane={() => {}} />
     );
     expect(container.querySelector('canvas')).not.toBeNull();
+  });
+
+  it('draws in dark mode, redraws on resize and theme change, and rings the selected marble', async () => {
+    reduce(true);
+    document.documentElement.classList.add('dark');
+    const { container } = await render(
+      <MarbleFunnel people={people} thisYear={2026} selectedId={4} onSelect={() => {}} onPickLane={() => {}} />
+    );
+    await settle(6);
+    const canvas = container.querySelector('canvas') as HTMLCanvasElement;
+    await act(async () => {
+      window.dispatchEvent(new Event('resize'));
+      document.documentElement.classList.remove('dark');
+    });
+    await settle();
+    for (let y = 640; y < 900; y += 6) await pointer(canvas, 'pointermove', 450, y); // hovers over the empty service side
+    expect(container.querySelector('canvas')).not.toBeNull();
+  });
+
+  it('draws nothing while the canvas has no width', async () => {
+    reduce(true);
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(0);
+    const { container } = await render(
+      <MarbleFunnel people={people} thisYear={2026} selectedId={null} onSelect={() => {}} onPickLane={() => {}} />
+    );
+    await settle(6);
+    expect(container.querySelector('canvas')).not.toBeNull();
+  });
+
+  it('ignores a click before the physics has loaded, and a load that finishes after unmount', async () => {
+    reduce(true);
+    const onPickLane = vi.fn();
+    const { container } = await render(
+      <MarbleFunnel people={people} thisYear={2026} selectedId={null} onSelect={() => {}} onPickLane={onPickLane} />
+    );
+    await pointer(container.querySelector('canvas') as HTMLCanvasElement, 'click', 100, 100); // before settle
+    expect(onPickLane).toHaveBeenCalledWith('supporter');
+    await cleanup(); // unmounted before the import resolved
+    await settle();
+  });
+
+  it('pours, steers, and comes to rest frame by frame', async () => {
+    reduce(false);
+    const frames: FrameRequestCallback[] = [];
+    vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => frames.push(cb));
+    vi.stubGlobal('cancelAnimationFrame', () => {});
+    const many = Array.from({ length: 30 }, (_, i) => ({
+      ...people[i % 4],
+      person_id: i + 1,
+    }));
+    await render(
+      <MarbleFunnel people={many} thisYear={2026} selectedId={null} onSelect={() => {}} onPickLane={() => {}} />
+    );
+    await settle(6);
+    await act(async () => {
+      for (let n = 0; n < 3000 && frames.length; n++) frames.shift()!(0);
+    });
+    expect(frames.length).toBe(0); // it stopped asking for frames once everything was asleep
   });
 });

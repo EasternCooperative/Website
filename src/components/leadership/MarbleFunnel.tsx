@@ -4,7 +4,9 @@ import {
   BAY,
   CAT,
   ROOMS,
-  STEER,
+  CHUTES,
+  CHUTE_CAT,
+  MARBLE_COLORS,
   WEDGE,
   WORLD,
   colorFor,
@@ -42,8 +44,8 @@ const TINT = { trunk: '47,122,109', teaching: '194,65,12', service: '3,105,161' 
 /**
  * Everyone as a marble in a funnel. The pictured geometry is the physics geometry: each gate is
  * a plank only that chamber's marbles can rest on, so everyone deeper falls through, and the
- * trunk splits into a Teaching channel and a Service channel. Marbles are steered toward their
- * channel just below the last gate. The lanes below are the accessible version of this view.
+ * trunk splits into a Teaching channel and a Service channel. Two crossing chutes under the last gate,
+ * each solid to one branch only, send them down their own channel. The lanes below are the accessible version of this view.
  */
 export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, onPickLane }: Props) {
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -72,12 +74,12 @@ export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, o
     if (!el || !ctx) return;
     let dead = false;
     let frame = 0;
-    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     import('matter-js').then((mod) => {
       if (dead) return;
-      const { Engine, Bodies, Body, Composite } = mod.default ?? mod;
-      const engine = Engine.create({ enableSleeping: true, gravity: { x: 0, y: 1, scale: 0.002 } });
+      const { Engine, Bodies, Composite } = mod.default;
+      const engine = Engine.create({ gravity: { x: 0, y: 1, scale: 0.002 } });
       const radius = marbleRadius(counts);
 
       // Static pieces. `wall` is solid to everyone; a plank is solid only to its chamber's marbles.
@@ -106,6 +108,18 @@ export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, o
       seg('wall', last.hole[1], BAY.ceiling, BAY.x1, BAY.ceiling);
       seg('wall', BAY.x0, BAY.ceiling, BAY.x0, WEDGE.bottom);
       seg('wall', BAY.x1, BAY.ceiling, BAY.x1, WEDGE.bottom);
+      for (const branch of ['teaching', 'service'] as const) {
+        const [x1, y1, x2, y2] = CHUTES[branch];
+        const len = Math.hypot(x2 - x1, y2 - y1);
+        add(
+          `chute-${branch}`,
+          Bodies.rectangle((x1 + x2) / 2, (y1 + y2) / 2, len, 6, {
+            isStatic: true,
+            angle: Math.atan2(y2 - y1, x2 - x1),
+            collisionFilter: { category: CHUTE_CAT[branch], mask: CAT.everything },
+          })
+        );
+      }
       seg('wall', WEDGE.apexX, WEDGE.apexY, WEDGE.right, WEDGE.shoulderY);
       seg('wall', WEDGE.apexX, WEDGE.apexY, WEDGE.left, WEDGE.shoulderY);
       seg('wall', WEDGE.apexX, WEDGE.shoulderY, WEDGE.apexX, WEDGE.bottom, WEDGE.right - WEDGE.left);
@@ -144,18 +158,10 @@ export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, o
       };
       live.current = { engine, bodies, statics, radius, pending };
 
-      const steer = () => {
-        for (const { body, p } of bodies) {
-          if (p.branch === 'trunk' || body.position.y < STEER.y0 || body.position.y > STEER.y1) continue;
-          const dir = p.branch === 'teaching' ? -1 : 1;
-          Body.setVelocity(body, { x: Math.max(-3, Math.min(3, body.velocity.x + dir * 0.3)), y: body.velocity.y });
-        }
-      };
-
       const draw = () => {
         const w = el.clientWidth;
         if (!w) return;
-        const dpr = window.devicePixelRatio || 1;
+        const dpr = window.devicePixelRatio;
         const scale = w / WORLD.w;
         const pw = Math.round(w * dpr);
         const ph = Math.round(WORLD.h * scale * dpr);
@@ -180,8 +186,19 @@ export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, o
           ctx.beginPath();
           b.vertices.forEach((v, i) => (i ? ctx.lineTo(v.x, v.y) : ctx.moveTo(v.x, v.y)));
           ctx.closePath();
+          // Walls are solid gray; gates are pale; each chute wears its branch color.
           ctx.fillStyle =
-            b.label === 'plank' ? (dark ? 'rgba(229,231,235,.35)' : 'rgba(55,65,81,.3)') : dark ? '#9ca3af' : '#6b7280';
+            b.label === 'chute-teaching'
+              ? MARBLE_COLORS.teaching.recent
+              : b.label === 'chute-service'
+                ? MARBLE_COLORS.service.recent
+                : b.label === 'plank'
+                  ? dark
+                    ? 'rgba(229,231,235,.35)'
+                    : 'rgba(55,65,81,.3)'
+                  : dark
+                    ? '#9ca3af'
+                    : '#6b7280';
           ctx.fill();
         }
         // The wedge is solid: fill between its two slopes.
@@ -222,17 +239,24 @@ export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, o
       };
       redraw.current = draw;
 
-      const asleep = () => bodies.length > 0 && pending.length === 0 && bodies.every((b) => b.body.isSleeping);
+      // Everyone has been poured and nothing has moved for half a second (or it has run for
+      // twenty-five seconds): stop asking for frames.
+      let still = 0;
+      let frames = 0;
+      const settled = () => {
+        const moving = pending.length > 0 || bodies.some((b) => b.body.speed > 0.2);
+        still = moving ? 0 : still + 1;
+        return still > 30 || ++frames > 1500;
+      };
       let ticks = 0;
       const tick = () => {
         frame = 0;
         if (dead) return;
         if (pending.length && ticks++ % 4 === 0) spawn();
-        steer();
         Engine.update(engine, 1000 / 120); // two small steps a frame, so fast marbles cannot skip a wall
         Engine.update(engine, 1000 / 120);
         draw();
-        if (!asleep()) frame = requestAnimationFrame(tick);
+        if (!settled()) frame = requestAnimationFrame(tick);
       };
       wake.current = () => {
         if (!frame && !dead) frame = requestAnimationFrame(tick);
@@ -240,9 +264,8 @@ export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, o
 
       if (reduced) {
         // No animation: pour everything and let it settle before the first picture.
-        for (let i = 0; i < 2400 && !(pending.length === 0 && asleep()); i++) {
+        for (let i = 0; i < 2400 && !settled(); i++) {
           if (pending.length && i % 6 === 0) spawn();
-          steer();
           Engine.update(engine, 1000 / 120);
           Engine.update(engine, 1000 / 120);
         }

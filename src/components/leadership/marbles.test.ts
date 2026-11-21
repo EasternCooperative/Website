@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   BRANCH_OF,
   CAT,
+  CHUTE_CAT,
   CHAMBERS,
   ROOMS,
   colorFor,
@@ -90,6 +91,14 @@ describe('the funnel', () => {
     }
   });
 
+  it('has a chute for each branch, solid to that branch only', () => {
+    for (const c of CHAMBERS) {
+      const branch = BRANCH_OF[c];
+      expect(marbleMask(c) & CHUTE_CAT.teaching).toBe(branch === 'teaching' ? CHUTE_CAT.teaching : 0);
+      expect(marbleMask(c) & CHUTE_CAT.service).toBe(branch === 'service' ? CHUTE_CAT.service : 0);
+    }
+  });
+
   it('shrinks marbles as chambers fill, within limits', () => {
     const none = Object.fromEntries(CHAMBERS.map((c) => [c, 0])) as Record<(typeof CHAMBERS)[number], number>;
     expect(marbleRadius(none)).toBe(9);
@@ -106,8 +115,8 @@ describe('the funnel', () => {
 
   it('finds the chamber under a point', () => {
     expect(roomAt(300, 100)?.chamber).toBe('supporter');
-    expect(roomAt(100, 700)?.chamber).toBe('activity');
+    expect(roomAt(100, 770)?.chamber).toBe('activity');
     expect(roomAt(450, 800)?.chamber).toBe('serving');
-    expect(roomAt(320, 700)).toBeNull();
+    expect(roomAt(320, 770)).toBeNull();
   });
 });

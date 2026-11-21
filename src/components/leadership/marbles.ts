@@ -68,7 +68,7 @@ export function tally(placed: Placed[]): Record<Chamber, number> {
 
 // --- Geometry, in a 640 by 900 world. -----------------------------------------------------
 
-export const WORLD = { w: 640, h: 920 };
+export const WORLD = { w: 640, h: 960 };
 
 /** The open area each chamber's marbles rest in: a rectangle, with its gate (the floor) at `floor`. */
 export interface Room {
@@ -93,23 +93,27 @@ export const ROOMS: Room[] = [
     label: 'Leads an activity',
     x0: 60,
     x1: 300,
-    y0: 670,
-    shoulder: 780,
-    floor: 780,
+    y0: 720,
+    shoulder: 830,
+    floor: 830,
     hole: [60, 300],
   },
-  { chamber: 'class', label: 'Leads a class', x0: 60, x1: 300, y0: 780, shoulder: 890, floor: 890, hole: [60, 300] },
-  { chamber: 'serving', label: 'Serving now', x0: 340, x1: 580, y0: 670, shoulder: 890, floor: 890, hole: [340, 580] },
+  { chamber: 'class', label: 'Leads a class', x0: 60, x1: 300, y0: 830, shoulder: 940, floor: 940, hole: [60, 300] },
+  { chamber: 'serving', label: 'Serving now', x0: 340, x1: 580, y0: 720, shoulder: 940, floor: 940, hole: [340, 580] },
 ];
 
 /**
- * The split below the trunk. Marbles leave the last gate into a bay, are steered toward their
- * branch, and a wedge with its apex under the gate sends them down one of two channels.
+ * The split below the trunk. Marbles leave the last gate into a bay, where two crossing chutes
+ * sort them: each is solid only to one branch, so service marbles slide to the right and teaching
+ * marbles to the left. A wedge under the crossing then keeps the two channels apart.
  */
-export const WEDGE = { apexX: 320, apexY: 610, shoulderY: 670, left: 300, right: 340, bottom: 890 };
+export const WEDGE = { apexX: 320, apexY: 690, shoulderY: 720, left: 300, right: 340, bottom: 940 };
 export const BAY = { x0: 60, x1: 580, ceiling: 565 };
-/** Marbles are steered toward their channel between these heights. */
-export const STEER = { y0: 565, y1: 665 };
+/** Chutes as [x1, y1, x2, y2], sloping down from the first point to the second. */
+export const CHUTES = {
+  service: [235, 590, 365, 665],
+  teaching: [405, 590, 275, 665],
+} as const;
 
 /**
  * Collision categories. A marble meets the walls, its own chamber's floor, and marbles bound for
@@ -117,9 +121,14 @@ export const STEER = { y0: 565, y1: 665 };
  * resting on a gate above.
  */
 export const CAT = { wall: 2, everything: 0xffff };
+/** The chutes: solid only to one branch. */
+export const CHUTE_CAT = { teaching: 1 << 14, service: 1 << 15 };
 export const floorCategory = (c: Chamber): number => 4 << CHAMBERS.indexOf(c);
 export const marbleCategory = (c: Chamber): number => 256 << CHAMBERS.indexOf(c);
-export const marbleMask = (c: Chamber): number => marbleCategory(c) | CAT.wall | floorCategory(c);
+export const marbleMask = (c: Chamber): number => {
+  const branch = BRANCH_OF[c];
+  return marbleCategory(c) | CAT.wall | floorCategory(c) | (branch === 'trunk' ? 0 : CHUTE_CAT[branch]);
+};
 
 /** Marbles shrink as the biggest chamber fills, within sensible limits. */
 export function marbleRadius(counts: Record<Chamber, number>): number {
