@@ -57,9 +57,7 @@ const base = (): Data => ({
     { id: 2, person_id: 3, activity_id: 2, event_id: 1, leadership_type: 'partner', how_it_went: null },
     { id: 3, person_id: 1, activity_id: 1, event_id: 2, leadership_type: 'solo', how_it_went: null },
   ],
-  notes: [
-    { id: 1, person_id: 2, kind: 'ready', focus: 'games class', body: '', author: 'x', created_at: '2026-01-01' },
-  ],
+  notes: [],
   service: [],
   volunteers: [],
   outreach: [],
@@ -154,10 +152,11 @@ describe('Staff an event', () => {
 
   it('ranks people with reasons, from the venue and the date', async () => {
     const c = await open();
-    expect(names(c)).toEqual(['Bo Newer', 'Ana Expert']); // a matching ready note outweighs one past class
+    expect(names(c)).toEqual(['Ana Expert', 'Bo Newer']); // experience decides
     const text = c.textContent ?? '';
     expect(text).toContain('Led Games 1 time, last in 2025');
-    expect(text).toContain('Said they are ready to lead games class');
+    expect(text).not.toContain('ready to lead');
+    expect(c.textContent).not.toContain('Interest');
     expect(text).toContain('Led here 1 time');
     expect(c.querySelector('label select option[value="__new"]')).not.toBeNull(); // a venue can be added
     expect(select(c, 'Where').value).toBe('camp-onas');
@@ -221,7 +220,7 @@ describe('the slate', () => {
       path: '/outreach',
       method: 'POST',
       body: {
-        person_id: 2,
+        person_id: 1,
         goal: 'staff_slot',
         status: 'suggested',
         venue_id: 'camp-onas',
@@ -232,7 +231,7 @@ describe('the slate', () => {
     current.outreach = [
       {
         id: 5,
-        person_id: 2,
+        person_id: 1,
         goal: 'staff_slot',
         status: 'suggested',
         contacted_on: null,
@@ -244,7 +243,7 @@ describe('the slate', () => {
     ];
     await cleanup();
     const d = await open();
-    expect(d.querySelector('section[aria-label="Slate"]')!.textContent).toContain('Bo Newer');
+    expect(d.querySelector('section[aria-label="Slate"]')!.textContent).toContain('Ana Expert');
     expect(d.textContent).toContain('On the shortlist');
   });
 
@@ -610,8 +609,8 @@ describe('experts', () => {
   it('marks someone an expert in the type, and takes the mark back', async () => {
     const c = await open();
     await click(buttonWithText(c, 'Mark as an expert in Games'));
-    expect(writes.at(-1)).toEqual({ path: '/expertise', method: 'POST', body: { person_id: 2, type: 'Games' } });
-    current.expertise = [{ id: 4, person_id: 2, type: 'Games', note: null }];
+    expect(writes.at(-1)).toEqual({ path: '/expertise', method: 'POST', body: { person_id: 1, type: 'Games' } });
+    current.expertise = [{ id: 4, person_id: 1, type: 'Games', note: null }];
     await cleanup();
     const d = await open();
     expect(d.textContent).toContain('Marked an expert in Games');

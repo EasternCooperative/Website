@@ -1,5 +1,5 @@
 // Finding people to staff a class or activity at an event. Everything here is computed in
-// the browser from what the tool already holds (roles, notes, events, outreach), and every
+// the browser from what the tool already holds (roles, events, outreach, locations), and every
 // score comes with the words that explain it. Nothing is hidden because of a score.
 
 import type { Data, EventRow, Expertise, Outreach, Person, PersonLocation, Role, Scope } from './model';
@@ -19,11 +19,10 @@ export const EMPTY_BRIEF: Brief = {
   type: '',
 };
 
-export type SegmentKey = 'experience' | 'readiness' | 'availability' | 'nearness' | 'timing';
+export type SegmentKey = 'experience' | 'availability' | 'nearness' | 'timing';
 export type Weights = Record<SegmentKey, number>;
 export const DEFAULT_STAFF_WEIGHTS: Weights = {
   experience: 4,
-  readiness: 2,
   availability: 2,
   nearness: 1.5,
   timing: 1,
@@ -109,19 +108,10 @@ const near = (a: string, b: string): boolean => {
   return Math.min(d, 365 - d) <= 42;
 };
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
-const norm = (s: string) => s.toLowerCase().trim();
 
 export const slotLabel = (b: Brief): string => {
   const kind = b.scope === 'class' ? ' class' : b.scope === 'activity' ? ' activity' : '';
   return b.type ? `${b.type}${kind}` : '';
-};
-
-/** Does a "ready for" focus talk about this type or activity? */
-const focusMatches = (focus: string, b: Brief): boolean => {
-  const f = norm(focus);
-  if (!f) return false;
-  const terms = [b.type].map(norm).filter((t) => t.length >= 3);
-  return terms.some((t) => f.includes(t) || t.includes(f));
 };
 
 const LED = new Set(['solo', 'partner']);
@@ -208,9 +198,6 @@ export function candidatesFor(
     if (filters.hasLed && led === 0) continue;
     if (filters.ledHere && ledHere === 0) continue;
 
-    const notes = data.notes.filter((n) => n.person_id === person.id && n.kind === 'ready');
-    const match = notes.find((n) => focusMatches(n.focus ?? '', brief));
-    const readyOther = notes[0];
     const nearness = Math.max(Math.min(ledHere, 3) / 3, dist === undefined ? 0 : 1 - Math.min(dist, 150) / 150);
 
     const segments: Segment[] = [
@@ -225,15 +212,6 @@ export function candidatesFor(
             : points
               ? `Helped with ${brief.type}`
               : '',
-      },
-      {
-        key: 'readiness',
-        value: match ? 1 : readyOther ? 0.3 : 0,
-        detail: match
-          ? `Said they are ready to lead ${match.focus}`
-          : readyOther
-            ? `Said they are ready for ${readyOther.focus || 'something else'}`
-            : '',
       },
       {
         key: 'availability',
