@@ -103,17 +103,36 @@ export const ROOMS: Room[] = [
 ];
 
 /**
- * The split below the trunk. Marbles leave the last gate into a bay, where two crossing chutes
- * sort them: each is solid only to one branch, so service marbles slide to the right and teaching
- * marbles to the left. A wedge under the crossing then keeps the two channels apart.
+ * The split below the trunk. Marbles leave the last gate into a bay with no walls between the two
+ * sides until a slim divider at its foot. Across the bay is a sorting zone: each marble leans a
+ * random way at first, then commits to its own channel at a random depth, so the chance of
+ * heading for the wrong side falls steadily and is nothing by the time it reaches the divider.
  */
 export const WEDGE = { apexX: 320, apexY: 700, shoulderY: 720, left: 314, right: 326, bottom: 940 };
 export const BAY = { x0: 60, x1: 580, ceiling: 565 };
-/** Chutes as [x1, y1, x2, y2], sloping down from the first point to the second. */
-export const CHUTES = {
-  service: [235, 590, 365, 665],
-  teaching: [405, 590, 275, 665],
-} as const;
+export const ZONE = { top: BAY.ceiling, bottom: WEDGE.apexY };
+/** Where each channel's marbles are steered toward. */
+export const CHANNEL_X = { teaching: 188, service: 452 };
+/** No marble commits later than this fraction of the way through the zone, so all have time to cross. */
+export const LATEST_COMMIT = 0.6;
+
+/** Falling slows to this fraction of its speed each step in the zone, so the sorting has time to happen. */
+export const ZONE_DRAG = 0.9;
+
+/** How far through the sorting zone a height is: 0 at the top, 1 at the divider. */
+export const zoneDepth = (y: number): number => Math.min(1, Math.max(0, (y - ZONE.top) / (ZONE.bottom - ZONE.top)));
+
+/**
+ * Sideways acceleration, as a multiple of gravity, for a marble in the sorting zone. Before it commits
+ * it drifts a little in its own random direction (`wobble`, 1 or -1); after, it is steered toward the
+ * middle of its channel, harder the deeper it is. Trunk marbles are not sorted.
+ */
+export function zoneForce(branch: Branch, x: number, depth: number, commit: number, wobble: number): number {
+  if (branch === 'trunk' || depth <= 0 || depth >= 1) return 0;
+  if (depth < commit) return 0.3 * wobble;
+  const pull = Math.min(1, Math.max(-1, (CHANNEL_X[branch] - x) / 100));
+  return 4 * (0.5 + depth) * pull;
+}
 
 /**
  * The funnel's outline as one unbroken line: down the left wall, narrowing through each gate, round
@@ -136,14 +155,9 @@ export function outline(): [number, number][] {
  * resting on a gate above.
  */
 export const CAT = { wall: 2, everything: 0xffff };
-/** The chutes: solid only to one branch. */
-export const CHUTE_CAT = { teaching: 1 << 14, service: 1 << 15 };
 export const floorCategory = (c: Chamber): number => 4 << CHAMBERS.indexOf(c);
 export const marbleCategory = (c: Chamber): number => 256 << CHAMBERS.indexOf(c);
-export const marbleMask = (c: Chamber): number => {
-  const branch = BRANCH_OF[c];
-  return marbleCategory(c) | CAT.wall | floorCategory(c) | (branch === 'trunk' ? 0 : CHUTE_CAT[branch]);
-};
+export const marbleMask = (c: Chamber): number => marbleCategory(c) | CAT.wall | floorCategory(c);
 
 /** Marbles shrink as the biggest chamber fills, within sensible limits. */
 export function marbleRadius(counts: Record<Chamber, number>): number {
@@ -157,16 +171,68 @@ export function marbleRadius(counts: Record<Chamber, number>): number {
   return Math.max(2.5, Math.round(r * 10) / 10);
 }
 
-/** Recently active marbles are solid; older ones are paler. */
+function toHsl(hex: string): [number, number, number] {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  if (max === min) return [0, 0, l];
+  const d = max - min;
+  const s = d / (1 - Math.abs(2 * l - 1));
+  const h = max === r ? ((g - b) / d + 6) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return [h * 60, s, l];
+}
+
+function fromHsl(h: number, s: number, l: number): string {
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    return l - (c / 2) * Math.max(-1, Math.min(k - 3, 9 - k, 1));
+  };
+  return `#${[f(0), f(8), f(4)]
+    .map((v) =>
+      Math.round(v * 255)
+        .toString(16)
+        .padStart(2, '0')
+    )
+    .join('')}`;
+}
+
+/**
+ * Blend two hex colors: `t` of the way from `a` to `b`, through hue, so the blend of an orange and a
+ * blue is a vivid violet rather than the gray that averaging red, green, and blue would give.
+ */
+export function mix(a: string, b: string, t: number): string {
+  if (t <= 0) return a;
+  if (t >= 1) return b;
+  const [h1, s1, l1] = toHsl(a);
+  const [h2, s2, l2] = toHsl(b);
+  const turn = ((((h2 - h1) % 360) + 540) % 360) - 180; // the short way round the color wheel
+  return fromHsl((h1 + turn * t + 360) % 360, s1 + (s2 - s1) * t, l1 + (l2 - l1) * t);
+}
+export const smoothstep = (t: number): number => t * t * (3 - 2 * t);
+
+/**
+ * Recently active marbles are solid; older ones are paler. The trunk is the blend of the two
+ * channels' colors, which a marble takes on its own channel's color from as it sorts.
+ */
+const TEACHING = { recent: '#c2410c', older: '#f0a77c' };
+const SERVICE = { recent: '#0369a1', older: '#7cb6d9' };
 export const MARBLE_COLORS = {
-  trunk: { recent: '#2f7a6d', older: '#8fbdb4' },
-  teaching: { recent: '#c2410c', older: '#f0a77c' },
-  service: { recent: '#0369a1', older: '#7cb6d9' },
+  trunk: { recent: mix(TEACHING.recent, SERVICE.recent, 0.5), older: mix(TEACHING.older, SERVICE.older, 0.5) },
+  teaching: TEACHING,
+  service: SERVICE,
   muted: '#9ca3af',
 };
 export function colorFor(p: Placed): string {
   if (p.muted) return MARBLE_COLORS.muted;
   return MARBLE_COLORS[p.branch][p.recent ? 'recent' : 'older'];
+}
+/** A marble's color at a height: the trunk blend above the sorting zone, its channel's color below. */
+export function colorAt(p: Placed, y: number): string {
+  if (p.muted || p.branch === 'trunk') return colorFor(p);
+  const k = p.recent ? 'recent' : 'older';
+  return mix(MARBLE_COLORS.trunk[k], MARBLE_COLORS[p.branch][k], smoothstep(zoneDepth(y)));
 }
 
 /** Text a screen reader gets in place of the picture. */
