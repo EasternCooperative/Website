@@ -366,10 +366,15 @@ export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, o
   // The card floats over the marble: above it, or below when it is near the top, and kept inside the canvas.
   const show = (e: { clientX: number; clientY: number }) => {
     const { marble, box, body } = at(e);
-    if (!marble || !body) return setCard(null);
+    if (!body) return setCard(null);
     const scale = box.width / WORLD.w;
-    const row = rowOf.get(marble.id) as MarbleRow;
-    setCard({ ...cardFor(row, marble), left: body.position.x * scale, top: body.position.y * scale, width: box.width });
+    const row = rowOf.get((marble as Placed).id) as MarbleRow;
+    setCard({
+      ...cardFor(row, marble as Placed),
+      left: body.position.x * scale,
+      top: body.position.y * scale,
+      width: box.width,
+    });
   };
 
   return (
