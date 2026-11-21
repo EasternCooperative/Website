@@ -45,7 +45,10 @@ const people: MarbleRow[] = [
 ];
 
 // jsdom has no canvas: give it a drawing context that accepts everything.
-const ctx = new Proxy({}, { get: () => () => {}, set: () => true });
+const ctx = new Proxy(
+  {},
+  { get: (_, k) => (k === 'createLinearGradient' ? () => ({ addColorStop() {} }) : () => {}), set: () => true }
+);
 const reduce = (on: boolean) =>
   vi.stubGlobal('matchMedia', () => ({ matches: on, addEventListener() {}, removeEventListener() {} }));
 

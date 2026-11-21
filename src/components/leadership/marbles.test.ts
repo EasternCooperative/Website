@@ -10,6 +10,7 @@ import {
   marbleCategory,
   marbleMask,
   marbleRadius,
+  outline,
   place,
   roomAt,
   summary,
@@ -113,10 +114,23 @@ describe('the funnel', () => {
     expect(colorFor({ ...base, muted: true })).toBe('#9ca3af');
   });
 
+  it('draws the funnel as one line that starts and ends at the top, mirrored, over the divider', () => {
+    const line = outline();
+    expect(line[0]).toEqual([20, 30]);
+    expect(line[line.length - 1]).toEqual([620, 30]);
+    expect(line.length % 2).toBe(1); // the divider's apex is the middle point
+    const mid = line[(line.length - 1) / 2];
+    expect(mid[0]).toBe(320);
+    for (let i = 0; i < (line.length - 1) / 2; i++) {
+      expect(line[i][1]).toBe(line[line.length - 1 - i][1]);
+      expect(line[i][0] + line[line.length - 1 - i][0]).toBe(640);
+    }
+  });
+
   it('finds the chamber under a point', () => {
     expect(roomAt(300, 100)?.chamber).toBe('supporter');
     expect(roomAt(100, 770)?.chamber).toBe('activity');
     expect(roomAt(450, 800)?.chamber).toBe('serving');
-    expect(roomAt(320, 770)).toBeNull();
+    expect(roomAt(320, 600)).toBeNull();
   });
 });
