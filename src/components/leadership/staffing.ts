@@ -2,7 +2,7 @@
 // the browser from what the tool already holds (roles, notes, events, outreach), and every
 // score comes with the words that explain it. Nothing is hidden because of a score.
 
-import type { Activity, Data, EventRow, Expertise, Outreach, Person, PersonLocation, Role, Scope } from './model';
+import type { Data, EventRow, Expertise, Outreach, Person, PersonLocation, Role, Scope } from './model';
 
 export interface Brief {
   /** Where, and optionally when. Staffing does not depend on how long the event runs. */
@@ -11,14 +11,12 @@ export interface Brief {
   /** 'any' means a class or an activity. */
   scope: Scope | 'any';
   type: string;
-  activityId: number | null;
 }
 export const EMPTY_BRIEF: Brief = {
   venue: null,
   date: null,
   scope: 'any',
   type: '',
-  activityId: null,
 };
 
 export type SegmentKey = 'experience' | 'readiness' | 'availability' | 'nearness' | 'timing';
@@ -38,7 +36,21 @@ export interface Segment {
   /** In words, or empty when there is nothing to say. */
   detail: string;
 }
+/** One class or activity someone has led or helped with, with how often and when last. */
+export interface HistoryItem {
+  title: string;
+  type: string;
+  scope: Scope;
+  led: number;
+  assisted: number;
+  last: number;
+  /** Whether it is the type being staffed. */
+  sameType: boolean;
+}
+
 export interface Candidate {
+  /** Everything they have led, the type being staffed first, then newest. */
+  history: HistoryItem[];
   person: Person;
   segments: Segment[];
   /** 0 to 100. */
@@ -97,20 +109,18 @@ const near = (a: string, b: string): boolean => {
   return Math.min(d, 365 - d) <= 42;
 };
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
-const norm = (s: string | null | undefined) => (s ?? '').toLowerCase().trim();
+const norm = (s: string) => s.toLowerCase().trim();
 
-export const slotLabel = (b: Brief, activities: Activity[]): string => {
-  const act = b.activityId ? activities.find((a) => a.id === b.activityId) : undefined;
-  if (act) return act.name;
+export const slotLabel = (b: Brief): string => {
   const kind = b.scope === 'class' ? ' class' : b.scope === 'activity' ? ' activity' : '';
   return b.type ? `${b.type}${kind}` : '';
 };
 
 /** Does a "ready for" focus talk about this type or activity? */
-const focusMatches = (focus: string, b: Brief, act: Activity | undefined): boolean => {
+const focusMatches = (focus: string, b: Brief): boolean => {
   const f = norm(focus);
   if (!f) return false;
-  const terms = [b.type, act?.name, act?.subtype].map(norm).filter((t) => t.length >= 3);
+  const terms = [b.type].map(norm).filter((t) => t.length >= 3);
   return terms.some((t) => f.includes(t) || t.includes(f));
 };
 
@@ -130,10 +140,9 @@ export function candidatesFor(
 ): Candidate[] {
   // Staffing is planned for a venue and, optionally, a date. No event record is involved.
   const event = brief.date || brief.venue ? { start_date: brief.date, site_id: brief.venue } : undefined;
-  const act = brief.activityId ? data.activities.find((a) => a.id === brief.activityId) : undefined;
   const activities = new Map(data.activities.map((a) => [a.id, a]));
   const events = new Map(data.events.map((e) => [e.id, e]));
-  const slot = slotLabel(brief, data.activities);
+  const slot = slotLabel(brief);
   const placeBy = new Map((data.locations ?? []).map((l) => [l.person_id, l]));
   const rolesBy = new Map<number, Role[]>();
   for (const r of data.roles) rolesBy.set(r.person_id, [...(rolesBy.get(r.person_id) ?? []), r]);
@@ -153,12 +162,33 @@ export function candidatesFor(
     if (filters.maxMiles !== null && dist !== undefined && dist > filters.maxMiles) continue;
 
     const place = placeBy.get(person.id);
+    const byTitle = new Map<number, HistoryItem>();
+    for (const r of rolesBy.get(person.id) ?? []) {
+      const a = activities.get(r.activity_id);
+      const e = events.get(r.event_id);
+      if (!a || !e) continue;
+      const h = byTitle.get(a.id) ?? {
+        title: a.name,
+        type: a.type,
+        scope: a.scope,
+        led: 0,
+        assisted: 0,
+        last: 0,
+        sameType: a.type === brief.type,
+      };
+      if (LED.has(r.leadership_type)) h.led++;
+      else h.assisted++;
+      h.last = Math.max(h.last, e.year);
+      byTitle.set(a.id, h);
+    }
+    const history = [...byTitle.values()].sort(
+      (x, y) => Number(y.sameType) - Number(x.sameType) || y.last - x.last || x.title.localeCompare(y.title)
+    );
     const expert = (data.expertise ?? []).find((x) => x.person_id === person.id && x.type === brief.type) ?? null;
     const roles = rolesBy.get(person.id) ?? [];
     let points = 0;
     let led = 0;
     let lastLed = 0;
-    let thisActivity = 0;
     let ledHere = 0;
     let timing = 0;
     for (const r of roles) {
@@ -171,10 +201,6 @@ export function candidatesFor(
         led++;
         points += 1;
         lastLed = Math.max(lastLed, e.year);
-        if (act && a.id === act.id) {
-          thisActivity++;
-          points += 1;
-        }
       } else points += 0.5;
       if (event?.site_id && e.site_id === event.site_id) ledHere++;
       if (event?.start_date && e.start_date && near(e.start_date, event.start_date)) timing++;
@@ -183,7 +209,7 @@ export function candidatesFor(
     if (filters.ledHere && ledHere === 0) continue;
 
     const notes = data.notes.filter((n) => n.person_id === person.id && n.kind === 'ready');
-    const match = notes.find((n) => focusMatches(n.focus ?? '', brief, act));
+    const match = notes.find((n) => focusMatches(n.focus ?? '', brief));
     const readyOther = notes[0];
     const nearness = Math.max(Math.min(ledHere, 3) / 3, dist === undefined ? 0 : 1 - Math.min(dist, 150) / 150);
 
@@ -193,7 +219,7 @@ export function candidatesFor(
         // Six times leading fills the bar, and an expert mark fills it whatever the records say.
         value: expert ? 1 : Math.min(points / 6, 1),
         detail: led
-          ? `${expert ? `Marked an expert in ${brief.type}. ` : ''}Led ${brief.type} ${plural(led, 'time', 'times')}, last in ${lastLed}${thisActivity && act ? `; led ${act.name} ${plural(thisActivity, 'time', 'times')}` : ''}`
+          ? `${expert ? `Marked an expert in ${brief.type}. ` : ''}Led ${brief.type} ${plural(led, 'time', 'times')}, last in ${lastLed}`
           : expert
             ? `Marked an expert in ${brief.type}`
             : points
@@ -204,9 +230,9 @@ export function candidatesFor(
         key: 'readiness',
         value: match ? 1 : readyOther ? 0.3 : 0,
         detail: match
-          ? `Ready for ${match.focus}`
+          ? `Said they are ready to lead ${match.focus}`
           : readyOther
-            ? `Ready for ${readyOther.focus || 'something else'}`
+            ? `Said they are ready for ${readyOther.focus || 'something else'}`
             : '',
       },
       {
@@ -246,6 +272,7 @@ export function candidatesFor(
       .sort()
       .at(-1);
     out.push({
+      history,
       person,
       segments,
       total,

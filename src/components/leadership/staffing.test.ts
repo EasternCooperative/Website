@@ -49,7 +49,7 @@ const data: Data = {
   activities: [
     { id: 1, name: 'Tag', scope: 'activity', type: 'Games', subtype: null },
     { id: 2, name: 'Games Class', scope: 'class', type: 'Games', subtype: null },
-    { id: 3, name: 'Waltz', scope: 'class', type: 'Dancing', subtype: 'Ballroom' },
+    { id: 3, name: 'Waltz', scope: 'class', type: 'Dancing', subtype: null },
   ],
   events: [
     { id: 1, name: 'Camp 2024', event_type: 'weekend', year: 2024, start_date: '2024-06-15', site_id: 'camp-onas' },
@@ -121,7 +121,6 @@ const brief: Brief = {
   date: '2026-06-20',
   scope: 'class',
   type: 'Games',
-  activityId: null,
 };
 const run = (b: Brief = brief, f = DEFAULT_STAFF_FILTERS, miles?: Map<number, number>) =>
   candidatesFor(data, b, DEFAULT_STAFF_WEIGHTS, f, '2026-11-20', miles);
@@ -132,11 +131,10 @@ const seg = (name: string, key: string) =>
 
 describe('slotLabel', () => {
   it('names the slot from its parts', () => {
-    expect(slotLabel(brief, data.activities)).toBe('Games class');
-    expect(slotLabel({ ...brief, scope: 'activity' }, data.activities)).toBe('Games activity');
-    expect(slotLabel({ ...brief, scope: 'any' }, data.activities)).toBe('Games');
-    expect(slotLabel({ ...brief, activityId: 3 }, data.activities)).toBe('Waltz');
-    expect(slotLabel({ ...brief, type: '' }, data.activities)).toBe('');
+    expect(slotLabel(brief)).toBe('Games class');
+    expect(slotLabel({ ...brief, scope: 'activity' })).toBe('Games activity');
+    expect(slotLabel({ ...brief, scope: 'any' })).toBe('Games');
+    expect(slotLabel({ ...brief, type: '' })).toBe('');
   });
 });
 
@@ -156,16 +154,6 @@ describe('candidatesFor', () => {
     const ana = seg('Ana Expert', 'experience');
     expect(ana.detail).toBe('Led Games 2 times, last in 2025');
     expect(ana.value).toBeCloseTo(2 / 6, 5); // six times leading fills the bar
-    const tag = candidatesFor(
-      data,
-      { ...brief, scope: 'any', activityId: 1 },
-      DEFAULT_STAFF_WEIGHTS,
-      DEFAULT_STAFF_FILTERS,
-      '2026-11-20'
-    );
-    expect(tag.find((c) => c.person.name === 'Ana Expert')!.segments[0].detail).toBe(
-      'Led Games 3 times, last in 2026; led Tag 1 time'
-    );
     expect(seg('Bo Newer', 'experience').detail).toBe('Led Games 0 times'.replace('Led Games 0 times', ''));
     const helped = candidatesFor(
       data,
@@ -181,8 +169,16 @@ describe('candidatesFor', () => {
   });
 
   it('matches a ready-for note to the slot, and says so for a different one', () => {
-    expect(seg('Bo Newer', 'readiness')).toEqual({ key: 'readiness', value: 1, detail: 'Ready for games class' });
-    expect(seg('Gus Nobody', 'readiness')).toEqual({ key: 'readiness', value: 0.3, detail: 'Ready for puppets' });
+    expect(seg('Bo Newer', 'readiness')).toEqual({
+      key: 'readiness',
+      value: 1,
+      detail: 'Said they are ready to lead games class',
+    });
+    expect(seg('Gus Nobody', 'readiness')).toEqual({
+      key: 'readiness',
+      value: 0.3,
+      detail: 'Said they are ready for puppets',
+    });
     expect(seg('Ana Expert', 'readiness')).toEqual({ key: 'readiness', value: 0, detail: '' });
   });
 
@@ -197,7 +193,7 @@ describe('candidatesFor', () => {
     expect(away.find((c) => c.person.name === 'Cy Away')!.segments[1]).toEqual({
       key: 'readiness',
       value: 0.3,
-      detail: 'Ready for something else',
+      detail: 'Said they are ready for something else',
     });
   });
 
@@ -266,7 +262,7 @@ describe('candidatesFor', () => {
   it('copes with no event yet, and with a type nobody has led', () => {
     const none = candidatesFor(
       data,
-      { venue: null, date: null, scope: 'any', type: 'Music', activityId: null },
+      { venue: null, date: null, scope: 'any', type: 'Music' },
       DEFAULT_STAFF_WEIGHTS,
       DEFAULT_STAFF_FILTERS,
       '2026-11-20'
@@ -415,12 +411,69 @@ describe('expert marks and a long record', () => {
       date: '2027-06-18',
       scope: 'class',
       type: 'Games',
-      activityId: null,
     };
     const r = candidatesFor(data, b, DEFAULT_STAFF_WEIGHTS, DEFAULT_STAFF_FILTERS, '2026-11-20');
     const ana = r.find((c) => c.person.name === 'Ana Expert')!;
     expect(ana.segments[3].detail).toBe('Led here 1 time');
     expect(ana.segments[4].detail).toBe('Led 1 time near this time of year');
     expect(ana.ask).toBeNull();
+  });
+});
+
+describe('what someone has led', () => {
+  const ana = () => run().find((c) => c.person.name === 'Ana Expert')!;
+
+  it('lists each title with how often and when last, the type being staffed first, then newest', () => {
+    expect(ana().history).toEqual([
+      {
+        title: 'Tag',
+        type: 'Games',
+        scope: 'activity',
+        led: 1,
+        assisted: 0,
+        last: 2026,
+        sameType: true,
+      },
+      {
+        title: 'Games Class',
+        type: 'Games',
+        scope: 'class',
+        led: 2,
+        assisted: 0,
+        last: 2025,
+        sameType: true,
+      },
+    ]);
+  });
+
+  it('puts other types after, counts helping separately, and skips roles it cannot place', () => {
+    const d: Data = {
+      ...data,
+      roles: [
+        ...data.roles,
+        role(50, 1, 3, 3, 'assisting'),
+        role(51, 1, 3, 4, 'assisting'),
+        role(98, 1, 99, 1),
+        role(99, 1, 1, 99),
+      ],
+    };
+    const h = candidatesFor(d, brief, DEFAULT_STAFF_WEIGHTS, DEFAULT_STAFF_FILTERS, '2026-11-20').find(
+      (c) => c.person.name === 'Ana Expert'
+    )!.history;
+    expect(h.map((x) => x.title)).toEqual(['Tag', 'Games Class', 'Waltz']);
+    expect(h[2]).toMatchObject({ led: 0, assisted: 2, last: 2027, sameType: false });
+  });
+
+  it('orders by title when the year ties, and is empty for someone with no roles', () => {
+    const d: Data = { ...data, roles: [role(60, 7, 1, 1), role(61, 7, 2, 1)] };
+    const h = candidatesFor(d, brief, DEFAULT_STAFF_WEIGHTS, DEFAULT_STAFF_FILTERS, '2026-11-20').find(
+      (c) => c.person.name === 'Gus Nobody'
+    )!.history;
+    expect(h.map((x) => x.title)).toEqual(['Games Class', 'Tag']);
+    expect(
+      run()
+        .find((c) => c.person.name === 'Bo Newer')!
+        .history.map((x) => x.title)
+    ).toEqual(['Tag']);
   });
 });

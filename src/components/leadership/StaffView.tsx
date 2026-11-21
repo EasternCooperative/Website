@@ -13,6 +13,7 @@ import {
   slotLabel,
   type Brief,
   type Candidate,
+  type HistoryItem,
   type SegmentKey,
   type StaffFilters,
   type Weights,
@@ -26,13 +27,11 @@ const today = () => new Date().toISOString().slice(0, 10);
 export function briefFromQuery(query: string): Brief {
   const q = new URLSearchParams(query);
   const scope = q.get('scope');
-  const n = (k: string) => (Number(q.get(k)) > 0 ? Number(q.get(k)) : null);
   return {
     venue: q.get('venue') || null,
     date: /^\d{4}-\d{2}-\d{2}$/.test(q.get('date') ?? '') ? q.get('date') : null,
     scope: scope === 'class' || scope === 'activity' ? scope : 'any',
     type: q.get('type') ?? '',
-    activityId: n('activity'),
   };
 }
 export function briefToQuery(b: Brief): string {
@@ -41,13 +40,12 @@ export function briefToQuery(b: Brief): string {
   if (b.date) q.set('date', b.date);
   if (b.scope !== 'any') q.set('scope', b.scope);
   if (b.type) q.set('type', b.type);
-  if (b.activityId) q.set('activity', String(b.activityId));
   return q.toString();
 }
 
 const SEGMENT_HINT: Record<SegmentKey, string> = {
   experience: 'Times they led this type',
-  readiness: 'A "ready for" note that matches',
+  readiness: 'A note that they are ready to lead this',
   availability: 'Active, on hiatus, or inactive; mentors a little higher',
   nearness: 'Led at this venue, or lives close',
   timing: 'Led near this time of year',
@@ -86,6 +84,42 @@ const ASK_LABEL: Record<string, string> = {
   accepted: 'Said yes',
   declined: 'Said no',
 };
+
+const often = (n: number) => (n === 1 ? 'once' : `${n} times`);
+
+/** What someone has actually led, by title, so you can see their classes at a glance. */
+function History({ c, type }: { c: Candidate; type: string }) {
+  const [all, setAll] = useState(false);
+  const same = c.history.filter((h) => h.sameType);
+  const shown = all ? c.history : same;
+  if (!c.history.length) return null;
+  const when = (h: HistoryItem) =>
+    [h.led > 0 && `led ${often(h.led)}`, h.assisted > 0 && `helped ${often(h.assisted)}`].filter(Boolean).join(', ');
+  return (
+    <details className="mt-2 text-sm">
+      <summary className="cursor-pointer text-muted">
+        What they have led ({same.length} in {type}, {c.history.length} in all)
+      </summary>
+      {shown.length === 0 && <p className="mt-1 text-xs text-muted">Nothing in {type}.</p>}
+      <ul className="mt-1 space-y-0.5">
+        {shown.map((h) => (
+          <li key={h.title}>
+            <span className="font-medium">{h.title}</span>{' '}
+            <span className="text-xs text-muted">
+              {h.scope === 'class' ? 'class' : 'activity'}
+              {all && ` · ${h.type}`} · {when(h)}, last in {h.last}
+            </span>
+          </li>
+        ))}
+      </ul>
+      {c.history.length > same.length && (
+        <button type="button" onClick={() => setAll(!all)} className={`${linkBtn} mt-1`}>
+          {all ? `Only ${type}` : `Show all ${c.history.length}`}
+        </button>
+      )}
+    </details>
+  );
+}
 
 function CandidateCard({
   c,
@@ -128,6 +162,7 @@ function CandidateCard({
       </div>
       <FitBars c={c} />
       <p className="mt-2 text-sm text-muted">{why.length ? why.join(' · ') : 'No history with this type yet.'}</p>
+      <History c={c} type={type} />
       {c.lastContacted && !c.ask && <p className="text-xs text-muted">Contacted {c.lastContacted}</p>}
       <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
         {c.ask ? (
@@ -185,9 +220,8 @@ export default function StaffView({
   const pickDate = (value: string) => {
     set({ date: value || null });
   };
-  const slot = slotLabel(b, data.activities);
+  const slot = slotLabel(b);
   const ready = b.venue !== null && b.type !== '';
-  const choices = data.activities.filter((a) => a.type === b.type && (b.scope === 'any' || a.scope === b.scope));
   const venue = venues.find((v) => v.id === b.venue && v.lat !== null) as { lat: number; lng: number } | undefined;
   const miles = useMemo(() => milesTo(data.locations, venue), [data.locations, venue]);
   const candidates = useMemo(
@@ -255,7 +289,7 @@ export default function StaffView({
           <span className="mb-1 block text-muted">Kind</span>
           <select
             value={b.scope}
-            onChange={(e) => set({ scope: e.target.value as Scope | 'any', activityId: null })}
+            onChange={(e) => set({ scope: e.target.value as Scope | 'any' })}
             className={inputCls}
           >
             <option value="any">Class or activity</option>
@@ -265,7 +299,7 @@ export default function StaffView({
         </label>
         <label className="block">
           <span className="mb-1 block text-muted">Type</span>
-          <select value={b.type} onChange={(e) => set({ type: e.target.value, activityId: null })} className={inputCls}>
+          <select value={b.type} onChange={(e) => set({ type: e.target.value })} className={inputCls}>
             <option value="">Choose a type</option>
             {data.activityTypes.map((t) => (
               <option key={t} value={t}>
@@ -274,23 +308,6 @@ export default function StaffView({
             ))}
           </select>
         </label>
-        {choices.length > 0 && (
-          <label className="block">
-            <span className="mb-1 block text-muted">A specific one (optional)</span>
-            <select
-              value={b.activityId ?? 0}
-              onChange={(e) => set({ activityId: Number(e.target.value) || null })}
-              className={`${inputCls} max-w-56`}
-            >
-              <option value={0}>Any {b.type}</option>
-              {choices.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
       </div>
       {adding && (
         <form
@@ -533,7 +550,7 @@ export default function StaffView({
                   <button
                     type="button"
                     aria-pressed={b.type === d.type}
-                    onClick={() => set({ type: d.type, activityId: null })}
+                    onClick={() => set({ type: d.type })}
                     className="grid w-full grid-cols-[6.5rem_1fr_auto] items-center gap-2 rounded px-1 py-0.5 text-left text-sm hover:bg-primary/5"
                   >
                     <span className={b.type === d.type ? 'font-semibold text-primary' : ''}>{d.type}</span>

@@ -113,15 +113,14 @@ const input = (c: Element, label: string) =>
 const names = (c: Element) => [...c.querySelectorAll('ul > li > div > div > p > button')].map((b) => b.textContent);
 
 describe('the brief in the address', () => {
-  it('reads and writes the venue, date, kind, type, and activity', () => {
+  it('reads and writes the venue, date, kind, and type', () => {
     const full = {
       venue: 'camp-onas',
       date: '2026-12-20',
       scope: 'class' as const,
       type: 'Games',
-      activityId: 2,
     };
-    const query = 'venue=camp-onas&date=2026-12-20&scope=class&type=Games&activity=2';
+    const query = 'venue=camp-onas&date=2026-12-20&scope=class&type=Games';
     expect(briefFromQuery(query)).toEqual(full);
     expect(briefToQuery(full)).toBe(query);
     expect(briefFromQuery('scope=nonsense&event=2&date=soon')).toEqual({
@@ -129,7 +128,6 @@ describe('the brief in the address', () => {
       date: null,
       scope: 'any',
       type: '',
-      activityId: null,
     });
     expect(briefToQuery(briefFromQuery(''))).toBe('');
   });
@@ -159,24 +157,19 @@ describe('Staff an event', () => {
     expect(names(c)).toEqual(['Bo Newer', 'Ana Expert']); // a matching ready note outweighs one past class
     const text = c.textContent ?? '';
     expect(text).toContain('Led Games 1 time, last in 2025');
-    expect(text).toContain('Ready for games class');
+    expect(text).toContain('Said they are ready to lead games class');
     expect(text).toContain('Led here 1 time');
     expect(c.querySelector('label select option[value="__new"]')).not.toBeNull(); // a venue can be added
     expect(select(c, 'Where').value).toBe('camp-onas');
     expect(c.textContent).not.toContain('recurring');
   });
 
-  it('narrows the kind and the specific activity, and clears the activity when the type changes', async () => {
+  it('narrows the kind, and shows the slot in words', async () => {
     const c = await open('#/staff?venue=camp-onas&type=Games');
-    expect(select(c, 'A specific one').textContent).toContain('Tag');
+    expect(c.textContent).not.toContain('Subtype');
     await choose(select(c, 'Kind'), 'activity');
     expect(window.location.hash).toContain('scope=activity');
-    expect(select(c, 'A specific one').textContent).not.toContain('Games Class');
-    await choose(select(c, 'A specific one'), '1');
-    expect(window.location.hash).toContain('activity=1');
-    await choose(select(c, 'Type'), 'Dancing');
-    expect(window.location.hash).not.toContain('activity=');
-    expect(c.textContent).not.toContain('A specific one');
+    expect(c.textContent).toContain('for Games activity at Camp Onas');
   });
 
   it('filters, includes people away, and edits the weights', async () => {
@@ -412,10 +405,8 @@ describe('odd data', () => {
     expect(d.textContent).toContain('Choose a venue and a type');
   });
 
-  it('can step back from a specific activity, and from a venue', async () => {
-    const c = await open('#/staff?venue=camp-onas&type=Games&activity=1');
-    await choose(select(c, 'A specific one'), '0');
-    expect(window.location.hash).not.toContain('activity=');
+  it('can step back from a venue', async () => {
+    const c = await open('#/staff?venue=camp-onas&type=Games');
     await choose(select(c, 'Where'), '');
     expect(window.location.hash).not.toContain('venue=');
   });
@@ -635,5 +626,70 @@ describe('odd links', () => {
     expect(window.location.hash).toContain('venue=nowhere');
     await click([...c.querySelectorAll('button')].find((b) => b.textContent === 'Shortlist') ?? null);
     expect(writes.at(-1)!.body).toMatchObject({ venue_id: 'nowhere', plan_date: '2027-03-01' });
+  });
+});
+
+describe('what someone has led, on the card', () => {
+  it('opens a list of titles for the type, and can show everything they led', async () => {
+    current.roles.push({
+      id: 9,
+      person_id: 1,
+      activity_id: 3,
+      event_id: 1,
+      leadership_type: 'assisting',
+      how_it_went: null,
+    });
+    current.roles.push({
+      id: 10,
+      person_id: 1,
+      activity_id: 3,
+      event_id: 2,
+      leadership_type: 'assisting',
+      how_it_went: null,
+    });
+    current.roles.push({
+      id: 11,
+      person_id: 1,
+      activity_id: 4,
+      event_id: 1,
+      leadership_type: 'solo',
+      how_it_went: null,
+    });
+    current.roles.push({
+      id: 12,
+      person_id: 1,
+      activity_id: 4,
+      event_id: 2,
+      leadership_type: 'partner',
+      how_it_went: null,
+    });
+    current.activities.push({ id: 3, name: 'Waltz', scope: 'class', type: 'Dancing', subtype: null });
+    current.activities.push({ id: 4, name: 'Foxtrot', scope: 'class', type: 'Dancing', subtype: null });
+    const c = await open();
+    const ana = [...c.querySelectorAll('li')].find((l) => l.textContent?.includes('Ana Expert'))!;
+    const summary = ana.querySelector('details summary')!;
+    expect(summary.textContent).toContain('What they have led (2 in Games, 4 in all)');
+    expect(ana.textContent).toContain('Games Class');
+    expect(ana.textContent).toContain('led once, last in 2025');
+    expect(ana.textContent).not.toContain('Waltz');
+    await click(buttonWithText(ana, 'Show all 4'));
+    expect(ana.textContent).toContain('Waltz');
+    expect(ana.textContent).toContain('Dancing');
+    expect(ana.textContent).toContain('helped 2 times, last in 2026');
+    expect(ana.textContent).toContain('Foxtrot');
+    expect(ana.textContent).toContain('led 2 times, last in 2026');
+    await click(buttonWithText(ana, 'Only Games'));
+    expect(ana.textContent).not.toContain('Waltz');
+  });
+
+  it('says so when someone has nothing in the type, and shows nothing for someone with no history', async () => {
+    const c = await open('#/staff?venue=camp-onas&type=Dancing');
+    await click(buttonWithText(c, 'Include hiatus and inactive'));
+    const cy = [...c.querySelectorAll('li')].find((l) => l.textContent?.includes('Cy Away'))!;
+    expect(cy.querySelector('details')!.textContent).toContain('Nothing in Dancing');
+    await cleanup();
+    current.roles = [];
+    const d = await open();
+    expect(d.querySelector('li details')).toBeNull();
   });
 });
