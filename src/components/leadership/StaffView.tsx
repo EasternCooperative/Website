@@ -45,7 +45,6 @@ export function briefToQuery(b: Brief): string {
 
 const SEGMENT_HINT: Record<SegmentKey, string> = {
   experience: 'Times they led this type',
-  readiness: 'A note that they are ready to lead this',
   availability: 'Active, on hiatus, or inactive; mentors a little higher',
   nearness: 'Led at this venue, or lives close',
   timing: 'Led near this time of year',
@@ -53,7 +52,7 @@ const SEGMENT_HINT: Record<SegmentKey, string> = {
 
 function FitBars({ c }: { c: Candidate }) {
   return (
-    <dl className="mt-2 grid grid-cols-5 gap-x-2 gap-y-1">
+    <dl className="mt-2 grid grid-cols-4 gap-x-2 gap-y-1">
       {c.segments.map((s) => (
         <div key={s.key} title={SEGMENT_HINT[s.key]}>
           <dt className="text-[0.7rem] uppercase tracking-wide text-muted">

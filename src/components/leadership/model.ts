@@ -889,7 +889,6 @@ export function journeyEvidence(row: JourneyRow): string {
 /** The five parts of a staffing fit, as they are named on screen. */
 export const SEGMENT_NAMES = {
   experience: 'Experience',
-  readiness: 'Interest',
   availability: 'Available',
   nearness: 'Near',
   timing: 'Timing',

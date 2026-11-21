@@ -168,35 +168,6 @@ describe('candidatesFor', () => {
     expect(helpedBo.value).toBeLessThan(ana.value);
   });
 
-  it('matches a ready-for note to the slot, and says so for a different one', () => {
-    expect(seg('Bo Newer', 'readiness')).toEqual({
-      key: 'readiness',
-      value: 1,
-      detail: 'Said they are ready to lead games class',
-    });
-    expect(seg('Gus Nobody', 'readiness')).toEqual({
-      key: 'readiness',
-      value: 0.3,
-      detail: 'Said they are ready for puppets',
-    });
-    expect(seg('Ana Expert', 'readiness')).toEqual({ key: 'readiness', value: 0, detail: '' });
-  });
-
-  it('copes with a ready note that has no focus', () => {
-    const away = candidatesFor(
-      data,
-      brief,
-      DEFAULT_STAFF_WEIGHTS,
-      { ...DEFAULT_STAFF_FILTERS, includeAway: true },
-      '2026-11-20'
-    );
-    expect(away.find((c) => c.person.name === 'Cy Away')!.segments[1]).toEqual({
-      key: 'readiness',
-      value: 0.3,
-      detail: 'Said they are ready for something else',
-    });
-  });
-
   it('reads availability from status, with mentors a little higher', () => {
     expect(seg('Ana Expert', 'availability')).toEqual({ key: 'availability', value: 1, detail: 'Mentor' });
     const away = candidatesFor(
@@ -206,11 +177,11 @@ describe('candidatesFor', () => {
       { ...DEFAULT_STAFF_FILTERS, includeAway: true },
       '2026-11-20'
     );
-    expect(away.find((c) => c.person.name === 'Cy Away')!.segments[2]).toMatchObject({
+    expect(away.find((c) => c.person.name === 'Cy Away')!.segments[1]).toMatchObject({
       value: 0.3,
       detail: 'On hiatus',
     });
-    expect(away.find((c) => c.person.name === 'Di Gone')!.segments[2]).toMatchObject({
+    expect(away.find((c) => c.person.name === 'Di Gone')!.segments[1]).toMatchObject({
       value: 0.1,
       detail: 'Inactive',
     });
@@ -220,7 +191,7 @@ describe('candidatesFor', () => {
     expect(seg('Ana Expert', 'nearness')).toMatchObject({ value: 1 / 3, detail: 'Led here 1 time' });
     expect(seg('Ana Expert', 'timing')).toMatchObject({ value: 1 / 3, detail: 'Led 1 time near this time of year' });
     const withMiles = run(brief, DEFAULT_STAFF_FILTERS, new Map([[7, 30]]));
-    expect(withMiles.find((c) => c.person.name === 'Gus Nobody')!.segments[3]).toMatchObject({
+    expect(withMiles.find((c) => c.person.name === 'Gus Nobody')!.segments[2]).toMatchObject({
       value: 0.8,
       detail: 'About 30 miles away',
     });
@@ -232,7 +203,7 @@ describe('candidatesFor', () => {
       DEFAULT_STAFF_FILTERS,
       '2026-11-20'
     );
-    expect(winter.find((c) => c.person.name === 'Ana Expert')!.segments[4].detail).toBe(
+    expect(winter.find((c) => c.person.name === 'Ana Expert')!.segments[3].detail).toBe(
       'Led 1 time near this time of year'
     );
   });
@@ -284,7 +255,7 @@ describe('candidatesFor', () => {
   });
 
   it('zero weights do not divide by zero', () => {
-    const zero = { experience: 0, readiness: 0, availability: 0, nearness: 0, timing: 0 };
+    const zero = { experience: 0, availability: 0, nearness: 0, timing: 0 };
     expect(candidatesFor(data, brief, zero, DEFAULT_STAFF_FILTERS, '2026-11-20')[0].total).toBe(0);
   });
 });
@@ -329,9 +300,9 @@ describe('distance', () => {
       candidatesFor(located, brief, DEFAULT_STAFF_WEIGHTS, f, '2026-11-20', miles);
     const ana = run2().find((c) => c.person.name === 'Ana Expert')!;
     expect(ana.place).toBe('Ottsville, PA');
-    expect(ana.segments[3].detail).toBe('About 0 miles away (Ottsville), Led here 1 time');
-    expect(ana.segments[3].value).toBeGreaterThan(0.9);
-    expect(run2().find((c) => c.person.name === 'Bo Newer')!.segments[3].detail).toMatch(
+    expect(ana.segments[2].detail).toBe('About 0 miles away (Ottsville), Led here 1 time');
+    expect(ana.segments[2].value).toBeGreaterThan(0.9);
+    expect(run2().find((c) => c.person.name === 'Bo Newer')!.segments[2].detail).toMatch(
       /About 2\d\d miles away \(Boston\)/
     );
     const within = run2({ ...DEFAULT_STAFF_FILTERS, maxMiles: 50 }).map((c) => c.person.name);
@@ -398,7 +369,7 @@ describe('expert marks and a long record', () => {
     const order = candidatesFor(
       tie,
       brief,
-      { experience: 4, readiness: 0, availability: 0, nearness: 0, timing: 0 },
+      { experience: 4, availability: 0, nearness: 0, timing: 0 },
       DEFAULT_STAFF_FILTERS,
       '2026-11-20'
     ).map((c) => c.person.name);
@@ -414,8 +385,8 @@ describe('expert marks and a long record', () => {
     };
     const r = candidatesFor(data, b, DEFAULT_STAFF_WEIGHTS, DEFAULT_STAFF_FILTERS, '2026-11-20');
     const ana = r.find((c) => c.person.name === 'Ana Expert')!;
-    expect(ana.segments[3].detail).toBe('Led here 1 time');
-    expect(ana.segments[4].detail).toBe('Led 1 time near this time of year');
+    expect(ana.segments[2].detail).toBe('Led here 1 time');
+    expect(ana.segments[3].detail).toBe('Led 1 time near this time of year');
     expect(ana.ask).toBeNull();
   });
 });
