@@ -15,15 +15,24 @@ import UsersView, { LEVEL_LABELS } from './UsersView';
 import PersonPanel from './PersonPanel';
 import { DEFAULT_FILTERS, buildRows, type Data, type Filters, type SortKey, type View } from './model';
 
-// The main tabs, in the order people reach for them, then the admin-only views.
-const MAIN_VIEWS: { id: View; label: string }[] = [
+// Two kinds of screen. Work views answer questions (who could lead, who is moving up, who to ask).
+// Record views are where history gets entered and corrected. They sit apart so they are never
+// mistaken for each other. The admin-only views follow.
+const WORK_VIEWS: { id: View; label: string }[] = [
   { id: 'staff', label: 'Staff an event' },
   { id: 'journey', label: 'Journey' },
   { id: 'people', label: 'People' },
   { id: 'lists', label: 'Outreach' },
+];
+const RECORD_VIEWS: { id: View; label: string }[] = [
   { id: 'events', label: 'Events' },
   { id: 'activities', label: 'Activities' },
 ];
+const MAIN_VIEWS = [...WORK_VIEWS, ...RECORD_VIEWS];
+const tabClass = (on: boolean) =>
+  `-mb-px border-b-2 px-4 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-primary ${
+    on ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-default'
+  }`;
 const NO_VIEWS: { id: View; label: string }[] = [];
 const ADMIN_VIEWS: { id: View; label: string }[] = [
   { id: 'duplicates', label: 'Duplicates' },
@@ -108,9 +117,9 @@ export default function LeadershipApp() {
     <section className="py-10 px-4 max-w-[96rem] mx-auto">
       <h1 className="font-heading text-heading text-3xl font-bold mb-1">Engagement</h1>
       <p className="text-muted mb-6 max-w-prose">
-        Who has come, given, led, and served, and who to ask next. Add people, events, and activities as they come up,
-        and record who led what. Open a person to set availability and write readiness notes. Private to the board and
-        leadership team.
+        Who has come, given, led, and served, and who to ask next. The tabs on the left answer questions. Records, on
+        the right, is where people, events, and activities are added and who led what is entered. Private to the board
+        and leadership team.
         {data?.me && (
           <span className="mt-1 block text-xs">
             Signed in as {data.me}
@@ -128,21 +137,49 @@ export default function LeadershipApp() {
 
       {data && (
         <>
-          <div className="mb-5 flex items-end border-b border-gray-200 dark:border-gray-700">
-            <nav aria-label="Sections" className="flex min-w-0 flex-1 gap-1 overflow-x-auto whitespace-nowrap">
-              {MAIN_VIEWS.map((v) => (
+          <div className="mb-5 flex flex-wrap items-end gap-x-2 border-b border-gray-200 dark:border-gray-700">
+            <nav aria-label="Sections" className="flex min-w-0 flex-1 flex-wrap items-end gap-x-1">
+              <div className="flex gap-1 overflow-x-auto whitespace-nowrap">
+                {WORK_VIEWS.map((v) => (
+                  <button
+                    key={v.id}
+                    type="button"
+                    aria-current={view === v.id ? 'page' : undefined}
+                    onClick={() => setView(v.id)}
+                    className={tabClass(view === v.id)}
+                  >
+                    {v.label}
+                  </button>
+                ))}
+              </div>
+              <div
+                role="group"
+                aria-label="Records"
+                className="ml-auto flex items-center gap-1 whitespace-nowrap border-l border-gray-200 pl-3 dark:border-gray-700"
+              >
+                <span className="text-xs font-semibold uppercase tracking-wide text-muted">Records</span>
+                {RECORD_VIEWS.map((v) => (
+                  <button
+                    key={v.id}
+                    type="button"
+                    aria-current={view === v.id ? 'page' : undefined}
+                    onClick={() => setView(v.id)}
+                    className={tabClass(view === v.id)}
+                  >
+                    {v.label}
+                  </button>
+                ))}
                 <button
-                  key={v.id}
                   type="button"
-                  aria-current={view === v.id ? 'page' : undefined}
-                  onClick={() => setView(v.id)}
-                  className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-primary ${
-                    view === v.id ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-default'
-                  }`}
+                  onClick={() => {
+                    go('people');
+                    setSelectedState('new');
+                  }}
+                  className="mb-1 ml-1 rounded-full border border-primary px-3 py-1 text-sm font-medium text-primary focus-visible:outline-2 focus-visible:outline-primary"
                 >
-                  {v.label}
+                  Add a person
                 </button>
-              ))}
+              </div>
             </nav>
             {admin.length > 0 && (
               <AdminMenu label="Admin" items={admin} current={view} onSelect={(id) => setView(id as View)} />
@@ -162,7 +199,6 @@ export default function LeadershipApp() {
                   onSort={onSort}
                   selectedId={typeof selectedId === 'number' ? selectedId : null}
                   onSelect={setSelectedId}
-                  onAdd={() => setSelectedId('new')}
                 />
               }
               panel={
