@@ -5,6 +5,7 @@ import {
   CAT,
   ROOMS,
   CHUTES,
+  outline,
   CHUTE_CAT,
   MARBLE_COLORS,
   WEDGE,
@@ -173,54 +174,81 @@ export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, o
         ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
         const dark = document.documentElement.classList.contains('dark');
         ctx.clearRect(0, 0, WORLD.w, WORLD.h);
-        // Branch tints, so the split reads at a glance.
-        const tint = (x: number, y: number, ww: number, hh: number, rgb: string) => {
-          ctx.fillStyle = `rgba(${rgb},${dark ? 0.14 : 0.08})`;
-          ctx.fillRect(x, y, ww, hh);
-        };
-        for (const r of ROOMS.slice(0, 3)) tint(r.x0, r.y0, r.x1 - r.x0, r.floor - r.y0, TINT.trunk);
-        tint(BAY.x0, BAY.ceiling, WEDGE.left - BAY.x0, WEDGE.bottom - BAY.ceiling, TINT.teaching);
-        tint(WEDGE.right, BAY.ceiling, BAY.x1 - WEDGE.right, WEDGE.bottom - BAY.ceiling, TINT.service);
         const ink = dark ? '#e5e7eb' : '#374151';
-        for (const b of statics) {
-          ctx.beginPath();
-          b.vertices.forEach((v, i) => (i ? ctx.lineTo(v.x, v.y) : ctx.moveTo(v.x, v.y)));
-          ctx.closePath();
-          // Walls are solid gray; gates are pale; each chute wears its branch color.
-          ctx.fillStyle =
-            b.label === 'chute-teaching'
-              ? MARBLE_COLORS.teaching.recent
-              : b.label === 'chute-service'
-                ? MARBLE_COLORS.service.recent
-                : b.label === 'plank'
-                  ? dark
-                    ? 'rgba(229,231,235,.35)'
-                    : 'rgba(55,65,81,.3)'
-                  : dark
-                    ? '#9ca3af'
-                    : '#6b7280';
-          ctx.fill();
-        }
-        // The wedge is solid: fill between its two slopes.
+        const line = dark ? '#94a3b8' : '#64748b';
+        // Soft tints, so the split reads at a glance: the trunk, then one color per channel.
+        const wash = (rgb: string) => {
+          const g = ctx.createLinearGradient(0, 0, 0, WORLD.h);
+          g.addColorStop(0, `rgba(${rgb},${dark ? 0.2 : 0.12})`);
+          g.addColorStop(1, `rgba(${rgb},${dark ? 0.08 : 0.04})`);
+          return g;
+        };
+        const trunk = ROOMS.slice(0, 3);
         ctx.beginPath();
-        ctx.moveTo(WEDGE.apexX, WEDGE.apexY);
-        ctx.lineTo(WEDGE.right, WEDGE.shoulderY);
-        ctx.lineTo(WEDGE.left, WEDGE.shoulderY);
+        ctx.moveTo(trunk[0].x0, trunk[0].y0);
+        for (const r of trunk) {
+          ctx.lineTo(r.x0, r.shoulder);
+          ctx.lineTo(r.hole[0], r.floor);
+        }
+        for (const r of [...trunk].reverse()) {
+          ctx.lineTo(r.hole[1], r.floor);
+          ctx.lineTo(r.x1, r.shoulder);
+        }
+        ctx.lineTo(trunk[0].x1, trunk[0].y0);
         ctx.closePath();
-        ctx.fillStyle = dark ? '#9ca3af' : '#6b7280';
+        ctx.fillStyle = wash(TINT.trunk);
         ctx.fill();
-        // Marbles.
-        for (const { body, p } of bodies) {
+        ctx.fillStyle = wash(TINT.teaching);
+        ctx.fillRect(BAY.x0, BAY.ceiling, WEDGE.apexX - BAY.x0, WEDGE.bottom - BAY.ceiling);
+        ctx.fillStyle = wash(TINT.service);
+        ctx.fillRect(WEDGE.apexX, BAY.ceiling, BAY.x1 - WEDGE.apexX, WEDGE.bottom - BAY.ceiling);
+        // Gates: dashed, since marbles of their own chamber rest here and the rest fall through.
+        ctx.setLineDash([9, 7]);
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = dark ? 'rgba(229,231,235,.55)' : 'rgba(55,65,81,.45)';
+        for (const r of ROOMS.slice(0, 4)) {
           ctx.beginPath();
-          ctx.arc(body.position.x, body.position.y, radius, 0, Math.PI * 2);
+          ctx.moveTo(r.hole[0], r.floor);
+          ctx.lineTo(r.hole[1], r.floor);
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+        // The two sorting chutes, each in its branch color.
+        ctx.lineWidth = 6;
+        ctx.lineCap = 'round';
+        for (const branch of ['teaching', 'service'] as const) {
+          const [x1, y1, x2, y2] = CHUTES[branch];
+          ctx.strokeStyle = MARBLE_COLORS[branch].recent;
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+        }
+        // The outline: one unbroken line with rounded corners.
+        ctx.lineWidth = 7;
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = line;
+        ctx.beginPath();
+        outline().forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+        ctx.stroke();
+        // Marbles, each with a small highlight.
+        for (const { body, p } of bodies) {
+          const { x, y } = body.position;
+          ctx.beginPath();
+          ctx.arc(x, y, radius, 0, Math.PI * 2);
           ctx.fillStyle = colorFor(p);
           ctx.fill();
           const isSel = select.current === p.id;
-          if (p.alsoLed || isSel || hover.current === p.id) {
-            ctx.lineWidth = isSel || hover.current === p.id ? 2.5 : 1.5;
-            ctx.strokeStyle = isSel || hover.current === p.id ? (dark ? '#fff' : '#111827') : ink;
+          const isHover = hover.current === p.id;
+          if (p.alsoLed || isSel || isHover) {
+            ctx.lineWidth = isSel || isHover ? 2.5 : 1.5;
+            ctx.strokeStyle = isSel || isHover ? (dark ? '#fff' : '#111827') : ink;
             ctx.stroke();
           }
+          ctx.beginPath();
+          ctx.arc(x - radius * 0.3, y - radius * 0.3, radius * 0.3, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(255,255,255,.38)';
+          ctx.fill();
         }
         // Labels.
         const px = Math.max(15, 11 / scale); // keep labels readable on a narrow screen
@@ -229,7 +257,11 @@ export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, o
         ctx.textBaseline = 'top';
         for (const r of ROOMS) {
           ctx.textAlign = 'left';
-          ctx.fillText(`${r.label}  ${counts[r.chamber]}`, r.x0 + 10, r.y0 + 8);
+          const text = `${r.label}  ${counts[r.chamber]}`;
+          ctx.lineWidth = 4;
+          ctx.strokeStyle = dark ? 'rgba(24,24,27,.85)' : 'rgba(255,255,255,.85)';
+          ctx.strokeText(text, r.x0 + 14, r.y0 + 10);
+          ctx.fillText(text, r.x0 + 14, r.y0 + 10);
         }
         ctx.font = `700 ${Math.max(13, 10 / scale)}px system-ui, sans-serif`;
         ctx.textAlign = 'left';

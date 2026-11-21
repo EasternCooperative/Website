@@ -92,14 +92,14 @@ export const ROOMS: Room[] = [
     chamber: 'activity',
     label: 'Leads an activity',
     x0: 60,
-    x1: 300,
+    x1: 316,
     y0: 720,
     shoulder: 830,
     floor: 830,
-    hole: [60, 300],
+    hole: [60, 316],
   },
-  { chamber: 'class', label: 'Leads a class', x0: 60, x1: 300, y0: 830, shoulder: 940, floor: 940, hole: [60, 300] },
-  { chamber: 'serving', label: 'Serving now', x0: 340, x1: 580, y0: 720, shoulder: 940, floor: 940, hole: [340, 580] },
+  { chamber: 'class', label: 'Leads a class', x0: 60, x1: 316, y0: 830, shoulder: 940, floor: 940, hole: [60, 316] },
+  { chamber: 'serving', label: 'Serving now', x0: 324, x1: 580, y0: 720, shoulder: 940, floor: 940, hole: [324, 580] },
 ];
 
 /**
@@ -107,13 +107,28 @@ export const ROOMS: Room[] = [
  * sort them: each is solid only to one branch, so service marbles slide to the right and teaching
  * marbles to the left. A wedge under the crossing then keeps the two channels apart.
  */
-export const WEDGE = { apexX: 320, apexY: 690, shoulderY: 720, left: 300, right: 340, bottom: 940 };
+export const WEDGE = { apexX: 320, apexY: 700, shoulderY: 720, left: 314, right: 326, bottom: 940 };
 export const BAY = { x0: 60, x1: 580, ceiling: 565 };
 /** Chutes as [x1, y1, x2, y2], sloping down from the first point to the second. */
 export const CHUTES = {
   service: [235, 590, 365, 665],
   teaching: [405, 590, 275, 665],
 } as const;
+
+/**
+ * The funnel's outline as one unbroken line: down the left wall, narrowing through each gate, round
+ * the teaching channel, up and over the divider, round the service channel, and back up the right.
+ * Drawn from the same numbers the walls are built from.
+ */
+export function outline(): [number, number][] {
+  const trunk = ROOMS.slice(0, 3);
+  const left: [number, number][] = [[trunk[0].x0, trunk[0].y0]];
+  for (const r of trunk) left.push([r.x0, r.shoulder], [r.hole[0], r.floor]);
+  left.push([trunk[2].hole[0], BAY.ceiling], [BAY.x0, BAY.ceiling], [BAY.x0, WEDGE.bottom], [WEDGE.left, WEDGE.bottom]);
+  left.push([WEDGE.left, WEDGE.shoulderY]);
+  const right = left.map(([x, y]): [number, number] => [WORLD.w - x, y]).reverse();
+  return [...left, [WEDGE.apexX, WEDGE.apexY], ...right];
+}
 
 /**
  * Collision categories. A marble meets the walls, its own chamber's floor, and marbles bound for
