@@ -10,7 +10,9 @@ import {
   WORLD,
   ZONE,
   ZONE_DRAG,
+  ZONE_DRAG_X,
   LATEST_COMMIT,
+  cardFor,
   colorAt,
   mix,
   smoothstep,
@@ -21,6 +23,7 @@ import {
   marbleMask,
   marbleRadius,
   place,
+  rescue,
   roomAt,
   summary,
   tally,
@@ -64,6 +67,10 @@ export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, o
   const callbacks = useRef({ onSelect, onPickLane });
   callbacks.current = { onSelect, onPickLane };
   const [caption, setCaption] = useState('');
+  const [card, setCard] = useState<{ title: string; lines: string[]; left: number; top: number; width: number } | null>(
+    null
+  );
+  const rowOf = useMemo(() => new Map(people.map((r) => [r.person_id, r])), [people]);
   const placed = useMemo(
     () => people.map((r) => place(r, thisYear)).filter((p): p is Placed => p !== null),
     [people, thisYear]
@@ -104,10 +111,8 @@ export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, o
         );
       };
       for (const r of ROOMS.slice(0, 3)) {
-        seg('wall', r.x0, r.y0, r.x0, r.shoulder);
-        seg('wall', r.x1, r.y0, r.x1, r.shoulder);
-        seg('wall', r.x0, r.shoulder, r.hole[0], r.floor); // the funnel narrows to the gate
-        seg('wall', r.x1, r.shoulder, r.hole[1], r.floor);
+        seg('wall', r.x0, r.y0, r.hole[0], r.floor); // the cone narrows all the way to the gate
+        seg('wall', r.x1, r.y0, r.hole[1], r.floor);
       }
       // The bay under the trunk: a ceiling either side of the last gate, outer walls, the divider.
       const last = ROOMS[2];
@@ -184,12 +189,10 @@ export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, o
         ctx.beginPath();
         ctx.moveTo(trunk[0].x0, trunk[0].y0);
         for (const r of trunk) {
-          ctx.lineTo(r.x0, r.shoulder);
           ctx.lineTo(r.hole[0], r.floor);
         }
         for (const r of [...trunk].reverse()) {
           ctx.lineTo(r.hole[1], r.floor);
-          ctx.lineTo(r.x1, r.shoulder);
         }
         ctx.lineTo(trunk[0].x1, trunk[0].y0);
         ctx.closePath();
@@ -283,11 +286,17 @@ export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, o
       const steer = () => {
         for (const b of bodies) {
           const { x, y } = b.body.position;
+          const back = rescue(b.p.chamber, x, y);
+          if (back) {
+            Body.setPosition(b.body, back);
+            Body.setVelocity(b.body, { x: 0, y: 0 });
+            continue;
+          }
           const f = zoneForce(b.p.branch, x, zoneDepth(y), b.commit, b.wobble);
           if (f) Body.applyForce(b.body, b.body.position, { x: f * b.body.mass * 0.002, y: 0 });
           const depth = zoneDepth(y);
           if (depth > 0 && depth < 1 && b.p.branch !== 'trunk') {
-            Body.setVelocity(b.body, { x: b.body.velocity.x, y: b.body.velocity.y * ZONE_DRAG });
+            Body.setVelocity(b.body, { x: b.body.velocity.x * ZONE_DRAG_X, y: b.body.velocity.y * ZONE_DRAG });
           }
         }
       };
@@ -346,16 +355,30 @@ export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, o
     const x = (e.clientX - box.left) * k;
     const y = (e.clientY - box.top) * k;
     const l = live.current;
-    let best: { p: Placed; d: number } | null = null;
+    let best: { p: Placed; d: number; b: Matter.Body } | null = null;
     for (const b of l?.bodies ?? []) {
       const d = Math.hypot(b.body.position.x - x, b.body.position.y - y);
-      if (d <= (l as Live).radius + 5 && (!best || d < best.d)) best = { p: b.p, d };
+      if (d <= (l as Live).radius + 5 && (!best || d < best.d)) best = { p: b.p, d, b: b.body };
     }
-    return { x, y, marble: best?.p ?? null };
+    return { x, y, marble: best?.p ?? null, box, body: best?.b ?? null };
+  };
+
+  // The card floats over the marble: above it, or below when it is near the top, and kept inside the canvas.
+  const show = (e: { clientX: number; clientY: number }) => {
+    const { marble, box, body } = at(e);
+    if (!body) return setCard(null);
+    const scale = box.width / WORLD.w;
+    const row = rowOf.get((marble as Placed).id) as MarbleRow;
+    setCard({
+      ...cardFor(row, marble as Placed),
+      left: body.position.x * scale,
+      top: body.position.y * scale,
+      width: box.width,
+    });
   };
 
   return (
-    <div className="mx-auto max-w-xl">
+    <div className="relative mx-auto max-w-xl">
       <canvas
         ref={canvas}
         role="img"
@@ -368,18 +391,21 @@ export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, o
           if (next !== hover.current) {
             hover.current = next;
             setCaption(marble ? marble.name : '');
+            show(e);
             redraw.current();
           }
         }}
         onPointerLeave={() => {
           hover.current = null;
           setCaption('');
+          setCard(null);
           redraw.current();
         }}
         onClick={(e) => {
           const { x, y, marble } = at(e);
           if (marble) {
             setCaption(marble.name);
+            show(e);
             callbacks.current.onSelect(marble.id);
             return;
           }
@@ -387,6 +413,24 @@ export default function MarbleFunnel({ people, thisYear, selectedId, onSelect, o
           if (room) callbacks.current.onPickLane(room.chamber);
         }}
       />
+      {card && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute z-10 w-max max-w-[14rem] rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs shadow-lg dark:border-gray-600 dark:bg-gray-800"
+          style={{
+            left: Math.min(Math.max(card.left, 100), card.width - 100),
+            top: card.top,
+            transform: card.top < 110 ? 'translate(-50%, 16px)' : 'translate(-50%, calc(-100% - 12px))',
+          }}
+        >
+          <p className="text-sm font-semibold text-heading">{card.title}</p>
+          {card.lines.map((l) => (
+            <p key={l} className="text-muted">
+              {l}
+            </p>
+          ))}
+        </div>
+      )}
       <p aria-live="polite" className="mt-1 min-h-6 text-center text-sm text-muted">
         {caption || 'Hover or tap a marble for a name. Tap a chamber to jump to its list.'}
       </p>

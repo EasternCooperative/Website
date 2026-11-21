@@ -212,6 +212,8 @@ function Card({ row, open, onOpen, now }: { row: JourneyRow; open: boolean; onOp
   );
 }
 
+const MODE_KEY = 'engagement-journey-view';
+
 export default function JourneyView({
   data,
   selectedId,
@@ -236,7 +238,22 @@ export default function JourneyView({
   const [error, setError] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
   const [active, setActive] = useState<Lane | null>(null);
-  const [mode, setMode] = useState<'bars' | 'marbles'>('bars');
+  // Bars or the marble funnel: the choice is remembered on this device.
+  const [mode, setModeState] = useState<'bars' | 'marbles'>(() => {
+    try {
+      return window.localStorage.getItem(MODE_KEY) === 'marbles' ? 'marbles' : 'bars';
+    } catch {
+      return 'bars';
+    }
+  });
+  const setMode = (m: 'bars' | 'marbles') => {
+    setModeState(m);
+    try {
+      window.localStorage.setItem(MODE_KEY, m);
+    } catch {
+      // Private browsing or blocked storage: the choice just is not remembered.
+    }
+  };
   const [marbles, setMarbles] = useState<MarbleRow[] | null>(null);
   const refs = useRef<Partial<Record<Lane, HTMLElement | null>>>({});
   const key = query(q, toggles, year);
@@ -320,7 +337,7 @@ export default function JourneyView({
                         : 'border-gray-300 text-muted hover:text-default dark:border-gray-600'
                     }`}
                   >
-                    {m === 'bars' ? 'Bars' : 'Marbles'}
+                    {m === 'bars' ? 'Bars' : 'Funnel'}
                   </button>
                 ))}
               </div>

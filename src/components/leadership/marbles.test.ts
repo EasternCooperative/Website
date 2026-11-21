@@ -3,6 +3,7 @@ import {
   BRANCH_OF,
   CAT,
   CHAMBERS,
+  cardFor,
   LATEST_COMMIT,
   MARBLE_COLORS,
   ROOMS,
@@ -16,6 +17,7 @@ import {
   mix,
   outline,
   place,
+  rescue,
   roomAt,
   smoothstep,
   summary,
@@ -122,6 +124,29 @@ describe('the funnel', () => {
     );
     // Everyone has committed by the time the zone is mostly crossed.
     expect(LATEST_COMMIT).toBeLessThan(1);
+  });
+
+  it('puts a marble that has left the funnel back at the top of its own chamber', () => {
+    expect(rescue('class', 100, 900)).toBeNull();
+    expect(rescue('class', 868, 900)).toEqual({ x: 188, y: 844 });
+    expect(rescue('serving', 300, 76000)?.x).toBe(452);
+    expect(rescue('supporter', -5, 100)).not.toBeNull();
+  });
+
+  it('writes a hover card: where they are, what else we know, and a do-not-contact warning', () => {
+    const plain = row({ stage: 'class' });
+    expect(cardFor(plain, place(plain, 2026)!)).toEqual({
+      title: 'Person A',
+      lines: ['Leads a class', 'Last active in 2026'],
+    });
+    const busy = row({ stage: 'class', serving_now: 1, on_board_now: 1, last_active_year: null, do_not_contact: 1 });
+    expect(cardFor(busy, place(busy, 2026)!).lines).toEqual([
+      'Serving now',
+      'Has also led an activity or class',
+      'On the board now',
+      'No activity recorded',
+      'Do not contact',
+    ]);
   });
 
   it('mixes colors and blends the trunk from the two channels', () => {

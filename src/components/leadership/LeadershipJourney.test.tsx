@@ -101,6 +101,7 @@ let marblesFail = false;
 
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-11-20T12:00:00Z') });
+  window.localStorage.clear();
   queries = [];
   writes = [];
   person = rowOf();
@@ -417,7 +418,7 @@ describe('the marble funnel', () => {
     const c = await open();
     expect(c.querySelector('[data-testid="marbles"]')).toBeNull();
     expect(queries.some((q) => q.startsWith('marbles:'))).toBe(false);
-    await click(buttonWithText(c, 'Marbles'));
+    await click(buttonWithText(c, 'Funnel'));
     await settle();
     expect(c.querySelector('[data-testid="marbles"]')?.textContent).toContain('Person A');
     expect(c.textContent).toContain('The funnel splits below Volunteer');
@@ -433,10 +434,39 @@ describe('the marble funnel', () => {
     expect(c.querySelector('section[aria-label="Funnel"]')).not.toBeNull();
   });
 
+  it('remembers whether you chose the bars or the funnel', async () => {
+    let c = await open();
+    await click(buttonWithText(c, 'Funnel'));
+    await settle();
+    expect(window.localStorage.getItem('engagement-journey-view')).toBe('marbles');
+    await cleanup();
+    c = await open();
+    await settle();
+    expect(c.querySelector('[data-testid="marbles"]')).not.toBeNull(); // opened on the funnel
+    await click(buttonWithText(c, 'Bars'));
+    expect(window.localStorage.getItem('engagement-journey-view')).toBe('bars');
+    await cleanup();
+    c = await open();
+    expect(c.querySelector('[data-testid="marbles"]')).toBeNull();
+  });
+
+  it('still works when the browser will not store the choice', async () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('blocked');
+    });
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('blocked');
+    });
+    const c = await open();
+    await click(buttonWithText(c, 'Funnel'));
+    await settle();
+    expect(c.querySelector('[data-testid="marbles"]')).not.toBeNull();
+  });
+
   it('says so when the marbles cannot be loaded', async () => {
     marblesFail = true;
     const c = await open();
-    await click(buttonWithText(c, 'Marbles'));
+    await click(buttonWithText(c, 'Funnel'));
     await settle();
     expect(c.textContent).toContain('marbles broke');
   });

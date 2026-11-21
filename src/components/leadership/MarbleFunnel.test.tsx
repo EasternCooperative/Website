@@ -109,9 +109,12 @@ describe('MarbleFunnel', () => {
       }
     }
     expect(found).not.toBeNull();
+    expect(container.textContent).toContain('Last active in 2026'); // the hover card
+    expect(container.textContent).toContain('Supporter');
     expect(onSelect).toHaveBeenCalledWith(1);
     await pointer(canvas, 'pointerout', 0, 0);
     expect(container.textContent).toContain('Hover or tap a marble');
+    expect(container.textContent).not.toContain('Last active in 2026'); // the card left with the pointer
     await pointer(canvas, 'click', 10, 600); // a chamber with no marble under the pointer: nothing
     await pointer(canvas, 'click', 100, 770); // the Leads an activity chamber
     expect(onPickLane).toHaveBeenCalledWith('activity');
@@ -224,4 +227,36 @@ describe('MarbleFunnel', () => {
       else expect(y).toBeLessThan(600); // the trunk
     }
   }, 30000);
+
+  it('puts a marble that left the funnel back, and shows its card below it near the top', async () => {
+    reduce(false);
+    const frames: FrameRequestCallback[] = [];
+    vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => frames.push(cb));
+    vi.stubGlobal('cancelAnimationFrame', () => {});
+    const made: Matter.Body[] = [];
+    const add = Matter.Composite.add;
+    vi.spyOn(Matter.Composite, 'add').mockImplementation(((c: Matter.Composite, b: Matter.Body | Matter.Body[]) => {
+      for (const body of ([] as Matter.Body[]).concat(b)) if (body.circleRadius) made.push(body);
+      return add(c, b as Matter.Body);
+    }) as never);
+    const { container } = await render(
+      <MarbleFunnel people={people} thisYear={2026} selectedId={null} onSelect={() => {}} onPickLane={() => {}} />
+    );
+    await settle(6);
+    await act(async () => {
+      for (let n = 0; n < 3 && frames.length; n++) frames.shift()!(0);
+    });
+    // Just poured: still high in the funnel, so the card hangs below the marble.
+    const { x, y } = made[0].position;
+    await pointer(container.querySelector('canvas') as HTMLCanvasElement, 'pointermove', x, y);
+    const card = container.querySelector('div.pointer-events-none') as HTMLElement;
+    expect(card.style.transform).toContain('16px');
+    // Knocked out of the world: the next frame puts it back at the top of its chamber.
+    Matter.Body.setPosition(made[0], { x: 5000, y: 90000 });
+    await act(async () => {
+      frames.shift()!(0);
+    });
+    expect(made[0].position.y).toBeLessThan(1000); // back inside, at the top of its own chamber
+    expect(made[0].position.x).toBeLessThan(640);
+  });
 });
