@@ -22,10 +22,13 @@ import {
   STATUSES,
   STATUS_LABELS,
   groupByEvent,
+  mentoredRoles,
+  roleCompanions,
   roleHistory,
   summarizeByType,
   type Data,
   type Person,
+  type Role,
   type Service,
   type Status,
   type View,
@@ -79,6 +82,7 @@ export default function PersonPanel({ data, person, onChanged, onClose, goTo }: 
   const history = roleHistory(data, person.id);
   const byType = summarizeByType(history);
   const groups = groupByEvent(history);
+  const mentored = mentoredRoles(data, person.id);
   const services = (data.service ?? [])
     .filter((x) => x.person_id === person.id)
     .sort((x, y) => termKey(y).localeCompare(termKey(x)));
@@ -361,6 +365,22 @@ export default function PersonPanel({ data, person, onChanged, onClose, goTo }: 
         </ul>
       </Section>
 
+      {mentored.length > 0 && (
+        <Section title="Mentored">
+          <ul className="space-y-1 text-sm">
+            {mentored.map(({ role, activity, event, mentee }) => (
+              <li key={role.id}>
+                <span className="font-medium">{mentee.name}</span>{' '}
+                <span className="text-muted">
+                  on {activity.name}
+                  {event ? `, ${eventLabel(event)} ${event.year}` : ''}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
+
       <Section title="History">
         {addingRole ? (
           <div className="mb-4 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
@@ -409,6 +429,7 @@ export default function PersonPanel({ data, person, onChanged, onClose, goTo }: 
                                 {activity.subtype ? ` (${activity.subtype})` : ''}
                                 {activity.scope === 'activity' ? ', activity' : ''}
                               </span>
+                              <Companions data={data} role={role} />
                               {role.how_it_went && <span className="block text-xs">{role.how_it_went}</span>}
                             </span>
                           </span>
@@ -439,5 +460,18 @@ export default function PersonPanel({ data, person, onChanged, onClose, goTo }: 
         )}
       </Section>
     </PanelFrame>
+  );
+}
+
+/** Who shared an activity and who mentored it, so a pairing reads straight off the history. */
+function Companions({ data, role }: { data: Data; role: Role }) {
+  const { coLeaders, mentor } = roleCompanions(data, role);
+  if (!coLeaders.length && !mentor) return null;
+  return (
+    <span className="block text-xs text-muted">
+      {coLeaders.length > 0 && <>With {coLeaders.map((p) => p.name).join(', ')}</>}
+      {coLeaders.length > 0 && mentor && '. '}
+      {mentor && <>Mentored by {mentor.name}</>}
+    </span>
   );
 }

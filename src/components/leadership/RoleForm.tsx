@@ -61,6 +61,7 @@ export default function RoleForm({ data, personId, role, onChanged, onDone, goTo
   const [activityId, setActivityId] = useState(String(role?.activity_id ?? ''));
   const [type, setType] = useState<LeadershipType | ''>(role?.leadership_type ?? '');
   const [how, setHow] = useState(role?.how_it_went ?? '');
+  const [mentorId, setMentorId] = useState(String(role?.mentor_id ?? ''));
   const { busy, error, run } = useAction(onChanged);
 
   if (events.length === 0 || data.activities.length === 0) {
@@ -81,6 +82,10 @@ export default function RoleForm({ data, personId, role, onChanged, onDone, goTo
     );
   }
 
+  // People who offered to mentor come first. Nobody can mentor their own role.
+  const mentorChoices = [...data.people]
+    .filter((p) => p.id !== personId)
+    .sort((a, b) => b.mentor - a.mentor || a.name.localeCompare(b.name));
   const ready = eventId !== '' && activityId !== '' && type !== '';
   const onSubmit = async (e: SyntheticEvent) => {
     e.preventDefault();
@@ -91,6 +96,7 @@ export default function RoleForm({ data, personId, role, onChanged, onDone, goTo
       event_id: Number(eventId),
       leadership_type: type,
       how_it_went: how.trim() || null,
+      mentor_id: mentorId ? Number(mentorId) : null,
     };
     const { ok } = await run(async () => {
       try {
@@ -107,6 +113,7 @@ export default function RoleForm({ data, personId, role, onChanged, onDone, goTo
       setActivityId('');
       setType('');
       setHow('');
+      setMentorId('');
       onDone();
     }
   };
@@ -135,6 +142,17 @@ export default function RoleForm({ data, personId, role, onChanged, onDone, goTo
         options={ROLE_OPTIONS}
         onChange={setType}
       />
+      <Field label="Mentor or liaison for this one (optional)">
+        <select value={mentorId} onChange={(e) => setMentorId(e.target.value)} className={inputCls}>
+          <option value="">No one named</option>
+          {mentorChoices.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+              {p.mentor === 1 ? ' (mentor)' : ''}
+            </option>
+          ))}
+        </select>
+      </Field>
       <Field label="How it went (optional)">
         <textarea rows={2} value={how} onChange={(e) => setHow(e.target.value)} className={inputCls} />
       </Field>

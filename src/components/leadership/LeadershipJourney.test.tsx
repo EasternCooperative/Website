@@ -190,7 +190,7 @@ describe('the Journey view', () => {
     await click(buttonWithText(c, 'Mine'));
     await settle();
     expect(queries.at(-1)).toContain('mine=1');
-    await click(buttonWithText(c, 'Next step overdue'));
+    await click(buttonWithText(c, 'Next step date has passed'));
     await click(buttonWithText(c, 'Has a target'));
     await click(buttonWithText(c, 'Nothing in 3+ years'));
     await click(buttonWithText(c, 'Hide do not contact'));
@@ -318,7 +318,7 @@ describe('planning a next step', () => {
     current = board({ attendee: { people: [person], total: 1, limit: 12, offset: 0 } });
     const c = await open('#/journey/1');
     expect(c.textContent).toContain('Aiming: Join the board');
-    expect(c.textContent).toContain('overdue, 2026-11-01');
+    expect(c.textContent).toContain('date passed, 2026-11-01');
     expect(field(c, 'I am following up').checked).toBe(false);
     await click(buttonWithText(c, 'Save plan'));
     expect(writes.at(-1)!.body).toMatchObject({ owner: 'someone@example.org', target: 'board' });

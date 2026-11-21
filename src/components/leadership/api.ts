@@ -76,6 +76,7 @@ export interface RoleInput {
   event_id: number;
   leadership_type: Role['leadership_type'];
   how_it_went: string | null;
+  mentor_id?: number | null;
   source?: string;
 }
 
