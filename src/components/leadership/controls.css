@@ -1,0 +1,46 @@
+/*
+ * What can be clicked in the Engagement tool. Tailwind's reset gives every button the
+ * default arrow, so the pointer is set here once for the whole tool. Colors and shapes
+ * stay with each control's own classes; this file only adds cursor, press, and focus.
+ */
+.engagement-app :is(button, summary, select, [role='button'], label:has(input[type='checkbox'], input[type='radio'])) {
+  cursor: pointer;
+}
+
+.engagement-app :is(button, select, input, textarea):disabled,
+.engagement-app label:has(:disabled) {
+  cursor: not-allowed;
+}
+
+.engagement-app button {
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease,
+    box-shadow 120ms ease,
+    transform 60ms ease;
+}
+
+/* A small press, so a click is felt. Off for people who ask for less motion. */
+.engagement-app button:not(:disabled):active {
+  transform: translateY(1px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .engagement-app button {
+    transition: none;
+  }
+  .engagement-app button:not(:disabled):active {
+    transform: none;
+  }
+}
+
+/* One focus ring for everything, visible on both themes. */
+.engagement-app :is(button, summary, select, input, textarea, a[href], [tabindex]):focus-visible {
+  outline: 2px solid var(--aw-color-primary);
+  outline-offset: 2px;
+}
+
+/* Text fields and selects answer the pointer before it clicks. */
+.engagement-app :is(select, input:not([type='checkbox'], [type='radio']), textarea):not(:disabled):hover {
+  border-color: color-mix(in srgb, var(--aw-color-text-default) 55%, transparent);
+}

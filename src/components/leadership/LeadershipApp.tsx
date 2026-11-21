@@ -1,9 +1,10 @@
+import './controls.css';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ApiError, loadAll } from './api';
 import Dashboard from './Dashboard';
 import ActivitiesView from './ActivitiesView';
 import EventsView from './EventsView';
-import { Split } from './forms';
+import { Split, tabCls } from './forms';
 import JourneyView from './JourneyView';
 import StaffView from './StaffView';
 import ListsView from './ListsView';
@@ -29,10 +30,6 @@ const RECORD_VIEWS: { id: View; label: string }[] = [
   { id: 'activities', label: 'Activities' },
 ];
 const MAIN_VIEWS = [...WORK_VIEWS, ...RECORD_VIEWS];
-const tabClass = (on: boolean) =>
-  `-mb-px border-b-2 px-4 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-primary ${
-    on ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-default'
-  }`;
 const NO_VIEWS: { id: View; label: string }[] = [];
 const ADMIN_VIEWS: { id: View; label: string }[] = [
   { id: 'duplicates', label: 'Duplicates' },
@@ -114,7 +111,7 @@ export default function LeadershipApp() {
     );
 
   return (
-    <section className="py-10 px-4 max-w-[96rem] mx-auto">
+    <section className="engagement-app py-10 px-4 max-w-[96rem] mx-auto">
       <h1 className="font-heading text-heading text-3xl font-bold mb-1">Engagement</h1>
       <p className="text-muted mb-6 max-w-prose">
         Who has come, given, led, and served, and who to ask next. The tabs on the left answer questions. Records, on
@@ -146,7 +143,7 @@ export default function LeadershipApp() {
                     type="button"
                     aria-current={view === v.id ? 'page' : undefined}
                     onClick={() => setView(v.id)}
-                    className={tabClass(view === v.id)}
+                    className={tabCls(view === v.id)}
                   >
                     {v.label}
                   </button>
@@ -155,7 +152,7 @@ export default function LeadershipApp() {
               <div
                 role="group"
                 aria-label="Records"
-                className="ml-auto flex items-center gap-1 whitespace-nowrap border-l border-gray-200 pl-3 dark:border-gray-700"
+                className="ml-auto flex max-w-full flex-wrap items-center gap-1 whitespace-nowrap sm:border-l sm:border-gray-200 sm:pl-3 sm:dark:border-gray-700"
               >
                 <span className="text-xs font-semibold uppercase tracking-wide text-muted">Records</span>
                 {RECORD_VIEWS.map((v) => (
@@ -164,7 +161,7 @@ export default function LeadershipApp() {
                     type="button"
                     aria-current={view === v.id ? 'page' : undefined}
                     onClick={() => setView(v.id)}
-                    className={tabClass(view === v.id)}
+                    className={tabCls(view === v.id)}
                   >
                     {v.label}
                   </button>
@@ -175,7 +172,7 @@ export default function LeadershipApp() {
                     go('people');
                     setSelectedState('new');
                   }}
-                  className="mb-1 ml-1 rounded-full border border-primary px-3 py-1 text-sm font-medium text-primary focus-visible:outline-2 focus-visible:outline-primary"
+                  className="mb-1 ml-1 rounded-full border border-primary px-3 py-1 text-sm font-medium text-primary hover:bg-primary/10"
                 >
                   Add a person
                 </button>

@@ -7,12 +7,22 @@ import { Icon } from './marks';
 
 export const inputCls =
   'w-full rounded-lg border border-gray-300 bg-transparent px-2.5 py-1.5 text-sm dark:border-gray-600 focus-visible:outline-2 focus-visible:outline-primary';
+// Buttons look like buttons: filled for the main action, outlined for the rest, and a
+// link you can see is a link before it is hovered. Every one darkens or fills on hover.
 export const primaryBtn =
-  'rounded-full bg-(--aw-color-primary-strong) px-4 py-1.5 text-sm font-medium text-white disabled:opacity-40';
+  'rounded-full bg-(--aw-color-primary-strong) px-4 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-[color-mix(in_srgb,var(--aw-color-primary-strong)_85%,black)] hover:shadow disabled:opacity-40 disabled:shadow-none';
 export const secondaryBtn =
-  'rounded-full border border-primary px-4 py-1.5 text-sm font-medium text-primary disabled:opacity-40';
-export const linkBtn = 'text-sm text-muted hover:text-default hover:underline disabled:opacity-40';
-export const dangerLink = 'text-sm text-muted hover:text-red-700 hover:underline dark:hover:text-red-300';
+  'rounded-full border border-primary px-4 py-1.5 text-sm font-medium text-primary hover:bg-primary/10 disabled:opacity-40 disabled:hover:bg-transparent';
+export const linkBtn =
+  'text-sm text-muted underline decoration-gray-400 underline-offset-2 hover:text-default hover:decoration-current disabled:opacity-40 dark:decoration-gray-500';
+export const dangerLink =
+  'text-sm text-muted underline decoration-gray-400 underline-offset-2 hover:text-red-700 hover:decoration-current dark:decoration-gray-500 dark:hover:text-red-300';
+export const tabCls = (on: boolean) =>
+  `-mb-px rounded-t-md border-b-2 px-4 py-2 text-sm font-medium ${
+    on
+      ? 'border-primary text-primary'
+      : 'border-transparent text-muted hover:border-gray-400 hover:bg-[color-mix(in_srgb,var(--aw-color-text-default)_6%,transparent)] hover:text-default'
+  }`;
 /** A faint wash that works on either theme. */
 export const surface = 'bg-[color-mix(in_srgb,var(--aw-color-text-default)_6%,var(--aw-color-bg-page))]';
 // Tailwind only sees whole class names, so the hover form is spelled out.
