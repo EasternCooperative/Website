@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { tabCls } from './forms';
 
 export interface MenuItem {
   id: string;
@@ -42,9 +43,7 @@ export default function AdminMenu({
         aria-expanded={open}
         aria-haspopup="true"
         onClick={() => setOpen(!open)}
-        className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-primary ${
-          active ? 'border-primary text-primary' : 'border-transparent text-muted hover:text-default'
-        }`}
+        className={tabCls(active)}
       >
         {label} <span aria-hidden="true">▾</span>
       </button>
