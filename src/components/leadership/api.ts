@@ -1,5 +1,6 @@
 // Client for /api/internal/engagement. Same-origin only: Cloudflare Access puts
 // the session cookie on these requests, and the Function checks the JWT.
+import type { MarbleRow } from './marbles';
 import type {
   AccessLevel,
   Activity,
@@ -179,6 +180,8 @@ export interface PlanInput {
   owner: string | null;
 }
 export const getJourney = (query: string) => request<JourneyBoard>(`/journey${query ? `?${query}` : ''}`);
+export const getJourneyMarbles = (query: string) =>
+  request<{ people: MarbleRow[] }>(`/journey/marbles${query ? `?${query}` : ''}`);
 export const getJourneyColumn = (query: string) => request<JourneyColumn>(`/journey?${query}`);
 export const getJourneyPerson = (id: number) => request<JourneyRow>(`/journey/${id}`);
 export const savePlan = (id: number, plan: PlanInput) => send<{ ok: true }>('PUT', `/journey/${id}`, plan);

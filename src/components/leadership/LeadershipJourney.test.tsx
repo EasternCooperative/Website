@@ -3,6 +3,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act } from 'react';
 import { buttonWithText, click, cleanup, render, settle, type } from '../../__tests__/react';
 import LeadershipApp from './LeadershipApp';
+
+// The canvas and physics are tested on their own; here it is a stand-in that reports what it was given.
+vi.mock('./MarbleFunnel', () => ({
+  default: (p: { people: { name: string }[]; onSelect: (id: number) => void; onPickLane: (l: string) => void }) => (
+    <div data-testid="marbles">
+      {p.people.map((x) => x.name).join(',')}
+      <button onClick={() => p.onSelect(1)}>marble</button>
+      <button onClick={() => p.onPickLane('class')}>chamber</button>
+    </div>
+  ),
+}));
 import { isOverdue, journeyEvidence, type Data, type JourneyBoard, type JourneyRow } from './model';
 
 // Placeholder names only.
@@ -86,6 +97,7 @@ let fail: string | null;
 let boardFails: boolean;
 let holdBoard: Promise<Response> | null;
 let columnFails: boolean;
+let marblesFail = false;
 
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-11-20T12:00:00Z') });
@@ -97,6 +109,7 @@ beforeEach(() => {
   boardFails = false;
   holdBoard = null;
   columnFails = false;
+  marblesFail = false;
   vi.stubGlobal(
     'fetch',
     vi.fn((url: string, init?: RequestInit) => {
@@ -111,6 +124,12 @@ beforeEach(() => {
         if (path.includes('stage='))
           return json({ people: [rowOf({ person_id: 9, name: 'Person Z' })], total: 3, limit: 12, offset: 1 });
         return json(current);
+      }
+      if (path.startsWith('/journey/marbles')) {
+        queries.push(`marbles:${path.split('?')[1] ?? ''}`);
+        return marblesFail
+          ? json({ error: 'marbles broke' }, 500)
+          : json({ people: [{ person_id: 1, name: 'Person A', stage: 'attendee' }] });
       }
       if (path === '/journey') {
         queries.push('');
@@ -390,5 +409,35 @@ describe('the journey on a person record', () => {
   it('stays hidden when it cannot load', async () => {
     const c = await open('#/people/404');
     expect(c.querySelector('section[aria-label="Journey"]')).toBeNull();
+  });
+});
+
+describe('the marble funnel', () => {
+  it('is off until asked for, then shows everyone, follows the filters, and opens a person', async () => {
+    const c = await open();
+    expect(c.querySelector('[data-testid="marbles"]')).toBeNull();
+    expect(queries.some((q) => q.startsWith('marbles:'))).toBe(false);
+    await click(buttonWithText(c, 'Marbles'));
+    await settle();
+    expect(c.querySelector('[data-testid="marbles"]')?.textContent).toContain('Person A');
+    expect(c.textContent).toContain('The funnel splits below Volunteer');
+    await click(buttonWithText(c, 'Mine'));
+    await settle();
+    expect(queries).toContain('marbles:mine=1&exclude_do_not_contact=1');
+    await click(buttonWithText(c, 'marble'));
+    await settle();
+    expect(window.location.hash).toBe('#/journey/1');
+    await click(buttonWithText(c, 'chamber')); // scrolls to the lane; nothing to assert beyond not failing
+    await click(buttonWithText(c, 'Bars'));
+    expect(c.querySelector('[data-testid="marbles"]')).toBeNull();
+    expect(c.querySelector('section[aria-label="Funnel"]')).not.toBeNull();
+  });
+
+  it('says so when the marbles cannot be loaded', async () => {
+    marblesFail = true;
+    const c = await open();
+    await click(buttonWithText(c, 'Marbles'));
+    await settle();
+    expect(c.textContent).toContain('marbles broke');
   });
 });

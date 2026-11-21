@@ -114,6 +114,40 @@ describe('the board', () => {
   });
 });
 
+describe('marbles', () => {
+  it('lists everyone with a stage or service, compactly, and follows the filters', async () => {
+    const { status, body } = await get('journey/marbles');
+    expect(status).toBe(200);
+    // Nobody (no stage, no service) is left out; everyone else is there.
+    expect(names(body.people).sort()).toEqual(
+      [
+        'Ann Attendee',
+        'Assist Ant',
+        'Act Leader',
+        'Bo Board',
+        'Cleo Class',
+        'Old Timer',
+        'Sup Porter',
+        'Vic Volunteer',
+      ].sort()
+    );
+    const bo = body.people.find((p: { name: string }) => p.name === 'Bo Board');
+    expect(bo).toMatchObject({ stage: 'attendee', serving_now: 1, on_board_now: 1 });
+    expect(Object.keys(bo).sort()).toEqual(
+      ['do_not_contact', 'last_active_year', 'name', 'on_board_now', 'person_id', 'serving_now', 'stage'].sort()
+    );
+    expect(names((await get('journey/marbles?q=ann')).body.people)).toEqual(['Ann Attendee']);
+    db.raw.exec("INSERT INTO outreach (person_id, goal, status) VALUES (2, 'invite_back', 'do_not_contact')");
+    expect(names((await get('journey/marbles?exclude_do_not_contact=1')).body.people)).not.toContain('Ann Attendee');
+  });
+
+  it('shows a standard user no figure', async () => {
+    const res = await call('journey/marbles', {}, 'std@example.org');
+    expect(res.status).toBe(200);
+    expect(await res.text()).not.toMatch(/424242|amount|cents/i);
+  });
+});
+
 describe('plans', () => {
   it('sets, replaces, reads, and clears a plan, with an audit stamp', async () => {
     expect(

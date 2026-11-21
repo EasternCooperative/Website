@@ -1,8 +1,18 @@
 import { useCallback, useEffect, useRef, useState, type SyntheticEvent } from 'react';
-import { ApiError, clearPlan, getJourney, getJourneyColumn, getJourneyPerson, savePlan } from './api';
+import {
+  ApiError,
+  clearPlan,
+  getJourney,
+  getJourneyColumn,
+  getJourneyMarbles,
+  getJourneyPerson,
+  savePlan,
+} from './api';
 import Funnel from './Funnel';
+import MarbleFunnel from './MarbleFunnel';
 import JourneyStrip from './JourneyStrip';
 import { ErrorNote, Field, PanelFrame, Split, inputCls, linkBtn, primaryBtn, useAction } from './forms';
+import type { MarbleRow } from './marbles';
 import { PersonTags } from './marks';
 import {
   JOURNEY_STAGES,
@@ -226,6 +236,8 @@ export default function JourneyView({
   const [error, setError] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
   const [active, setActive] = useState<Lane | null>(null);
+  const [mode, setMode] = useState<'bars' | 'marbles'>('bars');
+  const [marbles, setMarbles] = useState<MarbleRow[] | null>(null);
   const refs = useRef<Partial<Record<Lane, HTMLElement | null>>>({});
   const key = query(q, toggles, year);
 
@@ -248,6 +260,18 @@ export default function JourneyView({
       clearTimeout(t);
     };
   }, [key, version, q]);
+
+  // The marbles need everyone, not the first page of each column, so they are asked for apart.
+  useEffect(() => {
+    if (mode !== 'marbles') return;
+    let current = true;
+    getJourneyMarbles(key)
+      .then((r) => current && setMarbles(r.people))
+      .catch((e: ApiError) => current && setError(e.message));
+    return () => {
+      current = false;
+    };
+  }, [mode, key, version]);
 
   const more = async (lane: Lane) => {
     const col = (board as JourneyBoard).columns[lane];
@@ -283,7 +307,56 @@ export default function JourneyView({
           {!board && !error && <p className="text-sm text-muted">Loading…</p>}
           {board && (
             <>
-              <Funnel funnel={board.funnel} year={year} years={years} onYear={setYear} active={active} onPick={pick} />
+              <div role="group" aria-label="Funnel view" className="mb-2 flex gap-1">
+                {(['bars', 'marbles'] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    aria-pressed={mode === m}
+                    onClick={() => setMode(m)}
+                    className={`rounded-full border px-3 py-1 text-sm ${
+                      mode === m
+                        ? 'border-transparent bg-(--aw-color-primary-strong) text-white'
+                        : 'border-gray-300 text-muted hover:text-default dark:border-gray-600'
+                    }`}
+                  >
+                    {m === 'bars' ? 'Bars' : 'Marbles'}
+                  </button>
+                ))}
+              </div>
+              {mode === 'bars' && (
+                <Funnel
+                  funnel={board.funnel}
+                  year={year}
+                  years={years}
+                  onYear={setYear}
+                  active={active}
+                  onPick={pick}
+                />
+              )}
+              {mode === 'marbles' && (
+                <section
+                  aria-label="Marble funnel"
+                  className="mb-5 rounded-xl border border-gray-200 p-4 dark:border-gray-700"
+                >
+                  <p className="mb-3 max-w-prose text-sm text-muted">
+                    Each marble is a person, resting at the furthest step their records show. The funnel splits below
+                    Volunteer: teaching (activities and classes) one way, service (committee or board) the other.
+                    Someone serving now goes down the service side even if they have also led. The filters below apply
+                    here too.
+                  </p>
+                  {!marbles && <p className="text-sm text-muted">Loading…</p>}
+                  {marbles && (
+                    <MarbleFunnel
+                      people={marbles}
+                      thisYear={board.thisYear}
+                      selectedId={selectedId}
+                      onSelect={onSelect}
+                      onPickLane={(lane) => pick(lane)}
+                    />
+                  )}
+                </section>
+              )}
               <div className="mb-3 flex flex-wrap items-center gap-2">
                 <input
                   type="search"

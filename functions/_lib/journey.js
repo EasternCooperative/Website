@@ -66,6 +66,24 @@ const page = async (db, stage, params, actor, limit, offset) => {
 };
 
 /**
+ * Everyone on the board as a compact row, for the marble funnel. The columns are paged, so
+ * they cannot feed a picture of the whole membership. Same filters as the board. People with
+ * no stage and no service are left out, as they are from every column.
+ */
+export async function journeyMarbles(db, params, actor) {
+  const { where, bind } = filters(params, actor);
+  const all = ['(x.stage IS NOT NULL OR x.serving_now > 0)', ...where].join(' AND ');
+  const rows = await db
+    .prepare(
+      `SELECT x.person_id, x.name, x.stage, x.serving_now, x.on_board_now, x.last_active_year, x.do_not_contact
+       FROM (${BASE}) x WHERE ${all} ORDER BY x.person_id`
+    )
+    .bind(...bind)
+    .all();
+  return { people: rows.results };
+}
+
+/**
  * The whole board in one call: how many people have reached each stage (and how many
  * reached it in `year`), then the first few people in each column. With `stage=<name>`,
  * one column's next page instead.
