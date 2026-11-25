@@ -93,7 +93,7 @@ afterEach(async () => {
   await cleanup();
 });
 
-const open = async (hash = '#/staff?venue=camp-onas&scope=class&type=Games') => {
+const open = async (hash = '#/staff?venue=camp-onas&type=Games') => {
   window.history.replaceState(null, '', `/${hash}`);
   const c = await render(<LeadershipApp />);
   await settle();
@@ -115,16 +115,14 @@ describe('the brief in the address', () => {
     const full = {
       venue: 'camp-onas',
       date: '2026-12-20',
-      scope: 'class' as const,
       type: 'Games',
     };
-    const query = 'venue=camp-onas&date=2026-12-20&scope=class&type=Games';
+    const query = 'venue=camp-onas&date=2026-12-20&type=Games';
     expect(briefFromQuery(query)).toEqual(full);
     expect(briefToQuery(full)).toBe(query);
-    expect(briefFromQuery('scope=nonsense&event=2&date=soon')).toEqual({
+    expect(briefFromQuery('event=2&date=soon')).toEqual({
       venue: null,
       date: null,
-      scope: 'any',
       type: '',
     });
     expect(briefToQuery(briefFromQuery(''))).toBe('');
@@ -154,21 +152,13 @@ describe('Staff an event', () => {
     const c = await open();
     expect(names(c)).toEqual(['Ana Expert', 'Bo Newer']); // experience decides
     const text = c.textContent ?? '';
-    expect(text).toContain('Led Games 1 time, last in 2025');
+    expect(text).toContain('Led Games 2 times, last in 2026');
     expect(text).not.toContain('ready to lead');
     expect(c.textContent).not.toContain('Interest');
-    expect(text).toContain('Led here 1 time');
+    expect(text).toContain('Led here 2 times');
     expect(c.querySelector('label select option[value="__new"]')).not.toBeNull(); // a venue can be added
     expect(select(c, 'Where').value).toBe('camp-onas');
     expect(c.textContent).not.toContain('recurring');
-  });
-
-  it('narrows the kind, and shows the slot in words', async () => {
-    const c = await open('#/staff?venue=camp-onas&type=Games');
-    expect(c.textContent).not.toContain('Subtype');
-    await choose(select(c, 'Kind'), 'activity');
-    expect(window.location.hash).toContain('scope=activity');
-    expect(c.textContent).toContain('for Games activity at Camp Onas');
   });
 
   it('filters, includes people away, and edits the weights', async () => {
@@ -225,7 +215,7 @@ describe('the slate', () => {
         status: 'suggested',
         venue_id: 'camp-onas',
         plan_date: null,
-        slot: 'Games class',
+        slot: 'Games',
       },
     });
     current.outreach = [
@@ -238,7 +228,7 @@ describe('the slate', () => {
         snooze_until: null,
         note: null,
         venue_id: 'camp-onas',
-        slot: 'Games class',
+        slot: 'Games',
       },
     ];
     await cleanup();
@@ -258,7 +248,7 @@ describe('the slate', () => {
         snooze_until: null,
         note: null,
         venue_id: 'camp-onas',
-        slot: 'Games class',
+        slot: 'Games',
       },
       {
         id: 6,
@@ -269,7 +259,7 @@ describe('the slate', () => {
         snooze_until: null,
         note: null,
         venue_id: 'camp-onas',
-        slot: 'Games class',
+        slot: 'Games',
       },
       {
         id: 7,
@@ -280,7 +270,7 @@ describe('the slate', () => {
         snooze_until: null,
         note: null,
         venue_id: 'camp-onas',
-        slot: 'Games class',
+        slot: 'Games',
       },
       {
         id: 8,
@@ -291,7 +281,7 @@ describe('the slate', () => {
         snooze_until: null,
         note: null,
         venue_id: 'camp-onas',
-        slot: 'Games class',
+        slot: 'Games',
       },
       {
         id: 9,
@@ -302,18 +292,18 @@ describe('the slate', () => {
         snooze_until: null,
         note: null,
         venue_id: 'camp-onas',
-        slot: 'Dance class',
+        slot: 'Dance',
       }, // another slot
     ];
     const c = await open();
     const slate = c.querySelector('section[aria-label="Slate"]')!;
     expect(slate.textContent).toContain('Someone'); // a person no longer in the list
-    expect(slate.textContent).not.toContain('Dance class');
+    expect(slate.textContent).not.toContain('Dance');
     await click(buttonWithText(slate, 'Mark asked'));
     expect(writes.at(-1)).toMatchObject({
       path: '/outreach/5',
       method: 'PUT',
-      body: { status: 'contacted', contacted_on: '2026-11-20', slot: 'Games class' },
+      body: { status: 'contacted', contacted_on: '2026-11-20', slot: 'Games' },
     });
     await click(buttonWithText(slate, 'Said yes'));
     expect(writes.at(-1)).toMatchObject({
@@ -377,7 +367,7 @@ describe('odd data', () => {
         snooze_until: null,
         note: null,
         venue_id: 'camp-onas',
-        slot: 'Games class',
+        slot: 'Games',
       },
     ];
     const c = await open();
@@ -397,8 +387,8 @@ describe('odd data', () => {
       },
     ];
     const c = await open('#/staff?venue=unknown-place&type=Games');
-    expect([...select(c, 'Where').options].map((o) => o.textContent)).toContain('unknown-place');
-    expect(c.textContent).toContain('for Games at unknown-place');
+    expect([...select(c, 'Where').options].map((o) => o.textContent)).toContain('Unknown Place');
+    expect(c.textContent).toContain('for Games at Unknown Place');
     await cleanup();
     const d = await open('#/staff?type=Games');
     expect(d.textContent).toContain('Choose a venue and a type');
@@ -461,7 +451,6 @@ describe('planning for a venue', () => {
   const pickWatson = async (c: Element) => {
     await choose(select(c, 'Where'), 'the-y-at-watson-woods');
     await choose(select(c, 'Type'), 'Games');
-    await choose(select(c, 'Kind'), 'class');
   };
   const shortlistFirst = (c: Element) =>
     click([...c.querySelectorAll('button')].find((b) => b.textContent === 'Shortlist') ?? null);
@@ -476,7 +465,7 @@ describe('planning for a venue', () => {
     await pickWatson(c);
     expect(names(c).length).toBeGreaterThan(0);
     expect(c.textContent).not.toContain('calendar');
-    expect(window.location.hash).toBe('#/staff?venue=the-y-at-watson-woods&scope=class&type=Games');
+    expect(window.location.hash).toBe('#/staff?venue=the-y-at-watson-woods&type=Games');
   });
 
   it('shortlists by venue and slot, without creating an event', async () => {
@@ -493,7 +482,7 @@ describe('planning for a venue', () => {
         status: 'suggested',
         venue_id: 'the-y-at-watson-woods',
         plan_date: null,
-        slot: 'Games class',
+        slot: 'Games',
       },
     });
   });
@@ -510,7 +499,7 @@ describe('planning for a venue', () => {
         note: null,
         venue_id: 'the-y-at-watson-woods',
         plan_date: '2027-01-02',
-        slot: 'Games class',
+        slot: 'Games',
       },
       {
         id: 6,
@@ -522,7 +511,7 @@ describe('planning for a venue', () => {
         note: null,
         venue_id: 'the-y-at-watson-woods',
         plan_date: null,
-        slot: 'Games class',
+        slot: 'Games',
       },
     ];
     const c = await open('#/staff');

@@ -8,14 +8,11 @@ export interface Brief {
   /** Where, and optionally when. Staffing does not depend on how long the event runs. */
   venue: string | null;
   date: string | null;
-  /** 'any' means a class or an activity. */
-  scope: Scope | 'any';
   type: string;
 }
 export const EMPTY_BRIEF: Brief = {
   venue: null,
   date: null,
-  scope: 'any',
   type: '',
 };
 
@@ -109,10 +106,10 @@ const near = (a: string, b: string): boolean => {
 };
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
-export const slotLabel = (b: Brief): string => {
-  const kind = b.scope === 'class' ? ' class' : b.scope === 'activity' ? ' activity' : '';
-  return b.type ? `${b.type}${kind}` : '';
-};
+export const slotLabel = (b: Brief): string => b.type;
+
+/** Activities count for half of what a class does, whether someone led or helped. */
+const ACTIVITY_WEIGHT = 0.5;
 
 const LED = new Set(['solo', 'partner']);
 
@@ -185,13 +182,13 @@ export function candidatesFor(
       const a = activities.get(r.activity_id);
       const e = events.get(r.event_id);
       if (!a || !e) continue;
-      const sameType = a.type === brief.type && (brief.scope === 'any' || a.scope === brief.scope);
-      if (!sameType) continue;
+      if (a.type !== brief.type) continue;
+      const weight = a.scope === 'activity' ? ACTIVITY_WEIGHT : 1;
       if (LED.has(r.leadership_type)) {
         led++;
-        points += 1;
+        points += weight;
         lastLed = Math.max(lastLed, e.year);
-      } else points += 0.5;
+      } else points += weight / 2;
       if (event?.site_id && e.site_id === event.site_id) ledHere++;
       if (event?.start_date && e.start_date && near(e.start_date, event.start_date)) timing++;
     }
@@ -287,7 +284,7 @@ export interface Depth {
 }
 
 /** How many experienced, available leaders there are for each type, thinnest first. */
-export function benchDepth(data: Data, scope: Brief['scope'], today: string): Depth[] {
+export function benchDepth(data: Data, today: string): Depth[] {
   const year = Number(today.slice(0, 4));
   const activities = new Map(data.activities.map((a) => [a.id, a]));
   const events = new Map<number, EventRow>(data.events.map((e) => [e.id, e]));
@@ -296,7 +293,7 @@ export function benchDepth(data: Data, scope: Brief['scope'], today: string): De
   for (const r of data.roles) {
     const a = activities.get(r.activity_id);
     const e = events.get(r.event_id);
-    if (!a || !e || !LED.has(r.leadership_type) || (scope !== 'any' && a.scope !== scope)) continue;
+    if (!a || !e || !LED.has(r.leadership_type)) continue;
     const t = byType.get(a.type) ?? new Map<number, number>();
     t.set(r.person_id, Math.max(t.get(r.person_id) ?? 0, e.year));
     byType.set(a.type, t);

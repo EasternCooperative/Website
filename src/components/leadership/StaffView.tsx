@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { createOutreach, createVenue, deleteOutreach, markExpert, saveOutreach, unmarkExpert } from './api';
 import { ErrorNote, inputCls, linkBtn, secondaryBtn, useAction } from './forms';
 import { PersonTags } from './marks';
-import { SEGMENT_NAMES, type Data, type Outreach, type Scope, type View } from './model';
+import { SEGMENT_NAMES, type Data, type Outreach, type View } from './model';
 import { venueOptions } from './venues';
 import {
   DEFAULT_STAFF_FILTERS,
@@ -26,11 +26,9 @@ const today = () => new Date().toISOString().slice(0, 10);
 /** The address keeps the brief, so a staffing search can be shared or come back to. */
 export function briefFromQuery(query: string): Brief {
   const q = new URLSearchParams(query);
-  const scope = q.get('scope');
   return {
     venue: q.get('venue') || null,
     date: /^\d{4}-\d{2}-\d{2}$/.test(q.get('date') ?? '') ? q.get('date') : null,
-    scope: scope === 'class' || scope === 'activity' ? scope : 'any',
     type: q.get('type') ?? '',
   };
 }
@@ -38,7 +36,6 @@ export function briefToQuery(b: Brief): string {
   const q = new URLSearchParams();
   if (b.venue) q.set('venue', b.venue);
   if (b.date) q.set('date', b.date);
-  if (b.scope !== 'any') q.set('scope', b.scope);
   if (b.type) q.set('type', b.type);
   return q.toString();
 }
@@ -227,7 +224,7 @@ export default function StaffView({
     () => (ready ? candidatesFor(data, b, weights, filters, now, miles) : []),
     [data, b, weights, filters, now, ready, miles]
   );
-  const depth = useMemo(() => benchDepth(data, b.scope, now), [data, b.scope, now]);
+  const depth = useMemo(() => benchDepth(data, now), [data, now]);
   const asks = (data.outreach ?? []).filter(
     (o) => o.goal === 'staff_slot' && o.venue_id === b.venue && (o.plan_date ?? null) === b.date && o.slot === slot
   );
@@ -283,18 +280,6 @@ export default function StaffView({
         <label className="block">
           <span className="mb-1 block text-muted">When (optional)</span>
           <input type="date" value={b.date ?? ''} onChange={(e) => pickDate(e.target.value)} className={inputCls} />
-        </label>
-        <label className="block">
-          <span className="mb-1 block text-muted">Kind</span>
-          <select
-            value={b.scope}
-            onChange={(e) => set({ scope: e.target.value as Scope | 'any' })}
-            className={inputCls}
-          >
-            <option value="any">Class or activity</option>
-            <option value="class">Class</option>
-            <option value="activity">Activity</option>
-          </select>
         </label>
         <label className="block">
           <span className="mb-1 block text-muted">Type</span>
