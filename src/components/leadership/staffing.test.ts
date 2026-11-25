@@ -229,7 +229,18 @@ describe('candidatesFor', () => {
       '2026-11-20'
     );
     expect(none.every((c) => c.total >= 0)).toBe(true);
-    expect(none[0].segments.find((s) => s.key === 'timing')!.value).toBe(0);
+    expect(none[0].segments.map((s) => s.key)).toEqual(['experience', 'availability', 'nearness']);
+  });
+
+  it('leaves timing out of the score and the bars when there is no date', () => {
+    const dated = run().find((c) => c.person.name === 'Ana Expert')!;
+    const open = run({ ...brief, date: null }).find((c) => c.person.name === 'Ana Expert')!;
+    expect(dated.segments.map((s) => s.key)).toContain('timing');
+    expect(open.segments.map((s) => s.key)).toEqual(['experience', 'availability', 'nearness']);
+    const w = DEFAULT_STAFF_WEIGHTS;
+    const expected =
+      open.segments.reduce((n, s) => n + s.value * w[s.key], 0) / (w.experience + w.availability + w.nearness);
+    expect(open.total).toBe(Math.round(expected * 100));
   });
 
   it('copes with a role whose activity or event is missing', () => {

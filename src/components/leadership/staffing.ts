@@ -197,7 +197,7 @@ export function candidatesFor(
 
     const nearness = Math.max(Math.min(ledHere, 3) / 3, dist === undefined ? 0 : 1 - Math.min(dist, 150) / 150);
 
-    const segments: Segment[] = [
+    const all: Segment[] = [
       {
         key: 'experience',
         // Six times leading fills the bar, and an expert mark fills it whatever the records say.
@@ -239,7 +239,9 @@ export function candidatesFor(
         detail: timing ? `Led ${plural(timing, 'time', 'times')} near this time of year` : '',
       },
     ];
-    const sum = Object.values(weights).reduce((n, w) => n + w, 0) || 1;
+    // Without a date there is no time of year to match, so timing is neither scored nor shown.
+    const segments = brief.date ? all : all.filter((s) => s.key !== 'timing');
+    const sum = segments.reduce((n, s) => n + weights[s.key], 0) || 1;
     const total = Math.round((segments.reduce((n, s) => n + s.value * weights[s.key], 0) / sum) * 100);
     const lastContact = outreach
       .filter((o) => o.person_id === person.id && o.contacted_on && o.contacted_on >= recent)
