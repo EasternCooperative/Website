@@ -17,7 +17,19 @@ describe('venueOptions', () => {
       [{ id: 'my-place', name: 'Another Place', lat: 41, lng: -74 }],
       [ev(1, 'camp-onas'), ev(2, 'mystery'), ev(3, null)]
     );
-    expect(out.map((v) => v.name)).toEqual(['Another Place', 'Camp Onas', 'mystery']);
-    expect(out.find((v) => v.id === 'mystery')).toEqual({ id: 'mystery', name: 'mystery', lat: null, lng: null });
+    expect(out.map((v) => v.name)).toEqual(['Another Place', 'Camp Onas', 'Mystery']);
+    expect(out.find((v) => v.id === 'mystery')).toEqual({ id: 'mystery', name: 'Mystery', lat: null, lng: null });
+  });
+
+  it('reads an id as words, and sorts past a leading "The"', () => {
+    const out = venueOptions(
+      [
+        { id: 'a', name: 'The Y at Watson Woods', lat: 1, lng: 1 },
+        { id: 'b', name: 'Pendle Hill', lat: 1, lng: 1 },
+      ],
+      [],
+      [ev(1, 'stony-point-center')]
+    );
+    expect(out.map((v) => v.name)).toEqual(['Pendle Hill', 'Stony Point Center', 'The Y at Watson Woods']);
   });
 });
