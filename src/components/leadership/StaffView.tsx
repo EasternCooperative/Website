@@ -49,7 +49,7 @@ const SEGMENT_HINT: Record<SegmentKey, string> = {
 
 function FitBars({ c }: { c: Candidate }) {
   return (
-    <dl className="mt-2 grid grid-cols-4 gap-x-2 gap-y-1">
+    <dl className={`mt-2 grid ${c.segments.length === 4 ? 'grid-cols-4' : 'grid-cols-3'} gap-x-2 gap-y-1`}>
       {c.segments.map((s) => (
         <div key={s.key} title={SEGMENT_HINT[s.key]}>
           <dt className="text-[0.7rem] uppercase tracking-wide text-muted">
@@ -389,23 +389,25 @@ export default function StaffView({
               <details className="mb-3 text-sm">
                 <summary className="cursor-pointer text-muted">How the fit is worked out</summary>
                 <div className="mt-2 flex flex-wrap gap-x-5 gap-y-2">
-                  {(Object.keys(weights) as SegmentKey[]).map((k) => (
-                    <label key={k} className="block" title={SEGMENT_HINT[k]}>
-                      <span className="mb-1 block text-muted">{SEGMENT_NAMES[k]} weight</span>
-                      <input
-                        type="number"
-                        min={0}
-                        max={10}
-                        step={0.5}
-                        value={weights[k]}
-                        onChange={(e) => {
-                          const n = Number(e.target.value);
-                          if (n >= 0 && n <= 10) setWeights({ ...weights, [k]: n });
-                        }}
-                        className={`${inputCls} w-20`}
-                      />
-                    </label>
-                  ))}
+                  {(Object.keys(weights) as SegmentKey[])
+                    .filter((k) => k !== 'timing' || b.date)
+                    .map((k) => (
+                      <label key={k} className="block" title={SEGMENT_HINT[k]}>
+                        <span className="mb-1 block text-muted">{SEGMENT_NAMES[k]} weight</span>
+                        <input
+                          type="number"
+                          min={0}
+                          max={10}
+                          step={0.5}
+                          value={weights[k]}
+                          onChange={(e) => {
+                            const n = Number(e.target.value);
+                            if (n >= 0 && n <= 10) setWeights({ ...weights, [k]: n });
+                          }}
+                          className={`${inputCls} w-20`}
+                        />
+                      </label>
+                    ))}
                 </div>
                 <p className="mt-2 text-xs text-muted">
                   Each part is scored from 0 to 100 percent and weighted. The score only orders the list: nobody is left
